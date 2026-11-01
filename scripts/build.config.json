@@ -1,0 +1,17 @@
+{
+  "userAgent": "WildlifeExplorer-build/0.1 (family project; https://github.com/tcjabc/wildlifexplorer)",
+  "limit": 20,
+  "image": {
+    "maxSize": 1200,
+    "quality": 80,
+    "thumbSize": 480,
+    "thumbQuality": 72,
+    "minWidth": 600
+  },
+  "illustrationSearch": true,
+  "unlock": {
+    "start": "2026-11-01",
+    "initial": 12,
+    "everyDays": 1
+  }
+}
