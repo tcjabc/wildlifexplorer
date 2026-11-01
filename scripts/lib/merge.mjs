@@ -8,7 +8,7 @@
 
 export const BUILD_FIELDS = [
   'group', 'scientificName', 'name.en', 'name.zh', 'taiwan', 'status',
-  'taxonomy', 'wikidata', 'photo', 'illustration', 'silhouette', 'unlockDate',
+  'taxonomy', 'wikidata', 'photo', 'illustration', 'silhouette', 'mapBounds', 'rangePoints', 'unlockDate',
 ];
 
 const get = (obj, p) => p.split('.').reduce((o, k) => (o == null ? undefined : o[k]), obj);

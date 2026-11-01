@@ -1,30 +1,37 @@
 #!/usr/bin/env node
-// Draws assets/world.svg (an equirectangular land map used for the "where in the world"
-// maps) from Natural Earth's 1:110m land data, which is in the public domain.
-// Run once: node scripts/make-map.mjs. The output is committed.
-import { writeFile, mkdir } from 'node:fs/promises';
+// Draws assets/world.svg, the land shape used by every "where in the world" map, from
+// Natural Earth's 1:50m land data (public domain). Run once: node scripts/make-map.mjs.
+//
+// Coordinates are twentieths of a degree: x = longitude × 20, y = −latitude × 20, so a map can
+// zoom to any area just by setting its viewBox (see js/worldmap.js). The path has id="land"
+// and no fill of its own, so the app colours it from the design tokens.
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getJson, setUserAgent } from './lib/http.mjs';
-import { readFile } from 'node:fs/promises';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const SOURCE = 'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_land.geojson';
-
-// Must match MAP in js/worldmap.js.
-const MAP = { north: 84, south: -58, pxPerDegree: 2 };
-const W = 360 * MAP.pxPerDegree;
-const H = (MAP.north - MAP.south) * MAP.pxPerDegree;
+const SOURCE = 'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_land.geojson';
+const UNIT = 20;   // map units per degree (0.05° ≈ 5 km): smooth even zoomed in on Taiwan
 
 const cfg = JSON.parse(await readFile(path.join(ROOT, 'scripts/build.config.json'), 'utf8'));
 setUserAgent(cfg.userAgent);
 const geo = await getJson(SOURCE);
 
-const pt = ([lon, lat]) => [
-  ((lon + 180) * MAP.pxPerDegree).toFixed(1),
-  ((MAP.north - Math.max(MAP.south, Math.min(MAP.north, lat))) * MAP.pxPerDegree).toFixed(1),
-];
-const ring = coords => 'M' + coords.map(c => pt(c).join(' ')).join('L') + 'Z';
+// Integer points with relative moves ("l dx dy") keep the path short.
+function ring(coords) {
+  const pts = [];
+  for (const [lon, lat] of coords) {
+    const p = [Math.round(lon * UNIT), Math.round(-lat * UNIT)];
+    const prev = pts.at(-1);
+    if (!prev || prev[0] !== p[0] || prev[1] !== p[1]) pts.push(p);
+  }
+  if (pts.length < 3) return '';
+  const [first, ...rest] = pts;
+  let d = `M${first[0]} ${first[1]}l`, [x, y] = first;
+  d += rest.map(([px, py]) => { const s = `${px - x} ${py - y}`; x = px; y = py; return s; }).join(' ');
+  return d + 'z';
+}
 
 const parts = [];
 for (const f of geo.features) {
@@ -32,9 +39,9 @@ for (const f of geo.features) {
   for (const poly of polys) parts.push(poly.map(ring).join(''));
 }
 
-const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">
-<!-- Land: Natural Earth 1:110m (public domain), naturalearthdata.com -->
-<path fill="#000" fill-rule="evenodd" d="${parts.join('')}"/>
+const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-3600 -1680 7200 2840">
+<!-- Land: Natural Earth 1:50m (public domain), naturalearthdata.com. x = longitude × 20, y = −latitude × 20. -->
+<path id="land" fill-rule="evenodd" d="${parts.join('')}"/>
 </svg>
 `;
 await mkdir(path.join(ROOT, 'assets'), { recursive: true });

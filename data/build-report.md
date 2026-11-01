@@ -1,6 +1,6 @@
 # Build report
 
-Generated 2026-11-01 14:27 UTC. Re-written on every build.
+Generated 2026-11-01 15:07 UTC. Re-written on every build.
 
 ## Summary
 
@@ -23,10 +23,10 @@ Generated 2026-11-01 14:27 UTC. Re-written on every build.
 
 Written by Claude as a starting point. Check or rewrite it, then remove the field name from `_draft`.
 
-- Formosan Black Bear · 臺灣黑熊 (`formosan-black-bear`): facts, habitat, map, profile, stats, compare, lifeCycle
-- Formosan Rock Macaque · 臺灣獼猴 (`formosan-rock-macaque`): facts, habitat, map, profile, stats, compare, lifeCycle
+- Formosan Black Bear · 臺灣黑熊 (`formosan-black-bear`): facts, habitat, profile, stats, compare, lifeCycle
+- Formosan Rock Macaque · 臺灣獼猴 (`formosan-rock-macaque`): facts, habitat, profile, stats, compare, lifeCycle
 
 ## Notes
 
-- **Formosan Black Bear**: status VU is the parent species' IUCN status (no subspecies assessment); silhouette: downloaded from PhyloPic (CC0 1.0); silhouette is of a related animal (Selenarctos thibetanus)
-- **Formosan Rock Macaque**: silhouette: downloaded from PhyloPic (CC0 1.0); silhouette is of a related animal (Macaca mulatta)
+- **Formosan Black Bear**: status VU is the parent species' IUCN status (no subspecies assessment); silhouette is of a related animal (Selenarctos thibetanus); map range box from 164 GBIF records (too few CC0/CC BY ones; only the box is kept)
+- **Formosan Rock Macaque**: silhouette is of a related animal (Macaca mulatta); map range from 1652 CC0/CC BY GBIF records

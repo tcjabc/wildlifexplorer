@@ -8,6 +8,7 @@ const MIN_GAP_MS = {
   'api.inaturalist.org': 1100,
   'upload.wikimedia.org': 400,
   'api.phylopic.org': 500,
+  'api.gbif.org': 300,
   'images.phylopic.org': 300,
 };
 const lastHit = new Map();
@@ -30,7 +31,8 @@ export async function request(url, { tries = 5 } = {}) {
     await throttle(host);
     let res;
     try {
-      res = await fetch(url, { headers: { 'User-Agent': userAgent, 'Api-User-Agent': userAgent } });
+      // A server that never answers would otherwise stall the whole build.
+      res = await fetch(url, { headers: { 'User-Agent': userAgent, 'Api-User-Agent': userAgent }, signal: AbortSignal.timeout(30000) });
     } catch (err) {
       if (attempt >= tries) throw err;
       await sleep(2000 * attempt);
@@ -46,7 +48,11 @@ export async function request(url, { tries = 5 } = {}) {
 
 export async function getJson(url, params) {
   const u = new URL(url);
-  for (const [k, v] of Object.entries(params ?? {})) u.searchParams.set(k, v);
+  for (const [k, v] of Object.entries(params ?? {})) {
+    // An array value repeats the parameter (?a=1&a=2).
+    if (Array.isArray(v)) v.forEach(x => u.searchParams.append(k, x));
+    else u.searchParams.set(k, v);
+  }
   const res = await request(u.toString());
   const text = await res.text();
   try {

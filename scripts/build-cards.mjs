@@ -20,6 +20,7 @@ import { setUserAgent } from './lib/http.mjs';
 import { lookupSpecies } from './lib/wikidata.mjs';
 import { fileInfo, searchIllustrations } from './lib/commons.mjs';
 import { findSilhouette } from './lib/phylopic.mjs';
+import { findRange } from './lib/gbif.mjs';
 import { getBuffer } from './lib/http.mjs';
 import { findPhotos } from './lib/inaturalist.mjs';
 import { downloadImage, ensureThumb, shortHash, thumbPath } from './lib/images.mjs';
@@ -94,7 +95,7 @@ function blankCard(row) {
 }
 
 const KEY_ORDER = ['id', 'group', 'scientificName', 'name', 'facts', 'habitat', 'status', 'taiwan',
-  'photo', 'illustration', 'unlockDate', 'map', 'profile', 'stats', 'compare', 'lifeCycle', 'silhouette',
+  'photo', 'illustration', 'unlockDate', 'map', 'mapBounds', 'rangePoints', 'profile', 'stats', 'compare', 'lifeCycle', 'silhouette',
   'taxonomy', 'wikidata', 'locked', '_draft'];
 function orderKeys(card) {
   const out = {};
@@ -176,6 +177,20 @@ async function processSpecies(row, card, prevState, cfg, issues, notes) {
     values.silhouette = sil;
     const binomial = row.scientific_name.split(/\s+/).slice(0, 2).join(' ').toLowerCase();
     if (sil && !sil.taxon.toLowerCase().startsWith(binomial)) notes.push(`silhouette is of a related animal (${sil.taxon})`);
+  }
+
+  // Range map from GBIF records. A mapBounds with "manual": true is yours and never replaced.
+  if (wd?.gbifIds?.length && !card.mapBounds?.manual) {
+    const range = await findRange(wd.gbifIds);
+    if (range) {
+      values.mapBounds = range.bounds;
+      values.rangePoints = range.points;
+      notes.push(range.openOnly
+        ? `map range from ${range.records} CC0/CC BY GBIF records`
+        : `map range box from ${range.records} GBIF records (too few CC0/CC BY ones; only the box is kept)`);
+    } else {
+      issues.push('Not enough GBIF records with coordinates for a range map — add "mapBounds" by hand if you like');
+    }
   }
   return values;
 }
