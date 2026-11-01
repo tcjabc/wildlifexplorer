@@ -59,7 +59,7 @@ const pct = (v, lon, lat) => ({
 // fetched once and shared by every map that shows them.
 const RANGE_FILE = /^data\/ranges(-manual)?\/[a-z0-9-]+\.json$/;
 const ranges = new Map();
-function loadRange(file) {
+export function loadRange(file) {
   if (!RANGE_FILE.test(file ?? '')) return Promise.resolve(null);
   if (!ranges.has(file)) {
     ranges.set(file, fetch(file).then(r => (r.ok ? r.json() : null)).catch(() => null));
@@ -67,11 +67,16 @@ function loadRange(file) {
   return ranges.get(file);
 }
 
+// A range file's polygons: [[ [lon, lat]… ]…], first ring the outline, any others holes.
+export function rangePolygons(geo) {
+  const g = geo?.geometry ?? geo?.features?.[0]?.geometry;
+  if (!g) return [];
+  return g.type === 'Polygon' ? [g.coordinates] : g.type === 'MultiPolygon' ? g.coordinates : [];
+}
+
 // GeoJSON polygons → one SVG path in map units (holes cut out with evenodd).
 function rangePath(geo) {
-  const g = geo?.geometry ?? geo?.features?.[0]?.geometry;
-  if (!g) return '';
-  const polys = g.type === 'Polygon' ? [g.coordinates] : g.type === 'MultiPolygon' ? g.coordinates : [];
+  const polys = rangePolygons(geo);
   const pt = ([x, y]) => `${(x * UNIT).toFixed(1)} ${(-y * UNIT).toFixed(1)}`;
   return polys.map(rings => rings.map(ring => `M${ring.map(pt).join('L')}Z`).join('')).join('');
 }

@@ -12,14 +12,15 @@ import { stop } from './speech.js';
 import * as viewer from './viewer.js';
 
 import * as binder from './views/binder.js';
+import * as globe from './views/globe.js';
 import * as quiz from './views/quiz.js';
 import * as badges from './views/badges.js';
 import * as more from './views/more.js';
 import * as credits from './views/credits.js';
 
-const VIEWS = { binder, quiz, badges, more, credits };
+const VIEWS = { binder, globe, quiz, badges, more, credits };
 // Which bottom-nav item is highlighted for each view.
-const NAV_FOR = { binder: 'binder', quiz: 'quiz', badges: 'badges', more: 'more', credits: 'more' };
+const NAV_FOR = { binder: 'binder', globe: 'globe', quiz: 'quiz', badges: 'badges', more: 'more', credits: 'more' };
 
 const main = $('#main');
 const header = $('#header');

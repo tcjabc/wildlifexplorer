@@ -1,6 +1,7 @@
 {
   "app.title": "Wildlife Explorer",
   "nav.binder": "Binder",
+  "nav.globe": "Globe",
   "nav.quiz": "Quiz",
   "nav.badges": "Badges",
   "nav.more": "More",
@@ -156,5 +157,8 @@
   "more.weightKg": "Weight (kg)",
   "more.age": "Age",
   "more.youNote": "Only saved on this device. Leave blank for 120 cm, 23 kg, 6 years.",
-  "card.profileHint": "Tap a part to look closer"
+  "card.profileHint": "Tap a part to look closer",
+  "globe.hint": "Drag to spin · Pinch to zoom · Tap a picture",
+  "globe.empty": "Collect cards to put animals on the globe!",
+  "globe.openInBinder": "Open in binder"
 }

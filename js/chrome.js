@@ -4,6 +4,7 @@ import { tx, label, getMode } from './i18n.js';
 
 const NAV = [
   { view: 'binder', icon: '📒', key: 'nav.binder' },
+  { view: 'globe', icon: '🌏', key: 'nav.globe' },
   { view: 'quiz', icon: '🎯', key: 'nav.quiz' },
   { view: 'badges', icon: '🏅', key: 'nav.badges' },
   { view: 'more', icon: '⚙️', key: 'nav.more' },

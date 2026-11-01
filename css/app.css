@@ -159,6 +159,7 @@ html[data-lang="zh"] .bi--title > .t-zh { font-size: var(--fs-xxl) !important; }
   border-radius: var(--r-md);
 }
 .nav__item .bi { line-height: 1.15; }
+.nav__label { white-space: nowrap; }
 .nav__icon { font-size: var(--fs-lg); line-height: 1; transition: transform var(--t-med) var(--ease-bounce); }
 .nav__item.is-active { color: var(--c-primary-deep); background: var(--c-bg-deep); }
 .nav__item.is-active .nav__icon { transform: scale(1.15); }
@@ -179,6 +180,10 @@ html[data-lang="zh"] .bi--title > .t-zh { font-size: var(--fs-xxl) !important; }
 
 @media (max-width: 1100px) {
   .brand__name { display: none; }
+}
+@media (max-width: 900px) {
+  .nav__item { padding: var(--s-1) var(--s-2); gap: var(--s-1); }
+  .header { gap: var(--s-2); }
 }
 @media (max-width: 700px) {
   .nav__label { display: none; }
@@ -357,6 +362,75 @@ html[data-lang="zh"] .bi--title > .t-zh { font-size: var(--fs-xxl) !important; }
 }
 .medal--earned > span { filter: drop-shadow(0 3px 0 var(--c-shade)); opacity: 1; }
 .medal--huge { width: var(--size-medal-lg); height: var(--size-medal-lg); font-size: var(--emoji-xl); animation: pop-in var(--t-slow) var(--ease-bounce) both; }
+
+/* ---------- Globe ---------- */
+.main[data-view="globe"] { padding: 0; overflow: hidden; }
+.globe { position: relative; height: 100%; overflow: hidden; }
+.globe__stage {
+  position: absolute; inset: 0;
+  touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+  cursor: grab;
+}
+.globe__stage:active { cursor: grabbing; }
+.globe__canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.globe__pins { position: absolute; inset: 0; pointer-events: none; }
+.globe__hint {
+  position: absolute; left: var(--s-4); right: var(--s-4); bottom: calc(var(--s-4) + env(safe-area-inset-bottom));
+  width: fit-content; max-width: calc(100% - 2 * var(--s-4)); margin: 0 auto; padding: var(--s-2) var(--s-4);
+  border-radius: var(--r-pill); background: var(--c-veil); color: var(--c-ink-soft);
+  font-size: var(--fs-xs); font-weight: var(--fw-semi); text-align: center; pointer-events: none;
+}
+.globe__hint .bi { align-items: center; }
+
+/* Photo pins: placed by transform on every frame (views/globe.js). */
+.gpin {
+  position: absolute; left: 0; top: 0; width: var(--gpin); height: var(--gpin); padding: 0;
+  border: var(--bw-mid) solid var(--c-surface); border-radius: 50%;
+  background: var(--g); color: var(--g-ink);
+  box-shadow: 0 0 0 var(--bw-thin) var(--g), var(--shadow-2);
+  pointer-events: auto; cursor: pointer; will-change: transform;
+}
+.gpin.is-off { visibility: hidden; pointer-events: none; }
+.gpin__img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; pointer-events: none; }
+.gpin__emoji { display: grid; place-items: center; height: 100%; font-size: var(--fs-lg); }
+/* A stack: two more discs peeking out behind, and a count. */
+.gpin.is-stack {
+  box-shadow: 0 0 0 var(--bw-thin) var(--g),
+    var(--s-1) var(--s-1) 0 0 var(--c-surface), var(--s-1) var(--s-1) 0 var(--bw-thin) var(--g),
+    var(--s-2) var(--s-2) 0 0 var(--c-surface), var(--s-2) var(--s-2) 0 var(--bw-thin) var(--g),
+    var(--shadow-2);
+}
+.gpin__count {
+  position: absolute; top: calc(-1 * var(--s-3)); right: calc(-1 * var(--s-3));
+  display: none; place-items: center; min-width: var(--hotspot); height: var(--hotspot); padding: 0 var(--s-1);
+  border-radius: var(--r-pill); background: var(--c-accent); color: var(--c-on-accent);
+  font-size: var(--fs-xs); font-weight: var(--fw-bold); box-shadow: var(--shadow-1);
+}
+.gpin.is-stack .gpin__count { display: grid; }
+.gpin.is-selected { box-shadow: 0 0 0 var(--bw-thick) var(--g), var(--shadow-3); }
+
+/* The card sheet that opens from a pin. */
+.gsheet__scrim { position: absolute; inset: 0; z-index: 2; background: var(--c-shade); }
+.gsheet {
+  position: absolute; z-index: 3; left: 0; right: 0; bottom: 0; margin: 0 auto;
+  width: min(100%, var(--sheet-w)); max-height: calc(100% - var(--s-5));
+  display: flex; flex-direction: column; overflow: hidden;
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--c-surface); border-radius: var(--r-lg) var(--r-lg) 0 0; box-shadow: var(--shadow-3);
+  touch-action: none; outline: none;
+}
+.gsheet__grip {
+  position: absolute; z-index: 1; top: var(--s-2); left: 0; right: 0; margin: 0 auto;
+  width: var(--s-7); height: var(--s-1); border-radius: var(--r-pill); background: var(--c-veil);
+}
+.gsheet__close { position: absolute; z-index: 1; top: var(--s-2); right: var(--s-2); border-radius: 50%; background: var(--c-veil); }
+.gsheet__pic { flex: none; height: var(--gsheet-pic); background: var(--c-bg-deep); }
+.gsheet__body { display: flex; flex-direction: column; gap: var(--s-3); padding: var(--s-4) var(--s-5) var(--s-5); min-height: 0; }
+.gsheet__meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2) var(--s-3); color: var(--c-ink-soft); font-size: var(--fs-sm); font-weight: var(--fw-semi); }
+.gsheet__no { padding: var(--s-1) var(--s-3); border-radius: var(--r-pill); background: var(--g); color: var(--g-ink); font-weight: var(--fw-bold); }
+.gsheet__name { font-size: var(--fs-xl); line-height: 1.15; }
+.gsheet__fact { font-size: var(--fs-md); }
+.gsheet__open { align-self: flex-start; gap: var(--s-2); }
 
 /* ---------- Quiz ---------- */
 .choice-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(var(--choice-min), 1fr)); gap: var(--s-4); }

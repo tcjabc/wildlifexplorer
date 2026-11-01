@@ -1,6 +1,7 @@
 {
   "app.title": "野生動物探險家",
   "nav.binder": "收藏冊",
+  "nav.globe": "地球儀",
   "nav.quiz": "問答",
   "nav.badges": "徽章",
   "nav.more": "更多",
@@ -156,5 +157,8 @@
   "more.weightKg": "體重（公斤）",
   "more.age": "年齡",
   "more.youNote": "只存在這台裝置上。不填的話是 120 公分、23 公斤、6 歲。",
-  "card.profileHint": "點一下，放大來看"
+  "card.profileHint": "點一下，放大來看",
+  "globe.hint": "拖曳轉動・兩指縮放・點圖片看看",
+  "globe.empty": "收集卡片，把動物放上地球儀！",
+  "globe.openInBinder": "在收藏冊打開"
 }

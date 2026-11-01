@@ -31,6 +31,7 @@ data/build-state.json   the build's memory of what it wrote (don't edit; do comm
 data/build-report.md    what needs your attention after each build
 data/ranges/        range shapes made by the build (GeoJSON)
 data/ranges-manual/ range shapes you draw yourself (the build never touches these)
+data/locations.json Globe spots for World Explorer places and Prehistoric fossil sites
 img/, img/thumbs/   card pictures (WebP, max 1200 px) and 480 px thumbnails
 img/silhouettes/    animal silhouettes (SVG) for size comparisons
 icons/              app icons (made by `npm run icons`)
@@ -264,6 +265,21 @@ fields. Any you leave out are simply not shown, and a card with no inside fields
 
 The world map (`assets/world.svg`) is drawn from Natural Earth's 1:50m land (public domain) by
 `node scripts/make-map.mjs`. You only need to run that again if you want a different map.
+
+### Where a card sits on the Globe
+
+The Globe tab shows every collected card as a photo pin. The first of these that a card has wins:
+
+- **pin** `{ "lat": 23.5, "lng": 121 }`: your own spot, for any card.
+- **fossilSite** `{ "lat", "lng", "site" }`: Prehistoric cards, a famous fossil site.
+- **place** `{ "lat", "lng", "site" }`: World Explorer cards, the place itself.
+- **range**: species are pinned in the middle of their range shape (the biggest part of it).
+
+Cards with none of these (topics, most microscopic life) are left off. The build fills in
+`fossilSite` and `place` from `data/locations.json` (keyed by card id); like every build field,
+if you change them in `animals.json` your values are kept. The globe's land
+(`assets/globe.json`) is made by `node scripts/make-globe.mjs`: simplified coastlines for the
+whole-globe view, full 1:50m detail when zoomed in.
 
 In the app, children open a card by dragging the cover's right edge, like turning a page.
 Swipe up to turn the card over, and swipe down to put it back in the binder.
