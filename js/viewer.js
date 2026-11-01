@@ -4,6 +4,10 @@
 //   turns around the spine like a book (rotateY).
 // - Swipe up to turn the card over, swipe down to go back to the binder.
 // Every gesture follows the finger; on release a spring finishes or undoes it.
+//
+// Sharpness: the card is laid out at its real on-screen size with CSS zoom (never a small
+// card scaled up). While it moves it uses 3D transforms; at rest every transform comes off
+// and the cover / open spread / back is drawn flat, so text and photos stay crisp.
 import { h, mount, reducedMotion } from './dom.js';
 import { tx, t, label, getMode } from './i18n.js';
 import { cardsIn, isVisible, groupById, speechRate } from './store.js';
@@ -35,7 +39,8 @@ function buildBook(card, onCredit) {
     h('div', { class: 'face face--front' }, inside.el),
     h('div', { class: 'face face--back face--x' }, backPage(card)));
   const flipper = h('div', { class: 'flipper' }, base, leaf);
-  return { root: h('div', { class: 'card3d' }, flipper), flipper, leaf, inside };
+  const root = h('div', { class: 'card3d' }, flipper);
+  return { pos: h('div', { class: 'card-pos' }, root), root, flipper, leaf, inside };
 }
 
 // ---------- layout and drawing ----------
@@ -44,8 +49,10 @@ function measure() {
   const r = v.stage.getBoundingClientRect();
   const P = cssNum('--card-w'), H = cssNum('--card-h');
   const W = r.width, Hs = r.height;
-  const s0 = Math.min((W * 0.92) / P, (Hs * 0.9) / H);
-  const s1 = hasInside(v.card) ? Math.min((W * 0.96) / (2 * P), (Hs * 0.9) / H) : s0;
+  // Scales are rounded so the card's width is a whole number of pixels.
+  const whole = x => Math.floor(P * x) / P;
+  const s0 = whole(Math.min((W * 0.92) / P, (Hs * 0.9) / H));
+  const s1 = hasInside(v.card) ? whole(Math.min((W * 0.96) / (2 * P), (Hs * 0.9) / H)) : s0;
   v.L = { P, H, W, Hs, s0, s1, cx: W / 2, cy: Hs / 2, left: r.left, top: r.top };
   // Where the zoom starts: the tapped tile, or a small card in the middle.
   const from = v.fromEl?.isConnected ? v.fromEl.getBoundingClientRect() : null;
@@ -55,9 +62,18 @@ function measure() {
   v.zoomer.style.setProperty('transform-origin', `${v.L.cx}px ${v.L.cy}px`);
 }
 
+const at = (x, a) => Math.abs(x - a) < 1e-4;
+
+// At rest: nothing moving, fully zoomed in, and the card fully closed, open or turned over.
+function atRest() {
+  return !v.cancel && !v.zoomCancel && !v.dragging && at(v.z, 1)
+    && (at(v.p, 0) || at(v.p, 1)) && (at(v.f, 0) || at(v.f, 1));
+}
+
 function draw() {
   const { L, p, f, z, from } = v;
   const reduced = reducedMotion();
+  const rest = atRest();
 
   // Binder behind: grows faster than the card and blurs (parallax), unless motion is reduced.
   const bg = 1 - (1 - z) ** 2;
@@ -68,19 +84,40 @@ function draw() {
   v.scrim.style.setProperty('opacity', String(bg));
   v.chrome.forEach(el => el.style.setProperty('opacity', String(clamp((z - 0.6) / 0.4))));
 
-  // Card pose: the closed card is centred; the open spread is centred on the spine.
+  // The card's layout scale (CSS zoom) only changes at rest; while moving, a transform
+  // makes up the difference.
   const s = lerp(L.s0, L.s1, p);
+  if (rest || !v.zoom) v.zoom = s;
+  v.built.root.style.setProperty('zoom', String(v.zoom));
+
+  // Card pose: the closed card is centred; the open spread is centred on the spine.
   const x0 = L.cx - ((1 - p) * L.P * s) / 2;
   const y0 = L.cy - (L.H * s) / 2;
-  v.built.root.style.setProperty('transform', `translate(${x0}px, ${y0}px) scale(${s})`);
-  v.built.leaf.style.setProperty('transform', `translateZ(1px) rotateY(${-180 * p}deg)`);
-  v.built.flipper.style.setProperty('transform', `rotateX(${180 * f}deg)`);
+  const pos = v.built.pos;
+  v.stage.classList.toggle('is-3d', !rest);
+  v.built.root.classList.toggle('is-rest', rest);
+  if (rest) {
+    v.built.root.dataset.pose = f > 0.5 ? 'back' : p > 0.5 ? 'open' : 'front';
+    pos.style.setProperty('left', `${Math.round(x0)}px`);
+    pos.style.setProperty('top', `${Math.round(y0)}px`);
+    pos.style.removeProperty('transform');
+    ['transform'].forEach(k => { v.built.leaf.style.removeProperty(k); v.built.flipper.style.removeProperty(k); });
+  } else {
+    pos.style.setProperty('left', '0px');
+    pos.style.setProperty('top', '0px');
+    pos.style.setProperty('transform', `translate(${x0}px, ${y0}px) scale(${s / v.zoom})`);
+    // Springs overshoot a little; the rotation is clamped so the cover never dips behind the
+    // page it covers (the position still gets the bounce).
+    v.built.leaf.style.setProperty('transform', `translateZ(1px) rotateY(${-180 * clamp(p)}deg)`);
+    v.built.flipper.style.setProperty('transform', `rotateX(${180 * clamp(f)}deg)`);
+  }
   v.built.root.classList.toggle('is-flipped', f > 0.5);
   v.built.root.classList.toggle('is-open', p > 0.02);
 
-  // Zoom from the tile.
+  // Zoom from the tile: starts scaled down to the tile and grows to its real size (FLIP).
   const q = 1 - z;
   if (reduced) v.zoomer.style.setProperty('opacity', String(z));
+  else if (at(z, 1)) v.zoomer.style.removeProperty('transform');
   else v.zoomer.style.setProperty('transform', `translate(${(from.cx - L.cx) * q}px, ${(from.cy - L.cy) * q}px) scale(${lerp(1, from.k, q)})`);
 
   updateHint();
@@ -114,6 +151,7 @@ function settle(prop, target, velocity = 0, after) {
     onUpdate: x => { v[prop] = x; draw(); },
     onDone: () => {
       if (zoom) v.zoomCancel = null; else v.cancel = null;
+      draw();
       // The comparison animation plays as the card finishes opening.
       if (prop === 'p' && target === 1) v.built.inside.replay();
       after?.();
@@ -154,6 +192,7 @@ function wireGestures() {
       else if (v.f > DONE && axis === 'y' && dy > 0) mode = 'unflip';
       if (!mode) return false;
       base = { p: v.p, f: v.f, z: v.z };
+      v.dragging = true;
       return true;
     },
     move: ({ dx, dy }) => {
@@ -167,6 +206,7 @@ function wireGestures() {
       draw();
     },
     end: ({ dx, dy, vx, vy }) => {
+      v.dragging = false;
       const L = v.L;
       const turn = L.P * L.s0 * 1.4;
       if (mode === 'open' || mode === 'close') {
@@ -184,7 +224,7 @@ function wireGestures() {
       }
       mode = null;
     },
-    cancel: () => { mode = null; },
+    cancel: () => { mode = null; v.dragging = false; draw(); },
   });
 }
 
@@ -246,7 +286,8 @@ function buildBar(card) {
 function setCard(card) {
   v.card = card;
   v.built = buildBook(card, openCredits);
-  mount(v.zoomer, v.built.root);
+  mount(v.zoomer, v.built.pos);
+  v.zoom = 0;
   const bar = buildBar(card);
   v.bar.replaceWith(bar);
   v.bar = bar;
@@ -283,7 +324,7 @@ export function open(card, { fromEl, main, onDismiss } = {}) {
   v.onResize = () => { measure(); draw(); };
   window.addEventListener('resize', v.onResize);
 
-  v.zoomCancel = tween({ from: 0, to: 1, duration: 520, onUpdate: z => { v.z = z; draw(); }, onDone: () => { v.zoomCancel = null; } });
+  v.zoomCancel = tween({ from: 0, to: 1, duration: 520, onUpdate: z => { v.z = z; draw(); }, onDone: () => { v.zoomCancel = null; draw(); } });
 }
 
 // Show another card in the open viewer (‹ ›), with a quick cross-fade.

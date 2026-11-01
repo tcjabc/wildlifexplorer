@@ -99,7 +99,7 @@ async function openPack(ui, card, remaining) {
   cardEl.style.setProperty('height', `${cssNum('--card-h') * cardScale}px`);
   cardEl.style.setProperty('left', `${(W - cardW) / 2}px`);
   cardEl.style.setProperty('top', `${stripY * 0.6}px`);
-  inner.style.setProperty('transform', `scale(${cardScale})`);
+  inner.style.setProperty('zoom', String(cardScale)); // real size, so it stays sharp
   tear.setAttribute('viewBox', `0 0 ${W} ${H}`);
 
   // ---- 1. cut the strip ----
@@ -164,7 +164,11 @@ async function openPack(ui, card, remaining) {
   await wait(220);
 
   const pose = { x: 0, y: 0, r: 0, s: 1 };
-  const place = () => cardEl.style.setProperty('transform', `translate(${pose.x}px, ${pose.y}px) rotate(${pose.r}deg) scale(${pose.s})`);
+  // While moving the card uses a transform; at rest it has none, so it isn't drawn as a bitmap.
+  const place = () => {
+    if (!pose.x && !pose.y && !pose.r && pose.s === 1) cardEl.style.removeProperty('transform');
+    else cardEl.style.setProperty('transform', `translate(${pose.x}px, ${pose.y}px) rotate(${pose.r}deg) scale(${pose.s})`);
+  };
   const cardH = cssNum('--card-h') * cardScale;
   const topNow = stripY * 0.6;
   const centered = (H - cardH) / 2 - topNow;
@@ -174,7 +178,11 @@ async function openPack(ui, card, remaining) {
   cardEl.classList.add('is-out', 'is-shining');
   pack.classList.add('is-empty');
   // …then come forward, centred, while the empty pack drops away.
-  await new Promise(r => tween({ from: 0, to: 1, duration: 420, onUpdate: u => { pose.y = lerp(-H * 0.55, centered, u); pose.s = lerp(1, 1.12, u); place(); }, onDone: r }));
+  await new Promise(r => tween({ from: 0, to: 1, duration: 420, onUpdate: u => { pose.y = lerp(-H * 0.55, centered, u); place(); }, onDone: r }));
+  // Settle: move the resting position into top (a whole pixel) and drop the transform.
+  cardEl.style.setProperty('top', `${Math.round(topNow + pose.y)}px`);
+  pose.y = 0;
+  place();
   confetti(ui.el);
   const badge = await collect(card.id);
   actions.hidden = false;
@@ -221,7 +229,9 @@ async function openPack(ui, card, remaining) {
         // Not a flick: spring back to the middle.
         const start = { ...pose };
         cancel = spring({ from: 1, to: 0, velocity: 0, onUpdate: k => {
-          pose.x = lerp(rest.x, start.x, k); pose.y = lerp(rest.y, start.y, k); pose.r = start.r * k; place();
+          pose.x = lerp(rest.x, start.x, k); pose.y = lerp(rest.y, start.y, k); pose.r = start.r * k;
+          if (k === 0) { pose.x = 0; pose.y = 0; pose.r = 0; }
+          place();
         } });
       },
     });

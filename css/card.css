@@ -24,21 +24,26 @@
 .viewer__bar .btn--read.is-speaking { background: var(--c-accent); }
 .viewer__group, .viewer__no { font-weight: var(--fw-bold); }
 .viewer__group .bi { flex-direction: row; gap: 0.4em; }
-.viewer__stage { position: relative; flex: 1; min-height: 0; perspective: 1800px; overflow: hidden; }
-.viewer__zoomer { position: absolute; inset: 0; transform-style: preserve-3d; }
+.viewer__stage { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+.viewer__zoomer { position: absolute; inset: 0; }
+/* 3D only while the card moves (viewer.js adds .is-3d); at rest everything is flat. */
+.viewer__stage.is-3d { perspective: 1800px; }
+.viewer__stage.is-3d .viewer__zoomer, .viewer__stage.is-3d .card-pos { transform-style: preserve-3d; }
 .viewer__hint {
   position: relative; z-index: 2; min-height: var(--tap);
   padding: var(--s-2) var(--s-4) max(var(--s-4), env(safe-area-inset-bottom));
   color: var(--c-on-primary); font-weight: var(--fw-semi); text-align: center;
 }
 .viewer__hint .bi { align-items: center; }
-body:has(.viewer) .main { will-change: transform, filter; }
 
 /* ---------- 3D card ---------- */
+/* .card-pos places the card (left/top at rest, a transform while moving); .card3d is laid
+   out at design size and enlarged with CSS zoom, so it renders at real size. */
+.card-pos { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
 .card3d {
-  position: absolute; left: 0; top: 0;
+  position: relative;
   width: var(--card-w); height: var(--card-h);
-  transform-origin: 0 0; transform-style: preserve-3d;
+  transform-style: preserve-3d;
 }
 .flipper, .base, .leaf { position: absolute; transform-style: preserve-3d; }
 .flipper, .base, .leaf { inset: 0; }
@@ -53,6 +58,16 @@ body:has(.viewer) .main { will-change: transform, filter; }
 .face--x { transform: rotateX(180deg); }
 /* While turned over, only the back of the card should show. */
 .card3d.is-flipped .leaf { visibility: hidden; }
+
+/* At rest: no 3D. Only the faces you can see are shown, flat and untransformed. */
+.card3d.is-rest, .card3d.is-rest .flipper, .card3d.is-rest .base, .card3d.is-rest .leaf { transform-style: flat; }
+.card3d.is-rest .face { transform: none; backface-visibility: visible; -webkit-backface-visibility: visible; visibility: hidden; }
+.card3d.is-rest[data-pose="front"] .leaf > .face--front,
+.card3d.is-rest[data-pose="open"] .leaf > .face--back,
+.card3d.is-rest[data-pose="open"] .base > .face--front,
+.card3d.is-rest[data-pose="back"] .base > .face--back { visibility: visible; }
+/* Open: the cover lies flat to the left of the spine, inside facing up. */
+.card3d.is-rest[data-pose="open"] .leaf { inset: 0 100% 0 -100%; }
 
 .grab {
   position: absolute; right: 0; top: 50%;

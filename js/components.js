@@ -28,6 +28,10 @@ export function picture(card, { thumb = false, kind } = {}) {
   return h('img', {
     class: 'pic',
     src: thumb ? thumbOf(img.file) : img.file,
+    // Full-size pictures offer both sizes; the iPad's high-density screen picks the big one.
+    // (The build makes full images up to 1200 px and thumbnails up to 480 px.)
+    srcset: thumb ? null : `${thumbOf(img.file)} 480w, ${img.file} 1200w`,
+    sizes: thumb ? null : '(min-width: 700px) 600px, 100vw',
     alt: [card.name.en, card.name.zh].filter(Boolean).join(' '),
     decoding: 'async',
     loading: thumb ? 'lazy' : null,
@@ -84,7 +88,7 @@ export function handleImageErrors(root) {
     const img = e.target;
     if (!(img instanceof HTMLImageElement)) return;
     const fb = img.dataset.fallback;
-    if (fb) { img.dataset.fallback = ''; img.src = fb; } else img.classList.add('pic--broken');
+    if (fb) { img.dataset.fallback = ''; img.removeAttribute('srcset'); img.src = fb; } else img.classList.add('pic--broken');
   }, true);
 }
 

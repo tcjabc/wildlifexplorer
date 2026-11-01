@@ -10,6 +10,8 @@ import { bi, t, tx } from './i18n.js';
 import { state, groupById } from './store.js';
 import { haptic } from './gesture.js';
 
+const cssNum = name => parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
+
 export const CHILD_DEFAULT = { heightCm: 120, weightKg: 23, age: 6 };
 export const child = () => ({ ...CHILD_DEFAULT, ...(state.settings.child ?? {}) });
 
@@ -103,8 +105,8 @@ function lengthScene(card, run) {
     const ratio = pic.naturalHeight / pic.naturalWidth || 0.6;
     const w = card.compare?.width ?? (card.compare?.height ? card.compare.height / ratio : n.lengthCm);
     const tallest = Math.max(you.heightCm, w * ratio);
-    const avail = ground.clientHeight || 150;
-    const availW = (ground.clientWidth || 300) * 0.9;
+    const avail = cssNum('--compare-h');
+    const availW = cssNum('--card-w') * 0.8;
     const pxPerCm = Math.min(avail / tallest, availW / (w + you.heightCm * 0.4 + 10));
     kidImg.style.setProperty('height', `${you.heightCm * pxPerCm}px`);
     pic.style.setProperty('width', `${w * pxPerCm}px`);
