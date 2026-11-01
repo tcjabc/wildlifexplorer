@@ -36,6 +36,7 @@ const P = {
   cards: path.join(ROOT, 'data/animals.json'),
   state: path.join(ROOT, 'data/build-state.json'),
   report: path.join(ROOT, 'data/build-report.md'),
+  locations: path.join(ROOT, 'data/locations.json'),
   config: path.join(ROOT, 'scripts/build.config.json'),
 };
 
@@ -97,7 +98,7 @@ function blankCard(row) {
 }
 
 const KEY_ORDER = ['id', 'group', 'scientificName', 'name', 'facts', 'habitat', 'status', 'taiwan',
-  'photo', 'illustration', 'unlockDate', 'map', 'mapBounds', 'range', 'profile', 'stats', 'compare', 'lifeCycle', 'silhouette',
+  'photo', 'illustration', 'unlockDate', 'map', 'mapBounds', 'range', 'place', 'fossilSite', 'profile', 'stats', 'compare', 'lifeCycle', 'silhouette',
   'taxonomy', 'wikidata', 'locked', '_draft'];
 function orderKeys(card) {
   const out = {};
@@ -288,6 +289,7 @@ async function main() {
   const existing = await readJson(P.cards, []);
   const state = await readJson(P.state, {});
   const dates = unlockSchedule(rows, groups, cfg.unlock);
+  const locations = await readJson(P.locations, {}); // globe pins for places and fossils
 
   // Match existing cards by id, then scientific name, then Chinese name, so renaming
   // a card in the CSV doesn't lose the facts you wrote for it.
@@ -331,6 +333,9 @@ async function main() {
       scientificName: row.scientific_name || null,
     };
     if (row.name_zh) values['name.zh'] = row.name_zh;
+    const loc = locations[row.id] ?? locations[id];
+    if (loc?.place) values.place = loc.place;
+    if (loc?.fossilSite) values.fossilSite = loc.fossilSite;
 
     if (row.scientific_name && !args.offline) {
       try {
