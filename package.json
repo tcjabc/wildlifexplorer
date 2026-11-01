@@ -1,0 +1,16 @@
+{
+  "name": "wildlife-explorer",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Wildlife Explorer / 野生動物探險家 — a bilingual card-collecting PWA for kids",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build-cards.mjs",
+    "build:all": "node scripts/build-cards.mjs --all",
+    "icons": "node scripts/make-icons.mjs",
+    "serve": "node scripts/serve.mjs"
+  },
+  "devDependencies": {
+    "sharp": "^0.35.5"
+  }
+}
