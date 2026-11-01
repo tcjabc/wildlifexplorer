@@ -21,6 +21,7 @@ function imageUrls() {
   return state.cards.flatMap(c => [
     ...['photo', 'illustration'].map(k => c[k]?.file).filter(Boolean).flatMap(f => [f, thumbOf(f)]),
     ...(c.silhouette?.file ? [c.silhouette.file] : []),
+    ...(c.range ? [c.range] : []),
   ]);
 }
 

@@ -133,27 +133,30 @@
 .map { position: relative; width: 100%; aspect-ratio: 360 / 142; overflow: hidden; border-radius: var(--r-sm); background: var(--c-map-sea); }
 .map__svg { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
 .map__land { fill: var(--c-map-land); }
-.map__range { fill: var(--c-map-range); }
-.map__dots { position: absolute; inset: 0; pointer-events: none; }
-.map__pt {
-  position: absolute; width: var(--map-pt); height: var(--map-pt);
-  margin: calc(var(--map-pt) / -2) 0 0 calc(var(--map-pt) / -2);
-  border-radius: 50%; background: var(--c-map-spot); opacity: 0.7;
+.map__range {
+  fill: var(--g, var(--c-map-spot)); fill-opacity: 0.45;
+  stroke: var(--g-edge, var(--c-map-spot)); stroke-width: 1.2; stroke-linejoin: round;
 }
+.map__dots { position: absolute; inset: 0; pointer-events: none; }
 .map__spot {
   position: absolute; width: var(--spot); height: var(--spot);
   margin: calc(var(--spot) / -2) 0 0 calc(var(--spot) / -2);
   border-radius: 50%; background: var(--c-map-spot);
   box-shadow: 0 0 0 var(--bw-thin) var(--c-surface);
 }
-/* Zoomed-in maps: a little world in the corner, with a box around the area shown. */
+/* Zoomed-in maps: a little world in the corner, with a filled marker where the range is. */
 .map__inset {
   position: absolute; right: var(--s-1); bottom: var(--s-1);
   width: 34%; aspect-ratio: 360 / 142; overflow: hidden;
   border-radius: var(--s-1); background: var(--c-map-sea);
   box-shadow: 0 0 0 var(--bw-thin) var(--c-surface), var(--shadow-1);
 }
-.map__box { fill: none; stroke: var(--c-map-spot); stroke-width: 1.5; }
+.map__marker {
+  position: absolute; width: var(--map-marker); height: var(--map-marker);
+  margin: calc(var(--map-marker) / -2) 0 0 calc(var(--map-marker) / -2);
+  border-radius: 50%; background: var(--g, var(--c-map-spot));
+  box-shadow: 0 0 0 var(--bw-thin) var(--c-surface);
+}
 
 /* Profile: small, quiet hotspots so the photo stays the star. */
 .profile__pic { position: relative; flex: none; border-radius: var(--r-sm); overflow: hidden; background: var(--c-bg-deep); cursor: pointer; }

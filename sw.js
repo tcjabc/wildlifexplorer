@@ -2,7 +2,7 @@
 //  - App files and data: network first (so updates show up), cache as fallback.
 //  - Images: cache first (their file names change when the picture changes).
 // Bump VERSION to throw away every old cache.
-const VERSION = 'v6';
+const VERSION = 'v7';
 const SHELL_CACHE = `shell-${VERSION}`;
 const IMAGE_CACHE = `images-${VERSION}`;
 const NETWORK_TIMEOUT_MS = 3000;
@@ -65,6 +65,7 @@ async function cacheAllImagesFromData() {
   const urls = cards.flatMap(c => [
     ...['photo', 'illustration'].map(k => c[k]?.file).filter(Boolean).flatMap(f => [f, thumbOf(f)]),
     ...(c.silhouette?.file ? [c.silhouette.file] : []),
+    ...(c.range ? [c.range] : []),
   ]);
   await cacheImages(urls);
 }
@@ -105,7 +106,8 @@ async function networkFirst(request) {
     if (response.ok) cache.put(request, response.clone());
     return response;
   } catch {
-    const cached = await cache.match(request, { ignoreSearch: true })
+    // Look in every cache: range files are stored with the images.
+    const cached = await caches.match(request, { ignoreSearch: true })
       ?? (request.mode === 'navigate' ? await cache.match('index.html') : undefined);
     if (cached) return cached;
     throw new Error('offline and not cached');

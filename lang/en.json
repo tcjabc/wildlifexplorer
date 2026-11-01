@@ -152,7 +152,7 @@
   "compare.lifespanYou": "You: {n} years old",
   "card.hideDots": "Hide the numbers",
   "card.showDots": "Show the numbers",
-  "credits.gbif": "Where animals live: GBIF occurrence records (gbif.org).",
+  "credits.gbif": "Range based on GBIF occurrence data (gbif.org), drawn on Natural Earth coastlines (public domain).",
   "more.you": "You, for creature comparisons",
   "more.height": "Height (cm)",
   "more.weightKg": "Weight (kg)",

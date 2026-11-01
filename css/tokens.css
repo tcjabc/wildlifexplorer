@@ -43,7 +43,6 @@
   --c-callout: #ffc93c;
   --c-callout-ink: #3b2a00;
   --c-callout-soft: rgb(255 201 60 / 0.35);
-  --c-map-range: #4f9e5c;
   --c-tear: #ffffff;
   --c-scrim-light: rgb(20 30 40 / 0.45);
 
@@ -153,7 +152,7 @@
   --spot: 10px;         /* map location dot */
   --callout-dot: 26px;  /* numbered steps, IUCN code on card pages */
   --hotspot: 24px;      /* profile hotspots: small so the photo stays the star */
-  --map-pt: 5px;        /* range dots on maps */
+  --map-marker: 8px;    /* range marker on the little world map */
   --cmp-icon: 44px;     /* figures on the weight balance */
   --cmp-icon-sm: 18px;  /* … when there are many */
   --life-bar: 22px;

@@ -31,6 +31,8 @@ h1, h2, h3, p { margin: 0; }
 
 /* ---------- Group & status colours ----------
    Chosen with data attributes; inline style attributes are blocked by the CSP. */
+/* --g-edge: a darker shade of the group colour, for outlines such as range maps. */
+[data-group] { --g-edge: color-mix(in srgb, var(--g) 70%, var(--c-ink)); }
 [data-group="mammals"]          { --g: var(--g-mammals);          --g-ink: var(--g-mammals-ink); }
 [data-group="birds"]            { --g: var(--g-birds);            --g-ink: var(--g-birds-ink); }
 [data-group="reptiles"]         { --g: var(--g-reptiles);         --g-ink: var(--g-reptiles-ink); }

@@ -29,6 +29,8 @@ data/groups.json    the 11 groups: id, CSV name, emoji, names
 data/animals.json   the cards (generated, then hand-edited by you)
 data/build-state.json   the build's memory of what it wrote (don't edit; do commit)
 data/build-report.md    what needs your attention after each build
+data/ranges/        range shapes made by the build (GeoJSON)
+data/ranges-manual/ range shapes you draw yourself (the build never touches these)
 img/, img/thumbs/   card pictures (WebP, max 1200 px) and 480 px thumbnails
 img/silhouettes/    animal silhouettes (SVG) for size comparisons
 icons/              app icons (made by `npm run icons`)
@@ -105,7 +107,7 @@ For each **species** row the build:
   480 px thumbnail in `img/thumbs/`, and records `file`, `author`, `license`, `licenseUrl`
   and `sourceUrl`.
 - finds a **silhouette** on PhyloPic for the size comparison (same licence rules);
-- works out **where the animal lives** from GBIF occurrence records (`mapBounds`, `rangePoints`).
+- draws **where the animal lives** as a range shape from GBIF occurrence records (`data/ranges/`, `range`, `mapBounds`).
 
 For **topic** rows it only creates the empty card for you to fill in.
 
@@ -236,12 +238,22 @@ fields. Any you leave out are simply not shown, and a card with no inside fields
   `height`. Leave it out to use `lengthCm`. The silhouette itself is found by the build (from
   PhyloPic, CC0/PD/CC BY/CC BY-SA only) and stored in `silhouette`. If there is none for the exact
   species, a related animal's is used and the report says so.
-- **mapBounds** / **rangePoints**: where the animal lives. The build works these out from GBIF
-  occurrence records: the middle 90% of record positions, padded a little. Small ranges (like
-  Taiwan-only animals) zoom right in, with a little world map in the corner; the land inside the
-  range is drawn darker. Dots come only from CC0/CC BY records. If there aren't enough of those,
-  only the range box (worked out from all records) is kept. To set the range yourself, write
-  `mapBounds` with `"manual": true` and the build will never change it.
+- **range** / **mapBounds**: where the animal lives, drawn as a soft filled shape in the group's
+  colour. The build makes the shape from GBIF occurrence records and saves it as small GeoJSON in
+  `data/ranges/<id>.json` (`range` points to it); `mapBounds` is the area the map zooms to.
+  How the shape is made:
+  - Wild sightings are used, spread across countries; museum specimens are used only for
+    little-recorded species. CC0/CC BY records are used when there are enough; otherwise all
+    records, but only the generalised shape is kept, never the records.
+  - The records are binned into a grid, isolated cells are dropped, small gaps are closed, and
+    the shape is buffered, smoothed and simplified.
+  - It is clipped to land or to sea (Natural Earth coastlines, public domain), depending on where
+    most records are. Islands the range mostly covers are filled with the real coastline, so a
+    Taiwan endemic fills Taiwan.
+  - IUCN range maps are never used (their licence doesn't allow it).
+  - Small ranges zoom right in, with a little world map in the corner and a marker.
+  To draw a range yourself, save GeoJSON as `data/ranges-manual/<id>.json`: the build uses it
+  and never touches it. To set the zoom yourself, write `mapBounds` with `"manual": true`.
 - **map** (optional, older): extra dots `{ "areas": [{ "lon": 121, "lat": 23.7 }] }`.
 - **_draft**: fields written as a starting point (e.g. by Claude) that still need checking. They are
   listed in the build report. Remove a name once you're happy with it.

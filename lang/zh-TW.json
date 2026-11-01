@@ -152,7 +152,7 @@
   "compare.lifespanYou": "你：{n} 歲",
   "card.hideDots": "隱藏數字",
   "card.showDots": "顯示數字",
-  "credits.gbif": "動物分布：GBIF 物種出現紀錄（gbif.org）。",
+  "credits.gbif": "分布範圍依據 GBIF 物種出現紀錄（gbif.org）繪製，海岸線來自 Natural Earth（公眾領域）。",
   "more.you": "你的資料（比一比用）",
   "more.height": "身高（公分）",
   "more.weightKg": "體重（公斤）",

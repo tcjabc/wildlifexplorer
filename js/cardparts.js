@@ -14,7 +14,7 @@ export const hasProfile = c => Boolean(c.profile?.callouts?.length && c[c.profil
 export const hasStats = c => Boolean(c.stats && Object.keys(c.stats).length);
 export const hasCompare = c => Object.values(modesFor(c)).some(Boolean);
 export const hasInside = c => hasProfile(c) || hasStats(c) || hasCompare(c);
-const hasMap = c => Boolean(c.map?.areas?.length || c.rangePoints?.length || c.mapBounds);
+const hasMap = c => Boolean(c.map?.areas?.length || c.range || c.mapBounds);
 export const hasBack = c => Boolean(c.lifeCycle?.length || filled(c.habitat) || hasMap(c));
 
 const groupChip = g => h('span', { class: 'chip chip--group', 'data-group': g.id },
@@ -200,5 +200,5 @@ export function cardCredits(card) {
   });
   return h('ul', { class: 'card-credits' }, rows,
     hasMap(card) && h('li', null, tx('credits.map')),
-    card.rangePoints?.length > 0 && h('li', null, tx('credits.gbif')));
+    card.range && h('li', null, tx('credits.gbif')));
 }
