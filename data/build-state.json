@@ -1,0 +1,1080 @@
+{
+  "formosan-black-bear": {
+    "group": "mammals",
+    "scientificName": "Ursus thibetanus formosanus",
+    "name.en": "Formosan Black Bear",
+    "name.zh": "臺灣黑熊",
+    "taiwan": true,
+    "status": "VU",
+    "taxonomy": {
+      "kingdom": {
+        "sci": "Animalia",
+        "en": "animal",
+        "zh": "動物界"
+      },
+      "phylum": {
+        "sci": "Chordata",
+        "en": "",
+        "zh": "脊索動物門"
+      },
+      "class": {
+        "sci": "Mammalia",
+        "en": "mammal",
+        "zh": "哺乳動物"
+      },
+      "order": {
+        "sci": "Carnivora",
+        "en": "Carnivora",
+        "zh": "食肉目"
+      },
+      "family": {
+        "sci": "Ursidae",
+        "en": "Ursidae",
+        "zh": "熊科"
+      },
+      "genus": {
+        "sci": "Ursus",
+        "en": "Ursus",
+        "zh": "熊屬"
+      }
+    },
+    "wikidata": "Q716455",
+    "photo": {
+      "file": "img/formosan-black-bear-photo-ac54e9.webp",
+      "author": "smartneddy",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Formosan_Black_Bear01.jpg"
+    },
+    "illustration": {
+      "file": "img/formosan-black-bear-illustration-2efff6.webp",
+      "author": "Unknown author",
+      "license": "Public domain",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Ours_du_Tibet_(Ursus_thibetanus)-_Histoire_naturelle_des_mammif%C3%A8res_avec_des_figures_originales,_colori%C3%A9es,_dessin%C3%A9es_d%27apr%C3%A8s_des_animaux_vivans_-_tome_5_(1824)_(cropped).jpg"
+    },
+    "unlockDate": "2026-11-01"
+  },
+  "formosan-rock-macaque": {
+    "group": "mammals",
+    "scientificName": "Macaca cyclopis",
+    "name.en": "Formosan Rock Macaque",
+    "name.zh": "臺灣獼猴",
+    "taiwan": true,
+    "status": "LC",
+    "taxonomy": {
+      "kingdom": {
+        "sci": "Animalia",
+        "en": "animal",
+        "zh": "動物界"
+      },
+      "phylum": {
+        "sci": "Chordata",
+        "en": "",
+        "zh": "脊索動物門"
+      },
+      "class": {
+        "sci": "Mammalia",
+        "en": "mammal",
+        "zh": "哺乳動物"
+      },
+      "order": {
+        "sci": "Primates",
+        "en": "primate",
+        "zh": "靈長目"
+      },
+      "family": {
+        "sci": "Cercopithecidae",
+        "en": "",
+        "zh": "猴科"
+      },
+      "genus": {
+        "sci": "Macaca",
+        "en": "Macaca",
+        "zh": "獼猴屬"
+      }
+    },
+    "wikidata": "Q713841",
+    "photo": {
+      "file": "img/formosan-rock-macaque-photo-be22f9.webp",
+      "author": "KaurJmeb",
+      "license": "CC BY-SA 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Formosan_macaque.jpg"
+    },
+    "unlockDate": "2026-11-01"
+  },
+  "chinese-pangolin": {
+    "group": "mammals",
+    "scientificName": "Manis pentadactyla",
+    "name.en": "Chinese Pangolin",
+    "name.zh": "穿山甲",
+    "taiwan": true,
+    "status": "CR",
+    "taxonomy": {
+      "kingdom": {
+        "sci": "Animalia",
+        "en": "animal",
+        "zh": "動物界"
+      },
+      "phylum": {
+        "sci": "Chordata",
+        "en": "",
+        "zh": "脊索動物門"
+      },
+      "class": {
+        "sci": "Mammalia",
+        "en": "mammal",
+        "zh": "哺乳動物"
+      },
+      "order": {
+        "sci": "Pholidota",
+        "en": "Pholidota",
+        "zh": "鱗甲目"
+      },
+      "family": {
+        "sci": "Manidae",
+        "en": "Manidae",
+        "zh": "穿山甲科"
+      },
+      "genus": {
+        "sci": "Manis",
+        "en": "Manis",
+        "zh": "穿山甲屬"
+      }
+    },
+    "wikidata": "Q842283",
+    "photo": {
+      "file": "img/chinese-pangolin-photo-015ea9.webp",
+      "author": "U.S. Fish and Wildlife Service Headquarters",
+      "license": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Manis_pentadactyla_(29054818144).jpg"
+    },
+    "illustration": {
+      "file": "img/chinese-pangolin-illustration-67065c.webp",
+      "author": "Unknown author",
+      "license": "Public domain",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:PSM_V21_D612_Manis_pentadactyla.jpg"
+    },
+    "unlockDate": "2026-11-12"
+  },
+  "taiwan-serow": {
+    "group": "mammals",
+    "scientificName": "Capricornis swinhoei",
+    "name.en": "Taiwan Serow",
+    "name.zh": "臺灣長鬃山羊",
+    "taiwan": true,
+    "status": "LC",
+    "taxonomy": {
+      "kingdom": {
+        "sci": "Animalia",
+        "en": "animal",
+        "zh": "動物界"
+      },
+      "phylum": {
+        "sci": "Chordata",
+        "en": "",
+        "zh": "脊索動物門"
+      },
+      "class": {
+        "sci": "Mammalia",
+        "en": "mammal",
+        "zh": "哺乳動物"
+      },
+      "order": {
+        "sci": "Artiodactyla",
+        "en": "",
+        "zh": "偶蹄目"
+      },
+      "family": {
+        "sci": "Bovidae",
+        "en": "",
+        "zh": "牛科"
+      },
+      "genus": {
+        "sci": "Capricornis",
+        "en": "Serow",
+        "zh": ""
+      }
+    },
+    "wikidata": "Q715983",
+    "photo": {
+      "file": "img/taiwan-serow-photo-20abf2.webp",
+      "author": "Licheng Shih",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Capricornis_swinhoei_206048818.jpg"
+    },
+    "illustration": {
+      "file": "img/taiwan-serow-illustration-fbdbb4.webp",
+      "author": "Joseph Wolf",
+      "license": "Public domain",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Capricornis_swinhoei_Joseph_Wolf.jpg"
+    },
+    "unlockDate": "2026-11-23"
+  },
+  "formosan-sambar-deer": {
+    "group": "mammals",
+    "scientificName": "Rusa unicolor swinhoii",
+    "name.en": "Formosan Sambar Deer",
+    "name.zh": "水鹿",
+    "taiwan": true,
+    "status": "VU",
+    "taxonomy": {
+      "kingdom": {
+        "sci": "Animalia",
+        "en": "animal",
+        "zh": "動物界"
+      },
+      "phylum": {
+        "sci": "Chordata",
+        "en": "",
+        "zh": "脊索動物門"
+      },
+      "class": {
+        "sci": "Mammalia",
+        "en": "mammal",
+        "zh": "哺乳動物"
+      },
+      "order": {
+        "sci": "Artiodactyla",
+        "en": "",
+        "zh": "偶蹄目"
+      },
+      "family": {
+        "sci": "Cervidae",
+        "en": "Cervidae",
+        "zh": "鹿科"
+      },
+      "genus": {
+        "sci": "Rusa",
+        "en": "Rusa",
+        "zh": ""
+      }
+    },
+    "wikidata": "Q2165287",
+    "photo": {
+      "file": "img/formosan-sambar-deer-photo-bbdc30.webp",
+      "author": "曾昱承 Yu-Cheng Zeng",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "sourceUrl": "https://www.inaturalist.org/photos/644751212"
+    },
+    "illustration": {
+      "file": "img/formosan-sambar-deer-illustration-bcb0a4.webp",
+      "author": "Richard Lydekker",
+      "license": "Public domain",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:The_deer_of_all_lands_(1898)_Formosan_sambar_in_Woburn_Abbey.png"
+    },
+    "unlockDate": "2026-12-04"
+  },
+  "formosan-muntjac": {
+    "group": "mammals",
+    "scientificName": "Muntiacus reevesi micrurus",
+    "name.en": "Formosan Muntjac",
+    "name.zh": "山羌",
+    "taiwan": true,
+    "status": "LC",
+    "taxonomy": {
+      "kingdom": {
+        "sci": "Animalia",
+        "en": "animal",
+        "zh": "動物界"
+      },
+      "phylum": {
+        "sci": "Chordata",
+        "en": "",
+        "zh": "脊索動物門"
+      },
+      "class": {
+        "sci": "Mammalia",
+        "en": "mammal",
+        "zh": "哺乳動物"
+      },
+      "order": {
+        "sci": "Artiodactyla",
+        "en": "",
+        "zh": "偶蹄目"
+      },
+      "family": {
+        "sci": "Cervidae",
+        "en": "Cervidae",
+        "zh": "鹿科"
+      },
+      "genus": {
+        "sci": "Muntiacus",
+        "en": "Muntiacus",
+        "zh": "麂屬"
+      }
+    },
+    "wikidata": "Q20908353",
+    "photo": {
+      "file": "img/formosan-muntjac-photo-b21714.webp",
+      "author": "王朝威",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Muntiacus_reevesi_micrurus_230869896.jpg"
+    },
+    "unlockDate": "2026-12-15"
+  },
+  "formosan-flying-fox": {
+    "group": "mammals",
+    "scientificName": "Pteropus dasymallus formosus",
+    "name.en": "Formosan Flying Fox",
+    "name.zh": "臺灣狐蝠",
+    "taiwan": true,
+    "status": "VU",
+    "taxonomy": {
+      "kingdom": {
+        "sci": "Animalia",
+        "en": "animal",
+        "zh": "動物界"
+      },
+      "phylum": {
+        "sci": "Chordata",
+        "en": "",
+        "zh": "脊索動物門"
+      },
+      "class": {
+        "sci": "Mammalia",
+        "en": "mammal",
+        "zh": "哺乳動物"
+      },
+      "order": {
+        "sci": "Chiroptera",
+        "en": "Chiroptera",
+        "zh": "翼手目"
+      },
+      "family": {
+        "sci": "Pteropodidae",
+        "en": "Pteropodidae",
+        "zh": "狐蝠科"
+      },
+      "genus": {
+        "sci": "Pteropus",
+        "en": "Pteropus",
+        "zh": "狐蝠屬"
+      }
+    },
+    "wikidata": "Q20905734",
+    "photo": {
+      "file": "img/formosan-flying-fox-photo-d0df76.webp",
+      "author": "尹若宇",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceUrl": "https://www.inaturalist.org/photos/514396924"
+    },
+    "illustration": {
+      "file": "img/formosan-flying-fox-illustration-ab7908.webp",
+      "author": "John Gerrard Keulemans",
+      "license": "Public domain",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Pteropus_formosus_by_J.G._Keulemans_(PZS_1873_PL_XXII).jpg"
+    },
+    "unlockDate": "2026-12-26"
+  },
+  "leopard-cat": {
+    "group": "mammals",
+    "scientificName": "Prionailurus bengalensis",
+    "name.en": "Leopard Cat",
+    "name.zh": "石虎",
+    "taiwan": true,
+    "status": "LC",
+    "taxonomy": {
+      "kingdom": {
+        "sci": "Animalia",
+        "en": "animal",
+        "zh": "動物界"
+      },
+      "phylum": {
+        "sci": "Chordata",
+        "en": "",
+        "zh": "脊索動物門"
+      },
+      "class": {
+        "sci": "Mammalia",
+        "en": "mammal",
+        "zh": "哺乳動物"
+      },
+      "order": {
+        "sci": "Carnivora",
+        "en": "Carnivora",
+        "zh": "食肉目"
+      },
+      "family": {
+        "sci": "Felidae",
+        "en": "Felidae",
+        "zh": "貓科"
+      },
+      "genus": {
+        "sci": "Prionailurus",
+        "en": "Prionailurus",
+        "zh": "豹貓屬"
+      }
+    },
+    "wikidata": "Q42627",
+    "photo": {
+      "file": "img/leopard-cat-photo-ef23b5.webp",
+      "author": "Soumyajit Nandy",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Close-up_of_a_Leopard_Cat_in_Sundarban.jpg"
+    },
+    "illustration": {
+      "file": "img/leopard-cat-illustration-7322a3.webp",
+      "author": "CHANG,Yun-Hsin",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Prionailurus_bengalensis_-_CHANG,_Yun-Hsin.jpg"
+    },
+    "unlockDate": "2027-01-06"
+  },
+  "masked-palm-civet": {
+    "group": "mammals",
+    "scientificName": "Paguma larvata",
+    "name.en": "Masked Palm Civet",
+    "name.zh": "白鼻心",
+    "taiwan": true,
+    "status": "LC",
+    "taxonomy": {
+      "kingdom": {
+        "sci": "Animalia",
+        "en": "animal",
+        "zh": "動物界"
+      },
+      "phylum": {
+        "sci": "Chordata",
+        "en": "",
+        "zh": "脊索動物門"
+      },
+      "class": {
+        "sci": "Mammalia",
+        "en": "mammal",
+        "zh": "哺乳動物"
+      },
+      "order": {
+        "sci": "Carnivora",
+        "en": "Carnivora",
+        "zh": "食肉目"
+      },
+      "family": {
+        "sci": "Viverridae",
+        "en": "Viverridae",
+        "zh": "靈貓科"
+      },
+      "genus": {
+        "sci": "Paguma",
+        "en": "Paguma",
+        "zh": "果子貍屬"
+      }
+    },
+    "wikidata": "Q626049",
+    "photo": {
+      "file": "img/masked-palm-civet-photo-5cd009.webp",
+      "author": "Denise Chan from Hong Kong, China",
+      "license": "CC BY-SA 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Palm_civet_on_tree_(detail).jpg"
+    },
+    "illustration": {
+      "file": "img/masked-palm-civet-illustration-0d9108.webp",
+      "author": "Thomas Hardwicke",
+      "license": "Public domain",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Paguma_larvata_Hardwicke.jpg"
+    },
+    "unlockDate": "2027-01-17"
+  },
+  "red-and-white-giant-flying-squirrel": {
+    "group": "mammals",
+    "scientificName": "Petaurista philippensis",
+    "name.en": "Red and White Giant Flying Squirrel",
+    "name.zh": "大赤鼯鼠",
+    "taiwan": true,
+    "status": "LC",
+    "taxonomy": {
+      "kingdom": {
+        "sci": "Animalia",
+        "en": "animal",
+        "zh": "動物界"
+      },
+      "phylum": {
+        "sci": "Chordata",
+        "en": "",
+        "zh": "脊索動物門"
+      },
+      "class": {
+        "sci": "Mammalia",
+        "en": "mammal",
+        "zh": "哺乳動物"
+      },
+      "order": {
+        "sci": "Rodentia",
+        "en": "Rodent",
+        "zh": "嚙齒目"
+      },
+      "family": {
+        "sci": "Sciuridae",
+        "en": "squirrel",
+        "zh": "松鼠科"
+      },
+      "genus": {
+        "sci": "Petaurista",
+        "en": "Petaurista",
+        "zh": "鼯鼠屬"
+      }
+    },
+    "wikidata": "Q1767097",
+    "photo": {
+      "file": "img/red-and-white-giant-flying-squirrel-photo-a51a0c.webp",
+      "author": "Ahirbudhnyan M",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "sourceUrl": "https://www.inaturalist.org/photos/254810868"
+    },
+    "unlockDate": "2027-01-28"
+  },
+  "eurasian-otter": {
+    "group": "mammals",
+    "scientificName": "Lutra lutra",
+    "name.en": "Eurasian Otter",
+    "name.zh": "歐亞水獺",
+    "taiwan": true,
+    "status": "NT",
+    "taxonomy": {
+      "kingdom": {
+        "sci": "Animalia",
+        "en": "animal",
+        "zh": "動物界"
+      },
+      "phylum": {
+        "sci": "Chordata",
+        "en": "",
+        "zh": "脊索動物門"
+      },
+      "class": {
+        "sci": "Mammalia",
+        "en": "mammal",
+        "zh": "哺乳動物"
+      },
+      "order": {
+        "sci": "Carnivora",
+        "en": "Carnivora",
+        "zh": "食肉目"
+      },
+      "family": {
+        "sci": "Mustelidae",
+        "en": "Mustelidae",
+        "zh": "鼬科"
+      },
+      "genus": {
+        "sci": "Lutra",
+        "en": "Lutra",
+        "zh": "水獺屬"
+      }
+    },
+    "wikidata": "Q29995",
+    "photo": {
+      "file": "img/eurasian-otter-photo-88f636.webp",
+      "author": "Diego González Dopico",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "sourceUrl": "https://www.inaturalist.org/photos/474812609"
+    },
+    "illustration": {
+      "file": "img/eurasian-otter-illustration-afcd8c.webp",
+      "author": "Rijksmuseum",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Otter_(Lutra_lutra)_Otter._Lutra._Loutre._(titel_op_object),_RP-T-BR-2017-1-1-65.jpg"
+    },
+    "unlockDate": "2027-02-07"
+  },
+  "bengal-tiger": {
+    "group": "mammals",
+    "scientificName": "Panthera tigris tigris",
+    "name.en": "Bengal Tiger",
+    "name.zh": "孟加拉虎",
+    "taiwan": false,
+    "status": "EN",
+    "taxonomy": {
+      "kingdom": {
+        "sci": "Animalia",
+        "en": "animal",
+        "zh": "動物界"
+      },
+      "phylum": {
+        "sci": "Chordata",
+        "en": "",
+        "zh": "脊索動物門"
+      },
+      "class": {
+        "sci": "Mammalia",
+        "en": "mammal",
+        "zh": "哺乳動物"
+      },
+      "order": {
+        "sci": "Carnivora",
+        "en": "Carnivora",
+        "zh": "食肉目"
+      },
+      "family": {
+        "sci": "Felidae",
+        "en": "Felidae",
+        "zh": "貓科"
+      },
+      "genus": {
+        "sci": "Panthera",
+        "en": "Panthera",
+        "zh": "豹屬"
+      }
+    },
+    "wikidata": "Q80952",
+    "photo": {
+      "file": "img/bengal-tiger-photo-15472e.webp",
+      "author": "Tisha Mukherjee",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Bengal_tiger_in_Sanjay_Dubri_Tiger_Reserve_December_2024_by_Tisha_Mukherjee_11.jpg"
+    },
+    "illustration": {
+      "file": "img/bengal-tiger-illustration-ab12b6.webp",
+      "author": "Rijksmuseum",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Civetkat_(Viverra),_alpenmarmot_(Marmota_marmota),_luipaard_(Panthera_pardus)_en_tijger_(Panthera_tigris),_RP-T-BR-2017-1-1-95.jpg"
+    },
+    "unlockDate": "2027-02-17"
+  },
+  "lion": {
+    "group": "mammals",
+    "scientificName": "Panthera leo",
+    "name.en": "Lion",
+    "name.zh": "獅子",
+    "taiwan": false,
+    "status": "VU",
+    "taxonomy": {
+      "kingdom": {
+        "sci": "Animalia",
+        "en": "animal",
+        "zh": "動物界"
+      },
+      "phylum": {
+        "sci": "Chordata",
+        "en": "",
+        "zh": "脊索動物門"
+      },
+      "class": {
+        "sci": "Mammalia",
+        "en": "mammal",
+        "zh": "哺乳動物"
+      },
+      "order": {
+        "sci": "Carnivora",
+        "en": "Carnivora",
+        "zh": "食肉目"
+      },
+      "family": {
+        "sci": "Felidae",
+        "en": "Felidae",
+        "zh": "貓科"
+      },
+      "genus": {
+        "sci": "Panthera",
+        "en": "Panthera",
+        "zh": "豹屬"
+      }
+    },
+    "wikidata": "Q140",
+    "photo": {
+      "file": "img/lion-photo-7317db.webp",
+      "author": "GinaFranchi",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:PZ_lion_pride.jpg"
+    },
+    "unlockDate": "2027-02-26"
+  },
+  "cheetah": {
+    "group": "mammals",
+    "scientificName": "Acinonyx jubatus",
+    "name.en": "Cheetah",
+    "name.zh": "獵豹",
+    "taiwan": false,
+    "status": "VU",
+    "taxonomy": {
+      "kingdom": {
+        "sci": "Animalia",
+        "en": "animal",
+        "zh": "動物界"
+      },
+      "phylum": {
+        "sci": "Chordata",
+        "en": "",
+        "zh": "脊索動物門"
+      },
+      "class": {
+        "sci": "Mammalia",
+        "en": "mammal",
+        "zh": "哺乳動物"
+      },
+      "order": {
+        "sci": "Carnivora",
+        "en": "Carnivora",
+        "zh": "食肉目"
+      },
+      "family": {
+        "sci": "Felidae",
+        "en": "Felidae",
+        "zh": "貓科"
+      },
+      "genus": {
+        "sci": "Acinonyx",
+        "en": "Acinonyx",
+        "zh": "獵豹屬"
+      }
+    },
+    "wikidata": "Q23907",
+    "photo": {
+      "file": "img/cheetah-photo-eadc12.webp",
+      "author": "James Temple",
+      "license": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:TheCheethcat.jpg"
+    },
+    "unlockDate": "2027-03-05"
+  },
+  "african-elephant": {
+    "group": "mammals",
+    "scientificName": "Loxodonta africana",
+    "name.en": "African Elephant",
+    "name.zh": "非洲象",
+    "taiwan": false,
+    "status": "EN",
+    "taxonomy": {
+      "kingdom": {
+        "sci": "Animalia",
+        "en": "animal",
+        "zh": "動物界"
+      },
+      "phylum": {
+        "sci": "Chordata",
+        "en": "",
+        "zh": "脊索動物門"
+      },
+      "class": {
+        "sci": "Mammalia",
+        "en": "mammal",
+        "zh": "哺乳動物"
+      },
+      "order": {
+        "sci": "Proboscidea",
+        "en": "Proboscidea",
+        "zh": "長鼻目"
+      },
+      "family": {
+        "sci": "Elephantidae",
+        "en": "Elephantidae",
+        "zh": "象科"
+      },
+      "genus": {
+        "sci": "Loxodonta",
+        "en": "African elephant",
+        "zh": "非洲象屬"
+      }
+    },
+    "wikidata": "Q36557",
+    "photo": {
+      "file": "img/african-elephant-photo-627e92.webp",
+      "author": "Giles Laurent",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:178_Male_African_bush_elephant_in_Etosha_National_Park_Photo_by_Giles_Laurent.jpg"
+    },
+    "illustration": {
+      "file": "img/african-elephant-illustration-16738b.webp",
+      "author": "Bruno Balestrini",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Loxodonta_africana2.jpg"
+    },
+    "unlockDate": "2027-03-11"
+  },
+  "giraffe": {
+    "group": "mammals",
+    "scientificName": "Giraffa camelopardalis",
+    "name.en": "Giraffe",
+    "name.zh": "長頸鹿",
+    "taiwan": false,
+    "status": "VU",
+    "taxonomy": {
+      "kingdom": {
+        "sci": "Animalia",
+        "en": "animal",
+        "zh": "動物界"
+      },
+      "phylum": {
+        "sci": "Chordata",
+        "en": "",
+        "zh": "脊索動物門"
+      },
+      "class": {
+        "sci": "Mammalia",
+        "en": "mammal",
+        "zh": "哺乳動物"
+      },
+      "order": {
+        "sci": "Artiodactyla",
+        "en": "",
+        "zh": "偶蹄目"
+      },
+      "family": {
+        "sci": "Giraffidae",
+        "en": "Giraffidae",
+        "zh": "長頸鹿科"
+      },
+      "genus": {
+        "sci": "Giraffa",
+        "en": "giraffe",
+        "zh": "長頸鹿屬"
+      }
+    },
+    "wikidata": "Q15083",
+    "photo": {
+      "file": "img/giraffe-photo-fb03ed.webp",
+      "author": "Thomas Fuhrmann",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Rothschild%27s_giraffe_(Giraffa_camelopardalis_rothschildi)_-_Murchison_Falls_National_Park.jpg"
+    },
+    "illustration": {
+      "file": "img/giraffe-illustration-328d64.webp",
+      "author": "Rijksmuseum",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Giraffa_camelopardalis_(Giraf),_RP-T-1914-17-150.jpg"
+    },
+    "unlockDate": "2027-03-16"
+  },
+  "plains-zebra": {
+    "group": "mammals",
+    "scientificName": "Equus quagga",
+    "name.en": "Plains Zebra",
+    "name.zh": "平原斑馬",
+    "taiwan": false,
+    "status": "NT",
+    "taxonomy": {
+      "kingdom": {
+        "sci": "Animalia",
+        "en": "animal",
+        "zh": "動物界"
+      },
+      "phylum": {
+        "sci": "Chordata",
+        "en": "",
+        "zh": "脊索動物門"
+      },
+      "class": {
+        "sci": "Mammalia",
+        "en": "mammal",
+        "zh": "哺乳動物"
+      },
+      "order": {
+        "sci": "Perissodactyla",
+        "en": "odd-toed ungulate",
+        "zh": "奇蹄目"
+      },
+      "family": {
+        "sci": "Equidae",
+        "en": "Equidae",
+        "zh": "馬科"
+      },
+      "genus": {
+        "sci": "Equus",
+        "en": "Equus",
+        "zh": "馬屬"
+      }
+    },
+    "wikidata": "Q245305",
+    "photo": {
+      "file": "img/plains-zebra-photo-7d1f2d.webp",
+      "author": "Ltshears",
+      "license": "Public domain",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:GrantsZebra2.jpg"
+    },
+    "illustration": {
+      "file": "img/plains-zebra-illustration-b7bd61.webp",
+      "author": "Day & Son",
+      "license": "Public domain",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Equus_quagga_quagga_lithograph.jpg"
+    },
+    "unlockDate": "2027-03-20"
+  },
+  "hippopotamus": {
+    "group": "mammals",
+    "scientificName": "Hippopotamus amphibius",
+    "name.en": "Hippopotamus",
+    "name.zh": "河馬",
+    "taiwan": false,
+    "status": "VU",
+    "taxonomy": {
+      "kingdom": {
+        "sci": "Animalia",
+        "en": "animal",
+        "zh": "動物界"
+      },
+      "phylum": {
+        "sci": "Chordata",
+        "en": "",
+        "zh": "脊索動物門"
+      },
+      "class": {
+        "sci": "Mammalia",
+        "en": "mammal",
+        "zh": "哺乳動物"
+      },
+      "order": {
+        "sci": "Artiodactyla",
+        "en": "",
+        "zh": "偶蹄目"
+      },
+      "family": {
+        "sci": "Hippopotamidae",
+        "en": "Hippopotamidae",
+        "zh": "河馬科"
+      },
+      "genus": {
+        "sci": "Hippopotamus",
+        "en": "Hippopotamus",
+        "zh": "河馬屬"
+      }
+    },
+    "wikidata": "Q34505",
+    "photo": {
+      "file": "img/hippopotamus-photo-629276.webp",
+      "author": "Muhammad Mahdi Karim",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Portrait_Hippopotamus_in_the_water.jpg"
+    },
+    "unlockDate": "2027-03-24"
+  },
+  "black-rhinoceros": {
+    "group": "mammals",
+    "scientificName": "Diceros bicornis",
+    "name.en": "Black Rhinoceros",
+    "name.zh": "黑犀牛",
+    "taiwan": false,
+    "status": "CR",
+    "taxonomy": {
+      "kingdom": {
+        "sci": "Animalia",
+        "en": "animal",
+        "zh": "動物界"
+      },
+      "phylum": {
+        "sci": "Chordata",
+        "en": "",
+        "zh": "脊索動物門"
+      },
+      "class": {
+        "sci": "Mammalia",
+        "en": "mammal",
+        "zh": "哺乳動物"
+      },
+      "order": {
+        "sci": "Perissodactyla",
+        "en": "odd-toed ungulate",
+        "zh": "奇蹄目"
+      },
+      "family": {
+        "sci": "Rhinocerotidae",
+        "en": "rhinoceros",
+        "zh": "犀科"
+      },
+      "genus": {
+        "sci": "Diceros",
+        "en": "Diceros",
+        "zh": "黑犀屬"
+      }
+    },
+    "wikidata": "Q95036",
+    "photo": {
+      "file": "img/black-rhinoceros-photo-7eb995.webp",
+      "author": "Yathin S Krishnappa",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:2012_Black_Rhinoceros_Gemsbokvlakte.jpg"
+    },
+    "illustration": {
+      "file": "img/black-rhinoceros-illustration-33a1b3.webp",
+      "author": "Adrien1018",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Diceros_bicornis_introduction.jpg"
+    },
+    "unlockDate": "2027-03-27"
+  },
+  "western-lowland-gorilla": {
+    "group": "mammals",
+    "scientificName": "Gorilla gorilla gorilla",
+    "name.en": "Western Lowland Gorilla",
+    "name.zh": "西部低地大猩猩",
+    "taiwan": false,
+    "status": "CR",
+    "taxonomy": {
+      "kingdom": {
+        "sci": "Animalia",
+        "en": "animal",
+        "zh": "動物界"
+      },
+      "phylum": {
+        "sci": "Chordata",
+        "en": "",
+        "zh": "脊索動物門"
+      },
+      "class": {
+        "sci": "Mammalia",
+        "en": "mammal",
+        "zh": "哺乳動物"
+      },
+      "order": {
+        "sci": "Primates",
+        "en": "primate",
+        "zh": "靈長目"
+      },
+      "family": {
+        "sci": "Hominidae",
+        "en": "Hominidae",
+        "zh": "人科"
+      },
+      "genus": {
+        "sci": "Gorilla",
+        "en": "Gorilla",
+        "zh": "大猩猩屬"
+      }
+    },
+    "wikidata": "Q876500",
+    "photo": {
+      "file": "img/western-lowland-gorilla-photo-bc7581.webp",
+      "author": "Rennett Stowe from USA",
+      "license": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Lowland_Gorilla_(8973697544).jpg"
+    },
+    "illustration": {
+      "file": "img/western-lowland-gorilla-illustration-d13dfc.webp",
+      "author": "Blanca Martí de Ahumada",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Gorila_de_llanura_occidental._Gorilla_gorilla_-_Blanca_Mart%C3%AD_de_Ahumada.jpg"
+    },
+    "unlockDate": "2027-03-29"
+  }
+}
