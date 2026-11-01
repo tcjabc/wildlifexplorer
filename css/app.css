@@ -372,70 +372,7 @@ html[data-lang="zh"] .bi--title > .t-zh { font-size: var(--fs-xxl) !important; }
 .facts-list dt { font-weight: var(--fw-bold); color: var(--c-ink-soft); }
 .facts-list dd { margin: 0; word-break: break-word; }
 
-/* ---------- Reveal ---------- */
-.reveal {
-  position: fixed; inset: 0; z-index: 100;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--s-4);
-  padding: max(var(--s-4), env(safe-area-inset-top)) var(--s-4) max(var(--s-4), env(safe-area-inset-bottom));
-  background: var(--c-overlay);
-  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
-  opacity: 0; transition: opacity var(--t-med);
-  overflow: hidden;
-}
-.reveal.is-open { opacity: 1; }
-.reveal__title {
-  color: var(--c-accent); font-weight: var(--fw-bold); font-size: clamp(var(--fs-lg), 5dvh, var(--fs-xxl)); text-align: center; line-height: 1.15;
-  text-shadow: 0 3px 0 var(--c-shade);
-  animation: pop-in var(--t-slow) var(--ease-bounce) both;
-}
-.reveal__title .bi { align-items: center; }
-.reveal__text, .reveal__more { color: var(--c-on-primary); font-size: var(--fs-md); text-align: center; font-weight: var(--fw-semi); }
-.reveal__text .bi, .reveal__more .bi { align-items: center; }
-.reveal__actions { display: flex; flex-wrap: wrap; gap: var(--s-3); justify-content: center; animation: pop-in var(--t-med) var(--ease-bounce) both; }
-
-.flip {
-  flex: none;
-  width: min(72vw, var(--flip-w), 42dvh); aspect-ratio: 3 / 4;
-  padding: 0; border: 0; background: none; cursor: pointer;
-  perspective: 1400px;
-  animation: drop-in var(--t-slow) var(--ease-bounce) both;
-}
-.flip:focus-visible { outline: none; }
-.flip:focus-visible .flip__face { box-shadow: 0 0 0 var(--bw-tile) var(--c-accent), var(--shadow-3); }
-.flip__inner {
-  position: relative; display: block; width: 100%; height: 100%;
-  transform-style: preserve-3d; transition: transform 0.9s var(--ease-bounce);
-}
-.flip.is-flipped .flip__inner { transform: rotateY(180deg); }
-.flip:not(.is-flipped) .flip__inner { animation: wiggle 2.4s ease-in-out 1s infinite; }
-.flip__face {
-  position: absolute; inset: 0;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--s-3);
-  border-radius: var(--r-lg); overflow: hidden;
-  backface-visibility: hidden; -webkit-backface-visibility: hidden;
-  box-shadow: var(--shadow-3);
-}
-.flip__back {
-  background:
-    radial-gradient(circle at 25% 25%, var(--c-shine-soft) 8%, transparent 9%) 0 0 / 48px 48px,
-    radial-gradient(circle at 75% 75%, var(--c-shine-faint) 8%, transparent 9%) 0 0 / 48px 48px,
-    var(--g);
-  color: var(--g-ink);
-  border: var(--bw-heavy) solid var(--c-surface);
-}
-.flip__emoji { font-size: var(--emoji-xl); line-height: 1; filter: drop-shadow(0 4px 0 var(--c-shade)); }
-.flip__hint { font-weight: var(--fw-bold); font-size: var(--fs-md); }
-.flip__hint .bi { align-items: center; }
-.flip__front {
-  transform: rotateY(180deg);
-  background: var(--c-surface); border: var(--bw-heavy) solid var(--g);
-  justify-content: flex-start; gap: 0;
-}
-.flip__no { align-self: flex-start; padding: var(--s-hair) var(--s-3); background: var(--g); color: var(--g-ink); font-weight: var(--fw-bold); border-bottom-right-radius: var(--r-sm); }
-.flip__pic { flex: 1; min-height: 0; width: 100%; }
-.flip__pic .pic { object-fit: cover; }
-.flip__name { padding: var(--s-3); font-weight: var(--fw-bold); font-size: var(--fs-lg); text-align: center; line-height: 1.2; }
-.flip__name .bi { align-items: center; }
+/* Reveal (foil packs) styles live in pack.css; card viewer in card.css. */
 
 .confetti { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 1; }
 .confetti i {
@@ -558,6 +495,7 @@ html[data-lang="zh"] .bi--title > .t-zh { font-size: var(--fs-xxl) !important; }
 }
 .credits__thumb { width: var(--size-thumb); height: var(--size-thumb); object-fit: cover; border-radius: var(--r-sm); background: var(--c-bg-deep); }
 .credits__thumb.is-secret { filter: blur(8px) brightness(0.6); }
+.credits__thumb--silhouette { object-fit: contain; padding: var(--s-1); background: var(--c-surface); }
 .credits__name { font-weight: var(--fw-bold); font-size: var(--fs-sm); }
 .credits__name .bi { flex-direction: row; flex-wrap: wrap; column-gap: 0.5em; }
 .credits__text a { word-break: break-word; }
@@ -628,3 +566,7 @@ html[data-lang="zh"] .bi--title > .t-zh { font-size: var(--fs-xxl) !important; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; }
 }
+
+/* A tab (or the Binder button) bumps when a new card lands in it. */
+.tab.is-bumping, .nav__item.is-bumping { animation: bump 0.55s var(--ease-bounce); }
+@keyframes bump { 0% { transform: none; } 35% { transform: scale(1.25) translateY(-4px); } 100% { transform: none; } }
