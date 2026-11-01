@@ -44,6 +44,7 @@ h1, h2, h3, p { margin: 0; }
 [data-group="how-animals-work"] { --g: var(--g-how-animals-work); --g-ink: var(--g-how-animals-work-ink); }
 [data-group="world-explorer"]   { --g: var(--g-world-explorer);   --g-ink: var(--g-world-explorer-ink); }
 [data-group="conservation"]     { --g: var(--g-conservation);     --g-ink: var(--g-conservation-ink); }
+[data-group="plants"]           { --g: var(--g-plants);           --g-ink: var(--g-plants-ink); }
 
 [data-status="ex"] { --b: var(--iucn-ex); --b-ink: var(--iucn-ex-ink); }
 [data-status="ew"] { --b: var(--iucn-ew); --b-ink: var(--iucn-ew-ink); }

@@ -25,7 +25,7 @@ js/                 app code (app.js is the entry point, views/ has one file per
 lang/en.json        every UI string in English
 lang/zh-TW.json     the same keys in Traditional Chinese
 data/card-list.csv  THE MASTER LIST — edit this to add cards
-data/groups.json    the 11 groups: id, CSV name, emoji, names
+data/groups.json    the 12 groups: id, CSV name, emoji, names
 data/animals.json   the cards (generated, then hand-edited by you)
 data/build-state.json   the build's memory of what it wrote (don't edit; do commit)
 data/build-report.md    what needs your attention after each build
@@ -332,7 +332,7 @@ To install on a tablet: open the site, then Share → *Add to Home Screen* (iPad
 
 ## Changing the look
 
-All colours, sizes, fonts and the 11 group colours are tokens in `css/tokens.css`
+All colours, sizes, fonts and the 12 group colours are tokens in `css/tokens.css`
 (`--g-mammals`, `--g-mammals-ink`, …; the `-ink` colour is the text colour on that group's colour).
 `css/app.css` only uses those tokens, so change values there rather than in components.
 The icon is drawn in `scripts/make-icons.mjs`; run `npm run icons` after changing it.

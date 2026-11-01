@@ -9,5 +9,6 @@
   { "id": "behavior",         "csv": "Exploring Behavior",    "emoji": "🐾", "name": { "en": "Exploring Behavior",    "zh": "動物行為" } },
   { "id": "how-animals-work", "csv": "How Animals Work",      "emoji": "🦴", "name": { "en": "How Animals Work",      "zh": "動物身體大揭密" } },
   { "id": "world-explorer",   "csv": "World Explorer",        "emoji": "🧭", "name": { "en": "World Explorer",        "zh": "世界探險" } },
-  { "id": "conservation",     "csv": "Conservation Issues",   "emoji": "🌱", "name": { "en": "Conservation Issues",   "zh": "保育議題" } }
+  { "id": "conservation",     "csv": "Conservation Issues",   "emoji": "🌱", "name": { "en": "Conservation Issues",   "zh": "保育議題" } },
+  { "id": "plants",           "csv": "Plants",                "emoji": "🌿", "name": { "en": "Plants",                "zh": "植物" } }
 ]

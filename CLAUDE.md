@@ -3,7 +3,7 @@
 ## PROJECT
 - Wildlife Explorer / 野生動物探險家: a bilingual (English + Traditional Chinese, zh-TW) collectible wildlife card PWA for the owner's kids, inspired by the 1990s Wildlife Explorer card series.
 - Vanilla JS. No framework, no backend, no accounts, no analytics, no tracking, no third-party scripts or CDNs at runtime.
-- Master card list: `data/card-list.csv` (11 groups, defined in `data/groups.json`). Generated data: `data/animals.json`. Images: `/img` (thumbnails in `/img/thumbs`).
+- Master card list: `data/card-list.csv` (12 groups, defined in `data/groups.json`). Generated data: `data/animals.json`. Images: `/img` (thumbnails in `/img/thumbs`).
 - Build: `npm run build` (see README). Local preview: `npm run serve` → http://localhost:8080.
 - Design: all colours, sizes and fonts live in `css/tokens.css`; components in `css/app.css` use tokens only.
 
