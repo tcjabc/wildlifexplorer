@@ -19,6 +19,8 @@ It runs on GitHub Pages and works fully offline once it has been opened.
 index.html, manifest.webmanifest, sw.js   the app shell and service worker
 css/tokens.css      all colours, sizes and fonts (change the look here)
 css/app.css         components, built only from tokens
+css/card.css        the card viewer and the card pages
+css/pack.css        foil packs for new cards
 js/                 app code (app.js is the entry point, views/ has one file per screen)
 lang/en.json        every UI string in English
 lang/zh-TW.json     the same keys in Traditional Chinese
@@ -28,7 +30,9 @@ data/animals.json   the cards (generated, then hand-edited by you)
 data/build-state.json   the build's memory of what it wrote (don't edit; do commit)
 data/build-report.md    what needs your attention after each build
 img/, img/thumbs/   card pictures (WebP, max 1200 px) and 480 px thumbnails
+img/silhouettes/    animal silhouettes (SVG) for size comparisons
 icons/              app icons (made by `npm run icons`)
+assets/             world map (Natural Earth) and child silhouette for the card pages
 scripts/            the build script and helpers (run on your computer only)
 ```
 
@@ -188,6 +192,47 @@ You can re-run the build as often as you like:
 Commit `data/build-state.json` along with `animals.json`. If it is ever lost, the build treats
 every field that already has a value as yours and leaves it alone.
 
+### The inside and back of a card
+
+Cards are bi-folds like the original Wildlife Explorer cards. The **cover** uses the photo,
+names, the first three facts and a small map. The **inside** and **back** come from these optional
+fields. Any you leave out are simply not shown, and a card with no inside fields doesn't open.
+
+```json
+"map": { "areas": [{ "lon": 121, "lat": 23.7, "r": 1.6 }], "zoom": { "lon": 121, "lat": 23.7, "scale": 6 } },
+"profile": {
+  "image": "illustration",
+  "callouts": [{ "x": 0.34, "y": 0.45, "en": "White V on the chest", "zh": "胸前的白色V字" }]
+},
+"stats": {
+  "length": { "min": 120, "max": 180, "unit": "cm", "note": { "en": "without the tail", "zh": "不含尾巴" } },
+  "weight": { "min": 50, "max": 200, "unit": "kg" },
+  "lifespan": { "min": 20, "max": 30, "unit": "years" },
+  "diet": { "en": "Omnivore: …", "zh": "雜食：…" }
+},
+"compare": { "width": 150 },
+"lifeCycle": [{ "en": "…", "zh": "…" }],
+"_draft": ["facts", "stats"]
+```
+
+- **map**: dots at longitude/latitude. `zoom` (optional) is used for the bigger map on the back.
+- **profile**: `image` is `"photo"` or `"illustration"`. Callout `x`/`y` are fractions of the
+  picture's width and height (0 = left/top, 1 = right/bottom).
+- **stats**: units are `cm`, `kg` or `years` (labels come from the language files). `note` is optional.
+- **compare**: how big the animal's silhouette is in cm, either `width` (nose to tail tip) or
+  `height`. It is drawn next to a 120 cm child. The silhouette itself is found by the build
+  (from PhyloPic, CC0/PD/CC BY/CC BY-SA only) and stored in `silhouette`. If there is none for the
+  exact species, a related animal's is used and the report says so.
+- **_draft**: fields written as a starting point (e.g. by Claude) that still need checking. They are
+  listed in the build report. Remove a name once you're happy with it.
+
+The world map (`assets/world.svg`) is drawn from Natural Earth (public domain) by
+`node scripts/make-map.mjs`. You only need to run that again if you want a different map.
+
+In the app, children open a card by dragging the cover's right edge (**Book**) or spreading
+two fingers on it (**Fridge doors**). The style is chosen under More → Card opening style.
+Swipe up to turn the card over, and swipe down to put it back in the binder.
+
 ## How unlocking works
 
 The build gives every card an `unlockDate`. Cards are dealt **round-robin across the groups**
@@ -196,9 +241,10 @@ are worked out over the whole CSV so they don't move when you process more rows 
 With the current settings, the first 12 cards in that order arrive on 2026-11-01 and then
 one new card arrives each day.
 
-When the app opens (or comes back to the front) it shows a reveal for every card whose date has
-passed and that hasn't been revealed on this device yet. Revealed = collected. Completing every
-card in a group earns that group's badge.
+When the app opens (or comes back to the front), every card whose date has passed and that hasn't
+been opened on this device yet arrives as a sealed foil pack: swipe across the top to cut it open
+(or tap "Tap to open"), then flick the card up into the binder (or tap "Put in binder").
+Opened = collected. Completing every card in a group earns that group's badge.
 
 **For grown-ups**: More → "For grown-ups" (answer the sum) has
 *Show all cards (preview)* — shows every card without counting them as collected, handy for checking
