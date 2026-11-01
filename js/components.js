@@ -39,7 +39,7 @@ export function picture(card, { thumb = false, kind } = {}) {
 export function cardTile(card) {
   const g = groupById(card.group);
   if (isVisible(card)) {
-    return h('a', { class: 'tile', href: `#/card/${encodeURIComponent(card.id)}`, 'data-group': card.group },
+    return h('a', { class: 'tile', href: `#/card/${encodeURIComponent(card.id)}`, 'data-group': card.group, 'data-card': card.id },
       h('span', { class: 'tile__no' }, cardNo(card.number)),
       h('span', { class: 'tile__pic' }, picture(card, { thumb: true })),
       h('span', { class: 'tile__name' }, bi(card.name)),

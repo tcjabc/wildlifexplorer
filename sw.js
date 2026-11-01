@@ -2,7 +2,7 @@
 //  - App files and data: network first (so updates show up), cache as fallback.
 //  - Images: cache first (their file names change when the picture changes).
 // Bump VERSION to throw away every old cache.
-const VERSION = 'v2';
+const VERSION = 'v3';
 const SHELL_CACHE = `shell-${VERSION}`;
 const IMAGE_CACHE = `images-${VERSION}`;
 const NETWORK_TIMEOUT_MS = 3000;
@@ -13,6 +13,8 @@ const SHELL = [
   'manifest.webmanifest',
   'css/tokens.css',
   'css/app.css',
+  'css/card.css',
+  'css/pack.css',
   'js/app.js',
   'js/dom.js',
   'js/i18n.js',
@@ -24,8 +26,11 @@ const SHELL = [
   'js/fx.js',
   'js/reveal.js',
   'js/offline.js',
+  'js/gesture.js',
+  'js/viewer.js',
+  'js/cardparts.js',
+  'js/worldmap.js',
   'js/views/binder.js',
-  'js/views/card.js',
   'js/views/quiz.js',
   'js/views/badges.js',
   'js/views/more.js',
@@ -37,6 +42,8 @@ const SHELL = [
   'icons/icon-192.png',
   'icons/icon-512.png',
   'icons/apple-touch-icon.png',
+  'assets/world.svg',
+  'assets/child.svg',
 ];
 
 const thumbOf = file => 'img/thumbs/' + file.split('/').pop().replace(/\.[^.]+$/, '') + '.webp';
@@ -54,9 +61,10 @@ async function cacheImages(urls) {
 async function cacheAllImagesFromData() {
   const res = await fetch('data/animals.json', { cache: 'no-cache' });
   const cards = await res.json();
-  const urls = cards.flatMap(c => ['photo', 'illustration']
-    .map(k => c[k]?.file).filter(Boolean)
-    .flatMap(f => [f, thumbOf(f)]));
+  const urls = cards.flatMap(c => [
+    ...['photo', 'illustration'].map(k => c[k]?.file).filter(Boolean).flatMap(f => [f, thumbOf(f)]),
+    ...(c.silhouette?.file ? [c.silhouette.file] : []),
+  ]);
   await cacheImages(urls);
 }
 

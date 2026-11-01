@@ -18,9 +18,10 @@ function setStatus(s) {
 }
 
 function imageUrls() {
-  return state.cards.flatMap(c => ['photo', 'illustration']
-    .map(k => c[k]?.file).filter(Boolean)
-    .flatMap(f => [f, thumbOf(f)]));
+  return state.cards.flatMap(c => [
+    ...['photo', 'illustration'].map(k => c[k]?.file).filter(Boolean).flatMap(f => [f, thumbOf(f)]),
+    ...(c.silhouette?.file ? [c.silhouette.file] : []),
+  ]);
 }
 
 export async function registerOffline() {

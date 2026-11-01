@@ -5,6 +5,8 @@ import { cardTile, groupTitle } from '../components.js';
 
 let lastGroup = null;
 
+export const currentGroup = () => lastGroup;
+
 export function render(main, [groupId]) {
   const g = groupById(groupId) ?? groupById(lastGroup) ?? state.groups[0];
   lastGroup = g.id;

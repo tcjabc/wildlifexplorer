@@ -8,7 +8,7 @@ function link(url, text) {
 }
 
 export function render(main) {
-  const items = state.cards.flatMap(card => ['photo', 'illustration']
+  const items = state.cards.flatMap(card => ['photo', 'illustration', 'silhouette']
     .filter(k => card[k]?.file)
     .map(k => ({ card, kind: k, img: card[k] })));
 
@@ -17,13 +17,14 @@ export function render(main) {
     h('h1', { class: 'page__title' }, h('span', { 'aria-hidden': 'true' }, '📷'), tx('credits.title')),
     h('p', null, tx('credits.intro')),
     h('p', { class: 'muted' }, tx('credits.data')),
+    h('p', { class: 'muted' }, tx('credits.map')),
     items.length
       ? h('ul', { class: 'credits' }, items.map(({ card, kind, img }) => h('li', { class: 'credits__item', 'data-group': card.group },
         // Thumbnails of cards not collected yet are blurred so the credits don't spoil them.
-        h('img', { class: ['credits__thumb', !isVisible(card) && 'is-secret'], src: thumbOf(img.file), alt: '', loading: 'lazy' }),
+        h('img', { class: ['credits__thumb', kind === 'silhouette' && 'credits__thumb--silhouette', !isVisible(card) && 'is-secret'], src: kind === 'silhouette' ? img.file : thumbOf(img.file), alt: '', loading: 'lazy' }),
         h('div', { class: 'credits__text' },
           h('p', { class: 'credits__name' }, bi(card.name), ' ',
-            h('span', { class: 'chip' }, tx(kind === 'photo' ? 'credits.photo' : 'credits.illustration'))),
+            h('span', { class: 'chip' }, tx(`credits.${kind}`))),
           h('p', null, img.author, ' · ', link(img.licenseUrl, img.license), ' · ', link(img.sourceUrl, tx('card.source')))))))
       : h('p', null, tx('credits.none'))));
 }

@@ -50,6 +50,15 @@ export function render(main) {
     },
   }, tx(`more.${r}`)));
 
+  const style = state.settings.openStyle;
+  const styleButtons = [['book', '📖'], ['fridge', '🚪']].map(([s, icon]) => h('button', {
+    type: 'button', role: 'radio', class: 'seg__btn', 'aria-checked': String(style === s),
+    onclick: async e => {
+      await saveSettings({ openStyle: s });
+      styleButtons.forEach(b => b.setAttribute('aria-checked', String(b === e.currentTarget)));
+    },
+  }, h('span', { 'aria-hidden': 'true' }, icon), tx(`more.${s}`)));
+
   const parentZone = h('div');
   renderParentZone(parentZone);
 
@@ -69,6 +78,10 @@ export function render(main) {
             onclick: () => speak([t('more.testText')], { mode: getMode(), rate: speechRate() }),
           }, h('span', { 'aria-hidden': 'true' }, '🔊'), tx('more.test')))
         : h('p', null, tx('more.noSpeech'))),
+
+    h('div', { class: 'panel' },
+      h('h2', { class: 'panel__title' }, tx('more.openStyle')),
+      h('div', { class: 'seg', role: 'radiogroup', 'aria-label': label('more.openStyle') }, styleButtons)),
 
     h('a', { class: 'panel panel--link', href: '#/credits' },
       h('span', { 'aria-hidden': 'true' }, '📷'), tx('more.credits'), h('span', { 'aria-hidden': 'true' }, '›')),
