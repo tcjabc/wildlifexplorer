@@ -205,7 +205,7 @@ fields. Any you leave out are simply not shown, and a card with no inside fields
 ```json
 "profile": {
   "image": "illustration",
-  "callouts": [{ "x": 0.34, "y": 0.45, "en": "White V on the chest", "zh": "胸前的白色V字" }]
+  "callouts": [{ "x": 0.34, "y": 0.45, "r": 0.07, "en": "White V on the chest", "zh": "胸前的白色V字" }]
 },
 "stats": {
   "length": { "en": "120–180 cm", "zh": "120–180 公分", "note": { "en": "without the tail", "zh": "不含尾巴" } },
@@ -223,9 +223,13 @@ fields. Any you leave out are simply not shown, and a card with no inside fields
 "_draft": ["facts", "stats"]
 ```
 
-- **profile**: `image` is `"photo"` or `"illustration"`. Callout `x`/`y` are fractions of the
-  picture's width and height (0 = left/top, 1 = right/bottom). In the app the numbered dots are
-  small; tapping a list item picks out its dot, and an eye button hides them all.
+- **profile**: `image` is `"photo"` or `"illustration"`. Callout `x`/`y` mark the centre of the
+  feature as fractions of the picture's width and height (0 = left/top, 1 = right/bottom; percent
+  0–100 also works). `r` is how much the magnifier shows: the radius around the feature as a
+  fraction of the picture's width (default 0.08; smaller = more zoom). The photo itself stays clean.
+  Tapping a list item rings the feature and opens a round magnifier in the emptiest corner, cut
+  from the full-size image; tap it again or the photo to close, or swipe the list to step through.
+  The build never touches `profile`, so hand-tuned values are safe.
 - **stats**: `length`, `weight`, `lifespan` and `diet` are the text shown. `lengthCm`, `weightKg` and
   `lifespanYears` are the numbers the comparisons use (the middle of `min`–`max`). If you only give
   the numbers, the text is made from them. `dietIcons` are emoji for the diet plate.

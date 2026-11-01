@@ -150,12 +150,11 @@
   "compare.elephants": "{name} = Elephant × {n}",
   "compare.lifespanAnimal": "{name}: about {n} years",
   "compare.lifespanYou": "You: {n} years old",
-  "card.hideDots": "Hide the numbers",
-  "card.showDots": "Show the numbers",
   "credits.gbif": "Range based on GBIF occurrence data (gbif.org), drawn on Natural Earth coastlines (public domain).",
   "more.you": "You, for creature comparisons",
   "more.height": "Height (cm)",
   "more.weightKg": "Weight (kg)",
   "more.age": "Age",
-  "more.youNote": "Only saved on this device. Leave blank for 120 cm, 23 kg, 6 years."
+  "more.youNote": "Only saved on this device. Leave blank for 120 cm, 23 kg, 6 years.",
+  "card.profileHint": "Tap a part to look closer"
 }

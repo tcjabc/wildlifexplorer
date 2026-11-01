@@ -6,6 +6,8 @@ import { groupById } from './store.js';
 import { picture, statusBadge, taiwanBadge, cardNo } from './components.js';
 import { worldMap } from './worldmap.js';
 import { comparePanel, modesFor } from './compare.js';
+import { magnifier } from './magnifier.js';
+import { track, haptic } from './gesture.js';
 
 const filled = p => p && (p.en || p.zh);
 export const factsOf = card => (card.facts ?? []).filter(filled);
@@ -48,58 +50,50 @@ export function coverPage(card, { onCredit } = {}) {
         h('div', { class: 'cover__badges' }, statusBadge(card.status), card.taiwan && taiwanBadge()))));
 }
 
-// Numbered hotspots on the picture, kept small so the photo stays the star.
-// Tap a list item (or a dot) to pick one out; tap the photo to see them all again;
-// the eye button hides them all.
+// The photo stays clean. Tap a feature in the list to see it through a magnifier; tap it
+// again, or the photo, to close; tap another to switch; swipe the list to step through.
 export function profilePage(card) {
   if (!hasProfile(card)) return h('div', { class: 'cpage cpage--profile' }, blank(card));
   const kind = card.profile.image ?? 'photo';
   const callouts = card.profile.callouts;
-  let peekTimer = 0;
-  const pic = h('div', { class: 'profile__pic' });
-  const dots = callouts.map((c, i) => h('button', {
-    class: 'callout', type: 'button', 'aria-label': [c.en, c.zh].filter(Boolean).join(' / '),
-    style: { left: `${c.x * 100}%`, top: `${c.y * 100}%` },
-    onclick: e => { e.stopPropagation(); pick(i); },
-  }, String(i + 1)));
+  const pic = h('div', { class: 'profile__pic' }, picture(card, { kind }));
+  const loupe = magnifier(pic, card[kind].file, callouts);
+
   const items = callouts.map((c, i) => h('li', null,
-    h('button', { class: 'callouts__item', type: 'button', onclick: () => pick(i) },
-      h('span', { class: 'callouts__no' }, String(i + 1)), bi(c))));
+    h('button', { class: 'callouts__item', type: 'button', 'aria-pressed': 'false', onclick: () => pick(i) },
+      h('span', { class: 'callouts__no', 'aria-hidden': 'true' }, String(i + 1)), bi(c))));
   const pick = i => {
-    pic.classList.remove('is-hidden', 'is-peek');
-    pic.classList.toggle('is-focus', i !== null);
-    dots.forEach((d, n) => d.classList.toggle('is-lit', n === i));
-    items.forEach((li, n) => li.classList.toggle('is-lit', n === i));
+    loupe.show(i);
+    const on = loupe.current();
+    items.forEach((li, n) => {
+      li.classList.toggle('is-lit', n === on);
+      li.firstChild.setAttribute('aria-pressed', String(n === on));
+    });
   };
-  const eye = h('button', {
-    class: 'profile__eye', type: 'button', 'aria-label': label('card.hideDots'), 'aria-pressed': 'false',
-    onclick: e => {
-      e.stopPropagation();
-      const hide = !pic.classList.contains('is-hidden');
-      pick(null);
-      pic.classList.toggle('is-hidden', hide);
-      eye.textContent = hide ? '🙈' : '👁';
-      eye.setAttribute('aria-pressed', String(hide));
-      eye.setAttribute('aria-label', label(hide ? 'card.showDots' : 'card.hideDots'));
+  pic.addEventListener('click', () => pick(null));
+
+  // Swipe along the list (either way) to move to the next or previous feature.
+  const list = h('ol', { class: 'callouts', 'data-swipe': true }, items);
+  let axis = null;
+  track(list, {
+    lock: ({ axis: a }) => { axis = a; return true; },
+    end: ({ dx, dy }) => {
+      const d = axis === 'x' ? dx : dy;
+      if (Math.abs(d) < 30) return;
+      const cur = loupe.current();
+      const step = d < 0 ? 1 : -1;
+      const next = cur === null ? (step > 0 ? 0 : callouts.length - 1) : (cur + step + callouts.length) % callouts.length;
+      haptic(6);
+      pick(next);
     },
-  }, '👁');
-  // Tapping the photo itself clears the highlight, or shows hidden dots for a moment.
-  pic.addEventListener('click', () => {
-    const hidden = pic.classList.contains('is-hidden');
-    pick(null);
-    if (hidden) {
-      pic.classList.add('is-hidden', 'is-peek');
-      clearTimeout(peekTimer);
-      peekTimer = setTimeout(() => pic.classList.remove('is-peek'), 1800);
-    }
   });
-  pic.append(picture(card, { kind }), ...dots, eye);
 
   const tax = card.taxonomy;
   return h('div', { class: 'cpage cpage--profile', 'data-group': card.group },
     pageTitle('card.profile', '🔍'),
     pic,
-    h('ol', { class: 'callouts' }, items),
+    h('p', { class: 'stat__hint' }, tx('card.profileHint')),
+    list,
     tax && h('p', { class: 'profile__tax' },
       ['class', 'order', 'family'].filter(r => tax[r]).map(r =>
         h('span', null, tx(`card.${r}`, {}, 'bi--inline'), ' ', h('i', { lang: 'la' }, tax[r].sci)))));

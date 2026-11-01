@@ -180,7 +180,11 @@ function wireGestures() {
   const closedFront = () => v.p < 0.01 && v.f < 0.01;
 
   track(v.stage, {
-    start: () => { if (v.closing) return false; stopMotion(); return true; },
+    start: ({ target }) => {
+      if (v.closing || target.closest?.('[data-swipe]')) return false; // e.g. the Profile list
+      stopMotion();
+      return true;
+    },
     lock: ({ dx, dy, axis, x }) => {
       mode = null;
       if (closedFront()) {

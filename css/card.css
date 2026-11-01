@@ -158,30 +158,27 @@
   box-shadow: 0 0 0 var(--bw-thin) var(--c-surface);
 }
 
-/* Profile: small, quiet hotspots so the photo stays the star. */
+/* Profile: a clean photo; picking a feature shows it through a magnifier (magnifier.js). */
 .profile__pic { position: relative; flex: none; border-radius: var(--r-sm); overflow: hidden; background: var(--c-bg-deep); cursor: pointer; }
 .profile__pic .pic { position: static; height: auto; }
-.callout {
-  position: absolute; display: grid; place-items: center;
-  width: var(--hotspot); height: var(--hotspot); padding: 0;
-  border: var(--bw-thin) solid var(--c-surface); border-radius: 50%;
-  background: var(--c-callout); color: var(--c-callout-ink);
-  font-size: var(--card-fs-sm); font-weight: var(--fw-bold); line-height: 1;
-  box-shadow: 0 0 0 1px var(--c-shade-strong); /* thin dark edge: visible on light and dark photos */
-  opacity: 0.75; transform: translate(-50%, -50%);
-  transition: opacity var(--t-med), transform var(--t-med) var(--ease-bounce);
-  cursor: pointer;
+.loupe { position: absolute; inset: 0; pointer-events: none; }
+.loupe__wire { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.loupe__wire line {
+  stroke: var(--c-surface); stroke-width: var(--bw-thin); stroke-linecap: round;
+  stroke-dasharray: 1; stroke-dashoffset: 0;
+  filter: drop-shadow(0 0 1px var(--c-shade-strong));
 }
-.profile__pic.is-focus .callout { opacity: 0.25; }
-.profile__pic .callout.is-lit { opacity: 1; transform: translate(-50%, -50%) scale(1.35); }
-.profile__pic.is-hidden .callout { opacity: 0; pointer-events: none; }
-.profile__pic.is-hidden.is-peek .callout { opacity: 0.75; }
-.profile__eye {
-  position: absolute; right: var(--s-1); top: var(--s-1);
-  width: var(--size-dot); height: var(--size-dot); padding: 0;
-  border: 0; border-radius: 50%; background: var(--c-veil);
-  font-size: var(--card-fs); cursor: pointer;
+.loupe__ring, .loupe__lens { position: absolute; aspect-ratio: 1; border-radius: 50%; transform-origin: 50% 50%; }
+.loupe__ring {
+  border: var(--bw-thin) solid var(--c-surface);
+  box-shadow: 0 0 0 1px var(--c-shade-strong), inset 0 0 0 1px var(--c-shade-strong);
 }
+.loupe__lens {
+  overflow: hidden; background: var(--c-surface);
+  border: var(--bw-thick) solid var(--c-surface);
+  box-shadow: var(--shadow-3);
+}
+.loupe__img { position: absolute; max-width: none; height: auto; }
 .callouts { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-hair); font-size: var(--card-fs-sm); }
 .callouts__item {
   display: grid; grid-template-columns: var(--hotspot) 1fr; gap: var(--s-2); align-items: center;
@@ -193,7 +190,7 @@
   background: var(--c-callout); color: var(--c-callout-ink); font-weight: var(--fw-bold);
 }
 .callouts__item .bi, .cycle li .bi { flex-direction: row; flex-wrap: wrap; column-gap: 0.5em; }
-.callouts li.is-lit .callouts__item { background: var(--c-callout-soft); }
+.callouts li.is-lit .callouts__item { background: var(--c-callout-soft); font-weight: var(--fw-semi); }
 .profile__tax { display: flex; flex-wrap: wrap; gap: var(--s-1) var(--s-3); margin-top: auto; color: var(--c-ink-soft); font-size: var(--card-fs-sm); }
 
 /* Inside right page: statistics you can tap, and the comparison they drive. */
