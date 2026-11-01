@@ -296,8 +296,8 @@ async function main() {
   const used = new Set();
   const findExisting = row => {
     const hit = existing.find(c => !used.has(c) && c.id === row.id)
-      ?? (row.scientific_name && existing.find(c => !used.has(c) && c.scientificName === row.scientific_name))
-      ?? (row.name_zh && existing.find(c => !used.has(c) && c.name?.zh === row.name_zh));
+      ?? (row.scientific_name ? existing.find(c => !used.has(c) && c.scientificName === row.scientific_name) : undefined)
+      ?? (row.name_zh ? existing.find(c => !used.has(c) && c.name?.zh === row.name_zh) : undefined);
     if (hit) used.add(hit);
     return hit;
   };
