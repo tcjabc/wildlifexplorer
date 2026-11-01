@@ -4,6 +4,7 @@ import { state, saveSettings, resetProgress, progress, speechRate } from '../sto
 import { speak, speechSupported } from '../speech.js';
 import { langSwitch } from '../chrome.js';
 import { offlineStatus } from '../offline.js';
+import { CHILD_DEFAULT } from '../compare.js';
 
 let gateOpen = false;
 
@@ -53,6 +54,26 @@ export function render(main) {
   const parentZone = h('div');
   renderParentZone(parentZone);
 
+  // The child's own size for "Creature comparison" (blank = the defaults). Device only.
+  const you = state.settings.child ?? {};
+  const field = (key, labelKey, min, max) => {
+    const id = `you-${key}`;
+    return h('div', { class: 'you__field' },
+      h('label', { for: id }, tx(labelKey)),
+      h('input', {
+        id, class: 'input', type: 'number', inputmode: 'numeric', min, max,
+        value: you[key] ?? '', placeholder: String(CHILD_DEFAULT[key]),
+        onchange: async e => {
+          const v = Number(e.target.value);
+          const ok = e.target.value !== '' && v >= min && v <= max;
+          if (!ok) e.target.value = '';
+          const next = { ...(state.settings.child ?? {}) };
+          if (ok) next[key] = v; else delete next[key];
+          await saveSettings({ child: next });
+        },
+      }));
+  };
+
   mount(main, h('section', { class: 'page more' },
     h('h1', { class: 'page__title' }, h('span', { 'aria-hidden': 'true' }, '⚙️'), tx('more.title')),
     h('p', { class: 'muted' }, tx('more.collectedCount', progress())),
@@ -69,6 +90,14 @@ export function render(main) {
             onclick: () => speak([t('more.testText')], { mode: getMode(), rate: speechRate() }),
           }, h('span', { 'aria-hidden': 'true' }, '🔊'), tx('more.test')))
         : h('p', null, tx('more.noSpeech'))),
+
+    h('div', { class: 'panel' },
+      h('h2', { class: 'panel__title' }, h('span', { 'aria-hidden': 'true' }, '🧒 '), tx('more.you')),
+      h('div', { class: 'you' },
+        field('heightCm', 'more.height', 60, 200),
+        field('weightKg', 'more.weightKg', 8, 120),
+        field('age', 'more.age', 1, 18)),
+      h('p', { class: 'muted' }, tx('more.youNote'))),
 
     h('a', { class: 'panel panel--link', href: '#/credits' },
       h('span', { 'aria-hidden': 'true' }, '📷'), tx('more.credits'), h('span', { 'aria-hidden': 'true' }, '›')),

@@ -5,15 +5,17 @@ import { bi, tx, t, label } from './i18n.js';
 import { groupById } from './store.js';
 import { picture, statusBadge, taiwanBadge, cardNo } from './components.js';
 import { worldMap } from './worldmap.js';
+import { comparePanel, modesFor } from './compare.js';
 
 const filled = p => p && (p.en || p.zh);
 export const factsOf = card => (card.facts ?? []).filter(filled);
 
 export const hasProfile = c => Boolean(c.profile?.callouts?.length && c[c.profile.image ?? 'photo']?.file);
 export const hasStats = c => Boolean(c.stats && Object.keys(c.stats).length);
-export const hasCompare = c => Boolean(c.silhouette?.file && (c.compare?.width || c.compare?.height));
+export const hasCompare = c => Object.values(modesFor(c)).some(Boolean);
 export const hasInside = c => hasProfile(c) || hasStats(c) || hasCompare(c);
-export const hasBack = c => Boolean(c.lifeCycle?.length || filled(c.habitat) || c.map?.areas?.length);
+const hasMap = c => Boolean(c.map?.areas?.length || c.rangePoints?.length || c.mapBounds);
+export const hasBack = c => Boolean(c.lifeCycle?.length || filled(c.habitat) || hasMap(c));
 
 const groupChip = g => h('span', { class: 'chip chip--group', 'data-group': g.id },
   h('span', { 'aria-hidden': 'true' }, g.emoji), bi(g.name));
@@ -42,85 +44,130 @@ export function coverPage(card, { onCredit } = {}) {
     h('div', { class: 'cover__bottom' },
       facts.length > 0 && h('ol', { class: 'cover__facts' }, facts.slice(0, 3).map(f => h('li', null, bi(f)))),
       h('div', { class: 'cover__side' },
-        worldMap(card.map, { label: label('card.where') }),
+        worldMap(card, { label: label('card.where') }),
         h('div', { class: 'cover__badges' }, statusBadge(card.status), card.taiwan && taiwanBadge()))));
 }
 
+// Numbered hotspots on the picture, kept small so the photo stays the star.
+// Tap a list item (or a dot) to pick one out; tap the photo to see them all again;
+// the eye button hides them all.
 export function profilePage(card) {
   if (!hasProfile(card)) return h('div', { class: 'cpage cpage--profile' }, blank(card));
   const kind = card.profile.image ?? 'photo';
   const callouts = card.profile.callouts;
-  const legend = h('ol', { class: 'callouts' }, callouts.map((c, i) => h('li', { 'data-i': i }, bi(c))));
-  const highlight = i => legend.querySelectorAll('li').forEach(li => li.classList.toggle('is-lit', li.dataset.i === String(i)));
+  let peekTimer = 0;
+  const pic = h('div', { class: 'profile__pic' });
+  const dots = callouts.map((c, i) => h('button', {
+    class: 'callout', type: 'button', 'aria-label': [c.en, c.zh].filter(Boolean).join(' / '),
+    style: { left: `${c.x * 100}%`, top: `${c.y * 100}%` },
+    onclick: e => { e.stopPropagation(); pick(i); },
+  }, String(i + 1)));
+  const items = callouts.map((c, i) => h('li', null,
+    h('button', { class: 'callouts__item', type: 'button', onclick: () => pick(i) },
+      h('span', { class: 'callouts__no' }, String(i + 1)), bi(c))));
+  const pick = i => {
+    pic.classList.remove('is-hidden', 'is-peek');
+    pic.classList.toggle('is-focus', i !== null);
+    dots.forEach((d, n) => d.classList.toggle('is-lit', n === i));
+    items.forEach((li, n) => li.classList.toggle('is-lit', n === i));
+  };
+  const eye = h('button', {
+    class: 'profile__eye', type: 'button', 'aria-label': label('card.hideDots'), 'aria-pressed': 'false',
+    onclick: e => {
+      e.stopPropagation();
+      const hide = !pic.classList.contains('is-hidden');
+      pick(null);
+      pic.classList.toggle('is-hidden', hide);
+      eye.textContent = hide ? '🙈' : '👁';
+      eye.setAttribute('aria-pressed', String(hide));
+      eye.setAttribute('aria-label', label(hide ? 'card.showDots' : 'card.hideDots'));
+    },
+  }, '👁');
+  // Tapping the photo itself clears the highlight, or shows hidden dots for a moment.
+  pic.addEventListener('click', () => {
+    const hidden = pic.classList.contains('is-hidden');
+    pick(null);
+    if (hidden) {
+      pic.classList.add('is-hidden', 'is-peek');
+      clearTimeout(peekTimer);
+      peekTimer = setTimeout(() => pic.classList.remove('is-peek'), 1800);
+    }
+  });
+  pic.append(picture(card, { kind }), ...dots, eye);
+
   const tax = card.taxonomy;
   return h('div', { class: 'cpage cpage--profile', 'data-group': card.group },
     pageTitle('card.profile', '🔍'),
-    h('div', { class: 'profile__pic' },
-      picture(card, { kind }),
-      callouts.map((c, i) => h('button', {
-        class: 'callout', type: 'button', 'aria-label': [c.en, c.zh].filter(Boolean).join(' / '),
-        style: { left: `${c.x * 100}%`, top: `${c.y * 100}%` },
-        onclick: () => highlight(i),
-      }, String(i + 1)))),
-    legend,
+    pic,
+    h('ol', { class: 'callouts' }, items),
     tax && h('p', { class: 'profile__tax' },
       ['class', 'order', 'family'].filter(r => tax[r]).map(r =>
         h('span', null, tx(`card.${r}`, {}, 'bi--inline'), ' ', h('i', { lang: 'la' }, tax[r].sci)))));
 }
 
-const range = s => (s.min === s.max || s.max == null ? `${s.min}` : `${s.min}–${s.max}`);
-function statRow(icon, key, stat) {
-  if (!stat) return null;
-  const value = stat.unit ? t(`unit.${stat.unit}`) : null;
-  const text = stat.min != null
-    ? { en: `${range(stat)} ${value?.en ?? ''}`.trim(), zh: `${range(stat)} ${value?.zh ?? ''}`.trim() }
-    : stat;
-  return h('div', { class: 'stat' },
-    h('span', { class: 'stat__icon', 'aria-hidden': 'true' }, icon),
-    h('span', { class: 'stat__label' }, tx(key)),
-    h('span', { class: 'stat__value' }, bi(text), stat.note && h('span', { class: 'stat__note' }, bi(stat.note))));
+const range = r => (r.max == null || r.min === r.max ? `${r.min}` : `${r.min}–${r.max}`);
+
+// Text for a statistic: written text ({ en, zh }), or made from the numbers.
+function statText(stat, nums, unit) {
+  if (filled(stat)) return stat;
+  const r = nums ?? (stat?.min != null ? stat : null);
+  if (!r) return null;
+  const u = t(`unit.${unit}`);
+  return { en: `${range(r)} ${u.en}`, zh: `${range(r)} ${u.zh}` };
 }
 
-export function statsSection(card) {
-  if (!hasStats(card)) return null;
-  const s = card.stats;
-  return h('section', { class: 'csection csection--stats' },
-    pageTitle('card.stats', '📏'),
-    statRow('📏', 'card.length', s.length),
-    statRow('⚖️', 'card.weight', s.weight),
-    statRow('⏳', 'card.lifespan', s.lifespan),
-    statRow('🍽️', 'card.diet', s.diet));
-}
+const STAT_ROWS = [
+  ['length', '📏', 'card.length', 'lengthCm', 'cm'],
+  ['weight', '⚖️', 'card.weight', 'weightKg', 'kg'],
+  ['lifespan', '⏳', 'card.lifespan', 'lifespanYears', 'years'],
+  ['diet', '🍽️', 'card.diet'],
+];
 
-// The animal's silhouette next to a 120 cm child, drawn to the same scale.
-export function compareSection(card) {
-  if (!hasCompare(card)) return null;
-  const CHILD_CM = 120;
-  const scene = h('div', { class: 'compare' });
-  const child = h('figure', { class: 'compare__item compare__item--child' },
-    h('img', { class: 'compare__img', src: 'assets/child.svg', alt: '' }),
-    h('figcaption', null, tx('card.you'), h('span', { class: 'compare__cm' }, `${CHILD_CM} cm`)));
-  const animalImg = h('img', { class: 'compare__img', src: card.silhouette.file, alt: '' });
-  const size = card.compare.width ?? card.compare.height;
-  const animal = h('figure', { class: 'compare__item' }, animalImg,
-    h('figcaption', null, bi(card.name), h('span', { class: 'compare__cm' }, `${size} cm`)));
-  scene.append(child, animal);
+// The inside right page: vital statistics, and a comparison that follows whichever
+// statistic was tapped last. replay() runs the current comparison's animation again.
+export function insidePage(card) {
+  const s = card.stats ?? {};
+  const modes = modesFor(card);
+  const panel = comparePanel(card);
+  let current = STAT_ROWS.map(r => r[0]).find(m => modes[m]) ?? null;
 
-  // Once the silhouette's shape is known, size both so that 1 cm is the same on each.
-  const layout = () => {
-    const ratio = animalImg.naturalHeight / animalImg.naturalWidth || 0.6;
-    const animalW = card.compare.width ?? card.compare.height / ratio;
-    const animalH = animalW * ratio;
-    const tallest = Math.max(CHILD_CM, animalH);
-    const avail = scene.clientHeight || parseFloat(getComputedStyle(scene).height) || 150;
-    const availW = (scene.clientWidth || 300) * 0.9;
-    const pxPerCm = Math.min(avail / tallest, availW / (animalW + CHILD_CM * 0.4 + 10));
-    child.firstChild.style.setProperty('height', `${CHILD_CM * pxPerCm}px`);
-    animalImg.style.setProperty('width', `${animalW * pxPerCm}px`);
+  const rows = STAT_ROWS.map(([mode, icon, key, numKey, unit]) => {
+    const text = mode === 'diet' ? (filled(s.diet) ? s.diet : null) : statText(s[mode], s[numKey], unit);
+    if (!text) return null;
+    const note = s[mode]?.note;
+    const content = [
+      h('span', { class: 'stat__icon', 'aria-hidden': 'true' }, icon),
+      h('span', { class: 'stat__label' }, tx(key)),
+      h('span', { class: 'stat__value' }, bi(text), note && h('span', { class: 'stat__note' }, bi(note))),
+    ];
+    if (!modes[mode]) return h('div', { class: 'stat' }, content);
+    return h('button', {
+      class: ['stat', 'stat--pick', mode === current && 'is-on'], type: 'button', 'data-mode': mode,
+      'aria-pressed': String(mode === current),
+      onclick: () => select(mode),
+    }, content, h('span', { class: 'stat__go', 'aria-hidden': 'true' }, '›'));
+  }).filter(Boolean);
+
+  const select = mode => {
+    current = mode;
+    rows.forEach(r => {
+      if (!r.dataset.mode) return;
+      const on = r.dataset.mode === mode;
+      r.classList.toggle('is-on', on);
+      r.setAttribute('aria-pressed', String(on));
+    });
+    panel.show(mode);
   };
-  animalImg.addEventListener('load', () => requestAnimationFrame(layout));
-  requestAnimationFrame(() => { if (animalImg.complete) layout(); });
-  return h('section', { class: 'csection csection--compare' }, pageTitle('card.compare', '🧒'), scene);
+
+  const el = h('div', { class: 'cpage cpage--inside', 'data-group': card.group },
+    rows.length > 0 && h('section', { class: 'csection csection--stats' },
+      pageTitle('card.stats', '📏'),
+      current && h('p', { class: 'stat__hint' }, tx('compare.tapHint')),
+      rows),
+    current && h('section', { class: 'csection csection--compare' }, pageTitle('card.compare', '🧒'), panel.el),
+    !rows.length && !current && blank(card));
+  if (current) panel.show(current);
+  return { el, replay: () => { if (current) panel.show(current); } };
 }
 
 export function backPage(card) {
@@ -129,9 +176,9 @@ export function backPage(card) {
     card.lifeCycle?.length > 0 && h('section', { class: 'csection' },
       pageTitle('card.lifeCycle', '🔄'),
       h('ol', { class: 'cycle' }, card.lifeCycle.map(step => h('li', null, bi(step))))),
-    (filled(card.habitat) || card.map) && h('section', { class: 'csection' },
+    (filled(card.habitat) || hasMap(card)) && h('section', { class: 'csection' },
       pageTitle('card.habitat', '🌏'),
-      worldMap(card.map, { zoomed: true, label: label('card.where') }),
+      worldMap(card, { detail: true, label: label('card.where') }),
       filled(card.habitat) && h('p', { class: 'back__habitat' }, bi(card.habitat))),
     h('div', { class: 'back__badges' }, statusBadge(card.status), card.taiwan && taiwanBadge()));
 }
@@ -151,5 +198,7 @@ export function cardCredits(card) {
       href && ' · ',
       href && h('a', { href, target: '_blank', rel: 'noopener' }, tx('card.source')));
   });
-  return h('ul', { class: 'card-credits' }, rows, card.map && h('li', null, tx('credits.map')));
+  return h('ul', { class: 'card-credits' }, rows,
+    hasMap(card) && h('li', null, tx('credits.map')),
+    card.rangePoints?.length > 0 && h('li', null, tx('credits.gbif')));
 }

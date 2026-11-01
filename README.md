@@ -104,6 +104,8 @@ For each **species** row the build:
 - downloads the image, resizes it to max 1200 px and saves it as WebP in `img/`, plus a
   480 px thumbnail in `img/thumbs/`, and records `file`, `author`, `license`, `licenseUrl`
   and `sourceUrl`.
+- finds a **silhouette** on PhyloPic for the size comparison (same licence rules);
+- works out **where the animal lives** from GBIF occurrence records (`mapBounds`, `rangePoints`).
 
 For **topic** rows it only creates the empty card for you to fill in.
 
@@ -199,34 +201,52 @@ names, the first three facts and a small map. The **inside** and **back** come f
 fields. Any you leave out are simply not shown, and a card with no inside fields doesn't open.
 
 ```json
-"map": { "areas": [{ "lon": 121, "lat": 23.7, "r": 1.6 }], "zoom": { "lon": 121, "lat": 23.7, "scale": 6 } },
 "profile": {
   "image": "illustration",
   "callouts": [{ "x": 0.34, "y": 0.45, "en": "White V on the chest", "zh": "胸前的白色V字" }]
 },
 "stats": {
-  "length": { "min": 120, "max": 180, "unit": "cm", "note": { "en": "without the tail", "zh": "不含尾巴" } },
-  "weight": { "min": 50, "max": 200, "unit": "kg" },
-  "lifespan": { "min": 20, "max": 30, "unit": "years" },
-  "diet": { "en": "Omnivore: …", "zh": "雜食：…" }
+  "length": { "en": "120–180 cm", "zh": "120–180 公分", "note": { "en": "without the tail", "zh": "不含尾巴" } },
+  "lengthCm": { "min": 120, "max": 180 },
+  "weight": { "en": "50–200 kg", "zh": "50–200 公斤" },
+  "weightKg": { "min": 50, "max": 200 },
+  "lifespan": { "en": "20–30 years", "zh": "20–30 年" },
+  "lifespanYears": { "min": 20, "max": 30 },
+  "diet": { "en": "Omnivore: …", "zh": "雜食：…" },
+  "dietIcons": ["🌰", "🍎", "🌿", "🐛", "🐭"]
 },
 "compare": { "width": 150 },
 "lifeCycle": [{ "en": "…", "zh": "…" }],
+"mapBounds": { "west": 119.8, "south": 21.9, "east": 122.3, "north": 24.8, "manual": true },
 "_draft": ["facts", "stats"]
 ```
 
-- **map**: dots at longitude/latitude. `zoom` (optional) is used for the bigger map on the back.
 - **profile**: `image` is `"photo"` or `"illustration"`. Callout `x`/`y` are fractions of the
-  picture's width and height (0 = left/top, 1 = right/bottom).
-- **stats**: units are `cm`, `kg` or `years` (labels come from the language files). `note` is optional.
+  picture's width and height (0 = left/top, 1 = right/bottom). In the app the numbered dots are
+  small; tapping a list item picks out its dot, and an eye button hides them all.
+- **stats**: `length`, `weight`, `lifespan` and `diet` are the text shown. `lengthCm`, `weightKg` and
+  `lifespanYears` are the numbers the comparisons use (the middle of `min`–`max`). If you only give
+  the numbers, the text is made from them. `dietIcons` are emoji for the diet plate.
+- **Creature comparison**: each statistic you can tap switches the comparison and replays its
+  animation: **length** (silhouettes side by side), **weight** (a balance; the lighter side fills with
+  copies until it levels out, with a counter and "= Elephant × n" for huge numbers), **lifespan**
+  (birthday timelines) and **diet** (a plate filling up). "You" is 120 cm, 23 kg and 6 years old
+  unless a child enters their own under More → "You, for creature comparisons" (saved on that device only).
 - **compare**: how big the animal's silhouette is in cm, either `width` (nose to tail tip) or
-  `height`. It is drawn next to a 120 cm child. The silhouette itself is found by the build
-  (from PhyloPic, CC0/PD/CC BY/CC BY-SA only) and stored in `silhouette`. If there is none for the
-  exact species, a related animal's is used and the report says so.
+  `height`. Leave it out to use `lengthCm`. The silhouette itself is found by the build (from
+  PhyloPic, CC0/PD/CC BY/CC BY-SA only) and stored in `silhouette`. If there is none for the exact
+  species, a related animal's is used and the report says so.
+- **mapBounds** / **rangePoints**: where the animal lives. The build works these out from GBIF
+  occurrence records: the middle 90% of record positions, padded a little. Small ranges (like
+  Taiwan-only animals) zoom right in, with a little world map in the corner; the land inside the
+  range is drawn darker. Dots come only from CC0/CC BY records. If there aren't enough of those,
+  only the range box (worked out from all records) is kept. To set the range yourself, write
+  `mapBounds` with `"manual": true` and the build will never change it.
+- **map** (optional, older): extra dots `{ "areas": [{ "lon": 121, "lat": 23.7 }] }`.
 - **_draft**: fields written as a starting point (e.g. by Claude) that still need checking. They are
   listed in the build report. Remove a name once you're happy with it.
 
-The world map (`assets/world.svg`) is drawn from Natural Earth (public domain) by
+The world map (`assets/world.svg`) is drawn from Natural Earth's 1:50m land (public domain) by
 `node scripts/make-map.mjs`. You only need to run that again if you want a different map.
 
 In the app, children open a card by dragging the cover's right edge, like turning a page.

@@ -142,5 +142,20 @@
   "pack.cut": "Swipe across the top to open the pack",
   "pack.flick": "Flick the card up into your binder",
   "credits.silhouette": "Silhouette",
-  "credits.map": "World map: Natural Earth (public domain). Child silhouette: drawn for Wildlife Explorer (CC0)."
+  "credits.map": "World map: Natural Earth (public domain). Child silhouette: drawn for Wildlife Explorer (CC0).",
+  "compare.tapHint": "Tap a row to compare it with you",
+  "compare.weightHeavy": "You × {n} = {name}",
+  "compare.weightLight": "{name} × {n} = You",
+  "compare.weightEqual": "{name} weighs about the same as you",
+  "compare.elephants": "{name} = Elephant × {n}",
+  "compare.lifespanAnimal": "{name}: about {n} years",
+  "compare.lifespanYou": "You: {n} years old",
+  "card.hideDots": "Hide the numbers",
+  "card.showDots": "Show the numbers",
+  "credits.gbif": "Where animals live: GBIF occurrence records (gbif.org).",
+  "more.you": "You, for creature comparisons",
+  "more.height": "Height (cm)",
+  "more.weightKg": "Weight (kg)",
+  "more.age": "Age",
+  "more.youNote": "Only saved on this device. Leave blank for 120 cm, 23 kg, 6 years."
 }

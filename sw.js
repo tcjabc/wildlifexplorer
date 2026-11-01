@@ -2,7 +2,7 @@
 //  - App files and data: network first (so updates show up), cache as fallback.
 //  - Images: cache first (their file names change when the picture changes).
 // Bump VERSION to throw away every old cache.
-const VERSION = 'v4';
+const VERSION = 'v5';
 const SHELL_CACHE = `shell-${VERSION}`;
 const IMAGE_CACHE = `images-${VERSION}`;
 const NETWORK_TIMEOUT_MS = 3000;
@@ -30,6 +30,7 @@ const SHELL = [
   'js/viewer.js',
   'js/cardparts.js',
   'js/worldmap.js',
+  'js/compare.js',
   'js/views/binder.js',
   'js/views/quiz.js',
   'js/views/badges.js',

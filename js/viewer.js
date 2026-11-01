@@ -8,7 +8,7 @@ import { h, mount, reducedMotion } from './dom.js';
 import { tx, t, label, getMode } from './i18n.js';
 import { cardsIn, isVisible, groupById, speechRate } from './store.js';
 import {
-  coverPage, profilePage, statsSection, compareSection, backPage, cardCredits,
+  coverPage, profilePage, insidePage, backPage, cardCredits,
   hasInside, hasBack, factsOf,
 } from './cardparts.js';
 import { cardNo, groupTitle } from './components.js';
@@ -30,13 +30,12 @@ function buildBook(card, onCredit) {
     h('div', { class: 'face face--front' }, coverPage(card, { onCredit }),
       hasInside(card) && h('span', { class: 'grab', 'aria-hidden': 'true' }, '‹')),
     h('div', { class: 'face face--back face--y' }, profilePage(card)));
-  const inside = h('div', { class: 'cpage cpage--inside', 'data-group': card.group },
-    statsSection(card), compareSection(card));
+  const inside = insidePage(card);
   const base = h('div', { class: 'base' },
-    h('div', { class: 'face face--front' }, inside),
+    h('div', { class: 'face face--front' }, inside.el),
     h('div', { class: 'face face--back face--x' }, backPage(card)));
   const flipper = h('div', { class: 'flipper' }, base, leaf);
-  return { root: h('div', { class: 'card3d' }, flipper), flipper, leaf };
+  return { root: h('div', { class: 'card3d' }, flipper), flipper, leaf, inside };
 }
 
 // ---------- layout and drawing ----------
@@ -101,16 +100,26 @@ function updateHint() {
 
 // ---------- motion ----------
 
+// Page turns and flips share one animation slot; the zoom in/out has its own, so tapping
+// open (or starting a drag) while the card is still zooming in doesn't freeze the zoom.
 function stopMotion() { v?.cancel?.(); if (v) v.cancel = null; }
+function stopZoom() { v?.zoomCancel?.(); if (v) v.zoomCancel = null; }
 
 // Spring one of p / f / z to a target, then run `after`.
 function settle(prop, target, velocity = 0, after) {
-  stopMotion();
-  v.cancel = spring({
+  const zoom = prop === 'z';
+  if (zoom) stopZoom(); else stopMotion();
+  const cancel = spring({
     from: v[prop], to: target, velocity,
     onUpdate: x => { v[prop] = x; draw(); },
-    onDone: () => { v.cancel = null; after?.(); },
+    onDone: () => {
+      if (zoom) v.zoomCancel = null; else v.cancel = null;
+      // The comparison animation plays as the card finishes opening.
+      if (prop === 'p' && target === 1) v.built.inside.replay();
+      after?.();
+    },
   });
+  if (zoom) v.zoomCancel = cancel; else v.cancel = cancel;
 }
 
 export function toggleOpen() {
@@ -133,14 +142,14 @@ function wireGestures() {
   const closedFront = () => v.p < 0.01 && v.f < 0.01;
 
   track(v.stage, {
-    start: () => { stopMotion(); return true; },
+    start: () => { if (v.closing) return false; stopMotion(); return true; },
     lock: ({ dx, dy, axis, x }) => {
       mode = null;
       if (closedFront()) {
         const r = cardRect();
         if (axis === 'x' && dx < 0 && hasInside(v.card) && x > r.left + r.width * 0.6) mode = 'open';
         else if (axis === 'y' && dy < 0 && hasBack(v.card)) mode = 'flip';
-        else if (axis === 'y' && dy > 0) mode = 'dismiss';
+        else if (axis === 'y' && dy > 0) { mode = 'dismiss'; stopZoom(); }
       } else if (v.p > DONE && axis === 'x' && dx > 0) mode = 'close';
       else if (v.f > DONE && axis === 'y' && dy > 0) mode = 'unflip';
       if (!mode) return false;
@@ -274,7 +283,7 @@ export function open(card, { fromEl, main, onDismiss } = {}) {
   v.onResize = () => { measure(); draw(); };
   window.addEventListener('resize', v.onResize);
 
-  v.cancel = tween({ from: 0, to: 1, duration: 520, onUpdate: z => { v.z = z; draw(); }, onDone: () => { v.cancel = null; } });
+  v.zoomCancel = tween({ from: 0, to: 1, duration: 520, onUpdate: z => { v.z = z; draw(); }, onDone: () => { v.zoomCancel = null; } });
 }
 
 // Show another card in the open viewer (‹ ›), with a quick cross-fade.
@@ -293,6 +302,7 @@ export function show(card) {
 function teardown() {
   if (!v) return;
   stopMotion();
+  stopZoom();
   stop();
   window.removeEventListener('resize', v.onResize);
   ['transform', 'filter', 'transform-origin'].forEach(p => v.main?.style.removeProperty(p));
@@ -304,13 +314,15 @@ function teardown() {
 export function close({ animate = true } = {}) {
   if (!v) return Promise.resolve();
   if (!animate || reducedMotion()) { teardown(); return Promise.resolve(); }
+  v.closing = true; // no gestures while zooming back into the binder
   stopMotion();
+  stopZoom();
   stop();
   v.fromEl = v.main?.querySelector(`.tile[data-card="${CSS.escape(v.card.id)}"]`) ?? v.fromEl;
   measure();
   const start = { p: v.p, f: v.f, z: v.z };
   return new Promise(resolve => {
-    v.cancel = tween({
+    v.zoomCancel = tween({
       from: 0, to: 1, duration: 420,
       onUpdate: u => { v.p = start.p * (1 - u); v.f = start.f * (1 - u); v.z = start.z * (1 - u); draw(); },
       onDone: () => { teardown(); resolve(); },

@@ -18,6 +18,19 @@ export function h(tag, props, ...children) {
   return el;
 }
 
+// The same for SVG elements (attributes only, no events).
+const SVG_NS = 'http://www.w3.org/2000/svg';
+export function svg(tag, attrs, ...children) {
+  const el = document.createElementNS(SVG_NS, tag);
+  for (const [k, v] of Object.entries(attrs ?? {})) {
+    if (v === null || v === undefined || v === false) continue;
+    if (k === 'class') el.setAttribute('class', Array.isArray(v) ? v.filter(Boolean).join(' ') : v);
+    else el.setAttribute(k, String(v));
+  }
+  append(el, children);
+  return el;
+}
+
 function append(el, children) {
   for (const c of children.flat(Infinity)) {
     if (c === null || c === undefined || c === false || c === '') continue;

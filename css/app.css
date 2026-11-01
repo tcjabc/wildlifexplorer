@@ -440,6 +440,9 @@ html[data-lang="zh"] .bi--title > .t-zh { font-size: var(--fs-xxl) !important; }
 .gate { display: grid; gap: var(--s-3); }
 .gate__row { display: flex; gap: var(--s-3); }
 .parent { display: grid; gap: var(--s-4); justify-items: start; }
+.you { display: flex; flex-wrap: wrap; gap: var(--s-4); }
+.you__field { display: grid; gap: var(--s-1); }
+.you__field .bi { flex-direction: row; gap: 0.4em; }
 
 /* ---------- Credits ---------- */
 .credits { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-2); }
