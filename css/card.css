@@ -13,9 +13,13 @@
   display: flex; align-items: center; gap: var(--s-2);
   padding: max(var(--s-2), env(safe-area-inset-top)) max(var(--s-3), env(safe-area-inset-right)) var(--s-2) max(var(--s-3), env(safe-area-inset-left));
   min-height: var(--header-h);
-  background: var(--c-overlay); /* hides the app header behind it */
-  color: var(--c-on-primary);
+  background: var(--g, var(--c-primary)); /* its own header: covers the app header completely */
+  color: var(--g-ink, var(--c-on-primary));
+  box-shadow: var(--shadow-1);
 }
+.viewer__bar > .viewer__group { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.viewer__bar > .btn, .viewer__bar > .viewer__no { flex: none; }
+@media (max-width: 600px) { .viewer__bar > .viewer__group { display: none; } }
 .viewer__bar .btn { background: var(--c-veil); color: var(--c-ink); }
 .viewer__bar .btn--read.is-speaking { background: var(--c-accent); }
 .viewer__group, .viewer__no { font-weight: var(--fw-bold); }
@@ -36,13 +40,10 @@ body:has(.viewer) .main { will-change: transform, filter; }
   width: var(--card-w); height: var(--card-h);
   transform-origin: 0 0; transform-style: preserve-3d;
 }
-.flipper, .base, .leaf, .door { position: absolute; transform-style: preserve-3d; }
+.flipper, .base, .leaf { position: absolute; transform-style: preserve-3d; }
 .flipper, .base, .leaf { inset: 0; }
 .flipper { transform-origin: 50% 50%; }
 .leaf { transform-origin: 0 50%; }
-.door { top: 0; height: 100%; width: 50%; }
-.door--left { left: 0; transform-origin: 0 50%; }
-.door--right { left: 50%; transform-origin: 100% 50%; }
 .face {
   position: absolute; inset: 0; overflow: hidden;
   border-radius: var(--r-sm); background: var(--c-paper); box-shadow: var(--shadow-2);
@@ -50,12 +51,8 @@ body:has(.viewer) .main { will-change: transform, filter; }
 }
 .face--y { transform: rotateY(180deg); }
 .face--x { transform: rotateX(180deg); }
-/* The cover is drawn whole inside each door; each door shows its own half. */
-.door__front { box-shadow: none; }
-.door__cover { position: absolute; top: 0; left: 0; width: var(--card-w); height: 100%; }
-.door--right .door__cover { left: calc(var(--card-w) / -2); }
 /* While turned over, only the back of the card should show. */
-.card3d.is-flipped .leaf, .card3d.is-flipped .door { visibility: hidden; }
+.card3d.is-flipped .leaf { visibility: hidden; }
 
 .grab {
   position: absolute; right: 0; top: 50%;
@@ -71,7 +68,7 @@ body:has(.viewer) .main { will-change: transform, filter; }
 .card3d.is-open .grab { visibility: hidden; }
 
 /* ---------- Card pages ---------- */
-.page {
+.cpage {
   position: absolute; inset: 0;
   display: flex; flex-direction: column; gap: var(--s-2);
   padding: var(--s-3);
@@ -79,20 +76,19 @@ body:has(.viewer) .main { will-change: transform, filter; }
   border: var(--bw-tile) solid var(--g, var(--c-line)); border-radius: inherit;
   font-size: var(--card-fs); line-height: 1.3;
 }
-.page--flap { padding: var(--s-2); }
-.page__blank { margin: auto; font-size: var(--emoji-xxl); opacity: 0.12; }
-.page__heading {
+.cpage__blank { margin: auto; font-size: var(--emoji-xxl); opacity: 0.12; }
+.cpage__heading {
   display: flex; align-items: center; gap: var(--s-2);
   padding-bottom: var(--s-1); border-bottom: var(--bw-thin) solid var(--c-paper-line);
   font-size: var(--card-fs-title);
 }
-.page__heading .bi, .bi--inline { flex-direction: row; flex-wrap: wrap; column-gap: 0.4em; align-items: baseline; }
-.page .badge { min-height: 0; padding: var(--s-hair) var(--s-2) var(--s-hair) var(--s-hair); font-size: var(--card-fs-sm); }
-.page .badge .bi { flex-direction: row; }
-.page .badge__code { width: var(--callout-dot); height: var(--callout-dot); font-size: var(--card-fs-sm); }
+.cpage__heading .bi, .bi--inline { flex-direction: row; flex-wrap: wrap; column-gap: 0.4em; align-items: baseline; }
+.cpage .badge { min-height: 0; padding: var(--s-hair) var(--s-2) var(--s-hair) var(--s-hair); font-size: var(--card-fs-sm); }
+.cpage .badge .bi { flex-direction: row; }
+.cpage .badge__code { width: var(--callout-dot); height: var(--callout-dot); font-size: var(--card-fs-sm); }
 
 /* Cover */
-.page--cover { padding: 0; gap: 0; }
+.cpage--cover { padding: 0; gap: 0; }
 .cover__top {
   display: flex; align-items: center; justify-content: space-between;
   padding: var(--s-1) var(--s-3);
@@ -168,9 +164,9 @@ body:has(.viewer) .main { will-change: transform, filter; }
 .callouts li.is-lit { background: var(--c-callout); }
 .profile__tax { display: flex; flex-wrap: wrap; gap: var(--s-1) var(--s-3); margin-top: auto; color: var(--c-ink-soft); font-size: var(--card-fs-sm); }
 
-/* Inside right page / flaps */
-.page--inside { gap: var(--s-3); }
-.section { display: flex; flex-direction: column; gap: var(--s-2); }
+/* Inside right page */
+.cpage--inside { gap: var(--s-3); }
+.csection { display: flex; flex-direction: column; gap: var(--s-2); }
 .stat {
   display: grid; grid-template-columns: auto auto 1fr; gap: var(--s-2); align-items: baseline;
   padding-bottom: var(--s-1); border-bottom: var(--bw-thin) dashed var(--c-paper-line);
@@ -179,8 +175,6 @@ body:has(.viewer) .main { will-change: transform, filter; }
 .stat__label .bi { flex-direction: row; flex-wrap: wrap; column-gap: 0.3em; }
 .stat__value { text-align: right; }
 .stat__note { display: block; color: var(--c-ink-soft); font-size: var(--card-fs-sm); }
-.page--flap .stat { grid-template-columns: auto 1fr; }
-.page--flap .stat__value { grid-column: 1 / -1; text-align: left; font-size: var(--card-fs-sm); }
 
 .compare {
   position: relative; height: var(--compare-h);
@@ -196,7 +190,6 @@ body:has(.viewer) .main { will-change: transform, filter; }
 }
 .compare__item figcaption .bi { align-items: center; }
 .compare__cm { display: block; color: var(--c-ink-soft); font-weight: normal; }
-.page--flap .compare { flex-direction: column; align-items: center; justify-content: flex-end; height: auto; gap: calc(var(--card-fs) * 3.4); margin-bottom: calc(var(--card-fs) * 3.4); border: 0; }
 
 /* Back */
 .cycle { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-2); counter-reset: step; font-size: var(--card-fs-sm); }

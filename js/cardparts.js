@@ -18,17 +18,17 @@ export const hasBack = c => Boolean(c.lifeCycle?.length || filled(c.habitat) || 
 const groupChip = g => h('span', { class: 'chip chip--group', 'data-group': g.id },
   h('span', { 'aria-hidden': 'true' }, g.emoji), bi(g.name));
 
-const pageTitle = (key, icon) => h('h2', { class: 'page__heading' }, h('span', { 'aria-hidden': 'true' }, icon), tx(key));
+const pageTitle = (key, icon) => h('h2', { class: 'cpage__heading' }, h('span', { 'aria-hidden': 'true' }, icon), tx(key));
 
 // An empty page still looks like card paper, with the group emoji as a watermark.
-const blank = card => h('div', { class: 'page__blank', 'aria-hidden': 'true' }, groupById(card.group)?.emoji);
+const blank = card => h('div', { class: 'cpage__blank', 'aria-hidden': 'true' }, groupById(card.group)?.emoji);
 
 export function coverPage(card, { onCredit } = {}) {
   const g = groupById(card.group);
   const facts = factsOf(card);
   const img = card.photo ?? card.illustration;
   const kind = card.photo ? 'photo' : 'illustration';
-  return h('div', { class: 'page page--cover', 'data-group': card.group },
+  return h('div', { class: 'cpage cpage--cover', 'data-group': card.group },
     h('div', { class: 'cover__top' }, groupChip(g), h('span', { class: 'cover__no' }, cardNo(card.number))),
     h('div', { class: 'cover__photo' },
       picture(card, { kind: img ? kind : undefined }),
@@ -47,13 +47,13 @@ export function coverPage(card, { onCredit } = {}) {
 }
 
 export function profilePage(card) {
-  if (!hasProfile(card)) return h('div', { class: 'page page--profile' }, blank(card));
+  if (!hasProfile(card)) return h('div', { class: 'cpage cpage--profile' }, blank(card));
   const kind = card.profile.image ?? 'photo';
   const callouts = card.profile.callouts;
   const legend = h('ol', { class: 'callouts' }, callouts.map((c, i) => h('li', { 'data-i': i }, bi(c))));
   const highlight = i => legend.querySelectorAll('li').forEach(li => li.classList.toggle('is-lit', li.dataset.i === String(i)));
   const tax = card.taxonomy;
-  return h('div', { class: 'page page--profile', 'data-group': card.group },
+  return h('div', { class: 'cpage cpage--profile', 'data-group': card.group },
     pageTitle('card.profile', '🔍'),
     h('div', { class: 'profile__pic' },
       picture(card, { kind }),
@@ -84,7 +84,7 @@ function statRow(icon, key, stat) {
 export function statsSection(card) {
   if (!hasStats(card)) return null;
   const s = card.stats;
-  return h('section', { class: 'section section--stats' },
+  return h('section', { class: 'csection csection--stats' },
     pageTitle('card.stats', '📏'),
     statRow('📏', 'card.length', s.length),
     statRow('⚖️', 'card.weight', s.weight),
@@ -120,16 +120,16 @@ export function compareSection(card) {
   };
   animalImg.addEventListener('load', () => requestAnimationFrame(layout));
   requestAnimationFrame(() => { if (animalImg.complete) layout(); });
-  return h('section', { class: 'section section--compare' }, pageTitle('card.compare', '🧒'), scene);
+  return h('section', { class: 'csection csection--compare' }, pageTitle('card.compare', '🧒'), scene);
 }
 
 export function backPage(card) {
-  if (!hasBack(card)) return h('div', { class: 'page page--back' }, blank(card));
-  return h('div', { class: 'page page--back', 'data-group': card.group },
-    card.lifeCycle?.length > 0 && h('section', { class: 'section' },
+  if (!hasBack(card)) return h('div', { class: 'cpage cpage--back' }, blank(card));
+  return h('div', { class: 'cpage cpage--back', 'data-group': card.group },
+    card.lifeCycle?.length > 0 && h('section', { class: 'csection' },
       pageTitle('card.lifeCycle', '🔄'),
       h('ol', { class: 'cycle' }, card.lifeCycle.map(step => h('li', null, bi(step))))),
-    (filled(card.habitat) || card.map) && h('section', { class: 'section' },
+    (filled(card.habitat) || card.map) && h('section', { class: 'csection' },
       pageTitle('card.habitat', '🌏'),
       worldMap(card.map, { zoomed: true, label: label('card.where') }),
       filled(card.habitat) && h('p', { class: 'back__habitat' }, bi(card.habitat))),

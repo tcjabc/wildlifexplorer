@@ -2,7 +2,7 @@
 //  - App files and data: network first (so updates show up), cache as fallback.
 //  - Images: cache first (their file names change when the picture changes).
 // Bump VERSION to throw away every old cache.
-const VERSION = 'v3';
+const VERSION = 'v4';
 const SHELL_CACHE = `shell-${VERSION}`;
 const IMAGE_CACHE = `images-${VERSION}`;
 const NETWORK_TIMEOUT_MS = 3000;

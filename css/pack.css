@@ -75,7 +75,7 @@
 /* The card waits inside the pack, behind the foil. */
 .pack__card { position: absolute; z-index: 1; transform-origin: 50% 50%; }
 .pack__card-inner { position: absolute; left: 0; top: 0; width: var(--card-w); height: var(--card-h); transform-origin: 0 0; }
-.pack__card-inner .page { border-radius: var(--r-md); box-shadow: var(--shadow-3); }
+.pack__card-inner .cpage { border-radius: var(--r-md); box-shadow: var(--shadow-3); }
 .pack__card.is-out { z-index: 6; cursor: grab; touch-action: none; }
 .pack__card.is-shining::after {
   content: ""; position: absolute; inset: 0; border-radius: var(--r-md); pointer-events: none;

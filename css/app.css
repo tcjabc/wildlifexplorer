@@ -3,17 +3,21 @@
 /* ---------- Base ---------- */
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+/* App shell: the header stays put and only <main> scrolls. The body is exactly the
+   dynamic viewport height, so nothing hides behind browser toolbars on iPad. */
+html, body { height: 100%; }
 body {
   margin: 0;
-  min-height: 100dvh;
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
   background: var(--c-bg);
   color: var(--c-ink);
   font-family: var(--font);
   font-size: var(--fs-sm);
   line-height: var(--lh);
   -webkit-tap-highlight-color: transparent;
-  overscroll-behavior-y: none;
-  overflow-x: clip;
 }
 img { max-width: 100%; display: block; }
 a { color: var(--c-primary); }
@@ -128,47 +132,58 @@ html[data-lang="zh"] .bi--title > .t-zh { font-size: var(--fs-xxl) !important; }
 }
 
 /* ---------- App frame ---------- */
+/* Header: logo · nav · language. Narrower screens drop the logo text, then the nav labels. */
 .header {
-  position: sticky; top: 0; z-index: 20;
-  display: flex; align-items: center; justify-content: space-between; gap: var(--s-3);
+  position: relative; z-index: 20;
+  display: flex; align-items: center; gap: var(--s-3);
   min-height: var(--header-h);
-  padding: var(--s-2) max(var(--s-4), env(safe-area-inset-right)) var(--s-2) max(var(--s-4), env(safe-area-inset-left));
-  padding-top: max(var(--s-2), env(safe-area-inset-top));
+  padding: max(var(--s-2), env(safe-area-inset-top)) max(var(--s-4), env(safe-area-inset-right)) var(--s-2) max(var(--s-4), env(safe-area-inset-left));
   background: var(--c-surface);
   box-shadow: var(--shadow-1);
 }
-.brand { display: flex; align-items: center; gap: var(--s-3); color: var(--c-primary-deep); text-decoration: none; min-width: 0; }
+.brand { flex: none; display: flex; align-items: center; gap: var(--s-3); color: var(--c-primary-deep); text-decoration: none; }
 .brand__icon { width: var(--size-brand); height: var(--size-brand); border-radius: var(--r-sm); flex: none; }
-.brand__name { font-weight: var(--fw-bold); line-height: 1.1; min-width: 0; }
+.brand__name { font-weight: var(--fw-bold); line-height: 1.1; }
 .bi--brand > .t-en, .bi--brand > .t-zh { font-size: var(--fs-md); white-space: nowrap; }
+.header .seg--lang { flex: none; margin-left: auto; }
+.lang-cycle { display: none; flex: none; margin-left: auto; }
+
+.nav { flex: 1; min-width: 0; display: flex; justify-content: center; gap: var(--s-1); }
+.is-loading .nav { visibility: hidden; }
+.nav__item {
+  display: flex; align-items: center; justify-content: center; gap: var(--s-2);
+  min-height: var(--tap); min-width: var(--tap); padding: var(--s-1) var(--s-3);
+  color: var(--c-ink-soft); text-decoration: none; font-weight: var(--fw-semi); font-size: var(--fs-xs);
+  border-radius: var(--r-md);
+}
+.nav__item .bi { line-height: 1.15; }
+.nav__icon { font-size: var(--fs-lg); line-height: 1; transition: transform var(--t-med) var(--ease-bounce); }
+.nav__item.is-active { color: var(--c-primary-deep); background: var(--c-bg-deep); }
+.nav__item.is-active .nav__icon { transform: scale(1.15); }
 
 .main {
-  max-width: var(--content-max); margin: 0 auto;
-  padding: var(--s-4) max(var(--s-4), env(safe-area-inset-right)) calc(var(--nav-h) + var(--s-5) + env(safe-area-inset-bottom)) max(var(--s-4), env(safe-area-inset-left));
+  position: relative;
+  min-height: 0;
+  overflow-x: hidden; overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  /* Content is centred up to --content-max; the scroll area itself is full width. */
+  padding: var(--s-4) max(var(--s-4), env(safe-area-inset-right), calc((100% - var(--content-max)) / 2))
+           calc(var(--s-6) + env(safe-area-inset-bottom)) max(var(--s-4), env(safe-area-inset-left), calc((100% - var(--content-max)) / 2));
 }
 .empty { padding: var(--s-7) var(--s-4); text-align: center; color: var(--c-ink-soft); font-size: var(--fs-md); }
 .empty .bi { align-items: center; }
 .loading-icon { display: block; margin: var(--s-7) auto; width: var(--size-medal); height: var(--size-medal); border-radius: var(--r-lg); animation: pulse 1.2s ease-in-out infinite; }
 
-.nav {
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
-  display: grid; grid-template-columns: repeat(4, 1fr);
-  min-height: var(--nav-h);
-  padding: var(--s-1) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-  background: var(--c-surface);
-  box-shadow: var(--shadow-up);
+@media (max-width: 1100px) {
+  .brand__name { display: none; }
 }
-.is-loading .nav { visibility: hidden; }
-.nav__item {
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--s-hair);
-  min-height: var(--tap); padding: var(--s-1);
-  color: var(--c-ink-soft); text-decoration: none; font-weight: var(--fw-semi); font-size: var(--fs-xs);
-  border-radius: var(--r-md); margin: var(--s-1);
+@media (max-width: 700px) {
+  .nav__label { display: none; }
+  .nav__item { padding: var(--s-1); }
+  .header .seg--lang { display: none; }
+  .lang-cycle { display: inline-flex; }
 }
-.nav__item .bi { align-items: center; text-align: center; line-height: 1.15; }
-.nav__icon { font-size: var(--fs-lg); line-height: 1; transition: transform var(--t-med) var(--ease-bounce); }
-.nav__item.is-active { color: var(--c-primary-deep); background: var(--c-bg); }
-.nav__item.is-active .nav__icon { transform: scale(1.2) translateY(-2px); }
 
 .page { display: flex; flex-direction: column; gap: var(--s-4); }
 .page__title { font-size: var(--fs-xl); display: flex; align-items: center; gap: var(--s-3); }
@@ -282,43 +297,7 @@ html[data-lang="zh"] .bi--title > .t-zh { font-size: var(--fs-xxl) !important; }
 .pic--broken { visibility: hidden; }
 .pic__emoji { font-size: var(--emoji-lg); }
 
-/* ---------- Card view ---------- */
-.card-view {
-  background: var(--c-surface);
-  border: var(--border-card) solid var(--g);
-  border-radius: var(--r-lg);
-  box-shadow: var(--shadow-2);
-  overflow: hidden;
-}
-.card-view__bar {
-  display: flex; align-items: center; gap: var(--s-2);
-  padding: var(--s-2) var(--s-3);
-  background: var(--g); color: var(--g-ink);
-}
-.card-view__bar .btn:not(.btn--read) { background: var(--c-veil); color: var(--c-ink); }
-.card-view__group { font-weight: var(--fw-bold); font-size: var(--fs-sm); line-height: 1.15; }
-.card-view__no { font-weight: var(--fw-bold); opacity: 0.85; padding: 0 var(--s-2); border-left: var(--bw-thin) solid currentColor; }
-.card-view__body { display: grid; gap: var(--s-4); padding: var(--s-4); }
-.card-view__figure { margin: 0; display: flex; flex-direction: column; gap: var(--s-3); align-items: center; }
-.card-view__pic {
-  width: 100%; aspect-ratio: 4 / 3; max-height: 50dvh; border-radius: var(--r-md); overflow: hidden;
-  background: color-mix(in srgb, var(--g) 12%, var(--c-surface));
-}
-.card-view__pic .pic { object-fit: contain; }
-.card-view__info { display: flex; flex-direction: column; gap: var(--s-4); }
-.card-view__name { color: var(--c-ink); }
-.sci { font-style: italic; color: var(--c-ink-soft); font-size: var(--fs-md); margin-top: calc(-1 * var(--s-3)); }
-
-.credit {
-  display: inline-flex; align-items: center; gap: var(--s-2);
-  min-height: var(--tap-sm); max-width: 100%; padding: var(--s-1) var(--s-3);
-  border: 0; border-radius: var(--r-pill); background: var(--c-bg); color: var(--c-ink-soft);
-  font-size: var(--fs-xs); cursor: pointer;
-}
-.credit__text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.credit__more { font-size: var(--fs-md); }
-
-.badges-row { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+/* ---------- Badges on cards (IUCN status, Found in Taiwan) ---------- */
 .badge {
   display: inline-flex; align-items: center; gap: var(--s-2);
   min-height: var(--tap-xs); padding: var(--s-1) var(--s-4) var(--s-1) var(--s-1);
@@ -333,30 +312,6 @@ html[data-lang="zh"] .bi--title > .t-zh { font-size: var(--fs-xxl) !important; }
 }
 .badge--taiwan { background: var(--c-good-soft); color: var(--c-primary-deep); padding-left: var(--s-3); }
 .badge__icon { font-size: var(--fs-md); }
-
-.card-view .panel { background: color-mix(in srgb, var(--g) 7%, var(--c-surface)); box-shadow: none; }
-.card-view .panel__title { color: var(--c-ink); }
-.card-view .panel p { font-size: var(--fs-md); }
-.facts { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-3); counter-reset: fact; }
-.facts li {
-  counter-increment: fact;
-  display: grid; grid-template-columns: var(--size-dot) 1fr; gap: var(--s-3); align-items: start;
-  font-size: var(--fs-md);
-}
-.facts li::before {
-  content: counter(fact);
-  display: grid; place-items: center; width: var(--size-dot); height: var(--size-dot); border-radius: 50%;
-  background: var(--g); color: var(--g-ink); font-weight: var(--fw-bold);
-}
-.facts .bi, .panel p .bi { gap: var(--s-1); }
-
-.taxonomy { display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-5); margin: 0; color: var(--c-ink-soft); font-size: var(--fs-xs); }
-.taxonomy__row { display: flex; gap: var(--s-2); align-items: baseline; }
-.taxonomy dt { font-weight: var(--fw-bold); }
-.taxonomy dt .bi { flex-direction: row; gap: 0.3em; }
-.taxonomy dd { margin: 0; }
-
-.card-view--locked .locked-msg { display: grid; place-items: center; gap: var(--s-4); padding: var(--s-7) var(--s-4); text-align: center; font-size: var(--fs-md); }
 
 /* Credit sheet */
 .sheet {
@@ -513,8 +468,9 @@ html[data-lang="zh"] .bi--title > .t-zh { font-size: var(--fs-xxl) !important; }
   .binder__page { flex: 1; border-radius: var(--r-lg) 0 var(--r-lg) var(--r-lg); }
   .tabs {
     flex: none; flex-direction: column; gap: var(--s-1);
-    position: sticky; top: calc(var(--header-h) + var(--s-3));
-    max-height: calc(100dvh - var(--header-h) - var(--nav-h) - var(--s-6));
+    /* Sticks inside the scrolling <main> and scrolls on its own if it is taller than the screen. */
+    position: sticky; top: 0;
+    max-height: calc(100dvh - var(--header-h) - var(--s-6) - env(safe-area-inset-top) - env(safe-area-inset-bottom));
     overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain;
     padding: var(--s-4) var(--s-2) var(--s-2) 0; margin: 0;
     width: var(--tabs-w);
@@ -533,16 +489,13 @@ html[data-lang="zh"] .bi--title > .t-zh { font-size: var(--fs-xxl) !important; }
   .tab__count { grid-column: 2; }
   .tab.is-active { transform: none; }
 
-  .card-view__body { grid-template-columns: 1.15fr 1fr; align-items: start; padding: var(--s-5); gap: var(--s-5); }
-  .card-view__figure { position: sticky; top: calc(var(--header-h) + var(--s-4)); }
-  .card-view__pic { aspect-ratio: 4 / 3.2; }
   .answers--4 { grid-template-columns: repeat(4, 1fr); }
   .quiz__pic { max-height: 42dvh; }
 }
 
 /* Short landscape phones: keep the header compact. */
 @media (max-height: 500px) and (orientation: landscape) {
-  :root { --header-h: var(--header-h-compact); --nav-h: var(--nav-h-compact); }
+  :root { --header-h: var(--header-h-compact); }
   .bi--brand > .t-zh { display: none; }
 }
 
@@ -550,7 +503,6 @@ html[data-lang="zh"] .bi--title > .t-zh { font-size: var(--fs-xxl) !important; }
   .bi--brand > .t-en, .bi--brand > .t-zh { font-size: var(--fs-sm); }
   .brand__icon { width: var(--size-brand-sm); height: var(--size-brand-sm); }
   .seg--lang .seg__btn { padding: var(--s-1) var(--s-2); min-width: var(--tap-xs); }
-  .card-view__group { display: none; }
   .binder__page { padding-left: calc(var(--s-3) + var(--rings-w)); padding-right: var(--s-3); }
   .grid { gap: var(--s-3); grid-template-columns: repeat(2, 1fr); }
 }

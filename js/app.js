@@ -4,7 +4,7 @@
 import { $, h, on, mount } from './dom.js';
 import { loadStrings, setMode, getMode, stringsLoaded, tx } from './i18n.js';
 import * as store from './store.js';
-import { renderHeader, renderNav } from './chrome.js';
+import { renderHeader } from './chrome.js';
 import { handleImageErrors } from './components.js';
 import { runReveals } from './reveal.js';
 import { registerOffline } from './offline.js';
@@ -23,10 +23,17 @@ const NAV_FOR = { binder: 'binder', quiz: 'quiz', badges: 'badges', more: 'more'
 
 const main = $('#main');
 const header = $('#header');
-const nav = $('#nav');
 let cleanup = null;
 let shown = { name: 'binder', args: [] }; // what <main> currently shows
 let lastDay = store.today();
+let activeNav = null;
+
+// The header is redrawn only when the highlighted nav item (or the language) changes.
+function setNav(active, force = false) {
+  if (active === activeNav && !force) return;
+  activeNav = active;
+  renderHeader(header, active);
+}
 
 function parseHash() {
   const [name, ...args] = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
@@ -35,14 +42,14 @@ function parseHash() {
 }
 
 function renderMain(next, { keepScroll = false } = {}) {
-  const y = window.scrollY;
+  const y = main.scrollTop;
   cleanup?.();
   stop();
   shown = next;
-  renderNav(nav, NAV_FOR[next.name]);
+  setNav(NAV_FOR[next.name]);
   cleanup = VIEWS[next.name].render(main, next.args) ?? null;
   main.dataset.view = next.name;
-  window.scrollTo(0, keepScroll ? y : 0);
+  main.scrollTop = keepScroll ? y : 0;
 }
 
 const binderGroup = () => (shown.name === 'binder' ? binder.currentGroup() : null);
@@ -55,7 +62,7 @@ function route() {
     const card = store.state.byId.get(next.args[0]);
     if (!card || !store.isVisible(card)) { location.replace('#/binder'); return; }
     if (binderGroup() !== card.group) renderMain({ name: 'binder', args: [card.group] });
-    renderNav(nav, 'binder');
+    setNav('binder');
     if (viewer.isOpen()) viewer.show(card);
     else viewer.open(card, { main, fromEl: tileFor(card.id), onDismiss: () => { location.hash = `#/binder/${card.group}`; } });
     return;
@@ -63,7 +70,7 @@ function route() {
 
   const sameBinder = next.name === 'binder' && binderGroup() && (next.args[0] ?? binderGroup()) === binderGroup();
   if (viewer.isOpen()) {
-    if (sameBinder) { viewer.close(); renderNav(nav, 'binder'); return; }
+    if (sameBinder) { viewer.close(); setNav('binder'); return; }
     viewer.close({ animate: false });
   }
   // Coming back from a card to the same binder page: keep it as it is (and its scroll).
@@ -77,7 +84,7 @@ async function setLanguage(mode) {
   if (mode === getMode()) return;
   setMode(mode);
   await store.saveSettings({ lang: mode });
-  renderHeader(header);
+  setNav(activeNav, true);
   refresh();
   const open = viewer.openCardId();
   if (open) viewer.show(store.state.byId.get(open));
@@ -90,7 +97,6 @@ function checkNewCards() {
 async function boot() {
   await Promise.all([loadStrings(), store.init()]);
   setMode(store.state.settings.lang);
-  renderHeader(header);
   route();
   document.body.classList.remove('is-loading');
   main.removeAttribute('aria-busy');

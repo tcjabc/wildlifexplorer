@@ -132,9 +132,7 @@
   "card.closeCard": "Close the card",
   "card.turnOver": "Turn over",
   "card.hintBook": "Drag the corner to open",
-  "card.hintFridge": "Spread two fingers on the picture",
   "card.hintCloseBook": "Drag the page back to close",
-  "card.hintCloseFridge": "Pinch to close",
   "card.hintFlip": "Swipe up to turn over",
   "card.hintBack": "Swipe down to turn back",
   "card.credits": "Picture credits",
@@ -143,9 +141,6 @@
   "unit.years": "years",
   "pack.cut": "Swipe across the top to open the pack",
   "pack.flick": "Flick the card up into your binder",
-  "more.openStyle": "Card opening style",
-  "more.book": "Book",
-  "more.fridge": "Fridge doors",
   "credits.silhouette": "Silhouette",
   "credits.map": "World map: Natural Earth (public domain). Child silhouette: drawn for Wildlife Explorer (CC0)."
 }

@@ -1,13 +1,12 @@
 // The card viewer: a full-screen layer over the binder.
 // - Opens by zooming from the tapped binder tile (the binder grows and blurs behind it).
-// - The card is a bi-fold: cover, inside spread, back. Two opening styles:
-//     book   – drag the right edge; the cover turns around the spine (rotateY)
-//     fridge – spread two fingers; the cover splits and both halves swing open
+// - The card is a bi-fold: cover, inside spread, back. Drag the cover's right edge and it
+//   turns around the spine like a book (rotateY).
 // - Swipe up to turn the card over, swipe down to go back to the binder.
 // Every gesture follows the finger; on release a spring finishes or undoes it.
 import { h, mount, reducedMotion } from './dom.js';
 import { tx, t, label, getMode } from './i18n.js';
-import { state, cardsIn, isVisible, groupById, speechRate } from './store.js';
+import { cardsIn, isVisible, groupById, speechRate } from './store.js';
 import {
   coverPage, profilePage, statsSection, compareSection, backPage, cardCredits,
   hasInside, hasBack, factsOf,
@@ -31,28 +30,13 @@ function buildBook(card, onCredit) {
     h('div', { class: 'face face--front' }, coverPage(card, { onCredit }),
       hasInside(card) && h('span', { class: 'grab', 'aria-hidden': 'true' }, '‹')),
     h('div', { class: 'face face--back face--y' }, profilePage(card)));
-  const inside = h('div', { class: 'page page--inside', 'data-group': card.group },
+  const inside = h('div', { class: 'cpage cpage--inside', 'data-group': card.group },
     statsSection(card), compareSection(card));
   const base = h('div', { class: 'base' },
     h('div', { class: 'face face--front' }, inside),
     h('div', { class: 'face face--back face--x' }, backPage(card)));
   const flipper = h('div', { class: 'flipper' }, base, leaf);
-  return { root: h('div', { class: 'card3d card3d--book' }, flipper), flipper, movers: [leaf] };
-}
-
-function buildFridge(card, onCredit) {
-  const flap = section => h('div', { class: 'page page--flap', 'data-group': card.group }, section);
-  const door = (side, back) => h('div', { class: `door door--${side}` },
-    h('div', { class: 'face face--front door__front' },
-      h('div', { class: 'door__cover', 'aria-hidden': side === 'right' ? 'true' : null }, coverPage(card, { onCredit }))),
-    h('div', { class: 'face face--back face--y' }, flap(back)));
-  const left = door('left', statsSection(card));
-  const right = door('right', compareSection(card));
-  const center = h('div', { class: 'base' },
-    h('div', { class: 'face face--front' }, profilePage(card)),
-    h('div', { class: 'face face--back face--x' }, backPage(card)));
-  const flipper = h('div', { class: 'flipper' }, center, left, right);
-  return { root: h('div', { class: 'card3d card3d--fridge' }, flipper), flipper, movers: [left, right] };
+  return { root: h('div', { class: 'card3d' }, flipper), flipper, leaf };
 }
 
 // ---------- layout and drawing ----------
@@ -85,14 +69,12 @@ function draw() {
   v.scrim.style.setProperty('opacity', String(bg));
   v.chrome.forEach(el => el.style.setProperty('opacity', String(clamp((z - 0.6) / 0.4))));
 
-  // Card pose: closed card centred; open spread centred on the spine (book) or panel (fridge).
+  // Card pose: the closed card is centred; the open spread is centred on the spine.
   const s = lerp(L.s0, L.s1, p);
-  const x0 = v.style === 'book' ? L.cx - ((1 - p) * L.P * s) / 2 : L.cx - (L.P * s) / 2;
+  const x0 = L.cx - ((1 - p) * L.P * s) / 2;
   const y0 = L.cy - (L.H * s) / 2;
   v.built.root.style.setProperty('transform', `translate(${x0}px, ${y0}px) scale(${s})`);
-  const [a, b] = v.built.movers;
-  a.style.setProperty('transform', `translateZ(1px) rotateY(${-180 * p}deg)`);
-  b?.style.setProperty('transform', `translateZ(1px) rotateY(${180 * p}deg)`);
+  v.built.leaf.style.setProperty('transform', `translateZ(1px) rotateY(${-180 * p}deg)`);
   v.built.flipper.style.setProperty('transform', `rotateX(${180 * f}deg)`);
   v.built.root.classList.toggle('is-flipped', f > 0.5);
   v.built.root.classList.toggle('is-open', p > 0.02);
@@ -109,8 +91,8 @@ function updateHint() {
   const { p, f, card } = v;
   let key = null;
   if (f > 0.5) key = 'card.hintBack';
-  else if (p > 0.5) key = v.style === 'book' ? 'card.hintCloseBook' : 'card.hintCloseFridge';
-  else if (hasInside(card)) key = v.style === 'book' ? 'card.hintBook' : 'card.hintFridge';
+  else if (p > 0.5) key = 'card.hintCloseBook';
+  else if (hasInside(card)) key = 'card.hintBook';
   else if (hasBack(card)) key = 'card.hintFlip';
   if (key === v.hintKey) return;
   v.hintKey = key;
@@ -156,10 +138,10 @@ function wireGestures() {
       mode = null;
       if (closedFront()) {
         const r = cardRect();
-        if (axis === 'x' && dx < 0 && v.style === 'book' && hasInside(v.card) && x > r.left + r.width * 0.6) mode = 'open';
+        if (axis === 'x' && dx < 0 && hasInside(v.card) && x > r.left + r.width * 0.6) mode = 'open';
         else if (axis === 'y' && dy < 0 && hasBack(v.card)) mode = 'flip';
         else if (axis === 'y' && dy > 0) mode = 'dismiss';
-      } else if (v.p > DONE && v.style === 'book' && axis === 'x' && dx > 0) mode = 'close';
+      } else if (v.p > DONE && axis === 'x' && dx > 0) mode = 'close';
       else if (v.f > DONE && axis === 'y' && dy > 0) mode = 'unflip';
       if (!mode) return false;
       base = { p: v.p, f: v.f, z: v.z };
@@ -194,26 +176,6 @@ function wireGestures() {
       mode = null;
     },
     cancel: () => { mode = null; },
-    pinchStart: () => {
-      stopMotion();
-      mode = null;
-      if (v.style !== 'fridge' || !hasInside(v.card) || v.f > 0.01) return;
-      mode = v.p > 0.5 ? 'pclose' : 'popen';
-    },
-    pinchMove: ({ delta }) => {
-      const span = v.L.P * v.L.s0 * 0.8;
-      if (mode === 'popen') v.p = clamp(delta / span);
-      if (mode === 'pclose') v.p = 1 - clamp(-delta / span);
-      if (mode) draw();
-    },
-    pinchEnd: ({ velocity }) => {
-      if (!mode) return;
-      const vel = velocity / (v.L.P * v.L.s0 * 0.8);
-      const target = Math.abs(vel) > 1.2 ? (vel > 0 ? 1 : 0) : v.p > 0.5 ? 1 : 0;
-      haptic(12);
-      settle('p', target, vel);
-      mode = null;
-    },
   });
 }
 
@@ -274,8 +236,7 @@ function buildBar(card) {
 
 function setCard(card) {
   v.card = card;
-  v.style = state.settings.openStyle === 'fridge' ? 'fridge' : 'book';
-  v.built = (v.style === 'book' ? buildBook : buildFridge)(card, openCredits);
+  v.built = buildBook(card, openCredits);
   mount(v.zoomer, v.built.root);
   const bar = buildBar(card);
   v.bar.replaceWith(bar);

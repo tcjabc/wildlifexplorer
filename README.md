@@ -229,8 +229,7 @@ fields. Any you leave out are simply not shown, and a card with no inside fields
 The world map (`assets/world.svg`) is drawn from Natural Earth (public domain) by
 `node scripts/make-map.mjs`. You only need to run that again if you want a different map.
 
-In the app, children open a card by dragging the cover's right edge (**Book**) or spreading
-two fingers on it (**Fridge doors**). The style is chosen under More → Card opening style.
+In the app, children open a card by dragging the cover's right edge, like turning a page.
 Swipe up to turn the card over, and swipe down to put it back in the binder.
 
 ## How unlocking works
