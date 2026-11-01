@@ -20,7 +20,9 @@ import { setUserAgent } from './lib/http.mjs';
 import { lookupSpecies } from './lib/wikidata.mjs';
 import { fileInfo, searchIllustrations } from './lib/commons.mjs';
 import { findSilhouette } from './lib/phylopic.mjs';
-import { findRange } from './lib/gbif.mjs';
+import { findOccurrences } from './lib/gbif.mjs';
+import { makeRange } from './lib/range.mjs';
+import { loadLand } from './lib/land.mjs';
 import { getBuffer } from './lib/http.mjs';
 import { findPhotos } from './lib/inaturalist.mjs';
 import { downloadImage, ensureThumb, shortHash, thumbPath } from './lib/images.mjs';
@@ -95,7 +97,7 @@ function blankCard(row) {
 }
 
 const KEY_ORDER = ['id', 'group', 'scientificName', 'name', 'facts', 'habitat', 'status', 'taiwan',
-  'photo', 'illustration', 'unlockDate', 'map', 'mapBounds', 'rangePoints', 'profile', 'stats', 'compare', 'lifeCycle', 'silhouette',
+  'photo', 'illustration', 'unlockDate', 'map', 'mapBounds', 'range', 'profile', 'stats', 'compare', 'lifeCycle', 'silhouette',
   'taxonomy', 'wikidata', 'locked', '_draft'];
 function orderKeys(card) {
   const out = {};
@@ -179,19 +181,65 @@ async function processSpecies(row, card, prevState, cfg, issues, notes) {
     if (sil && !sil.taxon.toLowerCase().startsWith(binomial)) notes.push(`silhouette is of a related animal (${sil.taxon})`);
   }
 
-  // Range map from GBIF records. A mapBounds with "manual": true is yours and never replaced.
-  if (wd?.gbifIds?.length && !card.mapBounds?.manual) {
-    const range = await findRange(wd.gbifIds);
-    if (range) {
-      values.mapBounds = range.bounds;
-      values.rangePoints = range.points;
-      notes.push(range.openOnly
-        ? `map range from ${range.records} CC0/CC BY GBIF records`
-        : `map range box from ${range.records} GBIF records (too few CC0/CC BY ones; only the box is kept)`);
-    } else {
-      issues.push('Not enough GBIF records with coordinates for a range map — add "mapBounds" by hand if you like');
-    }
+  Object.assign(values, await rangeValues(card, row, wd, notes, issues));
+  return values;
+}
+
+// ---------- range maps ----------
+
+let landPolys = null;
+const padBounds = b => {
+  const px = Math.max((b.east - b.west) * 0.12, 0.4), py = Math.max((b.north - b.south) * 0.12, 0.4);
+  const r = v => Math.round(v * 100) / 100;
+  return { west: r(b.west - px), south: r(b.south - py), east: r(b.east + px), north: r(b.north + py) };
+};
+function geoBounds(geometry) {
+  let w = Infinity, s = Infinity, e = -Infinity, n = -Infinity;
+  const polys = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates;
+  for (const poly of polys) for (const [x, y] of poly[0]) {
+    if (x < w) w = x; if (x > e) e = x; if (y < s) s = y; if (y > n) n = y;
   }
+  return { west: w, south: s, east: e, north: n };
+}
+
+// The range shape for the map: your own file in data/ranges-manual/<id>.json if there is
+// one (never touched), otherwise made from GBIF records into data/ranges/<id>.json.
+// The map zooms to it (mapBounds), unless your mapBounds has "manual": true.
+async function rangeValues(card, row, wd, notes, issues) {
+  const values = {};
+  const manual = `data/ranges-manual/${card.id}.json`;
+  if (existsSync(path.join(ROOT, manual))) {
+    const geo = JSON.parse(await readFile(path.join(ROOT, manual), 'utf8'));
+    values.range = manual;
+    if (!card.mapBounds?.manual) values.mapBounds = padBounds(geoBounds(geo.geometry ?? geo.features[0].geometry));
+    notes.push('range: your hand-made shape in data/ranges-manual/');
+    return values;
+  }
+  if (!wd?.gbifIds?.length) return values;
+  const occ = await findOccurrences(wd.gbifIds);
+  landPolys ??= await loadLand(ROOT);
+  const shape = occ && makeRange(occ.points, landPolys);
+  if (!shape) {
+    issues.push('Not enough GBIF records with coordinates for a range map — you can draw one in data/ranges-manual/');
+    return values;
+  }
+  const file = `data/ranges/${card.id}.json`;
+  await mkdir(path.join(ROOT, 'data/ranges'), { recursive: true });
+  await writeFile(path.join(ROOT, file), JSON.stringify({
+    type: 'Feature',
+    properties: {
+      species: row.scientific_name,
+      source: 'Range based on GBIF occurrence data (gbif.org); coastlines: Natural Earth (public domain)',
+      records: occ.records,
+      openLicenceRecordsOnly: occ.openOnly,
+      habitat: shape.habitat,
+      cellDegrees: shape.cellDegrees,
+    },
+    geometry: shape.geometry,
+  }) + '\n', 'utf8');
+  values.range = file;
+  if (!card.mapBounds?.manual) values.mapBounds = padBounds(shape.bbox);
+  notes.push(`range shape from ${occ.records} ${occ.openOnly ? 'CC0/CC BY ' : ''}GBIF records (${shape.habitat}${shape.islands ? `, ${shape.islands} island(s) filled` : ''})`);
   return values;
 }
 
@@ -273,6 +321,7 @@ async function main() {
     card.facts = Array.isArray(card.facts) ? card.facts : [];
     while (card.facts.length < 3) card.facts.push({ en: '', zh: '' });
     card.habitat ??= { en: '', zh: '' };
+    delete card.rangePoints; // replaced by the range shape (range)
 
     const values = {
       group: row.groupId,

@@ -1,86 +1,83 @@
 // Where a species lives, from GBIF occurrence records (https://www.gbif.org).
-// Takes a spread-out sample of records with coordinates, keeps the middle 90% of
-// latitudes and longitudes (so stray records and zoo animals don't stretch the map),
-// and pads the box a little.
 //
-// Licences: dots drawn on the map come only from CC0 / CC BY records. If there are too few
-// of those, the range box is worked out from all records, but only the box itself (four
-// numbers, a plain fact about where the species lives) is kept, not the records.
+// Sampling: wild sightings first (museum specimens are often filed under the museum's
+// location, and zoo animals turn up as specimens too). The sample is spread across
+// countries in proportion to their record counts, so one busy dataset can't dominate.
+//
+// Licences: CC0 / CC BY records are used when there are enough of them. Otherwise all
+// records are used, but only the generalised range shape made from them is kept, never
+// the records themselves.
 import { getJson } from './http.mjs';
 
 const API = 'https://api.gbif.org/v1/occurrence/search';
 const PAGE = 300;
-const PAGES = 4;
+const TARGET = 1500;      // points to aim for per species
 const MIN_RECORDS = 20;
-const MAX_OFFSET = 6000;
+const MAX_COUNTRIES = 25;
+const MIN_SHARE = 0.003;  // countries with fewer records than this are skipped (strays)
+const MAX_OFFSET = 6000;  // deeper pages can take minutes to answer
 const OPEN_LICENSES = ['CC0_1_0', 'CC_BY_4_0'];
-const BASE = {
-  hasCoordinate: 'true',
-  hasGeospatialIssue: 'false',
-  occurrenceStatus: 'PRESENT',
-  // Wild sightings and museum specimens only: no zoo or garden animals.
-  basisOfRecord: ['HUMAN_OBSERVATION', 'MACHINE_OBSERVATION', 'PRESERVED_SPECIMEN', 'OCCURRENCE'],
-};
+const WILD = ['HUMAN_OBSERVATION', 'MACHINE_OBSERVATION'];
+const ANY = [...WILD, 'PRESERVED_SPECIMEN', 'OCCURRENCE'];
+const BASE = { hasCoordinate: 'true', hasGeospatialIssue: 'false', occurrenceStatus: 'PRESENT' };
 
-const percentile = (sorted, q) => sorted[Math.min(sorted.length - 1, Math.max(0, Math.round(q * (sorted.length - 1))))];
-const round = (v, step) => Math.round(v / step) * step;
-const fix = v => Number(v.toFixed(2));
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 
-async function sample(taxonKey, openOnly) {
-  const query = { ...BASE, taxonKey: String(taxonKey), ...(openOnly ? { license: OPEN_LICENSES } : {}) };
-  const first = await getJson(API, { ...query, limit: '0' });
-  const count = first.count ?? 0;
+async function sample(taxonKey, { openOnly, basis }) {
+  const query = { ...BASE, basisOfRecord: basis, taxonKey: String(taxonKey), ...(openOnly ? { license: OPEN_LICENSES } : {}) };
+  const head = await getJson(API, { ...query, limit: '0', facet: 'country', facetLimit: '60' });
+  const count = head.count ?? 0;
   if (count < MIN_RECORDS) return { count, points: [] };
-  // Spread the pages over the first records. GBIF allows deeper paging, but deep pages
-  // can take minutes to answer.
-  const reach = Math.max(0, Math.min(count, MAX_OFFSET) - PAGE);
-  const pages = Math.min(PAGES, Math.ceil(count / PAGE));
+
   const points = [];
-  for (let i = 0; i < pages; i++) {
-    const offset = pages === 1 ? 0 : Math.floor((reach * i) / (pages - 1));
-    const json = await getJson(API, { ...query, limit: String(PAGE), offset: String(offset) });
+  const take = async (extra, n, offset = 0) => {
+    const json = await getJson(API, { ...query, ...extra, limit: String(clamp(n, 1, PAGE)), offset: String(offset) });
     for (const r of json.results ?? []) {
       if (Number.isFinite(r.decimalLatitude) && Number.isFinite(r.decimalLongitude)) points.push([r.decimalLongitude, r.decimalLatitude]);
     }
+  };
+
+  if (count <= PAGE) {
+    await take({}, PAGE);
+    return { count, points };
+  }
+  const countries = head.facets?.[0]?.counts ?? [];
+  for (const c of countries.slice(0, MAX_COUNTRIES)) {
+    const share = c.count / count;
+    if (share < MIN_SHARE) continue;
+    // A big share gets several pages, spread over that country's records.
+    const want = Math.round(clamp(TARGET * share, 15, TARGET));
+    const pages = Math.ceil(want / PAGE);
+    const reach = Math.max(0, Math.min(c.count, MAX_OFFSET) - PAGE);
+    for (let i = 0; i < pages; i++) {
+      await take({ country: c.name }, Math.min(PAGE, want - i * PAGE), pages > 1 ? Math.floor((reach * i) / (pages - 1)) : 0);
+    }
+  }
+  // Records with no country (open ocean, mostly), or too few so far: add a general sample.
+  const withCountry = countries.reduce((n, c) => n + c.count, 0);
+  if (withCountry < count * 0.8 || points.length < MIN_RECORDS) {
+    const reach = Math.max(0, Math.min(count, MAX_OFFSET) - PAGE);
+    await take({}, PAGE, 0);
+    if (reach) await take({}, PAGE, Math.floor(reach / 2));
   }
   return { count, points };
 }
 
-function boxOf(points) {
-  const lons = points.map(p => p[0]).sort((a, b) => a - b);
-  const lats = points.map(p => p[1]).sort((a, b) => a - b);
-  let west = percentile(lons, 0.05), east = percentile(lons, 0.95);
-  let south = percentile(lats, 0.05), north = percentile(lats, 0.95);
-  const padX = Math.max((east - west) * 0.15, 1);
-  const padY = Math.max((north - south) * 0.15, 1);
-  west = Math.max(-180, west - padX); east = Math.min(180, east + padX);
-  south = Math.max(-58, south - padY); north = Math.min(84, north + padY);
-  return { west: fix(west), south: fix(south), east: fix(east), north: fix(north) };
-}
-
-// A few dozen dots to draw: records snapped to a grid that suits the range's size.
-function dotsIn(points, b) {
-  const step = Math.max(0.1, (b.east - b.west) / 40);
-  const inBox = points.filter(([x, y]) => x >= b.west && x <= b.east && y >= b.south && y <= b.north);
-  return [...new Map(inBox.map(([x, y]) => {
-    const p = [fix(round(x, step)), fix(round(y, step))];
-    return [p.join(','), p];
-  })).values()].slice(0, 80);
-}
-
 // gbifIds: most specific first (subspecies, species, genus…). Uses the first one with
-// enough records, so a subspecies like the Formosan black bear maps to Taiwan, not all Asia.
-export async function findRange(gbifIds) {
+// enough records, so a subspecies like the Formosan black bear stays in Taiwan, not all Asia.
+// Returns { points, records, openOnly, wildOnly }: the points are only used to work out the
+// range shape (see range.mjs); they are never stored.
+export async function findOccurrences(gbifIds) {
+  const tries = [
+    { openOnly: true, basis: WILD }, { openOnly: false, basis: WILD },
+    { openOnly: true, basis: ANY }, { openOnly: false, basis: ANY },
+  ];
   for (const key of gbifIds.slice(0, 2)) {
-    const open = await sample(key, true);
-    if (open.points.length >= MIN_RECORDS) {
-      const bounds = boxOf(open.points);
-      return { bounds, points: dotsIn(open.points, bounds), records: open.count, openOnly: true };
-    }
-    const all = await sample(key, false);
-    if (all.points.length >= MIN_RECORDS) {
-      const bounds = boxOf(all.points);
-      return { bounds, points: dotsIn(open.points, bounds), records: all.count, openOnly: false };
+    for (const opts of tries) {
+      const s = await sample(key, opts);
+      if (s.points.length >= MIN_RECORDS) {
+        return { points: s.points, records: s.count, openOnly: opts.openOnly, wildOnly: opts.basis === WILD };
+      }
     }
   }
   return null;

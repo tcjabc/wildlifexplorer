@@ -1,6 +1,6 @@
 # Build report
 
-Generated 2026-11-01 15:07 UTC. Re-written on every build.
+Generated 2026-11-01 15:39 UTC. Re-written on every build.
 
 ## Summary
 
@@ -28,5 +28,5 @@ Written by Claude as a starting point. Check or rewrite it, then remove the fiel
 
 ## Notes
 
-- **Formosan Black Bear**: status VU is the parent species' IUCN status (no subspecies assessment); silhouette is of a related animal (Selenarctos thibetanus); map range box from 164 GBIF records (too few CC0/CC BY ones; only the box is kept)
-- **Formosan Rock Macaque**: silhouette is of a related animal (Macaca mulatta); map range from 1652 CC0/CC BY GBIF records
+- **Formosan Black Bear**: status VU is the parent species' IUCN status (no subspecies assessment); silhouette is of a related animal (Selenarctos thibetanus); range shape from 164 GBIF records (land)
+- **Formosan Rock Macaque**: silhouette is of a related animal (Macaca mulatta); range shape from 1505 CC0/CC BY GBIF records (land, 1 island(s) filled)
