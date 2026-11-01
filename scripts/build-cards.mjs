@@ -11,7 +11,7 @@
 // Your hand edits in animals.json are never overwritten (see lib/merge.mjs).
 
 import { existsSync } from 'node:fs';
-import { readFile, writeFile, readdir, rm } from 'node:fs/promises';
+import { readFile, writeFile, readdir, rm, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -19,6 +19,8 @@ import { parseCsv } from './lib/csv.mjs';
 import { setUserAgent } from './lib/http.mjs';
 import { lookupSpecies } from './lib/wikidata.mjs';
 import { fileInfo, searchIllustrations } from './lib/commons.mjs';
+import { findSilhouette } from './lib/phylopic.mjs';
+import { getBuffer } from './lib/http.mjs';
 import { findPhotos } from './lib/inaturalist.mjs';
 import { downloadImage, ensureThumb, shortHash, thumbPath } from './lib/images.mjs';
 import { isAllowedLicenseName } from './lib/licenses.mjs';
@@ -92,7 +94,8 @@ function blankCard(row) {
 }
 
 const KEY_ORDER = ['id', 'group', 'scientificName', 'name', 'facts', 'habitat', 'status', 'taiwan',
-  'photo', 'illustration', 'unlockDate', 'taxonomy', 'wikidata', 'locked'];
+  'photo', 'illustration', 'unlockDate', 'map', 'profile', 'stats', 'compare', 'lifeCycle', 'silhouette',
+  'taxonomy', 'wikidata', 'locked', '_draft'];
 function orderKeys(card) {
   const out = {};
   for (const k of KEY_ORDER) if (k in card) out[k] = card[k];
@@ -167,7 +170,37 @@ async function processSpecies(row, card, prevState, cfg, issues, notes) {
     values.illustration = ill;
     if (ill && searched) issues.push(`Illustration auto-picked by search — please check it (add "illustration" to the card's "locked" list to keep it and stop this reminder): ${ill.sourceUrl}`);
   }
+
+  if (canUpdate(card, prevState, 'silhouette') && wd?.gbifIds?.length) {
+    const sil = await chooseSilhouette(card, wd.gbifIds, row.scientific_name, notes);
+    values.silhouette = sil;
+    const binomial = row.scientific_name.split(/\s+/).slice(0, 2).join(' ').toLowerCase();
+    if (sil && !sil.taxon.toLowerCase().startsWith(binomial)) notes.push(`silhouette is of a related animal (${sil.taxon})`);
+  }
   return values;
+}
+
+// Plain vector drawings only: nothing that could run code if the file were opened directly.
+const SAFE_SVG = svg => /^\s*(<\?xml[^>]*>\s*)?(<!--[\s\S]*?-->\s*)*(<!DOCTYPE[^>]*>\s*)?<svg[\s>]/i.test(svg)
+  && !/<script|\son\w+\s*=|javascript:|<foreignObject/i.test(svg);
+
+// PhyloPic silhouette, saved as SVG in img/silhouettes/. Used for size comparisons.
+async function chooseSilhouette(card, gbifIds, scientificName, notes) {
+  const pick = await findSilhouette(gbifIds, scientificName);
+  if (!pick) return undefined;
+  const cur = card.silhouette;
+  const credit = { author: pick.author, license: pick.license, licenseUrl: pick.licenseUrl, sourceUrl: pick.sourceUrl, taxon: pick.taxon };
+  if (cur?.sourceUrl === pick.sourceUrl && existsSync(path.join(ROOT, cur.file))) return { file: cur.file, ...credit };
+  const svg = (await getBuffer(pick.downloadUrl)).toString('utf8');
+  if (!SAFE_SVG(svg)) {
+    notes.push('silhouette skipped: the SVG file did not look like a plain drawing');
+    return undefined;
+  }
+  const file = `img/silhouettes/${card.id}-${shortHash(pick.sourceUrl)}.svg`;
+  await mkdir(path.join(ROOT, 'img/silhouettes'), { recursive: true });
+  await writeFile(path.join(ROOT, file), svg, 'utf8');
+  notes.push(`silhouette: downloaded from PhyloPic (${pick.license})`);
+  return { file, ...credit };
 }
 
 function describeKept(field) {
@@ -265,6 +298,11 @@ async function main() {
       const r = await ensureThumb(ROOT, img.file, cfg.image);
       if (r === 'missing-source') imageProblems.push(`${card.id} ${kind}: file not found: ${img.file}`);
     }
+    const sil = card.silhouette;
+    if (sil?.file) {
+      if (!isAllowedLicenseName(sil.license)) imageProblems.push(`${card.id} silhouette: licence "${sil.license}" is not PD/CC0/CC BY/CC BY-SA`);
+      if (!existsSync(path.join(ROOT, sil.file))) imageProblems.push(`${card.id} silhouette: file not found: ${sil.file}`);
+    }
   }
 
   // Images on disk that no card uses any more (left in place; delete them if you like).
@@ -305,7 +343,8 @@ function renderReport({ rows, cards, orphans, report, imageProblems, unused, sel
   L.push(`- Rows not built yet: ${rows.length - cards.length} (run with \`--all\` or a bigger \`--limit\`)`);
   L.push(`- Cards without a photo: ${noPhoto.length}`);
   L.push(`- Cards with facts still to write: ${factsTodo.length}`);
-  L.push(`- Cards with habitat still to write: ${habitatTodo.length}`, '');
+  L.push(`- Cards with habitat still to write: ${habitatTodo.length}`);
+  L.push(`- Cards with inside pages (profile, statistics, life cycle): ${cards.filter(c => c.profile || c.stats || c.lifeCycle).length}`, '');
 
   const attention = [...report.values()].filter(r => r.issues.length);
   L.push('## Needs your attention', '');
@@ -340,6 +379,14 @@ function renderReport({ rows, cards, orphans, report, imageProblems, unused, sel
     L.push('## Unused image files', '');
     L.push('No card points at these files in img/ any more. Run with `--prune` to delete them.', '');
     for (const f of unused) L.push(`- img/${f}`);
+    L.push('');
+  }
+
+  const drafts = cards.filter(c => c._draft?.length);
+  if (drafts.length) {
+    L.push('## Draft text to check', '');
+    L.push('Written by Claude as a starting point. Check or rewrite it, then remove the field name from `_draft`.', '');
+    for (const c of drafts) L.push(`- ${c.name.en} · ${c.name.zh} (\`${c.id}\`): ${c._draft.join(', ')}`);
     L.push('');
   }
 

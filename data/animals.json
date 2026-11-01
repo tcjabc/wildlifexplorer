@@ -9,21 +9,21 @@
     },
     "facts": [
       {
-        "en": "",
-        "zh": ""
+        "en": "It has a white V-shaped mark on its chest, like a moon.",
+        "zh": "牠的胸前有一個白色的V字形斑紋，像一彎月亮。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "It is the only kind of bear that lives wild in Taiwan.",
+        "zh": "牠是臺灣唯一野生的熊。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "It is a good climber and makes \"nests\" of branches up in trees.",
+        "zh": "牠很會爬樹，還會在樹上用樹枝做「熊窩」。"
       }
     ],
     "habitat": {
-      "en": "",
-      "zh": ""
+      "en": "Mountain forests, mostly between 1,000 and 3,500 metres up.",
+      "zh": "山區森林，大多在海拔1,000到3,500公尺之間。"
     },
     "status": "VU",
     "taiwan": true,
@@ -42,6 +42,99 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Ours_du_Tibet_(Ursus_thibetanus)-_Histoire_naturelle_des_mammif%C3%A8res_avec_des_figures_originales,_colori%C3%A9es,_dessin%C3%A9es_d%27apr%C3%A8s_des_animaux_vivans_-_tome_5_(1824)_(cropped).jpg"
     },
     "unlockDate": "2026-11-01",
+    "map": {
+      "areas": [
+        {
+          "lon": 121,
+          "lat": 23.7,
+          "r": 1.6
+        }
+      ],
+      "zoom": {
+        "lon": 121,
+        "lat": 23.7,
+        "scale": 6
+      }
+    },
+    "profile": {
+      "image": "illustration",
+      "callouts": [
+        {
+          "x": 0.2,
+          "y": 0.21,
+          "en": "Round ears",
+          "zh": "圓圓的耳朵"
+        },
+        {
+          "x": 0.1,
+          "y": 0.38,
+          "en": "Strong sense of smell",
+          "zh": "嗅覺很靈敏"
+        },
+        {
+          "x": 0.34,
+          "y": 0.45,
+          "en": "White V on the chest",
+          "zh": "胸前的白色V字"
+        },
+        {
+          "x": 0.27,
+          "y": 0.67,
+          "en": "Long curved claws for climbing",
+          "zh": "爬樹用的長爪子"
+        }
+      ]
+    },
+    "stats": {
+      "length": {
+        "min": 120,
+        "max": 180,
+        "unit": "cm"
+      },
+      "weight": {
+        "min": 50,
+        "max": 200,
+        "unit": "kg"
+      },
+      "lifespan": {
+        "min": 20,
+        "max": 30,
+        "unit": "years"
+      },
+      "diet": {
+        "en": "Omnivore: acorns, fruit, young leaves, insects and small animals",
+        "zh": "雜食：橡實、果實、嫩葉、昆蟲和小動物"
+      }
+    },
+    "compare": {
+      "width": 150
+    },
+    "lifeCycle": [
+      {
+        "en": "Bears mate in summer.",
+        "zh": "熊在夏天交配。"
+      },
+      {
+        "en": "In winter, 1–2 tiny cubs are born in a den. At first their eyes are closed.",
+        "zh": "冬天，媽媽在洞裡生下1到2隻小熊，剛出生時眼睛還沒張開。"
+      },
+      {
+        "en": "Cubs stay with their mum for about two years, learning where to find food.",
+        "zh": "小熊跟著媽媽大約兩年，學習去哪裡找食物。"
+      },
+      {
+        "en": "Grown-up bears live on their own.",
+        "zh": "長大的熊會獨自生活。"
+      }
+    ],
+    "silhouette": {
+      "file": "img/silhouettes/formosan-black-bear-1b3f8e.svg",
+      "author": "Tracy A. Heath",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceUrl": "https://www.phylopic.org/images/51f6ff66-3344-4373-b6b0-e8beeb7fee33",
+      "taxon": "Selenarctos thibetanus"
+    },
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -74,7 +167,16 @@
         "zh": "熊屬"
       }
     },
-    "wikidata": "Q716455"
+    "wikidata": "Q716455",
+    "_draft": [
+      "facts",
+      "habitat",
+      "map",
+      "profile",
+      "stats",
+      "compare",
+      "lifeCycle"
+    ]
   },
   {
     "id": "formosan-rock-macaque",
@@ -86,21 +188,21 @@
     },
     "facts": [
       {
-        "en": "",
-        "zh": ""
+        "en": "It is the only monkey that lives wild in Taiwan — and it lives nowhere else.",
+        "zh": "牠是臺灣唯一的野生猴子，而且只住在臺灣。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "It lives in family groups called troops.",
+        "zh": "牠們成群生活，叫做「猴群」。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "It can stuff food into pouches in its cheeks to eat later.",
+        "zh": "牠可以把食物塞進臉頰的頰囊，等一下再慢慢吃。"
       }
     ],
     "habitat": {
-      "en": "",
-      "zh": ""
+      "en": "Forests and rocky cliffs, from the lowlands up to high mountains.",
+      "zh": "森林和岩壁，從低海拔到高山都有。"
     },
     "status": "LC",
     "taiwan": true,
@@ -113,6 +215,103 @@
     },
     "illustration": null,
     "unlockDate": "2026-11-01",
+    "map": {
+      "areas": [
+        {
+          "lon": 121,
+          "lat": 23.7,
+          "r": 1.6
+        }
+      ],
+      "zoom": {
+        "lon": 121,
+        "lat": 23.7,
+        "scale": 6
+      }
+    },
+    "profile": {
+      "image": "photo",
+      "callouts": [
+        {
+          "x": 0.29,
+          "y": 0.25,
+          "en": "Bare pink face",
+          "zh": "粉紅色的臉"
+        },
+        {
+          "x": 0.39,
+          "y": 0.33,
+          "en": "Clever hands for grooming",
+          "zh": "靈巧的手，可以幫同伴理毛"
+        },
+        {
+          "x": 0.6,
+          "y": 0.42,
+          "en": "Thick grey-brown fur",
+          "zh": "厚厚的灰褐色毛"
+        },
+        {
+          "x": 0.81,
+          "y": 0.87,
+          "en": "Long tail",
+          "zh": "長長的尾巴"
+        }
+      ]
+    },
+    "stats": {
+      "length": {
+        "min": 36,
+        "max": 45,
+        "unit": "cm",
+        "note": {
+          "en": "without the tail",
+          "zh": "不含尾巴"
+        }
+      },
+      "weight": {
+        "min": 4,
+        "max": 8,
+        "unit": "kg"
+      },
+      "lifespan": {
+        "min": 15,
+        "max": 25,
+        "unit": "years"
+      },
+      "diet": {
+        "en": "Omnivore: fruit, young leaves, seeds and insects",
+        "zh": "雜食：果實、嫩葉、種子和昆蟲"
+      }
+    },
+    "compare": {
+      "width": 80
+    },
+    "lifeCycle": [
+      {
+        "en": "Babies are born in spring and early summer, one at a time.",
+        "zh": "小猴在春天到初夏出生，一次生一隻。"
+      },
+      {
+        "en": "A baby holds on to its mum's belly and rides along with her.",
+        "zh": "小猴會緊緊抱住媽媽的肚子，跟著她到處走。"
+      },
+      {
+        "en": "Young monkeys play together and learn from the troop.",
+        "zh": "小猴們一起玩耍，向猴群學習。"
+      },
+      {
+        "en": "Daughters stay in the troop; sons leave to join another one.",
+        "zh": "母猴會留在原本的猴群；公猴長大後會離開，加入別的猴群。"
+      }
+    ],
+    "silhouette": {
+      "file": "img/silhouettes/formosan-rock-macaque-5362ef.svg",
+      "author": "Matthew Schmitz",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceUrl": "https://www.phylopic.org/images/4e9c5666-79cc-4766-a7d3-d547514b0d77",
+      "taxon": "Macaca mulatta"
+    },
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -145,7 +344,16 @@
         "zh": "獼猴屬"
       }
     },
-    "wikidata": "Q713841"
+    "wikidata": "Q713841",
+    "_draft": [
+      "facts",
+      "habitat",
+      "map",
+      "profile",
+      "stats",
+      "compare",
+      "lifeCycle"
+    ]
   },
   {
     "id": "chinese-pangolin",

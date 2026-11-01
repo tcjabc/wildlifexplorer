@@ -7,6 +7,8 @@ const MIN_GAP_MS = {
   'query.wikidata.org': 1000,
   'api.inaturalist.org': 1100,
   'upload.wikimedia.org': 400,
+  'api.phylopic.org': 500,
+  'images.phylopic.org': 300,
 };
 const lastHit = new Map();
 let userAgent = 'WildlifeExplorer-build/0.1';

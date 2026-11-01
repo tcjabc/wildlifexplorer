@@ -68,27 +68,35 @@ async function iucnStatus(entity) {
   return IUCN_BY_LABEL[label] ?? null;
 }
 
+// Ancestors by rank, with names and GBIF ids. The species rank is only used for
+// GBIF ids (a subspecies' silhouette can come from its species).
 export async function getTaxonomy(qid) {
-  const rows = await sparql(`SELECT ?rank ?sci ?en ?zhtw ?zhhant WHERE {
+  const ranks = { ...RANKS, Q7432: 'species' };
+  const rows = await sparql(`SELECT ?rank ?sci ?en ?zhtw ?zhhant ?gbif WHERE {
     wd:${qid} wdt:P171* ?anc .
     ?anc wdt:P105 ?rank ; wdt:P225 ?sci .
-    VALUES ?rank { ${Object.keys(RANKS).map(q => 'wd:' + q).join(' ')} }
+    VALUES ?rank { ${Object.keys(ranks).map(q => 'wd:' + q).join(' ')} }
     OPTIONAL { ?anc rdfs:label ?en FILTER(lang(?en) = "en") }
     OPTIONAL { ?anc rdfs:label ?zhtw FILTER(lang(?zhtw) = "zh-tw") }
     OPTIONAL { ?anc rdfs:label ?zhhant FILTER(lang(?zhhant) = "zh-hant") }
+    OPTIONAL { ?anc wdt:P846 ?gbif }
   } LIMIT 100`);
-  const taxonomy = {};
+  const found = {};
   for (const r of rows) {
-    const rank = RANKS[idOf(r.rank.value)];
-    if (taxonomy[rank]) continue; // keep the first path when an item has several parents
-    taxonomy[rank] = {
+    const rank = ranks[idOf(r.rank.value)];
+    if (found[rank]) continue; // keep the first path when an item has several parents
+    found[rank] = {
       sci: r.sci.value,
       en: r.en?.value ?? '',
       zh: r.zhtw?.value ?? r.zhhant?.value ?? '',
+      gbif: r.gbif?.value ?? null,
     };
   }
-  // Return in rank order.
-  return Object.fromEntries(Object.values(RANKS).filter(k => taxonomy[k]).map(k => [k, taxonomy[k]]));
+  // Taxonomy in rank order (kingdom … genus), and GBIF ids from the most specific up.
+  const taxonomy = Object.fromEntries(Object.values(RANKS).filter(k => found[k])
+    .map(k => [k, { sci: found[k].sci, en: found[k].en, zh: found[k].zh }]));
+  const gbif = ['species', 'genus', 'family', 'order'].map(k => found[k]?.gbif).filter(Boolean);
+  return { taxonomy, gbif };
 }
 
 export async function lookupSpecies(scientificName) {
@@ -106,6 +114,8 @@ export async function lookupSpecies(scientificName) {
     if (status) statusFrom = 'species';
   }
 
+  const { taxonomy, gbif } = await getTaxonomy(qid);
+  const ownGbif = bestClaims(claims.P846)[0];
   return {
     qid,
     labelEn: entity.labels?.en?.value ?? '',
@@ -115,6 +125,7 @@ export async function lookupSpecies(scientificName) {
     statusFrom,
     images: bestClaims(claims.P18),
     inatId: bestClaims(claims.P3151)[0] ?? null,
-    taxonomy: await getTaxonomy(qid),
+    taxonomy,
+    gbifIds: [...new Set([ownGbif, ...gbif].filter(Boolean))],
   };
 }

@@ -53,6 +53,14 @@
       "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Ours_du_Tibet_(Ursus_thibetanus)-_Histoire_naturelle_des_mammif%C3%A8res_avec_des_figures_originales,_colori%C3%A9es,_dessin%C3%A9es_d%27apr%C3%A8s_des_animaux_vivans_-_tome_5_(1824)_(cropped).jpg"
     },
+    "silhouette": {
+      "file": "img/silhouettes/formosan-black-bear-1b3f8e.svg",
+      "author": "Tracy A. Heath",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceUrl": "https://www.phylopic.org/images/51f6ff66-3344-4373-b6b0-e8beeb7fee33",
+      "taxon": "Selenarctos thibetanus"
+    },
     "unlockDate": "2026-11-01"
   },
   "formosan-rock-macaque": {
@@ -101,6 +109,14 @@
       "license": "CC BY-SA 2.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Formosan_macaque.jpg"
+    },
+    "silhouette": {
+      "file": "img/silhouettes/formosan-rock-macaque-5362ef.svg",
+      "author": "Matthew Schmitz",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceUrl": "https://www.phylopic.org/images/4e9c5666-79cc-4766-a7d3-d547514b0d77",
+      "taxon": "Macaca mulatta"
     },
     "unlockDate": "2026-11-01"
   },
