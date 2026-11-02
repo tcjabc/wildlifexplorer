@@ -4,6 +4,7 @@
 import * as db from './db.js';
 import { dueAt } from './schedule.js';
 import { isReady } from './ready.js';
+import { allBadges, isEarned } from './badges.js';
 
 export const state = {
   cards: [],
@@ -14,7 +15,10 @@ export const state = {
   profiles: [],     // explorers on this device, oldest first
   profile: null,    // the one using the app now
   collected: {},    // card id -> when it was collected (ISO time), for this profile
-  badges: {},       // group id -> when it was earned
+  badges: {},       // badge id (see badges.js) -> when it was earned
+  regions: { continents: [], biomes: [] }, // continent and biome tags (data/regions.json)
+  badgeCfg: null,   // { regions, badges, secrets }: what can be earned
+  lookalikes: { entries: {}, groups: [] },
   quiz: { best: {} },
   packs: [],        // this profile's packs on its current timeline, in drop order
   legacy: null,     // progress saved before there were profiles, until it moves into one
@@ -27,8 +31,9 @@ export const onChange = (type, fn) => bus.addEventListener(type, fn);
 const emit = type => bus.dispatchEvent(new Event(type));
 
 export async function init() {
-  const [cards, groups, plan] = await Promise.all(
-    ['data/animals.json', 'data/groups.json', 'data/drops.json'].map(u => fetch(u).then(r => r.json())),
+  const [cards, groups, plan, regions, badges, secrets, lookalikes] = await Promise.all(
+    ['data/animals.json', 'data/groups.json', 'data/drops.json', 'data/regions.json', 'data/badges.json',
+      'data/secret-badges.json', 'data/lookalikes.json'].map(u => fetch(u).then(r => r.json())),
   );
   const known = new Set(groups.map(g => g.id));
   state.cards = cards.filter(c => known.has(c.group));
@@ -37,6 +42,9 @@ export async function init() {
   state.byId = new Map(state.cards.map(c => [c.id, c]));
   state.drops = plan.drops;
   state.seriesDrops = plan.seriesDrops;
+  state.regions = regions;
+  state.badgeCfg = { regions, badges, secrets };
+  state.lookalikes = lookalikes;
 
   state.profiles = (await db.all('profiles')).filter(p => !p.deletedAt).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
   if (!(await db.getMeta('migratedV1', false))) state.legacy = await db.readLegacy();
@@ -128,7 +136,7 @@ async function moveLegacy(p) {
         await a.put('collection', stamp({ id: `${p.id}:${cardId}`, profileId: p.id, cardId, collectedAt: at(d), packId: null }));
       }
       for (const [groupId, d] of Object.entries(old.badges ?? {})) {
-        await a.put('badges', stamp({ id: `${p.id}:${groupId}`, profileId: p.id, groupId, earnedAt: at(d) }));
+        await a.put('badges', stamp({ id: `${p.id}:group:${groupId}`, profileId: p.id, badgeId: `group:${groupId}`, earnedAt: at(d) }));
       }
       for (const [kind, best] of Object.entries(old.quiz?.best ?? {})) {
         await a.put('quiz', stamp({ id: `${p.id}:${kind}`, profileId: p.id, kind, best }));
@@ -186,7 +194,8 @@ async function loadProgress() {
   const pid = state.profile.id;
   const [col, bad, quiz] = await Promise.all(['collection', 'badges', 'quiz'].map(s => db.all(s, pid).then(live)));
   state.collected = Object.fromEntries(col.map(r => [r.cardId, r.collectedAt]));
-  state.badges = Object.fromEntries(bad.map(r => [r.groupId, r.earnedAt]));
+  // Records from before Phase 2 have only groupId (a group badge).
+  state.badges = Object.fromEntries(bad.map(r => [r.badgeId ?? `group:${r.groupId}`, r.earnedAt]));
   state.quiz = { best: Object.fromEntries(quiz.map(r => [r.kind, r.best])) };
   await loadPacks();
 }
@@ -299,8 +308,8 @@ export async function markNotified(packs) {
 }
 
 // Open a pack: the oldest unopened one only, and only once. Its cards are collected at
-// this moment (when the pack is cut open). Returns the groups whose badge was just
-// earned, or null if the pack can't be opened.
+// this moment (when the pack is cut open). Returns the badges just earned (badges.js),
+// or null if the pack can't be opened.
 export async function openPack(id) {
   const p = state.profile;
   if (unopenedPacks()[0]?.id !== id) return null;
@@ -323,16 +332,31 @@ export async function openPack(id) {
   state.collected = { ...state.collected, ...Object.fromEntries(newly.map(c => [c, at])) };
   state.packs = state.packs.map(x => (x.id === id ? { ...x, openedAt: at } : x));
 
-  const earned = [...new Set(newly.map(c => state.byId.get(c)?.group))]
-    .filter(g => g && !state.badges[g] && progress(g).n === progress(g).total);
-  if (earned.length) {
-    await db.tx(['badges'], 'readwrite', async a => {
-      for (const g of earned) await a.put('badges', stamp({ id: `${p.id}:${g}`, profileId: p.id, groupId: g, earnedAt: at }, at));
-    });
-    state.badges = { ...state.badges, ...Object.fromEntries(earned.map(g => [g, at])) };
-  }
+  const earned = await awardBadges();
   emit('packs');
-  return earned.map(groupById);
+  return earned;
+}
+
+// ---------- Badges ----------
+
+export const badgeList = () => allBadges(state.badgeCfg, state.groups);
+const badgeCtx = () => ({ cards: state.cards, isCollected, byId: state.byId });
+
+// Save every badge the profile has earned but doesn't have yet (after opening a pack, or
+// when the tier counts change). Returns the new ones, for the celebration.
+export async function awardBadges() {
+  const p = state.profile;
+  if (!p || !state.badgeCfg) return [];
+  const ctx = badgeCtx();
+  const fresh = badgeList().filter(b => !state.badges[b.id] && isEarned(b, ctx));
+  if (!fresh.length) return [];
+  const at = nowIso();
+  await db.tx(['badges'], 'readwrite', async a => {
+    for (const b of fresh) await a.put('badges', stamp({ id: `${p.id}:${b.id}`, profileId: p.id, badgeId: b.id, earnedAt: at }, at));
+  });
+  state.badges = { ...state.badges, ...Object.fromEntries(fresh.map(b => [b.id, at])) };
+  emit('badges');
+  return fresh;
 }
 
 // ---------- Collection ----------

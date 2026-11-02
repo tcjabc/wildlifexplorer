@@ -16,6 +16,7 @@ import { setZhuyin } from './zhuyin.js';
 import { showPicker, profileForm } from './profiles.js';
 import { initPacks, checkDrops, updateBadge, hideArrival } from './packs.js';
 import { revealing } from './reveal.js';
+import { celebrate } from './celebrate.js';
 
 import * as binder from './views/binder.js';
 import * as packs from './views/packs.js';
@@ -113,6 +114,9 @@ async function enterProfile(id) {
   shown = { name: null, args: [] }; // draw the view again for this profile
   route();
   await checkDrops();
+  // Badges earned without opening a pack (e.g. after the tier counts change).
+  const fresh = await store.awardBadges();
+  if (fresh.length) await celebrate(fresh);
 }
 
 // The picker (or, with no profiles yet, the Welcome form). Shown on launch and from the avatar.
@@ -149,6 +153,7 @@ async function boot() {
   // The active profile was deleted (Parents area): pick another.
   store.onChange('profiles', () => { if (!store.state.profile) chooseProfile(); });
   // Packs and the binder's "In a pack" tiles show what has arrived.
+  store.onChange('badges', () => { if (shown.name === 'badges' && !revealing()) refresh(); });
   store.onChange('packs', () => {
     updateBadge();
     if (['packs', 'binder'].includes(shown.name) && !revealing() && !viewer.isOpen()) refresh();

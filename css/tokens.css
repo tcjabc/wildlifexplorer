@@ -93,6 +93,12 @@
   --avatar-7: var(--g-behavior);         --avatar-7-ink: var(--g-behavior-ink);
   --avatar-8: var(--g-world-explorer);   --avatar-8-ink: var(--g-world-explorer-ink);
 
+  /* Badge tiers (data/badges.json). A new tier needs its own --tier-<id> pair here. */
+  --tier-bronze: #c9813f;  --tier-bronze-ink: #2e1606;
+  --tier-silver: #c3ccd5;  --tier-silver-ink: #1f2a35;
+  --tier-gold: #f4c534;    --tier-gold-ink: #3b2a00;
+  --c-secret: #2c3640;     --c-secret-ink: #ffc93c;   /* the "?" of a secret badge */
+
   /* IUCN Red List badge colours (the Red List's own palette) */
   --iucn-ex: #000000;  --iucn-ex-ink: #ff5a5a;
   --iucn-ew: #542344;  --iucn-ew-ink: #ffffff;
@@ -196,6 +202,7 @@
   --life-bar: 22px;
   --plate: 140px;
   --compare-h: 150px;   /* height of the size-comparison scene */
+  --compare-look-h: 110px; /* … and of the lookalike scene, which also lists differences */
 
   /* Foil packs */
   --pack-w: min(72vw, 300px, 46dvh);

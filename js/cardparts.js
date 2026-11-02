@@ -6,6 +6,7 @@ import { groupById } from './store.js';
 import { picture, statusBadge, taiwanBadge, cardNo } from './components.js';
 import { worldMap } from './worldmap.js';
 import { comparePanel, modesFor } from './compare.js';
+import { lookalikesOf, lookalikePanel } from './lookalikes.js';
 import { magnifier } from './magnifier.js';
 import { track, haptic } from './gesture.js';
 import { nameBi } from './zhuyin.js';
@@ -16,7 +17,7 @@ export const factsOf = card => (card.facts ?? []).filter(filled);
 
 export const hasProfile = c => Boolean(c.profile?.callouts?.length && c[c.profile.image ?? 'photo']?.file);
 export const hasStats = c => Boolean(c.stats && Object.keys(c.stats).length);
-export const hasCompare = c => Object.values(modesFor(c)).some(Boolean);
+export const hasCompare = c => Object.values(modesFor(c)).some(Boolean) || lookalikesOf(c).length > 0;
 export const hasInside = c => hasProfile(c) || hasStats(c) || hasCompare(c);
 const hasMap = c => Boolean(c.map?.areas?.length || c.range || c.mapBounds);
 export const hasBack = c => Boolean(c.lifeCycle?.length || filled(c.habitat) || hasMap(c));
@@ -123,8 +124,9 @@ const STAT_ROWS = [
   ['diet', '🍽️', 'card.diet'],
 ];
 
-// The inside right page: vital statistics, and a comparison that follows whichever
-// statistic was tapped last. replay() runs the current comparison's animation again.
+// The inside right page. "You": vital statistics, and a comparison with you that follows
+// whichever statistic was tapped last. "Animal" (when the card has lookalikes): the page
+// shows the animal next to its lookalikes instead. replay() runs the animation again.
 export function insidePage(card) {
   const s = card.stats ?? {};
   const modes = modesFor(card);
@@ -159,15 +161,37 @@ export function insidePage(card) {
     panel.show(mode);
   };
 
-  const el = h('div', { class: 'cpage cpage--inside', 'data-group': card.group },
-    rows.length > 0 && h('section', { class: 'csection csection--stats' },
+  const looks = lookalikesOf(card);
+  const animal = looks.length ? lookalikePanel(card, looks) : null;
+  const hasYou = rows.length > 0;
+  let view = hasYou ? 'you' : animal ? 'animal' : null;
+
+  const you = hasYou && h('div', { class: 'cview' },
+    h('section', { class: 'csection csection--stats' },
       pageTitle('card.stats', '📏'),
       current && h('p', { class: 'stat__hint' }, tx('compare.tapHint')),
       rows),
-    current && h('section', { class: 'csection csection--compare' }, pageTitle('card.compare', '🧒'), panel.el),
-    !rows.length && !current && blank(card));
-  if (current) panel.show(current);
-  return { el, replay: () => { if (current) panel.show(current); } };
+    current && h('section', { class: 'csection csection--compare' }, pageTitle('card.compare', '🧒'), panel.el));
+  const others = animal && h('div', { class: 'cview' },
+    h('section', { class: 'csection csection--compare' }, pageTitle('card.lookalikes', '🐾'), animal.el));
+  const toggle = !(you && others) ? null : h('div', { class: 'cmp-toggle', role: 'radiogroup', 'aria-label': label('compare.with') },
+    [['you', 'compare.you', '🧒'], ['animal', 'compare.animal', '🐾']].map(([v, key, icon]) => h('button', {
+      type: 'button', role: 'radio', class: 'cmp-toggle__btn', 'data-view': v, 'aria-checked': String(view === v),
+      onclick: () => setView(v),
+    }, h('span', { 'aria-hidden': 'true' }, icon), tx(key))));
+
+  function setView(v) {
+    view = v;
+    toggle?.querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-checked', String(b.dataset.view === v)));
+    if (you) you.hidden = v !== 'you';
+    if (others) others.hidden = v !== 'animal';
+    if (v === 'animal') animal.show(); else { animal?.stop(); if (current) panel.show(current); }
+  }
+
+  const el = h('div', { class: 'cpage cpage--inside', 'data-group': card.group },
+    toggle, you, others, !view && blank(card));
+  if (view) setView(view);
+  return { el, replay: () => { if (view) setView(view); } };
 }
 
 export function backPage(card) {

@@ -386,6 +386,59 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
 .medal--earned > span { filter: drop-shadow(0 3px 0 var(--c-shade)); opacity: 1; }
 .medal--huge { width: var(--size-medal-lg); height: var(--size-medal-lg); font-size: var(--emoji-xl); animation: pop-in var(--t-slow) var(--ease-bounce) both; }
 
+/* Continent and habitat medals take their tier's metal (data-tier). */
+[data-tier="bronze"] { --tier: var(--tier-bronze); --tier-ink: var(--tier-bronze-ink); }
+[data-tier="silver"] { --tier: var(--tier-silver); --tier-ink: var(--tier-silver-ink); }
+[data-tier="gold"]   { --tier: var(--tier-gold);   --tier-ink: var(--tier-gold-ink); }
+.medal--tier {
+  background: radial-gradient(circle at 35% 30%, var(--c-shine), transparent 45%), var(--tier, var(--c-accent));
+  border-color: var(--c-surface);
+  box-shadow: 0 0 0 var(--bw-thick) color-mix(in srgb, var(--tier, var(--c-accent)) 70%, var(--c-ink)), var(--shadow-2);
+}
+.medal--secret { background: var(--c-secret); color: var(--c-secret-ink); font-weight: var(--fw-bold); }
+.medal--secret > span { filter: none; opacity: 1; }
+.medal-item__link { text-decoration: none; color: inherit; }
+.medal-item__tier { display: block; font-weight: var(--fw-bold); color: var(--c-ink); }
+.medal-section { display: flex; flex-direction: column; gap: var(--s-3); }
+.badges { gap: var(--s-5); }
+.bi--joke > .t-en, .bi--joke > .t-zh, .bi--joke > .t-any { font-size: var(--fs-lg) !important; font-weight: var(--fw-bold); }
+
+/* ---------- Earning a badge (js/celebrate.js) ---------- */
+.celebrate__stage { display: grid; place-items: center; min-height: var(--size-medal-lg); perspective: 800px; }
+.celebrate .medal--huge { touch-action: none; cursor: grab; position: relative; overflow: hidden; }
+/* Rubbing brings up a shine (--shine 0…1); polished, a sweep of light runs across. */
+.celebrate .medal--huge::after {
+  content: ""; position: absolute; inset: 0; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle at 30% 25%, var(--c-shine), transparent 60%);
+  opacity: var(--shine, 0); transition: opacity var(--t-fast);
+}
+.celebrate .medal--huge.is-polished::after {
+  opacity: 1;
+  background: linear-gradient(110deg, transparent 35%, var(--c-shine) 50%, transparent 65%) 0 0 / 250% 100%;
+  animation: shine 1.1s ease-out both;
+}
+.medal.is-turning { animation: medal-turn 0.6s ease-in-out; }
+@keyframes medal-turn { 50% { transform: rotateY(90deg); } }
+
+.secret-card {
+  position: relative; width: var(--size-medal-lg); height: var(--size-medal-lg); padding: 0; border: 0;
+  background: none; cursor: pointer; touch-action: none; transform-style: preserve-3d;
+  transition: transform var(--t-slow) var(--ease-bounce);
+  animation: pop-in var(--t-slow) var(--ease-bounce) both;
+}
+.secret-card__back, .secret-card__front {
+  position: absolute; inset: 0; display: grid; place-items: center; border-radius: var(--r-lg);
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+}
+.secret-card__back {
+  background: var(--c-secret); color: var(--c-secret-ink); font-size: var(--emoji-xl); font-weight: var(--fw-bold);
+  box-shadow: 0 0 0 var(--bw-thick) var(--c-accent-deep), var(--shadow-3);
+}
+.secret-card__front { transform: rotateY(180deg); }
+.secret-card__front .medal--huge { animation: none; }
+/* The drop-in animation would hold the transform, so it stops when the card turns. */
+.secret-card.is-flipped { animation: none; transform: rotateY(180deg); }
+
 /* ---------- Globe ---------- */
 .main[data-view="globe"] { padding: 0; overflow: hidden; }
 .globe { position: relative; height: 100%; overflow: hidden; }
@@ -429,6 +482,18 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
 .glayer[aria-pressed="true"] { background: var(--c-primary); border-color: var(--c-primary); color: var(--c-on-primary); }
 .glayer.is-loading .glayer__emoji { animation: pulse 0.8s ease-in-out infinite; }
 .glayer.is-failed { border-color: var(--c-bad); }
+.glayer--filter { border-color: var(--c-primary); }
+
+/* Region filter: continents and habitats, opened from the first chip. */
+.gfilter {
+  position: absolute; z-index: 2; top: calc(var(--tap-sm) + var(--s-4)); left: var(--s-3); right: var(--s-3);
+  max-width: var(--sheet-w); max-height: 60%; overflow-y: auto;
+  display: grid; gap: var(--s-2); padding: var(--s-3);
+  border-radius: var(--r-md); background: var(--c-veil); box-shadow: var(--shadow-2);
+}
+.gfilter__title { margin: 0; font-size: var(--fs-xs); font-weight: var(--fw-bold); color: var(--c-ink-soft); }
+.gfilter__group { display: grid; gap: var(--s-1); }
+.gfilter__row { display: flex; flex-wrap: wrap; gap: var(--s-2); }
 
 /* The legend for the layer that is on. */
 .glegend {

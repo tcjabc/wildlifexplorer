@@ -10,7 +10,7 @@
 // Pins that overlap merge into a stack with a count; tapping a stack zooms in and fans
 // the pins out. Tapping a pin lights up that species' range and opens its card sheet.
 import { h, mount, reducedMotion } from '../dom.js';
-import { bi, tx, label, plain } from '../i18n.js';
+import { bi, t, tx, label, plain } from '../i18n.js';
 import { state, isVisible, groupById, thumbOf, mainImage } from '../store.js';
 import { picture, groupTitle, cardNo } from '../components.js';
 import { createGlobe, toVec } from '../globe.js';
@@ -28,6 +28,7 @@ let globe = null;
 let sheet = null;          // { el, scrim, pin }
 // The map layer and month, kept while visiting other tabs.
 let shownLayer = null;
+let shownFilter = null;   // { key: 'continents' | 'biomes', id }: only show pins with that tag
 let tempMonth = new Date().getMonth() + 1;
 
 // ---------- where pins go ----------
@@ -104,8 +105,9 @@ export function render(main) {
   const stage = h('div', { class: 'globe__stage' }, layer);
   const bar = h('div', { class: 'glayers', role: 'toolbar', 'aria-label': label('globe.layers') });
   const legend = h('div', { class: 'glegend', hidden: true });
+  const filterPanel = h('div', { class: 'gfilter', hidden: true });
   const view = h('section', { class: 'globe', 'aria-label': label('nav.globe') },
-    stage, bar, h('div', { class: 'globe__foot' }, legend, hint));
+    stage, bar, filterPanel, h('div', { class: 'globe__foot' }, legend, hint));
   mount(main, view);
 
   const pins = [];          // { card, lon, lat, v, el, x, y, z, stack }
@@ -124,7 +126,7 @@ export function render(main) {
     for (const p of pins) {
       [p.x, p.y, p.z] = project(p.v);
       p.stack = null;
-      if (p.z < NEAR_SIDE || fan?.members.includes(p)) continue;
+      if (p.z < NEAR_SIDE || p.off || fan?.members.includes(p)) continue;
       const s = stacks.find(st => (st.x - p.x) ** 2 + (st.y - p.y) ** 2 < D * D);
       if (s) { s.members.push(p); p.stack = s; } else { p.stack = { x: p.x, y: p.y, members: [p] }; stacks.push(p.stack); }
     }
@@ -159,7 +161,7 @@ export function render(main) {
     for (const p of pins) {
       const fanned = fan?.members.includes(p);
       const lead = fanned || (p.stack && p.stack.members[0] === p);
-      if (!lead || (!fanned && p.z < NEAR_SIDE)) { p.el.classList.add('is-off'); continue; }
+      if (p.off || !lead || (!fanned && p.z < NEAR_SIDE)) { p.el.classList.add('is-off'); continue; }
       const x = fanned ? p.fx : p.x, y = fanned ? p.fy : p.y;
       const depth = fanned ? 1 : Math.min(1, (p.z - NEAR_SIDE) / 0.25);
       const count = fanned ? 1 : p.stack.members.length;
@@ -287,6 +289,7 @@ export function render(main) {
     if (!at || !globe) return;
     const p = { card, lon: at[0], lat: at[1], v: toVec(at[0], at[1]), x: 0, y: 0, z: -1, stack: null };
     p.el = pinEl(card, () => tapPin(p));
+    p.off = !matchesFilter(card);
     p.el.classList.add('is-off');
     pins.push(p);
     layer.append(p.el);
@@ -296,6 +299,52 @@ export function render(main) {
     if (!placed) hint.replaceChildren(tx('globe.empty'));
     pins.sort((a, b) => a.card.number - b.card.number);
   });
+
+  // ---------- region filter: continents and habitats, from the cards' tags ----------
+  function matchesFilter(card) {
+    return !shownFilter || (card[shownFilter.key] ?? []).includes(shownFilter.id);
+  }
+  const regionOf = f => f && state.regions[f.key].find(r => r.id === f.id);
+  const filterChip = h('button', {
+    class: 'glayer glayer--filter', type: 'button', 'aria-expanded': 'false', 'aria-haspopup': 'true',
+    onclick: () => openFilter(filterPanel.hidden),
+  });
+  function drawFilterChip() {
+    const r = regionOf(shownFilter);
+    filterChip.setAttribute('aria-pressed', String(Boolean(r)));
+    mount(filterChip, h('span', { class: 'glayer__emoji', 'aria-hidden': 'true' }, r?.emoji ?? '🔎'), r ? bi(r.name) : tx('globe.filterAll'));
+  }
+  function openFilter(open) {
+    filterPanel.hidden = !open;
+    filterChip.setAttribute('aria-expanded', String(open));
+    if (!open) return;
+    const chip = (f, emoji, name) => h('button', {
+      class: 'glayer', type: 'button',
+      'aria-pressed': String(f ? shownFilter?.key === f.key && shownFilter?.id === f.id : !shownFilter),
+      onclick: () => applyFilter(f),
+    }, h('span', { class: 'glayer__emoji', 'aria-hidden': 'true' }, emoji), bi(name));
+    mount(filterPanel,
+      h('div', { class: 'gfilter__row' }, chip(null, '🌐', t('globe.filterAll'))),
+      ...[['continents', 'badge.continents'], ['biomes', 'badge.biomes']].map(([key, titleKey]) => h('div', { class: 'gfilter__group' },
+        h('p', { class: 'gfilter__title' }, tx(titleKey)),
+        h('div', { class: 'gfilter__row' }, state.regions[key].map(r => chip({ key, id: r.id }, r.emoji, r.name))))));
+  }
+  // Show only the pins with that tag, and turn the globe towards a continent.
+  function applyFilter(f) {
+    shownFilter = f;
+    openFilter(false);
+    drawFilterChip();
+    let shown = 0;
+    for (const p of pins) { p.off = !matchesFilter(p.card); if (!p.off) shown++; }
+    fan = null;
+    select(null);
+    hint.replaceChildren(pins.length && !shown ? tx('globe.filterNone') : tx('globe.hint'));
+    const r = regionOf(f);
+    if (r?.center) globe.flyTo(r.center[0], r.center[1], globe.k, { duration: 650 });
+    globe.redraw();
+  }
+  drawFilterChip();
+  bar.append(filterChip);
 
   // ---------- map layers ----------
   const col = name => getComputedStyle(view).getPropertyValue(name).trim();

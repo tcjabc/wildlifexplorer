@@ -18,7 +18,8 @@ function setStatus(s) {
 }
 
 function imageUrls() {
-  return state.cards.flatMap(c => [
+  // Cards, and the standalone lookalikes shown beside them.
+  return [...state.cards, ...Object.values(state.lookalikes.entries ?? {})].flatMap(c => [
     ...['photo', 'illustration'].map(k => c[k]?.file).filter(Boolean).flatMap(f => [f, thumbOf(f)]),
     ...(c.silhouette?.file ? [c.silhouette.file] : []),
     ...(c.range ? [c.range] : []),

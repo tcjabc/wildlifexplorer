@@ -3,7 +3,7 @@
 //  - Images: cache first (their file names change when the picture changes).
 //  - Globe map layers: cache first, only once a layer is first shown (own LAYERS_VERSION).
 // Bump VERSION to throw away the app and image caches.
-const VERSION = 'v11';
+const VERSION = 'v12';
 const SHELL_CACHE = `shell-${VERSION}`;
 const IMAGE_CACHE = `images-${VERSION}`;
 // Globe map layers (assets/layers/): big, so only cached once a layer is first shown, and
@@ -55,11 +55,18 @@ const SHELL = [
   'js/units.js',
   'js/countries.js',
   'js/ready.js',
+  'js/badges.js',
+  'js/celebrate.js',
+  'js/lookalikes.js',
   'lang/en.json',
   'lang/zh-TW.json',
   'data/animals.json',
   'data/groups.json',
   'data/drops.json',
+  'data/regions.json',
+  'data/badges.json',
+  'data/secret-badges.json',
+  'data/lookalikes.json',
   'icons/icon-192.png',
   'icons/icon-512.png',
   'icons/apple-touch-icon.png',

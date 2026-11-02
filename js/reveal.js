@@ -10,6 +10,7 @@
 import { h, mount, reducedMotion } from './dom.js';
 import { tx } from './i18n.js';
 import { state, openPack as claimPack, unopenedPacks, groupById, progress, dropById } from './store.js';
+import { celebrate } from './celebrate.js';
 import { coverPage } from './cardparts.js';
 import { cardTile } from './components.js';
 import { confetti, chimeReveal, chimeGood } from './fx.js';
@@ -287,20 +288,8 @@ async function openOne(ui, record) {
   }
 
   // ---- 4. badges, then the summary ----
-  for (const g of badges) await showBadge(ui, g);
+  await celebrate(badges, ui);
   return summary(ui, cards);
-}
-
-async function showBadge(ui, g) {
-  const ok = h('button', { class: 'btn btn--accent btn--big', type: 'button' }, tx('badge.great'));
-  scene(ui,
-    h('p', { class: 'reveal__title' }, tx('badge.earned')),
-    h('div', { class: 'medal medal--earned medal--huge', 'data-group': g.id }, h('span', { 'aria-hidden': 'true' }, g.emoji)),
-    h('p', { class: 'reveal__text' }, tx('badge.complete', { group: g.name })),
-    h('div', { class: 'reveal__actions' }, ok));
-  chimeGood();
-  confetti(ui.el, 80);
-  await new Promise(r => ok.addEventListener('click', r, { once: true }));
 }
 
 // Every card from the pack. Tapping one opens it; more packs can be opened from here.

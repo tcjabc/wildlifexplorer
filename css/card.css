@@ -315,3 +315,57 @@
 .card-credits .bi { display: inline-flex; flex-direction: row; gap: 0.3em; }
 
 @keyframes nudge { 0%, 100% { transform: translate(0, -50%); } 50% { transform: translate(calc(var(--s-2) * -1), -50%); } }
+
+/* You / Animal: what the creature is compared with. */
+.cview { display: flex; flex-direction: column; gap: var(--s-2); }
+.cmp-toggle { display: flex; gap: var(--s-1); padding: var(--s-hair); border-radius: var(--r-pill); background: var(--c-paper-line); align-self: flex-start; }
+.cmp-toggle__btn {
+  display: inline-flex; align-items: center; gap: var(--s-1);
+  padding: var(--s-1) var(--s-3); border: 0; border-radius: var(--r-pill); background: none;
+  font: inherit; font-size: var(--card-fs-sm); font-weight: var(--fw-bold); color: var(--c-ink-soft); cursor: pointer;
+}
+.cmp-toggle__btn .bi { flex-direction: row; gap: 0.3em; }
+.cmp-toggle__btn[aria-checked="true"] { background: var(--g); color: var(--g-ink); }
+
+/* Animal: two lookalikes side by side at scale, and how to tell them apart. */
+.cmp-look__pick { display: flex; flex-wrap: wrap; gap: var(--s-1); }
+.cmp-look__chip {
+  padding: var(--s-hair) var(--s-2); border: var(--bw-thin) solid var(--c-paper-line); border-radius: var(--r-pill);
+  background: none; font: inherit; font-size: var(--card-fs-sm); cursor: pointer;
+}
+.cmp-look__chip .bi { flex-direction: row; gap: 0.3em; }
+.cmp-look__chip[aria-checked="true"] { border-color: var(--g); background: var(--c-callout-soft); font-weight: var(--fw-bold); }
+.cmp-look__group { font-size: var(--card-fs-sm); color: var(--c-ink-soft); font-weight: var(--fw-semi); }
+.cmp-look__group .bi { display: inline-flex; flex-direction: row; gap: 0.3em; }
+/* Two columns on one ground line; names and sizes underneath. */
+.cmp-look__ground { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-3); }
+.cmp-look__ground::after {
+  content: ""; position: absolute; left: 0; right: 0; top: var(--compare-look-h);
+  border-top: var(--bw-mid) solid var(--c-ink-faint);
+}
+.cmp-look__item {
+  margin: 0; display: grid; grid-template-rows: var(--compare-look-h) auto; justify-items: center; align-items: end;
+  color: inherit; text-decoration: none;
+}
+.cmp-look__item figcaption { padding-top: var(--s-2); text-align: center; font-size: var(--card-fs-sm); font-weight: var(--fw-semi); align-self: start; }
+.cmp-look__item figcaption .bi { align-items: center; }
+/* Sizes and the "not yet" note on one line each, in both languages. */
+.cmp-look__item .cmp__num .bi { flex-direction: row; flex-wrap: wrap; justify-content: center; column-gap: 0.4em; }
+.cmp-look__pic { display: block; height: auto; transform-origin: 50% 100%; }
+.cmp-look__photo { aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--r-sm); }
+.cmp-look__box {
+  aspect-ratio: 4 / 3; display: grid; place-items: center; border-radius: var(--r-sm);
+  background: var(--c-locked); color: var(--c-locked-ink); font-weight: var(--fw-bold); font-size: var(--card-fs-title);
+}
+/* Not collected yet: a dark silhouette. */
+.cmp-look__pic.is-locked { filter: brightness(0); opacity: 0.55; }
+.cmp-look__name { display: inline-flex; align-items: center; gap: var(--s-1); }
+.cmp-look__thumb { width: var(--callout-dot); height: var(--callout-dot); border-radius: 50%; object-fit: cover; flex: none; }
+.cmp-look__q {
+  display: grid; place-items: center; width: var(--callout-dot); height: var(--callout-dot); border-radius: 50%; flex: none;
+  background: var(--g); color: var(--g-ink); font-weight: var(--fw-bold);
+}
+.cmp-look__diff { font-size: var(--card-fs-sm); }
+.cmp-look__title { font-weight: var(--fw-bold); margin-bottom: var(--s-hair); }
+.cmp-look__diff ul { margin: 0; padding-left: 1.2em; display: grid; gap: var(--s-hair); }
+.cmp-look__diff .bi { gap: 0; }
