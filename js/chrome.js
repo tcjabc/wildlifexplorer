@@ -8,6 +8,7 @@ const NAV = [
   { view: 'binder', icon: '📒', key: 'nav.binder' },
   { view: 'packs', icon: '🎁', key: 'nav.packs', badge: true },
   { view: 'globe', icon: '🌏', key: 'nav.globe' },
+  { view: 'notes', icon: '📓', key: 'nav.notes' },
   { view: 'quiz', icon: '🎯', key: 'nav.quiz' },
   { view: 'badges', icon: '🏅', key: 'nav.badges' },
   { view: 'more', icon: '⚙️', key: 'nav.more' },

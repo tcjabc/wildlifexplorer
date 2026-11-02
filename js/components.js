@@ -4,6 +4,7 @@ import { h } from './dom.js';
 import { bi, tx, t, label, getMode } from './i18n.js';
 import { isVisible, inUnopenedPack, thumbOf, mainImage, speechRate, groupById } from './store.js';
 import { speak, stop, isSpeaking, speechSupported } from './speech.js';
+import { notesCount } from './notes-store.js';
 
 export const cardNo = n => String(n).padStart(3, '0');
 
@@ -40,6 +41,17 @@ export function picture(card, { thumb = false, kind } = {}) {
   });
 }
 
+// 📓 n on a tile when Field Notes pages are linked to the card; tapping it opens the card
+// with those pages beside it.
+function notesBadge(card) {
+  const n = notesCount(card.id);
+  if (!n) return null;
+  return h('span', {
+    class: 'tile__notes', role: 'link', tabindex: '0', 'aria-label': label(n === 1 ? 'notes.openCount.one' : 'notes.openCount.many', { n }),
+    onclick: e => { e.preventDefault(); e.stopPropagation(); location.hash = `#/card/${encodeURIComponent(card.id)}/notes`; },
+  }, h('span', { 'aria-hidden': 'true' }, '📓'), String(n));
+}
+
 export function cardTile(card) {
   const g = groupById(card.group);
   if (isVisible(card)) {
@@ -47,7 +59,8 @@ export function cardTile(card) {
       h('span', { class: 'tile__no' }, cardNo(card.number)),
       h('span', { class: 'tile__pic' }, picture(card, { thumb: true })),
       h('span', { class: 'tile__name' }, bi(card.name)),
-      card.taiwan && h('span', { class: 'tile__tw', title: label('card.taiwan'), 'aria-hidden': 'true' }, '🇹🇼'));
+      card.taiwan && h('span', { class: 'tile__tw', title: label('card.taiwan'), 'aria-hidden': 'true' }, '🇹🇼'),
+      notesBadge(card));
   }
   const when = t(inUnopenedPack(card.id) ? 'binder.inPack' : 'binder.mystery');
   return h('div', { class: 'tile tile--locked', 'data-group': card.group, 'aria-label': label('binder.mystery') },

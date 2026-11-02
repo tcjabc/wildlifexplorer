@@ -21,15 +21,17 @@ import { celebrate } from './celebrate.js';
 import * as binder from './views/binder.js';
 import * as packs from './views/packs.js';
 import * as globe from './views/globe.js';
+import * as notesView from './views/notes.js';
+import { loadIndex as loadNotesIndex } from './notes-store.js';
 import * as quiz from './views/quiz.js';
 import * as badges from './views/badges.js';
 import * as more from './views/more.js';
 import * as parents from './views/parents.js';
 import * as credits from './views/credits.js';
 
-const VIEWS = { binder, packs, globe, quiz, badges, more, parents, credits };
+const VIEWS = { binder, packs, globe, notes: notesView, quiz, badges, more, parents, credits };
 // Which nav item is highlighted for each view.
-const NAV_FOR = { binder: 'binder', packs: 'packs', globe: 'globe', quiz: 'quiz', badges: 'badges', more: 'more', parents: 'more', credits: 'more' };
+const NAV_FOR = { binder: 'binder', packs: 'packs', globe: 'globe', notes: 'notes', quiz: 'quiz', badges: 'badges', more: 'more', parents: 'more', credits: 'more' };
 
 const main = $('#main');
 const header = $('#header');
@@ -48,7 +50,7 @@ function setNav(active, force = false) {
 
 function parseHash() {
   const [name, ...args] = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
-  if (name === 'card' && args[0]) return { name: 'card', args: [decodeURIComponent(args[0])] };
+  if (name === 'card' && args[0]) return { name: 'card', args: [decodeURIComponent(args[0]), args[1]] };
   return VIEWS[name] ? { name, args: args.map(decodeURIComponent) } : { name: 'binder', args: [] };
 }
 
@@ -77,6 +79,7 @@ function route() {
     setNav('binder');
     if (viewer.isOpen()) viewer.show(card);
     else viewer.open(card, { main, fromEl: tileFor(card.id), onDismiss: () => { location.hash = `#/binder/${card.group}`; } });
+    if (next.args[1] === 'notes') viewer.openNotes();
     return;
   }
 
@@ -111,6 +114,7 @@ function applyProfile() {
 
 async function enterProfile(id) {
   await store.selectProfile(id);
+  await loadNotesIndex(); // which cards have Field Notes
   shown = { name: null, args: [] }; // draw the view again for this profile
   route();
   await checkDrops();
