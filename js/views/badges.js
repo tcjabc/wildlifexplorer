@@ -1,5 +1,5 @@
 import { h, mount } from '../dom.js';
-import { bi, tx } from '../i18n.js';
+import { bi, tx, dateText } from '../i18n.js';
 import { state, progress } from '../store.js';
 
 export function render(main) {
@@ -13,6 +13,6 @@ export function render(main) {
           h('span', { 'aria-hidden': 'true' }, g.emoji)),
         h('span', { class: 'medal-item__name' }, bi(g.name)),
         h('span', { class: 'medal-item__sub' },
-          earned ? tx('badge.earnedOn', { date: earned }) : tx('badge.progress', progress(g.id))));
+          earned ? tx('badge.earnedOn', { date: dateText(earned) }) : tx('badge.progress', progress(g.id))));
     }))));
 }

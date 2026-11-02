@@ -1,40 +1,48 @@
 // Wildlife Explorer / 野生動物探險家 — app start-up and hash router.
+// Every launch starts at the profile picker (or the Welcome form on the very first run).
 // <main> shows one view (binder, quiz, …). A card opens in the viewer layer on top of
 // the binder, so the binder can zoom and blur behind it and is still there on close.
+// Packs are never opened for the child: a sheet says when one arrives, and they wait in
+// Packs until the child opens them.
 import { $, h, on, mount } from './dom.js';
 import { loadStrings, setMode, getMode, stringsLoaded, tx } from './i18n.js';
 import * as store from './store.js';
 import { renderHeader } from './chrome.js';
 import { handleImageErrors } from './components.js';
-import { runReveals } from './reveal.js';
 import { registerOffline } from './offline.js';
 import { stop } from './speech.js';
 import * as viewer from './viewer.js';
 import { setZhuyin } from './zhuyin.js';
+import { showPicker, profileForm } from './profiles.js';
+import { initPacks, checkDrops, updateBadge, hideArrival } from './packs.js';
+import { revealing } from './reveal.js';
 
 import * as binder from './views/binder.js';
+import * as packs from './views/packs.js';
 import * as globe from './views/globe.js';
 import * as quiz from './views/quiz.js';
 import * as badges from './views/badges.js';
 import * as more from './views/more.js';
+import * as parents from './views/parents.js';
 import * as credits from './views/credits.js';
 
-const VIEWS = { binder, globe, quiz, badges, more, credits };
-// Which bottom-nav item is highlighted for each view.
-const NAV_FOR = { binder: 'binder', globe: 'globe', quiz: 'quiz', badges: 'badges', more: 'more', credits: 'more' };
+const VIEWS = { binder, packs, globe, quiz, badges, more, parents, credits };
+// Which nav item is highlighted for each view.
+const NAV_FOR = { binder: 'binder', packs: 'packs', globe: 'globe', quiz: 'quiz', badges: 'badges', more: 'more', parents: 'more', credits: 'more' };
 
 const main = $('#main');
 const header = $('#header');
 let cleanup = null;
-let shown = { name: 'binder', args: [] }; // what <main> currently shows
-let lastDay = store.today();
+let shown = { name: null, args: [] }; // what <main> currently shows
 let activeNav = null;
+let choosing = false;
 
-// The header is redrawn only when the highlighted nav item (or the language) changes.
+// The header is redrawn only when the highlighted nav item, the language or the profile changes.
 function setNav(active, force = false) {
   if (active === activeNav && !force) return;
   activeNav = active;
   renderHeader(header, active);
+  updateBadge();
 }
 
 function parseHash() {
@@ -58,6 +66,7 @@ const binderGroup = () => (shown.name === 'binder' ? binder.currentGroup() : nul
 const tileFor = id => main.querySelector(`.tile[data-card="${CSS.escape(id)}"]`);
 
 function route() {
+  if (!store.state.profile) return;
   const next = parseHash();
 
   if (next.name === 'card') {
@@ -80,52 +89,89 @@ function route() {
   renderMain(next);
 }
 
-const refresh = () => renderMain(shown, { keepScroll: true });
+const refresh = () => { if (shown.name) renderMain(shown, { keepScroll: true }); };
 
 async function setLanguage(mode) {
-  if (mode === getMode()) return;
-  setMode(mode);
-  await store.saveSettings({ lang: mode });
-  setNav(activeNav, true);
+  if (!store.state.profile || mode === getMode()) return;
+  await store.updateProfile(store.state.profile.id, { lang: mode });
   refresh();
   const open = viewer.openCardId();
   if (open) viewer.show(store.state.byId.get(open));
 }
 
-function checkNewCards() {
-  runReveals(() => { if (!viewer.isOpen()) refresh(); });
+// The active profile's own settings: language, zhuyin, and the header with its avatar.
+function applyProfile() {
+  const p = store.state.profile;
+  if (!p) return;
+  setMode(p.lang);
+  setZhuyin(p.zhuyin);
+  setNav(activeNav, true);
+}
+
+async function enterProfile(id) {
+  await store.selectProfile(id);
+  shown = { name: null, args: [] }; // draw the view again for this profile
+  route();
+  await checkDrops();
+}
+
+// The picker (or, with no profiles yet, the Welcome form). Shown on launch and from the avatar.
+async function chooseProfile() {
+  if (choosing || revealing()) return;
+  choosing = true;
+  hideArrival();
+  if (viewer.isOpen()) viewer.close({ animate: false });
+  try {
+    for (;;) {
+      if (!store.state.profiles.length) {
+        const fields = await profileForm({ prefill: store.legacyPrefill(), cancellable: false });
+        await enterProfile((await store.createProfile(fields)).id);
+        return;
+      }
+      const choice = await showPicker();
+      if (choice.pick) { await enterProfile(choice.pick); return; }
+      const fields = await profileForm();
+      if (fields) { await enterProfile((await store.createProfile(fields)).id); return; }
+    }
+  } finally {
+    choosing = false;
+  }
 }
 
 async function boot() {
   await Promise.all([loadStrings(), store.init()]);
-  setMode(store.state.settings.lang);
-  setZhuyin(store.state.settings.zhuyin);
-  route();
+  const lastId = await store.lastProfileId();
+  setMode(store.state.profiles.find(p => p.id === lastId)?.lang ?? store.legacyPrefill()?.lang ?? 'both');
   document.body.classList.remove('is-loading');
   main.removeAttribute('aria-busy');
 
-  window.addEventListener('hashchange', () => {
-    route();
-    if (shown.name === 'binder' && !viewer.isOpen()) checkNewCards();
+  store.onChange('profile', applyProfile);
+  // The active profile was deleted (Parents area): pick another.
+  store.onChange('profiles', () => { if (!store.state.profile) chooseProfile(); });
+  // Packs and the binder's "In a pack" tiles show what has arrived.
+  store.onChange('packs', () => {
+    updateBadge();
+    if (['packs', 'binder'].includes(shown.name) && !revealing() && !viewer.isOpen()) refresh();
   });
+  initPacks({ onClosed: () => { updateBadge(); if (!viewer.isOpen()) refresh(); } });
+
+  window.addEventListener('hashchange', route);
   on(document, 'click', '[data-lang-set]', (e, btn) => setLanguage(btn.dataset.langSet));
+  on(document, 'click', '[data-profile-switch]', () => chooseProfile());
   document.addEventListener('keydown', e => {
+    if (!store.state.profile || choosing) return;
     if (viewer.isOpen()) viewer.onKey(e);
-    else VIEWS[shown.name].onKey?.(e, shown.args);
+    else VIEWS[shown.name]?.onKey?.(e, shown.args);
   });
   handleImageErrors(main);
 
-  // A new day may bring new cards while the app sits open or in the background.
-  const onWake = () => {
-    if (document.visibilityState !== 'visible') return;
-    if (store.today() !== lastDay) { lastDay = store.today(); if (!viewer.isOpen()) refresh(); }
-    if (!viewer.isOpen()) checkNewCards();
-  };
+  // A pack may come due while the app sits open or in the background.
+  const onWake = () => { if (document.visibilityState === 'visible' && !choosing) checkDrops(); };
   document.addEventListener('visibilitychange', onWake);
   setInterval(onWake, 60 * 1000);
 
-  if (!viewer.isOpen()) checkNewCards();
   registerOffline();
+  await chooseProfile();
 }
 
 boot().catch(err => {

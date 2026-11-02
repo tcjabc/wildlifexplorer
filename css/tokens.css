@@ -83,6 +83,16 @@
   --g-conservation: #7cb342;     --g-conservation-ink: #1d2e0b;
   --g-plants: #2f6f1f;           --g-plants-ink: #ffffff;
 
+  /* Profile avatars: a letter on one of these (borrowed from the group colours). */
+  --avatar-1: var(--g-mammals);          --avatar-1-ink: var(--g-mammals-ink);
+  --avatar-2: var(--g-birds);            --avatar-2-ink: var(--g-birds-ink);
+  --avatar-3: var(--g-reptiles);         --avatar-3-ink: var(--g-reptiles-ink);
+  --avatar-4: var(--g-how-animals-work); --avatar-4-ink: var(--g-how-animals-work-ink);
+  --avatar-5: var(--g-microscopic);      --avatar-5-ink: var(--g-microscopic-ink);
+  --avatar-6: var(--g-fish);             --avatar-6-ink: var(--g-fish-ink);
+  --avatar-7: var(--g-behavior);         --avatar-7-ink: var(--g-behavior-ink);
+  --avatar-8: var(--g-world-explorer);   --avatar-8-ink: var(--g-world-explorer-ink);
+
   /* IUCN Red List badge colours (the Red List's own palette) */
   --iucn-ex: #000000;  --iucn-ex-ink: #ff5a5a;
   --iucn-ew: #542344;  --iucn-ew-ink: #ffffff;
@@ -148,6 +158,9 @@
   --size-thumb: 72px;
   --size-medal: 112px;
   --size-medal-lg: 190px;
+  --size-avatar: 44px;      /* in the header */
+  --size-avatar-lg: 112px;  /* profile picker */
+  --picker-item: 160px;
   --emoji-sm: 2.6rem;
   --emoji-md: 3.4rem;
   --emoji-lg: 4.5rem;
@@ -187,6 +200,8 @@
   /* Foil packs */
   --pack-w: min(72vw, 300px, 46dvh);
   --pack-strip: 15%;    /* top strip you cut off, as a share of pack height */
+  --pack-w-sm: min(46vw, 210px, 32dvh); /* sealed packs waiting on the Packs page */
+  --summary-tile: 170px; /* cards in the after-the-pack summary */
 
   /* Zoom into a card: how much the binder grows and blurs behind it */
   --zoom-bg-scale: 0.4;

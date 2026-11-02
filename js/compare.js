@@ -4,16 +4,25 @@
 //   weight   – a balance; the lighter side fills with copies until it levels out
 //   lifespan – birthday timelines, candles ticking along
 //   diet     – a plate filling with what the animal eats
-// The child defaults to 120 cm / 23 kg / 6 years; each device can set its own (More page).
+// The child defaults to 120 cm / 23 kg / 6 years; each profile can set its own (Welcome form).
 import { h, mount, reducedMotion } from './dom.js';
 import { bi, t, tx } from './i18n.js';
-import { state, groupById } from './store.js';
+import { state, groupById, currentAge } from './store.js';
+import { lengthText } from './units.js';
 import { haptic } from './gesture.js';
 
 const cssNum = name => parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
 
 export const CHILD_DEFAULT = { heightCm: 120, weightKg: 23, age: 6 };
-export const child = () => ({ ...CHILD_DEFAULT, ...(state.settings.child ?? {}) });
+export function child() {
+  const p = state.profile ?? {};
+  const age = currentAge(p);
+  return {
+    heightCm: p.heightCm ?? CHILD_DEFAULT.heightCm,
+    weightKg: p.weightKg ?? CHILD_DEFAULT.weightKg,
+    age: age ?? CHILD_DEFAULT.age,
+  };
+}
 
 const ELEPHANT_KG = 6000;
 const MAX_COPIES = 20;   // more than this and the balance shows a counter instead
@@ -95,9 +104,9 @@ function lengthScene(card, run) {
   const size = card.compare?.width ?? card.compare?.height ?? n.lengthCm;
   ground.append(
     h('figure', { class: 'cmp-len__item' }, kidImg,
-      h('figcaption', null, tx('card.you'), h('span', { class: 'cmp__num' }, `${fmt(you.heightCm)} cm`))),
+      h('figcaption', null, tx('card.you'), h('span', { class: 'cmp__num' }, bi(lengthText(you.heightCm))))),
     h('figure', { class: 'cmp-len__item' }, pic,
-      h('figcaption', null, bi(card.name), h('span', { class: 'cmp__num' }, `${fmt(size)} cm`))));
+      h('figcaption', null, bi(card.name), h('span', { class: 'cmp__num' }, bi(lengthText(size))))));
 
   // Once the silhouette's shape is known, size both so 1 cm is the same on each.
   const layout = () => {

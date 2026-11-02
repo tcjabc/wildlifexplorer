@@ -57,3 +57,12 @@ export function plain(pair) {
   return pair.en === pair.zh ? pair.en : [pair.en, pair.zh].filter(Boolean).join(' / ');
 }
 export const label = (key, vars) => plain(t(key, vars));
+
+// A date (Date or ISO string) as { en, zh }, written the local way in each language.
+export function dateText(d, opts = { year: 'numeric', month: 'long', day: 'numeric' }) {
+  const date = d instanceof Date ? d : new Date(d);
+  return {
+    en: new Intl.DateTimeFormat('en', opts).format(date),
+    zh: new Intl.DateTimeFormat('zh-Hant-TW', opts).format(date),
+  };
+}

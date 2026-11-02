@@ -1,13 +1,17 @@
-// New cards arrive as sealed foil packs.
+// Opening a pack. Packs open oldest first, one at a time, and only when the child chooses.
 // 1. Swipe across the top strip to cut it: a tear line follows the finger. Cut far enough
-//    and the strip peels away; stop early and the tear closes up again.
-// 2. The card slides up out of the pack with a shine.
-// 3. Flick the card up: it flies to its group tab in the binder, which bumps and counts up.
-// Buttons ("Tap to open", "Put in binder") do the same for small children.
+//    and the strip peels away; stop early and the tear closes up again. The pack's cards
+//    are collected at this moment.
+// 2. The first card slides up out of the pack with a shine.
+// 3. Flick the card up: it flies to its group tab in the binder, which bumps and counts up,
+//    and the next card rises. Repeat for every card in the pack.
+// 4. Any badges earned, then a summary of the pack's cards.
+// Buttons ("Tap to open", "Next card") do the same for small children.
 import { h, mount, reducedMotion } from './dom.js';
-import { bi, tx, label } from './i18n.js';
-import { pendingReveals, collect, groupById, progress } from './store.js';
+import { tx } from './i18n.js';
+import { state, openPack as claimPack, unopenedPacks, groupById, progress, dropById } from './store.js';
 import { coverPage } from './cardparts.js';
+import { cardTile } from './components.js';
 import { confetti, chimeReveal, chimeGood } from './fx.js';
 import { track, spring, tween, clamp, lerp, haptic } from './gesture.js';
 
@@ -28,6 +32,13 @@ function overlay() {
   document.body.append(el);
   requestAnimationFrame(() => el.classList.add('is-open'));
   return { el, scrim };
+}
+
+function scene(ui, ...children) {
+  const el = h('div', { class: 'reveal__scene' }, children);
+  ui.el.querySelector('.reveal__scene')?.remove();
+  ui.el.append(el);
+  return el;
 }
 
 // A zig-zag line from x0 to x1 at height y, like torn foil.
@@ -64,42 +75,53 @@ function bump(target, groupId) {
   target.el.addEventListener('animationend', () => target.el.classList.remove('is-bumping'), { once: true });
 }
 
-async function openPack(ui, card, remaining) {
-  const g = groupById(card.group);
+// Series and week of a pack, for its label.
+function seriesWeek(record) {
+  const drop = dropById(record.dropId);
+  return drop ? { series: drop.series, week: drop.week }
+    : { series: Math.floor(record.seq / state.seriesDrops) + 1, week: (record.seq % state.seriesDrops) + 1 };
+}
+
+// Returns 'next' (open the next pack), 'done', 'see' (a card was tapped) or 'gone' (the
+// pack had already been opened, e.g. in another tab).
+async function openOne(ui, record) {
+  const cards = record.cardIds.map(id => state.byId.get(id)).filter(Boolean);
   const tearLine = svgEl('polyline', { class: 'pack__tear-line', points: '' });
   const tear = svgEl('svg', { class: 'pack__tear', 'aria-hidden': 'true' });
   tear.append(tearLine);
-  const inner = h('div', { class: 'pack__card-inner' }, coverPage(card));
-  const cardEl = h('div', { class: 'pack__card' }, inner);
+  // The first card sits on top of the stack inside the pack.
+  const slots = cards.map(card => {
+    const inner = h('div', { class: 'pack__card-inner' }, coverPage(card));
+    return { card, inner, el: h('div', { class: 'pack__card' }, inner) };
+  });
   const strip = h('div', { class: 'pack__strip' }, h('span', { class: 'pack__cutline' }), h('span', { class: 'pack__scissors', 'aria-hidden': 'true' }, '✂️'));
   const body = h('div', { class: 'pack__body' },
-    h('span', { class: 'pack__emoji', 'aria-hidden': 'true' }, g.emoji),
+    h('span', { class: 'pack__emojis', 'aria-hidden': 'true' }, cards.map(c => groupById(c.group)?.emoji).join('')),
     h('span', { class: 'pack__brand' }, tx('app.title')),
-    h('span', { class: 'pack__group' }, bi(g.name)));
-  const pack = h('div', { class: 'pack', 'data-group': card.group }, cardEl, body, strip, tear,
+    h('span', { class: 'pack__group' }, tx('pack.label', seriesWeek(record))));
+  const pack = h('div', { class: 'pack pack--drop' }, [...slots].reverse().map(s => s.el), body, strip, tear,
     h('span', { class: 'pack__hand', 'aria-hidden': 'true' }, '👆'));
   const help = h('p', { class: 'reveal__help' }, tx('pack.cut'));
   const tapBtn = h('button', { class: 'btn btn--soft pack__tap', type: 'button' }, tx('reveal.tap'));
-  const see = h('a', { class: 'btn btn--soft btn--big', href: `#/card/${encodeURIComponent(card.id)}` }, tx('reveal.see'));
-  const put = h('button', { class: 'btn btn--accent btn--big', type: 'button' }, tx(remaining ? 'reveal.next' : 'reveal.done'));
-  const actions = h('div', { class: 'reveal__actions', hidden: true }, see, put);
-  const scene = h('div', { class: 'reveal__scene' },
-    h('p', { class: 'reveal__title' }, tx('reveal.title')),
-    pack, help, tapBtn, actions,
-    remaining > 0 && h('p', { class: 'reveal__more' }, tx('reveal.more', { n: remaining })));
-  ui.el.querySelector('.reveal__scene')?.remove();
-  ui.el.append(scene);
+  const next = h('button', { class: 'btn btn--accent btn--big', type: 'button' }, tx('reveal.next'));
+  const actions = h('div', { class: 'reveal__actions', hidden: true }, next);
+  const counter = h('p', { class: 'reveal__more', hidden: true });
+  scene(ui, h('p', { class: 'reveal__title' }, tx('reveal.title')), pack, help, tapBtn, actions, counter);
 
-  // Size the card inside the pack. offsetWidth/Height ignore the drop-in animation's transform.
+  // Size the cards inside the pack. offsetWidth/Height ignore the drop-in animation's transform.
   const W = pack.offsetWidth, H = pack.offsetHeight;
   const stripY = H * (cssNum('--pack-strip') / 100);
   const cardW = W * 0.86;
   const cardScale = cardW / cssNum('--card-w');
-  cardEl.style.setProperty('width', `${cardW}px`);
-  cardEl.style.setProperty('height', `${cssNum('--card-h') * cardScale}px`);
-  cardEl.style.setProperty('left', `${(W - cardW) / 2}px`);
-  cardEl.style.setProperty('top', `${stripY * 0.6}px`);
-  inner.style.setProperty('zoom', String(cardScale)); // real size, so it stays sharp
+  const cardH = cssNum('--card-h') * cardScale;
+  const topNow = stripY * 0.6;
+  for (const s of slots) {
+    s.el.style.setProperty('width', `${cardW}px`);
+    s.el.style.setProperty('height', `${cardH}px`);
+    s.el.style.setProperty('left', `${(W - cardW) / 2}px`);
+    s.el.style.setProperty('top', `${topNow}px`);
+    s.inner.style.setProperty('zoom', String(cardScale)); // real size, so it stays sharp
+  }
   tear.setAttribute('viewBox', `0 0 ${W} ${H}`);
 
   // ---- 1. cut the strip ----
@@ -149,7 +171,11 @@ async function openPack(ui, card, remaining) {
     });
   });
 
-  // ---- 2. peel the strip, slide the card out ----
+  // The pack is open: its cards are collected now, whatever happens next.
+  const badges = await claimPack(record.id);
+  if (!badges) return 'gone';
+
+  // ---- 2. peel the strip ----
   tapBtn.hidden = true;
   help.hidden = true;
   pack.classList.add('is-cut');
@@ -163,113 +189,134 @@ async function openPack(ui, card, remaining) {
   }
   await wait(220);
 
-  const pose = { x: 0, y: 0, r: 0, s: 1 };
-  // While moving the card uses a transform; at rest it has none, so it isn't drawn as a bitmap.
-  const place = () => {
-    if (!pose.x && !pose.y && !pose.r && pose.s === 1) cardEl.style.removeProperty('transform');
-    else cardEl.style.setProperty('transform', `translate(${pose.x}px, ${pose.y}px) rotate(${pose.r}deg) scale(${pose.s})`);
-  };
-  const cardH = cssNum('--card-h') * cardScale;
-  const topNow = stripY * 0.6;
+  // ---- 3. one card at a time: rise, then flick into the binder ----
   const centered = (H - cardH) / 2 - topNow;
-
-  // Rise out of the pack…
-  await new Promise(r => spring({ from: 0, to: -H * 0.55, stiffness: 120, damping: 16, onUpdate: y => { pose.y = y; place(); }, onDone: r }));
-  cardEl.classList.add('is-out', 'is-shining');
-  pack.classList.add('is-empty');
-  // …then come forward, centred, while the empty pack drops away.
-  await new Promise(r => tween({ from: 0, to: 1, duration: 420, onUpdate: u => { pose.y = lerp(-H * 0.55, centered, u); place(); }, onDone: r }));
-  // Settle: move the resting position into top (a whole pixel) and drop the transform.
-  cardEl.style.setProperty('top', `${Math.round(topNow + pose.y)}px`);
-  pose.y = 0;
-  place();
-  confetti(ui.el);
-  const badge = await collect(card.id);
-  actions.hidden = false;
-  mount(help, tx('pack.flick'));
-  help.hidden = false;
-
-  // ---- 3. flick into the binder ----
-  const rest = { ...pose };
-  const act = await new Promise(resolve => {
-    let flown = false, cancel = null;
-    const fly = () => {
-      if (flown) return;
-      flown = true;
-      cancel?.();
-      actions.hidden = true;
-      help.hidden = true;
-      ui.scrim.classList.add('is-faint');
-      const target = binderTarget(card.group);
-      const from = cardEl.getBoundingClientRect();
-      const start = { ...pose };
-      const dx = target ? target.rect.left + target.rect.width / 2 - (from.left + from.width / 2) : 0;
-      const dy = target ? target.rect.top + target.rect.height / 2 - (from.top + from.height / 2) : -innerHeight;
-      const endScale = target ? Math.max(0.08, (target.rect.height / from.height) * start.s) : 0.1;
-      haptic(15);
-      tween({
-        from: 0, to: 1, duration: 560, ease: t => t * t * (3 - 2 * t),
-        onUpdate: u => {
-          pose.x = start.x + dx * u;
-          pose.y = start.y + dy * u - Math.sin(Math.PI * u) * 60; // a little arc
-          pose.r = start.r + 20 * u;
-          pose.s = lerp(start.s, endScale, u);
-          place();
-          cardEl.style.setProperty('opacity', String(1 - clamp((u - 0.85) / 0.15)));
-        },
-        onDone: () => { bump(target, card.group); haptic(25); chimeGood(); resolve('next'); },
-      });
+  for (const [i, { card, el }] of slots.entries()) {
+    const last = i === slots.length - 1;
+    const pose = { x: 0, y: 0, r: 0, s: 1 };
+    // While moving the card uses a transform; at rest it has none, so it isn't drawn as a bitmap.
+    const place = () => {
+      if (!pose.x && !pose.y && !pose.r && pose.s === 1) el.style.removeProperty('transform');
+      else el.style.setProperty('transform', `translate(${pose.x}px, ${pose.y}px) rotate(${pose.r}deg) scale(${pose.s})`);
     };
-    track(cardEl, {
-      start: () => !flown,
-      lock: () => { cancel?.(); return true; },
-      move: ({ dx, dy }) => { pose.x = rest.x + dx; pose.y = rest.y + dy; pose.r = dx * 0.06; place(); },
-      end: ({ dy, vy }) => {
-        if ((dy < -90 && vy < -150) || vy < -900 || dy < -220) { fly(); return; }
-        // Not a flick: spring back to the middle.
-        const start = { ...pose };
-        cancel = spring({ from: 1, to: 0, velocity: 0, onUpdate: k => {
-          pose.x = lerp(rest.x, start.x, k); pose.y = lerp(rest.y, start.y, k); pose.r = start.r * k;
-          if (k === 0) { pose.x = 0; pose.y = 0; pose.r = 0; }
-          place();
-        } });
-      },
-    });
-    put.addEventListener('click', fly);
-    see.addEventListener('click', () => resolve('see'));
-  });
 
-  if (badge) await showBadge(ui, badge);
-  return act;
+    // Rise out of the pack…
+    await new Promise(r => spring({ from: 0, to: -H * 0.55, stiffness: 120, damping: 16, onUpdate: y => { pose.y = y; place(); }, onDone: r }));
+    el.classList.add('is-out', 'is-shining');
+    if (last) pack.classList.add('is-empty');
+    // …then come forward, centred (the empty pack drops away under the last one).
+    await new Promise(r => tween({ from: 0, to: 1, duration: 420, onUpdate: u => { pose.y = lerp(-H * 0.55, centered, u); place(); }, onDone: r }));
+    // Settle: move the resting position into top (a whole pixel) and drop the transform.
+    el.style.setProperty('top', `${Math.round(topNow + pose.y)}px`);
+    pose.y = 0;
+    place();
+    confetti(ui.el, last ? 48 : 24);
+    mount(next, tx(last ? 'reveal.done' : 'reveal.next'));
+    mount(counter, tx('pack.count', { n: i + 1, total: slots.length }));
+    mount(help, tx('pack.flick'));
+    actions.hidden = false;
+    counter.hidden = false;
+    help.hidden = false;
+
+    await new Promise(resolve => {
+      let flown = false, cancel = null;
+      const fly = () => {
+        if (flown) return;
+        flown = true;
+        cancel?.();
+        next.removeEventListener('click', fly);
+        actions.hidden = true;
+        help.hidden = true;
+        ui.scrim.classList.add('is-faint');
+        const target = binderTarget(card.group);
+        const from = el.getBoundingClientRect();
+        const start = { ...pose };
+        const dx = target ? target.rect.left + target.rect.width / 2 - (from.left + from.width / 2) : 0;
+        const dy = target ? target.rect.top + target.rect.height / 2 - (from.top + from.height / 2) : -innerHeight;
+        const endScale = target ? Math.max(0.08, (target.rect.height / from.height) * start.s) : 0.1;
+        haptic(15);
+        tween({
+          from: 0, to: 1, duration: 560, ease: t => t * t * (3 - 2 * t),
+          onUpdate: u => {
+            pose.x = start.x + dx * u;
+            pose.y = start.y + dy * u - Math.sin(Math.PI * u) * 60; // a little arc
+            pose.r = start.r + 20 * u;
+            pose.s = lerp(start.s, endScale, u);
+            place();
+            el.style.setProperty('opacity', String(1 - clamp((u - 0.85) / 0.15)));
+          },
+          onDone: () => {
+            el.hidden = true;
+            bump(target, card.group);
+            haptic(25);
+            chimeGood();
+            ui.scrim.classList.remove('is-faint');
+            resolve();
+          },
+        });
+      };
+      const rest = { ...pose };
+      track(el, {
+        start: () => !flown,
+        lock: () => { cancel?.(); return true; },
+        move: ({ dx, dy }) => { pose.x = rest.x + dx; pose.y = rest.y + dy; pose.r = dx * 0.06; place(); },
+        end: ({ dy, vy }) => {
+          if ((dy < -90 && vy < -150) || vy < -900 || dy < -220) { fly(); return; }
+          // Not a flick: spring back to the middle.
+          const start = { ...pose };
+          cancel = spring({ from: 1, to: 0, velocity: 0, onUpdate: k => {
+            pose.x = lerp(rest.x, start.x, k); pose.y = lerp(rest.y, start.y, k); pose.r = start.r * k;
+            if (k === 0) { pose.x = 0; pose.y = 0; pose.r = 0; }
+            place();
+          } });
+        },
+      });
+      next.addEventListener('click', fly);
+    });
+  }
+
+  // ---- 4. badges, then the summary ----
+  for (const g of badges) await showBadge(ui, g);
+  return summary(ui, cards);
 }
 
 async function showBadge(ui, g) {
-  ui.scrim.classList.remove('is-faint');
   const ok = h('button', { class: 'btn btn--accent btn--big', type: 'button' }, tx('badge.great'));
-  const scene = h('div', { class: 'reveal__scene' },
+  scene(ui,
     h('p', { class: 'reveal__title' }, tx('badge.earned')),
     h('div', { class: 'medal medal--earned medal--huge', 'data-group': g.id }, h('span', { 'aria-hidden': 'true' }, g.emoji)),
     h('p', { class: 'reveal__text' }, tx('badge.complete', { group: g.name })),
     h('div', { class: 'reveal__actions' }, ok));
-  ui.el.querySelector('.reveal__scene')?.remove();
-  ui.el.append(scene);
   chimeGood();
   confetti(ui.el, 80);
   await new Promise(r => ok.addEventListener('click', r, { once: true }));
 }
 
-export async function runReveals(onDone) {
-  if (running) return;
-  const queue = pendingReveals();
-  if (!queue.length) return;
+// Every card from the pack. Tapping one opens it; more packs can be opened from here.
+function summary(ui, cards) {
+  const left = unopenedPacks().length;
+  return new Promise(resolve => {
+    const done = h('button', { class: ['btn btn--big', left ? 'btn--soft' : 'btn--accent'], type: 'button', onclick: () => resolve('done') }, tx('pack.done'));
+    const more = left > 0 && h('button', { class: 'btn btn--accent btn--big', type: 'button', onclick: () => resolve('next') }, tx('pack.openNext', { n: left }));
+    const tiles = cards.map(cardTile);
+    tiles.forEach(t => t.addEventListener('click', () => resolve('see')));
+    scene(ui,
+      h('p', { class: 'reveal__title' }, tx('pack.summary', { n: cards.length })),
+      h('div', { class: 'reveal__cards' }, tiles),
+      h('div', { class: 'reveal__actions' }, done, more));
+  });
+}
+
+// Open the oldest unopened pack, and more if the child asks for them.
+export async function openPacks(onDone) {
+  if (running || !unopenedPacks().length) return;
   running = true;
   const ui = overlay();
   try {
-    for (let i = 0; i < queue.length; i++) {
+    for (let pack = unopenedPacks()[0]; pack; pack = unopenedPacks()[0]) {
       ui.scrim.classList.remove('is-faint');
-      const act = await openPack(ui, queue[i], queue.length - i - 1);
-      // "See card" opens this card; any others wait for the next visit to the binder.
-      if (act === 'see') break;
+      const act = await openOne(ui, pack);
+      if (act !== 'next' && act !== 'gone') break;
       await wait(250);
     }
   } finally {

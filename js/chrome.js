@@ -1,9 +1,12 @@
-// The header around every view: logo, the main nav and the language switch.
+// The header around every view: logo, the main nav, the language switch and who is exploring.
 import { h, mount } from './dom.js';
 import { tx, label, getMode } from './i18n.js';
+import { state } from './store.js';
+import { avatar } from './profiles.js';
 
 const NAV = [
   { view: 'binder', icon: '📒', key: 'nav.binder' },
+  { view: 'packs', icon: '🎁', key: 'nav.packs', badge: true },
   { view: 'globe', icon: '🌏', key: 'nav.globe' },
   { view: 'quiz', icon: '🎯', key: 'nav.quiz' },
   { view: 'badges', icon: '🏅', key: 'nav.badges' },
@@ -31,6 +34,11 @@ function langCycle() {
   }, tx(face));
 }
 
+// The avatar of whoever is exploring; tap it to switch.
+const profileButton = p => p && h('button', {
+  type: 'button', class: 'avatar-btn', 'data-profile-switch': true, 'aria-label': label('profile.switch', { name: p.name }),
+}, avatar(p));
+
 export function renderHeader(el, active) {
   mount(el,
     h('a', { class: 'brand', href: '#/binder', 'aria-label': label('app.title') },
@@ -43,8 +51,10 @@ export function renderHeader(el, active) {
         'aria-current': n.view === active ? 'page' : null,
         'aria-label': label(n.key),
       },
-      h('span', { class: 'nav__icon', 'aria-hidden': 'true' }, n.icon),
+      h('span', { class: 'nav__icon', 'aria-hidden': 'true' }, n.icon,
+        n.badge && h('span', { class: 'nav__badge', hidden: true })),
       h('span', { class: 'nav__label' }, tx(n.key))))),
     langSwitch(),
-    langCycle());
+    langCycle(),
+    profileButton(state.profile));
 }

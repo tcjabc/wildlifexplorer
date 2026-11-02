@@ -9,6 +9,7 @@ import { comparePanel, modesFor } from './compare.js';
 import { magnifier } from './magnifier.js';
 import { track, haptic } from './gesture.js';
 import { nameBi } from './zhuyin.js';
+import { lengthText, weightText, imperial } from './units.js';
 
 const filled = p => p && (p.en || p.zh);
 export const factsOf = card => (card.facts ?? []).filter(filled);
@@ -102,11 +103,15 @@ export function profilePage(card) {
 
 const range = r => (r.max == null || r.min === r.max ? `${r.min}` : `${r.min}–${r.max}`);
 
-// Text for a statistic: written text ({ en, zh }), or made from the numbers.
+// Text for a statistic: written text ({ en, zh }), or made from the numbers. In imperial
+// units, lengths and weights are always made from the numbers (the text is metric).
 function statText(stat, nums, unit) {
-  if (filled(stat)) return stat;
   const r = nums ?? (stat?.min != null ? stat : null);
+  const convert = imperial() && r && (unit === 'cm' || unit === 'kg');
+  if (filled(stat) && !convert) return stat;
   if (!r) return null;
+  if (unit === 'cm') return lengthText(r.min, r.max);
+  if (unit === 'kg') return weightText(r.min, r.max);
   const u = t(`unit.${unit}`);
   return { en: `${range(r)} ${u.en}`, zh: `${range(r)} ${u.zh}` };
 }

@@ -2,7 +2,7 @@
 // data-group / data-status attributes (see app.css), never inline styles.
 import { h } from './dom.js';
 import { bi, tx, t, label, getMode } from './i18n.js';
-import { isVisible, hasArrived, daysUntil, thumbOf, mainImage, speechRate, groupById } from './store.js';
+import { isVisible, inUnopenedPack, thumbOf, mainImage, speechRate, groupById } from './store.js';
 import { speak, stop, isSpeaking, speechSupported } from './speech.js';
 
 export const cardNo = n => String(n).padStart(3, '0');
@@ -49,11 +49,7 @@ export function cardTile(card) {
       h('span', { class: 'tile__name' }, bi(card.name)),
       card.taiwan && h('span', { class: 'tile__tw', title: label('card.taiwan'), 'aria-hidden': 'true' }, '🇹🇼'));
   }
-  let when = t('binder.mystery');
-  if (card.unlockDate && !hasArrived(card)) {
-    const d = daysUntil(card.unlockDate);
-    when = d <= 0 ? t('binder.arrivesToday') : d === 1 ? t('binder.arrivesTomorrow') : t('binder.arrivesIn', { n: d });
-  }
+  const when = t(inUnopenedPack(card.id) ? 'binder.inPack' : 'binder.mystery');
   return h('div', { class: 'tile tile--locked', 'data-group': card.group, 'aria-label': label('binder.mystery') },
     h('span', { class: 'tile__no' }, cardNo(card.number)),
     h('span', { class: 'tile__pic' },

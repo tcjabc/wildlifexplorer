@@ -1,119 +1,66 @@
 import { h, mount } from '../dom.js';
 import { tx, t, label, getMode } from '../i18n.js';
-import { state, saveSettings, resetProgress, progress, speechRate } from '../store.js';
+import { state, updateProfile, progress, speechRate } from '../store.js';
 import { speak, speechSupported } from '../speech.js';
 import { langSwitch } from '../chrome.js';
 import { offlineStatus } from '../offline.js';
-import { CHILD_DEFAULT } from '../compare.js';
-import { setZhuyin } from '../zhuyin.js';
+import { avatar, profileForm } from '../profiles.js';
 
-let gateOpen = false;
-
-// The grown-ups area: a sum to answer, then preview and reset.
-function renderParentZone(zone) {
-  if (!gateOpen) {
-    const a = 3 + Math.floor(Math.random() * 7), b = 4 + Math.floor(Math.random() * 6);
-    const input = h('input', { id: 'gate-input', class: 'input', inputmode: 'numeric', pattern: '[0-9]*', autocomplete: 'off', required: true });
-    const form = h('form', { class: 'gate' },
-      h('label', { for: 'gate-input' }, tx('more.gate', { a, b })),
-      h('div', { class: 'gate__row' }, input, h('button', { class: 'btn btn--primary', type: 'submit' }, tx('more.gateGo'))));
-    form.addEventListener('submit', e => {
-      e.preventDefault();
-      gateOpen = input.value.trim() === String(a + b);
-      renderParentZone(zone);
-    });
-    mount(zone, form);
-    return;
-  }
-  const msg = h('p', { class: 'muted' });
-  mount(zone, h('div', { class: 'parent' },
-    h('label', { class: 'switch' },
-      h('input', { type: 'checkbox', checked: state.settings.preview, onchange: e => saveSettings({ preview: e.target.checked }) }),
-      h('span', { class: 'switch__track', 'aria-hidden': 'true' }),
-      h('span', null, tx('more.preview'))),
-    h('button', {
-      class: 'btn btn--danger', type: 'button',
-      onclick: async () => {
-        if (!window.confirm(label('more.resetConfirm'))) return;
-        await resetProgress();
-        mount(msg, tx('more.resetDone'));
-      },
-    }, tx('more.reset')),
-    msg));
+// A row of radio buttons that saves one of the profile's own settings.
+function choice(key, options, labelKey) {
+  const buttons = options.map(([value, textKey]) => h('button', {
+    type: 'button', role: 'radio', class: 'seg__btn', 'aria-checked': String(state.profile[key] === value),
+    onclick: async e => {
+      buttons.forEach(b => b.setAttribute('aria-checked', String(b === e.currentTarget)));
+      await updateProfile(state.profile.id, { [key]: value });
+    },
+  }, tx(textKey)));
+  return h('div', { class: 'seg', role: 'radiogroup', 'aria-label': label(labelKey) }, buttons);
 }
 
 export function render(main) {
-  const rate = state.settings.rate;
-  const rateButtons = ['slow', 'normal'].map(r => h('button', {
-    type: 'button', role: 'radio', class: 'seg__btn', 'aria-checked': String(rate === r),
-    onclick: async e => {
-      await saveSettings({ rate: r });
-      rateButtons.forEach(b => b.setAttribute('aria-checked', String(b === e.currentTarget)));
-    },
-  }, tx(`more.${r}`)));
+  const p = state.profile;
 
-  // How Chinese names first show on cards (a tap on a name switches it for this visit).
-  const zyButtons = [false, true].map(on => h('button', {
-    type: 'button', role: 'radio', class: 'seg__btn', 'aria-checked': String(state.settings.zhuyin === on),
-    onclick: async e => {
-      await saveSettings({ zhuyin: on });
-      setZhuyin(on);
-      zyButtons.forEach(b => b.setAttribute('aria-checked', String(b === e.currentTarget)));
-    },
-  }, tx(on ? 'more.zhZhuyin' : 'more.zhPlain')));
-
-  const parentZone = h('div');
-  renderParentZone(parentZone);
-
-  // The child's own size for "Creature comparison" (blank = the defaults). Device only.
-  const you = state.settings.child ?? {};
-  const field = (key, labelKey, min, max) => {
-    const id = `you-${key}`;
-    return h('div', { class: 'you__field' },
-      h('label', { for: id }, tx(labelKey)),
-      h('input', {
-        id, class: 'input', type: 'number', inputmode: 'numeric', min, max,
-        value: you[key] ?? '', placeholder: String(CHILD_DEFAULT[key]),
-        onchange: async e => {
-          const v = Number(e.target.value);
-          const ok = e.target.value !== '' && v >= min && v <= max;
-          if (!ok) e.target.value = '';
-          const next = { ...(state.settings.child ?? {}) };
-          if (ok) next[key] = v; else delete next[key];
-          await saveSettings({ child: next });
-        },
-      }));
+  const editMe = async () => {
+    const fields = await profileForm({ profile: state.profile });
+    if (!fields) return;
+    await updateProfile(p.id, fields);
+    render(main);
   };
 
   mount(main, h('section', { class: 'page more' },
     h('h1', { class: 'page__title' }, h('span', { 'aria-hidden': 'true' }, '⚙️'), tx('more.title')),
-    h('p', { class: 'muted' }, tx('more.collectedCount', progress())),
+
+    h('div', { class: 'panel' },
+      h('div', { class: 'me' },
+        avatar(p, 'avatar--big'),
+        h('div', { class: 'me__text' },
+          h('p', { class: 'me__name' }, p.name),
+          h('p', { class: 'muted' }, tx('more.collectedCount', progress())))),
+      h('div', { class: 'row-actions' },
+        h('button', { class: 'btn btn--soft', type: 'button', onclick: editMe },
+          h('span', { 'aria-hidden': 'true' }, '✏️'), tx('profile.edit')),
+        h('button', { class: 'btn btn--soft', type: 'button', 'data-profile-switch': true },
+          h('span', { 'aria-hidden': 'true' }, '🔄'), tx('profile.switchButton')))),
 
     h('div', { class: 'panel' }, h('h2', { class: 'panel__title' }, tx('lang.label')), langSwitch()),
 
+    // How Chinese names first show on cards (a tap on a name switches it for this visit).
     h('div', { class: 'panel' },
       h('h2', { class: 'panel__title' }, tx('more.zhNames')),
-      h('div', { class: 'seg', role: 'radiogroup', 'aria-label': label('more.zhNames') }, zyButtons),
+      choice('zhuyin', [[false, 'more.zhPlain'], [true, 'more.zhZhuyin']], 'more.zhNames'),
       h('p', { class: 'muted' }, tx('more.zhNote'))),
 
     h('div', { class: 'panel' },
       h('h2', { class: 'panel__title' }, tx('more.speech')),
       speechSupported
         ? h('div', { class: 'row-actions' },
-          h('div', { class: 'seg', role: 'radiogroup', 'aria-label': label('more.speech') }, rateButtons),
+          choice('rate', [['slow', 'more.slow'], ['normal', 'more.normal']], 'more.speech'),
           h('button', {
             class: 'btn btn--soft', type: 'button',
             onclick: () => speak([t('more.testText')], { mode: getMode(), rate: speechRate() }),
           }, h('span', { 'aria-hidden': 'true' }, '🔊'), tx('more.test')))
         : h('p', null, tx('more.noSpeech'))),
-
-    h('div', { class: 'panel' },
-      h('h2', { class: 'panel__title' }, h('span', { 'aria-hidden': 'true' }, '🧒 '), tx('more.you')),
-      h('div', { class: 'you' },
-        field('heightCm', 'more.height', 60, 200),
-        field('weightKg', 'more.weightKg', 8, 120),
-        field('age', 'more.age', 1, 18)),
-      h('p', { class: 'muted' }, tx('more.youNote'))),
 
     h('a', { class: 'panel panel--link', href: '#/credits' },
       h('span', { 'aria-hidden': 'true' }, '📷'), tx('more.credits'), h('span', { 'aria-hidden': 'true' }, '›')),
@@ -122,7 +69,6 @@ export function render(main) {
       h('p', { 'data-offline': true }, offlineStatus()),
       h('p', { class: 'muted' }, tx('more.install'))),
 
-    h('div', { class: 'panel' }, h('h2', { class: 'panel__title' }, tx('more.parents')), parentZone)));
-
-  return () => { gateOpen = false; };
+    h('a', { class: 'panel panel--link', href: '#/parents' },
+      h('span', { 'aria-hidden': 'true' }, '🔒'), tx('more.parents'), h('span', { 'aria-hidden': 'true' }, '›'))));
 }

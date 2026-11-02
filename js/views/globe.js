@@ -18,6 +18,7 @@ import { loadRange, rangePolygons } from '../worldmap.js';
 import { track, haptic } from '../gesture.js';
 import { nameBi } from '../zhuyin.js';
 import { LAYERS, tempStops } from '../layers.js';
+import { tempText } from '../units.js';
 
 const NEAR_SIDE = 0.06;   // pins this close to the rim fade out
 const TOUCH = 0.8;        // pins closer than this many pin widths stack up
@@ -321,7 +322,7 @@ export function render(main) {
     return [
       h('div', { class: 'glegend__bar', style: { background: `linear-gradient(to right, ${grad})` }, 'aria-hidden': 'true' }),
       h('div', { class: 'glegend__scale' },
-        h('span', null, '❄️ ', `${lo}°C`), h('span', null, '0°C'), h('span', null, `${hi}°C `, '🔥')),
+        h('span', null, '❄️ ', tempText(lo)), h('span', null, tempText(0)), h('span', null, `${tempText(hi)} `, '🔥')),
       h('label', { class: 'glegend__months' }, name, month),
     ];
   }

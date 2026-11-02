@@ -85,6 +85,22 @@
 }
 .pack__tap { font-size: var(--fs-sm); }
 
+/* A weekly drop mixes groups, so the foil is the brand colour, with the groups' emojis. */
+.pack--drop { --g: var(--c-primary); --g-ink: var(--c-on-primary); }
+.pack__emojis { font-size: var(--emoji-sm); line-height: 1; letter-spacing: var(--s-1); filter: drop-shadow(0 3px 0 var(--c-shade)); }
+/* Sealed and waiting, on the Packs page. */
+.pack--still { width: var(--pack-w-sm); cursor: inherit; animation: none; }
+.pack--still .pack__brand { font-size: var(--fs-sm); }
+.pack--still .pack__group { font-size: var(--fs-xs); }
+
+/* After the last card: every card from the pack. */
+.reveal__cards {
+  display: grid; grid-template-columns: repeat(3, minmax(0, var(--summary-tile))); gap: var(--s-3);
+  width: min(100%, calc(3 * var(--summary-tile) + 2 * var(--s-3)));
+  animation: pop-in var(--t-slow) var(--ease-bounce) both;
+}
+.reveal__cards .tile { animation: none; }
+
 @keyframes swipe-hint {
   0% { transform: translateX(0); opacity: 0; }
   15% { opacity: 1; }
