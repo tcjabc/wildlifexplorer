@@ -399,6 +399,21 @@ or `wingspan` (`stats.wingspanCm`). A collected card shows in full and opens on 
 collected yet is a dark silhouette; cards not built yet are left out. Groups with `"draft": true`
 only show in parent preview. The build report lists what each group still needs.
 
+**Silhouettes.** The comparison is silhouette against silhouette; an animal without one is a "?"
+outline at the right size (the report's "Needs silhouette" list). The build takes silhouettes from
+PhyloPic. When PhyloPic has none, one can be made from a photo:
+
+```bash
+node scripts/make-silhouette.mjs img/<photo>.webp img/silhouettes/<id>-photo.png --preview check.png
+```
+
+It cuts the animal out with the U²-Net model (Apache-2.0; downloaded once, about 170 MB, into
+`data-raw/models/`, which is not committed), keeps the largest shape, fills holes and smooths the
+edge. `--crop x,y,w,h` (fractions of the photo) helps when something else stands out more than the
+animal; camouflaged animals (e.g. a snake on leaf litter) often don't work. A silhouette made from
+a photo is a derivative of it: give it the photo's author and licence, add
+`"derivedFrom": "<the photo's sourceUrl>"`, and lock `"silhouette"`.
+
 ## Language and read-aloud
 
 - All UI text is in `lang/en.json` and `lang/zh-TW.json` (same keys). `{n}`-style placeholders are filled in by the app.

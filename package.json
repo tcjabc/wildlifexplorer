@@ -12,6 +12,7 @@
   },
   "devDependencies": {
     "mapshaper": "^0.7.101",
+    "onnxruntime-node": "^1.31.1",
     "sharp": "^0.35.5"
   }
 }
