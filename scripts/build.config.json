@@ -9,9 +9,22 @@
     "minWidth": 600
   },
   "illustrationSearch": true,
-  "unlock": {
-    "start": "2026-11-01",
-    "initial": 12,
-    "everyDays": 1
+  "drops": {
+    "cardsPerPack": 3,
+    "seriesCards": 87,
+    "groupSizes": {
+      "mammals": 21,
+      "birds": 10,
+      "reptiles": 7,
+      "fish": 6,
+      "invertebrates": 7,
+      "prehistoric": 6,
+      "microscopic": 5,
+      "behavior": 4,
+      "how-animals-work": 5,
+      "world-explorer": 5,
+      "conservation": 3,
+      "plants": 8
+    }
   }
 }

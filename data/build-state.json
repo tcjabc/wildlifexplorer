@@ -68,8 +68,7 @@
       "east": 121.85,
       "north": 24.98
     },
-    "range": "data/ranges/formosan-black-bear.json",
-    "unlockDate": "2026-11-01"
+    "range": "data/ranges/formosan-black-bear.json"
   },
   "formosan-rock-macaque": {
     "group": "mammals",
@@ -133,8 +132,7 @@
       "east": 122.33,
       "north": 25.68
     },
-    "range": "data/ranges/formosan-rock-macaque.json",
-    "unlockDate": "2026-11-01"
+    "range": "data/ranges/formosan-rock-macaque.json"
   },
   "chinese-pangolin": {
     "group": "mammals",
@@ -190,8 +188,7 @@
       "license": "Public domain",
       "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:PSM_V21_D612_Manis_pentadactyla.jpg"
-    },
-    "unlockDate": "2026-11-12"
+    }
   },
   "taiwan-serow": {
     "group": "mammals",
@@ -247,8 +244,7 @@
       "license": "Public domain",
       "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Capricornis_swinhoei_Joseph_Wolf.jpg"
-    },
-    "unlockDate": "2026-11-23"
+    }
   },
   "formosan-sambar-deer": {
     "group": "mammals",
@@ -304,8 +300,7 @@
       "license": "Public domain",
       "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:The_deer_of_all_lands_(1898)_Formosan_sambar_in_Woburn_Abbey.png"
-    },
-    "unlockDate": "2026-12-04"
+    }
   },
   "formosan-muntjac": {
     "group": "mammals",
@@ -354,8 +349,7 @@
       "license": "CC BY 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Muntiacus_reevesi_micrurus_230869896.jpg"
-    },
-    "unlockDate": "2026-12-15"
+    }
   },
   "formosan-flying-fox": {
     "group": "mammals",
@@ -411,8 +405,7 @@
       "license": "Public domain",
       "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Pteropus_formosus_by_J.G._Keulemans_(PZS_1873_PL_XXII).jpg"
-    },
-    "unlockDate": "2026-12-26"
+    }
   },
   "leopard-cat": {
     "group": "mammals",
@@ -468,8 +461,7 @@
       "license": "CC BY-SA 3.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Prionailurus_bengalensis_-_CHANG,_Yun-Hsin.jpg"
-    },
-    "unlockDate": "2027-01-06"
+    }
   },
   "masked-palm-civet": {
     "group": "mammals",
@@ -525,8 +517,7 @@
       "license": "Public domain",
       "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Paguma_larvata_Hardwicke.jpg"
-    },
-    "unlockDate": "2027-01-17"
+    }
   },
   "red-and-white-giant-flying-squirrel": {
     "group": "mammals",
@@ -575,8 +566,7 @@
       "license": "CC BY 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
       "sourceUrl": "https://www.inaturalist.org/photos/254810868"
-    },
-    "unlockDate": "2027-01-28"
+    }
   },
   "eurasian-otter": {
     "group": "mammals",
@@ -632,8 +622,7 @@
       "license": "CC0 1.0",
       "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Otter_(Lutra_lutra)_Otter._Lutra._Loutre._(titel_op_object),_RP-T-BR-2017-1-1-65.jpg"
-    },
-    "unlockDate": "2027-02-07"
+    }
   },
   "bengal-tiger": {
     "group": "mammals",
@@ -689,8 +678,7 @@
       "license": "CC0 1.0",
       "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Civetkat_(Viverra),_alpenmarmot_(Marmota_marmota),_luipaard_(Panthera_pardus)_en_tijger_(Panthera_tigris),_RP-T-BR-2017-1-1-95.jpg"
-    },
-    "unlockDate": "2027-02-17"
+    }
   },
   "lion": {
     "group": "mammals",
@@ -739,8 +727,7 @@
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:PZ_lion_pride.jpg"
-    },
-    "unlockDate": "2027-02-26"
+    }
   },
   "cheetah": {
     "group": "mammals",
@@ -789,8 +776,7 @@
       "license": "CC BY 2.0",
       "licenseUrl": "https://creativecommons.org/licenses/by/2.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:TheCheethcat.jpg"
-    },
-    "unlockDate": "2027-03-05"
+    }
   },
   "african-elephant": {
     "group": "mammals",
@@ -846,8 +832,7 @@
       "license": "CC BY-SA 3.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Loxodonta_africana2.jpg"
-    },
-    "unlockDate": "2027-03-11"
+    }
   },
   "giraffe": {
     "group": "mammals",
@@ -903,8 +888,7 @@
       "license": "CC0 1.0",
       "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Giraffa_camelopardalis_(Giraf),_RP-T-1914-17-150.jpg"
-    },
-    "unlockDate": "2027-03-16"
+    }
   },
   "plains-zebra": {
     "group": "mammals",
@@ -960,8 +944,7 @@
       "license": "Public domain",
       "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Equus_quagga_quagga_lithograph.jpg"
-    },
-    "unlockDate": "2027-03-20"
+    }
   },
   "hippopotamus": {
     "group": "mammals",
@@ -1010,8 +993,7 @@
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Portrait_Hippopotamus_in_the_water.jpg"
-    },
-    "unlockDate": "2027-03-24"
+    }
   },
   "black-rhinoceros": {
     "group": "mammals",
@@ -1067,8 +1049,7 @@
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Diceros_bicornis_introduction.jpg"
-    },
-    "unlockDate": "2027-03-27"
+    }
   },
   "western-lowland-gorilla": {
     "group": "mammals",
@@ -1124,7 +1105,6 @@
       "license": "CC BY-SA 3.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Gorila_de_llanura_occidental._Gorilla_gorilla_-_Blanca_Mart%C3%AD_de_Ahumada.jpg"
-    },
-    "unlockDate": "2027-03-29"
+    }
   }
 }

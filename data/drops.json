@@ -1,0 +1,1659 @@
+{
+  "cardsPerPack": 3,
+  "seriesDrops": 29,
+  "drops": [
+    {
+      "id": "s1-w01",
+      "series": 1,
+      "week": 1,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "formosan-black-bear"
+        },
+        {
+          "group": "birds",
+          "id": "taiwan-blue-magpie"
+        },
+        {
+          "group": "plants",
+          "id": "taiwan-cherry"
+        }
+      ]
+    },
+    {
+      "id": "s1-w02",
+      "series": 1,
+      "week": 2,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "formosan-rock-macaque"
+        },
+        {
+          "group": "birds",
+          "id": "swinhoe-s-pheasant"
+        },
+        {
+          "group": "reptiles",
+          "id": "brown-spotted-pit-viper"
+        }
+      ]
+    },
+    {
+      "id": "s1-w03",
+      "series": 1,
+      "week": 3,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "chinese-pangolin"
+        },
+        {
+          "group": "birds",
+          "id": "mikado-pheasant"
+        },
+        {
+          "group": "invertebrates",
+          "id": "atlas-moth"
+        }
+      ]
+    },
+    {
+      "id": "s1-w04",
+      "series": 1,
+      "week": 4,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "taiwan-serow"
+        },
+        {
+          "group": "birds",
+          "id": "taiwan-barbet"
+        },
+        {
+          "group": "plants",
+          "id": "formosan-red-cypress"
+        }
+      ]
+    },
+    {
+      "id": "s1-w05",
+      "series": 1,
+      "week": 5,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "formosan-sambar-deer"
+        },
+        {
+          "group": "fish",
+          "id": "formosan-landlocked-salmon"
+        },
+        {
+          "group": "prehistoric",
+          "id": "tyrannosaurus-rex"
+        }
+      ]
+    },
+    {
+      "id": "s1-w06",
+      "series": 1,
+      "week": 6,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "formosan-muntjac"
+        },
+        {
+          "group": "reptiles",
+          "id": "chinese-cobra"
+        },
+        {
+          "group": "invertebrates",
+          "id": "golden-birdwing"
+        }
+      ]
+    },
+    {
+      "id": "s1-w07",
+      "series": 1,
+      "week": 7,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "formosan-flying-fox"
+        },
+        {
+          "group": "birds",
+          "id": "black-faced-spoonbill"
+        },
+        {
+          "group": "plants",
+          "id": "camphor-tree"
+        }
+      ]
+    },
+    {
+      "id": "s1-w08",
+      "series": 1,
+      "week": 8,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "leopard-cat"
+        },
+        {
+          "group": "microscopic",
+          "id": "tardigrade-water-bear"
+        },
+        {
+          "group": "how-animals-work",
+          "id": "how-animals-fly"
+        }
+      ]
+    },
+    {
+      "id": "s1-w09",
+      "series": 1,
+      "week": 9,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "masked-palm-civet"
+        },
+        {
+          "group": "fish",
+          "id": "whale-shark"
+        },
+        {
+          "group": "world-explorer",
+          "id": "central-mountain-range"
+        }
+      ]
+    },
+    {
+      "id": "s1-w10",
+      "series": 1,
+      "week": 10,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "red-and-white-giant-flying-squirrel"
+        },
+        {
+          "group": "reptiles",
+          "id": "swinhoe-s-japalure"
+        },
+        {
+          "group": "prehistoric",
+          "id": "triceratops"
+        }
+      ]
+    },
+    {
+      "id": "s1-w11",
+      "series": 1,
+      "week": 11,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "eurasian-otter"
+        },
+        {
+          "group": "birds",
+          "id": "crested-serpent-eagle"
+        },
+        {
+          "group": "invertebrates",
+          "id": "purple-crow-butterfly"
+        }
+      ]
+    },
+    {
+      "id": "s1-w12",
+      "series": 1,
+      "week": 12,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "bengal-tiger"
+        },
+        {
+          "group": "behavior",
+          "id": "migration"
+        },
+        {
+          "group": "plants",
+          "id": "formosa-lily"
+        }
+      ]
+    },
+    {
+      "id": "s1-w13",
+      "series": 1,
+      "week": 13,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "lion"
+        },
+        {
+          "group": "microscopic",
+          "id": "amoeba"
+        },
+        {
+          "group": "how-animals-work",
+          "id": "venomous-vs-poisonous"
+        }
+      ]
+    },
+    {
+      "id": "s1-w14",
+      "series": 1,
+      "week": 14,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "cheetah"
+        },
+        {
+          "group": "fish",
+          "id": "ocean-sunfish"
+        },
+        {
+          "group": "world-explorer",
+          "id": "kenting-coral-reefs"
+        }
+      ]
+    },
+    {
+      "id": "s1-w15",
+      "series": 1,
+      "week": 15,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "african-elephant"
+        },
+        {
+          "group": "reptiles",
+          "id": "green-sea-turtle"
+        },
+        {
+          "group": "prehistoric",
+          "id": "stegosaurus"
+        }
+      ]
+    },
+    {
+      "id": "s1-w16",
+      "series": 1,
+      "week": 16,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "giraffe"
+        },
+        {
+          "group": "birds",
+          "id": "malayan-night-heron"
+        },
+        {
+          "group": "invertebrates",
+          "id": "firefly"
+        }
+      ]
+    },
+    {
+      "id": "s1-w17",
+      "series": 1,
+      "week": 17,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "plains-zebra"
+        },
+        {
+          "group": "conservation",
+          "id": "saving-the-formosan-black-bear"
+        },
+        {
+          "group": "plants",
+          "id": "moth-orchid"
+        }
+      ]
+    },
+    {
+      "id": "s1-w18",
+      "series": 1,
+      "week": 18,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "hippopotamus"
+        },
+        {
+          "group": "microscopic",
+          "id": "paramecium"
+        },
+        {
+          "group": "behavior",
+          "id": "hibernation"
+        }
+      ]
+    },
+    {
+      "id": "s1-w19",
+      "series": 1,
+      "week": 19,
+      "cards": [
+        {
+          "group": "fish",
+          "id": "mudskipper"
+        },
+        {
+          "group": "how-animals-work",
+          "id": "carnivores-herbivores-and-omnivores"
+        },
+        {
+          "group": "world-explorer",
+          "id": "orchid-island-lanyu"
+        }
+      ]
+    },
+    {
+      "id": "s1-w20",
+      "series": 1,
+      "week": 20,
+      "cards": [
+        {
+          "group": "birds",
+          "id": "collared-scops-owl"
+        },
+        {
+          "group": "reptiles",
+          "id": "moltrecht-s-green-tree-frog"
+        },
+        {
+          "group": "prehistoric",
+          "id": "brachiosaurus"
+        }
+      ]
+    },
+    {
+      "id": "s1-w21",
+      "series": 1,
+      "week": 21,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "black-rhinoceros"
+        },
+        {
+          "group": "invertebrates",
+          "id": "japanese-rhinoceros-beetle"
+        },
+        {
+          "group": "plants",
+          "id": "chinese-banyan"
+        }
+      ]
+    },
+    {
+      "id": "s1-w22",
+      "series": 1,
+      "week": 22,
+      "cards": [
+        {
+          "group": "microscopic",
+          "id": "euglena"
+        },
+        {
+          "group": "behavior",
+          "id": "camouflage"
+        },
+        {
+          "group": "conservation",
+          "id": "leopard-cats-and-roadkill"
+        }
+      ]
+    },
+    {
+      "id": "s1-w23",
+      "series": 1,
+      "week": 23,
+      "cards": [
+        {
+          "group": "fish",
+          "id": "great-white-shark"
+        },
+        {
+          "group": "how-animals-work",
+          "id": "what-teeth-tell-us"
+        },
+        {
+          "group": "world-explorer",
+          "id": "qigu-lagoon"
+        }
+      ]
+    },
+    {
+      "id": "s1-w24",
+      "series": 1,
+      "week": 24,
+      "cards": [
+        {
+          "group": "birds",
+          "id": "fairy-pitta"
+        },
+        {
+          "group": "reptiles",
+          "id": "taipei-tree-frog"
+        },
+        {
+          "group": "prehistoric",
+          "id": "velociraptor"
+        }
+      ]
+    },
+    {
+      "id": "s1-w25",
+      "series": 1,
+      "week": 25,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "western-lowland-gorilla"
+        },
+        {
+          "group": "invertebrates",
+          "id": "giant-golden-orb-weaver"
+        },
+        {
+          "group": "plants",
+          "id": "kandelia-mangrove"
+        }
+      ]
+    },
+    {
+      "id": "s1-w26",
+      "series": 1,
+      "week": 26,
+      "cards": [
+        {
+          "group": "microscopic",
+          "id": "water-flea"
+        },
+        {
+          "group": "behavior",
+          "id": "mimicry"
+        },
+        {
+          "group": "conservation",
+          "id": "the-black-faced-spoonbill-comeback"
+        }
+      ]
+    },
+    {
+      "id": "s1-w27",
+      "series": 1,
+      "week": 27,
+      "cards": [
+        {
+          "group": "fish",
+          "id": "great-hammerhead-shark"
+        },
+        {
+          "group": "how-animals-work",
+          "id": "skin-scales-feathers-and-fur"
+        },
+        {
+          "group": "world-explorer",
+          "id": "amazon-rainforest"
+        }
+      ]
+    },
+    {
+      "id": "s1-w28",
+      "series": 1,
+      "week": 28,
+      "cards": [
+        {
+          "group": "birds",
+          "id": "taiwan-bamboo-partridge"
+        },
+        {
+          "group": "reptiles",
+          "id": "formosan-salamander"
+        },
+        {
+          "group": "prehistoric",
+          "id": "spinosaurus"
+        }
+      ]
+    },
+    {
+      "id": "s1-w29",
+      "series": 1,
+      "week": 29,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "chimpanzee"
+        },
+        {
+          "group": "invertebrates",
+          "id": "asian-giant-hornet"
+        },
+        {
+          "group": "plants",
+          "id": "flying-spider-monkey-tree-fern"
+        }
+      ]
+    },
+    {
+      "id": "s2-w01",
+      "series": 2,
+      "week": 1,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "bornean-orangutan"
+        },
+        {
+          "group": "birds",
+          "id": "common-kingfisher"
+        },
+        {
+          "group": "plants",
+          "id": "moso-bamboo"
+        }
+      ]
+    },
+    {
+      "id": "s2-w02",
+      "series": 2,
+      "week": 2,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "ring-tailed-lemur"
+        },
+        {
+          "group": "birds",
+          "id": "bald-eagle"
+        },
+        {
+          "group": "reptiles",
+          "id": "nile-crocodile"
+        }
+      ]
+    },
+    {
+      "id": "s2-w03",
+      "series": 2,
+      "week": 3,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "giant-panda"
+        },
+        {
+          "group": "birds",
+          "id": "peregrine-falcon"
+        },
+        {
+          "group": "invertebrates",
+          "id": "coconut-crab"
+        }
+      ]
+    },
+    {
+      "id": "s2-w04",
+      "series": 2,
+      "week": 4,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "polar-bear"
+        },
+        {
+          "group": "birds",
+          "id": "snowy-owl"
+        },
+        {
+          "group": "plants",
+          "id": "sensitive-plant"
+        }
+      ]
+    },
+    {
+      "id": "s2-w05",
+      "series": 2,
+      "week": 5,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "gray-wolf"
+        },
+        {
+          "group": "fish",
+          "id": "giant-manta-ray"
+        },
+        {
+          "group": "prehistoric",
+          "id": "ankylosaurus"
+        }
+      ]
+    },
+    {
+      "id": "s2-w06",
+      "series": 2,
+      "week": 6,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "red-fox"
+        },
+        {
+          "group": "reptiles",
+          "id": "komodo-dragon"
+        },
+        {
+          "group": "invertebrates",
+          "id": "fiddler-crab"
+        }
+      ]
+    },
+    {
+      "id": "s2-w07",
+      "series": 2,
+      "week": 7,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "fennec-fox"
+        },
+        {
+          "group": "birds",
+          "id": "emperor-penguin"
+        },
+        {
+          "group": "plants",
+          "id": "venus-flytrap"
+        }
+      ]
+    },
+    {
+      "id": "s2-w08",
+      "series": 2,
+      "week": 8,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "meerkat"
+        },
+        {
+          "group": "microscopic",
+          "id": "rotifers"
+        },
+        {
+          "group": "how-animals-work",
+          "id": "skeletons-and-bones"
+        }
+      ]
+    },
+    {
+      "id": "s2-w09",
+      "series": 2,
+      "week": 9,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "red-kangaroo"
+        },
+        {
+          "group": "fish",
+          "id": "clownfish"
+        },
+        {
+          "group": "world-explorer",
+          "id": "serengeti"
+        }
+      ]
+    },
+    {
+      "id": "s2-w10",
+      "series": 2,
+      "week": 10,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "koala"
+        },
+        {
+          "group": "reptiles",
+          "id": "panther-chameleon"
+        },
+        {
+          "group": "prehistoric",
+          "id": "archaeopteryx"
+        }
+      ]
+    },
+    {
+      "id": "s2-w11",
+      "series": 2,
+      "week": 11,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "duck-billed-platypus"
+        },
+        {
+          "group": "birds",
+          "id": "ostrich"
+        },
+        {
+          "group": "invertebrates",
+          "id": "western-honey-bee"
+        }
+      ]
+    },
+    {
+      "id": "s2-w12",
+      "series": 2,
+      "week": 12,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "nine-banded-armadillo"
+        },
+        {
+          "group": "behavior",
+          "id": "nests-and-dens"
+        },
+        {
+          "group": "plants",
+          "id": "giant-sequoia"
+        }
+      ]
+    },
+    {
+      "id": "s2-w13",
+      "series": 2,
+      "week": 13,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "three-toed-sloth"
+        },
+        {
+          "group": "microscopic",
+          "id": "copepods"
+        },
+        {
+          "group": "how-animals-work",
+          "id": "spider-silk"
+        }
+      ]
+    },
+    {
+      "id": "s2-w14",
+      "series": 2,
+      "week": 14,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "naked-mole-rat"
+        },
+        {
+          "group": "fish",
+          "id": "spotted-seahorse"
+        },
+        {
+          "group": "world-explorer",
+          "id": "great-barrier-reef"
+        }
+      ]
+    },
+    {
+      "id": "s2-w15",
+      "series": 2,
+      "week": 15,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "capybara"
+        },
+        {
+          "group": "reptiles",
+          "id": "king-cobra"
+        },
+        {
+          "group": "prehistoric",
+          "id": "pteranodon-not-a-dinosaur"
+        }
+      ]
+    },
+    {
+      "id": "s2-w16",
+      "series": 2,
+      "week": 16,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "vampire-bat"
+        },
+        {
+          "group": "birds",
+          "id": "greater-flamingo"
+        },
+        {
+          "group": "invertebrates",
+          "id": "monarch-butterfly"
+        }
+      ]
+    },
+    {
+      "id": "s2-w17",
+      "series": 2,
+      "week": 17,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "blue-whale"
+        },
+        {
+          "group": "conservation",
+          "id": "plastic-in-the-ocean"
+        },
+        {
+          "group": "plants",
+          "id": "titan-arum-corpse-flower"
+        }
+      ]
+    },
+    {
+      "id": "s2-w18",
+      "series": 2,
+      "week": 18,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "humpback-whale"
+        },
+        {
+          "group": "microscopic",
+          "id": "diatoms"
+        },
+        {
+          "group": "behavior",
+          "id": "courtship-displays"
+        }
+      ]
+    },
+    {
+      "id": "s2-w19",
+      "series": 2,
+      "week": 19,
+      "cards": [
+        {
+          "group": "fish",
+          "id": "starry-pufferfish"
+        },
+        {
+          "group": "how-animals-work",
+          "id": "super-senses"
+        },
+        {
+          "group": "world-explorer",
+          "id": "antarctica"
+        }
+      ]
+    },
+    {
+      "id": "s2-w20",
+      "series": 2,
+      "week": 20,
+      "cards": [
+        {
+          "group": "birds",
+          "id": "toco-toucan"
+        },
+        {
+          "group": "reptiles",
+          "id": "green-anaconda"
+        },
+        {
+          "group": "prehistoric",
+          "id": "mosasaurus"
+        }
+      ]
+    },
+    {
+      "id": "s2-w21",
+      "series": 2,
+      "week": 21,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "orca"
+        },
+        {
+          "group": "invertebrates",
+          "id": "leafcutter-ant"
+        },
+        {
+          "group": "plants",
+          "id": "saguaro-cactus"
+        }
+      ]
+    },
+    {
+      "id": "s2-w22",
+      "series": 2,
+      "week": 22,
+      "cards": [
+        {
+          "group": "microscopic",
+          "id": "volvox"
+        },
+        {
+          "group": "behavior",
+          "id": "living-in-groups"
+        },
+        {
+          "group": "conservation",
+          "id": "coral-bleaching"
+        }
+      ]
+    },
+    {
+      "id": "s2-w23",
+      "series": 2,
+      "week": 23,
+      "cards": [
+        {
+          "group": "fish",
+          "id": "red-bellied-piranha"
+        },
+        {
+          "group": "how-animals-work",
+          "id": "how-fish-breathe"
+        },
+        {
+          "group": "world-explorer",
+          "id": "the-arctic"
+        }
+      ]
+    },
+    {
+      "id": "s2-w24",
+      "series": 2,
+      "week": 24,
+      "cards": [
+        {
+          "group": "birds",
+          "id": "ruby-throated-hummingbird"
+        },
+        {
+          "group": "reptiles",
+          "id": "galapagos-giant-tortoise"
+        },
+        {
+          "group": "prehistoric",
+          "id": "megalodon"
+        }
+      ]
+    },
+    {
+      "id": "s2-w25",
+      "series": 2,
+      "week": 25,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "bottlenose-dolphin"
+        },
+        {
+          "group": "invertebrates",
+          "id": "orchid-mantis"
+        },
+        {
+          "group": "plants",
+          "id": "giant-water-lily"
+        }
+      ]
+    },
+    {
+      "id": "s2-w26",
+      "series": 2,
+      "week": 26,
+      "cards": [
+        {
+          "group": "microscopic",
+          "id": "dust-mite"
+        },
+        {
+          "group": "behavior",
+          "id": "tool-use"
+        },
+        {
+          "group": "conservation",
+          "id": "disappearing-forests"
+        }
+      ]
+    },
+    {
+      "id": "s2-w27",
+      "series": 2,
+      "week": 27,
+      "cards": [
+        {
+          "group": "fish",
+          "id": "deep-sea-anglerfish"
+        },
+        {
+          "group": "how-animals-work",
+          "id": "metamorphosis"
+        },
+        {
+          "group": "world-explorer",
+          "id": "sahara-desert"
+        }
+      ]
+    },
+    {
+      "id": "s2-w28",
+      "series": 2,
+      "week": 28,
+      "cards": [
+        {
+          "group": "birds",
+          "id": "wandering-albatross"
+        },
+        {
+          "group": "reptiles",
+          "id": "leatherback-turtle"
+        },
+        {
+          "group": "prehistoric",
+          "id": "trilobites"
+        }
+      ]
+    },
+    {
+      "id": "s2-w29",
+      "series": 2,
+      "week": 29,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "walrus"
+        },
+        {
+          "group": "invertebrates",
+          "id": "giant-pacific-octopus"
+        },
+        {
+          "group": "plants",
+          "id": "baobab"
+        }
+      ]
+    },
+    {
+      "id": "s3-w01",
+      "series": 3,
+      "week": 1,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "dromedary-camel"
+        },
+        {
+          "group": "birds",
+          "id": "indian-peafowl"
+        },
+        {
+          "group": "plants",
+          "id": "sunflower"
+        }
+      ]
+    },
+    {
+      "id": "s3-w02",
+      "series": 3,
+      "week": 2,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "aardvark"
+        },
+        {
+          "group": "birds",
+          "id": "brown-kiwi"
+        },
+        {
+          "group": "reptiles",
+          "id": "strawberry-poison-dart-frog"
+        }
+      ]
+    },
+    {
+      "id": "s3-w03",
+      "series": 3,
+      "week": 3,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "asian-elephant"
+        },
+        {
+          "group": "birds",
+          "id": "scarlet-macaw"
+        },
+        {
+          "group": "invertebrates",
+          "id": "chambered-nautilus"
+        }
+      ]
+    },
+    {
+      "id": "s3-w04",
+      "series": 3,
+      "week": 4,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "amur-leopard"
+        },
+        {
+          "group": "birds",
+          "id": "arctic-tern"
+        },
+        {
+          "group": "plants",
+          "id": "how-plants-make-food-photosynthesis"
+        }
+      ]
+    },
+    {
+      "id": "s3-w05",
+      "series": 3,
+      "week": 5,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "aye-aye"
+        },
+        {
+          "group": "fish",
+          "id": "electric-eel"
+        },
+        {
+          "group": "prehistoric",
+          "id": "woolly-mammoth"
+        }
+      ]
+    },
+    {
+      "id": "s3-w06",
+      "series": 3,
+      "week": 6,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "north-american-beaver"
+        },
+        {
+          "group": "reptiles",
+          "id": "axolotl"
+        },
+        {
+          "group": "invertebrates",
+          "id": "box-jellyfish"
+        }
+      ]
+    },
+    {
+      "id": "s3-w07",
+      "series": 3,
+      "week": 7,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "beluga-whale"
+        },
+        {
+          "group": "birds",
+          "id": "shoebill"
+        },
+        {
+          "group": "plants",
+          "id": "how-seeds-travel"
+        }
+      ]
+    },
+    {
+      "id": "s3-w08",
+      "series": 3,
+      "week": 8,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "brown-bear"
+        },
+        {
+          "group": "microscopic",
+          "id": "blue-tears-glowing-plankton"
+        },
+        {
+          "group": "how-animals-work",
+          "id": "warm-blooded-vs-cold-blooded"
+        }
+      ]
+    },
+    {
+      "id": "s3-w09",
+      "series": 3,
+      "week": 9,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "red-panda"
+        },
+        {
+          "group": "fish",
+          "id": "red-lionfish"
+        },
+        {
+          "group": "world-explorer",
+          "id": "galapagos-islands"
+        }
+      ]
+    },
+    {
+      "id": "s3-w10",
+      "series": 3,
+      "week": 10,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": "caribou"
+        },
+        {
+          "group": "reptiles",
+          "id": "gila-monster"
+        },
+        {
+          "group": "prehistoric",
+          "id": "sabre-toothed-cat"
+        }
+      ]
+    },
+    {
+      "id": "s3-w11",
+      "series": 3,
+      "week": 11,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": null
+        },
+        {
+          "group": "birds",
+          "id": "common-cuckoo"
+        },
+        {
+          "group": "invertebrates",
+          "id": "crown-of-thorns-starfish"
+        }
+      ]
+    },
+    {
+      "id": "s3-w12",
+      "series": 3,
+      "week": 12,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": null
+        },
+        {
+          "group": "behavior",
+          "id": "raising-babies"
+        },
+        {
+          "group": "plants",
+          "id": null
+        }
+      ]
+    },
+    {
+      "id": "s3-w13",
+      "series": 3,
+      "week": 13,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": null
+        },
+        {
+          "group": "microscopic",
+          "id": "germs-bacteria-and-viruses"
+        },
+        {
+          "group": "how-animals-work",
+          "id": "biggest-and-smallest"
+        }
+      ]
+    },
+    {
+      "id": "s3-w14",
+      "series": 3,
+      "week": 14,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": null
+        },
+        {
+          "group": "fish",
+          "id": null
+        },
+        {
+          "group": "world-explorer",
+          "id": "madagascar"
+        }
+      ]
+    },
+    {
+      "id": "s3-w15",
+      "series": 3,
+      "week": 15,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": null
+        },
+        {
+          "group": "reptiles",
+          "id": null
+        },
+        {
+          "group": "prehistoric",
+          "id": "taiwan-s-ancient-rhino"
+        }
+      ]
+    },
+    {
+      "id": "s3-w16",
+      "series": 3,
+      "week": 16,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": null
+        },
+        {
+          "group": "birds",
+          "id": null
+        },
+        {
+          "group": "invertebrates",
+          "id": "emperor-scorpion"
+        }
+      ]
+    },
+    {
+      "id": "s3-w17",
+      "series": 3,
+      "week": 17,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": null
+        },
+        {
+          "group": "conservation",
+          "id": "illegal-wildlife-trade"
+        },
+        {
+          "group": "plants",
+          "id": null
+        }
+      ]
+    },
+    {
+      "id": "s3-w18",
+      "series": 3,
+      "week": 18,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": null
+        },
+        {
+          "group": "microscopic",
+          "id": null
+        },
+        {
+          "group": "behavior",
+          "id": "how-animals-communicate"
+        }
+      ]
+    },
+    {
+      "id": "s3-w19",
+      "series": 3,
+      "week": 19,
+      "cards": [
+        {
+          "group": "fish",
+          "id": null
+        },
+        {
+          "group": "how-animals-work",
+          "id": "all-about-eggs"
+        },
+        {
+          "group": "world-explorer",
+          "id": null
+        }
+      ]
+    },
+    {
+      "id": "s3-w20",
+      "series": 3,
+      "week": 20,
+      "cards": [
+        {
+          "group": "birds",
+          "id": null
+        },
+        {
+          "group": "reptiles",
+          "id": null
+        },
+        {
+          "group": "prehistoric",
+          "id": null
+        }
+      ]
+    },
+    {
+      "id": "s3-w21",
+      "series": 3,
+      "week": 21,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": null
+        },
+        {
+          "group": "invertebrates",
+          "id": null
+        },
+        {
+          "group": "plants",
+          "id": null
+        }
+      ]
+    },
+    {
+      "id": "s3-w22",
+      "series": 3,
+      "week": 22,
+      "cards": [
+        {
+          "group": "microscopic",
+          "id": null
+        },
+        {
+          "group": "behavior",
+          "id": "nocturnal-animals"
+        },
+        {
+          "group": "conservation",
+          "id": "gone-forever-the-dodo"
+        }
+      ]
+    },
+    {
+      "id": "s3-w23",
+      "series": 3,
+      "week": 23,
+      "cards": [
+        {
+          "group": "fish",
+          "id": null
+        },
+        {
+          "group": "how-animals-work",
+          "id": null
+        },
+        {
+          "group": "world-explorer",
+          "id": null
+        }
+      ]
+    },
+    {
+      "id": "s3-w24",
+      "series": 3,
+      "week": 24,
+      "cards": [
+        {
+          "group": "birds",
+          "id": null
+        },
+        {
+          "group": "reptiles",
+          "id": null
+        },
+        {
+          "group": "prehistoric",
+          "id": null
+        }
+      ]
+    },
+    {
+      "id": "s3-w25",
+      "series": 3,
+      "week": 25,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": null
+        },
+        {
+          "group": "invertebrates",
+          "id": null
+        },
+        {
+          "group": "plants",
+          "id": null
+        }
+      ]
+    },
+    {
+      "id": "s3-w26",
+      "series": 3,
+      "week": 26,
+      "cards": [
+        {
+          "group": "microscopic",
+          "id": null
+        },
+        {
+          "group": "behavior",
+          "id": null
+        },
+        {
+          "group": "conservation",
+          "id": "climate-change-at-the-poles"
+        }
+      ]
+    },
+    {
+      "id": "s3-w27",
+      "series": 3,
+      "week": 27,
+      "cards": [
+        {
+          "group": "fish",
+          "id": null
+        },
+        {
+          "group": "how-animals-work",
+          "id": null
+        },
+        {
+          "group": "world-explorer",
+          "id": null
+        }
+      ]
+    },
+    {
+      "id": "s3-w28",
+      "series": 3,
+      "week": 28,
+      "cards": [
+        {
+          "group": "birds",
+          "id": null
+        },
+        {
+          "group": "reptiles",
+          "id": null
+        },
+        {
+          "group": "prehistoric",
+          "id": null
+        }
+      ]
+    },
+    {
+      "id": "s3-w29",
+      "series": 3,
+      "week": 29,
+      "cards": [
+        {
+          "group": "mammals",
+          "id": null
+        },
+        {
+          "group": "invertebrates",
+          "id": null
+        },
+        {
+          "group": "plants",
+          "id": null
+        }
+      ]
+    }
+  ]
+}

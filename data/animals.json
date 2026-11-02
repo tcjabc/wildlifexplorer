@@ -42,7 +42,6 @@
       "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Ours_du_Tibet_(Ursus_thibetanus)-_Histoire_naturelle_des_mammif%C3%A8res_avec_des_figures_originales,_colori%C3%A9es,_dessin%C3%A9es_d%27apr%C3%A8s_des_animaux_vivans_-_tome_5_(1824)_(cropped).jpg"
     },
-    "unlockDate": "2026-11-01",
     "mapBounds": {
       "west": 120.35,
       "south": 22.18,
@@ -228,7 +227,6 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Formosan_macaque.jpg"
     },
     "illustration": null,
-    "unlockDate": "2026-11-01",
     "mapBounds": {
       "west": 119.67,
       "south": 21.52,
@@ -423,7 +421,6 @@
       "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:PSM_V21_D612_Manis_pentadactyla.jpg"
     },
-    "unlockDate": "2026-11-12",
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -501,7 +498,6 @@
       "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Capricornis_swinhoei_Joseph_Wolf.jpg"
     },
-    "unlockDate": "2026-11-23",
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -579,7 +575,6 @@
       "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:The_deer_of_all_lands_(1898)_Formosan_sambar_in_Woburn_Abbey.png"
     },
-    "unlockDate": "2026-12-04",
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -651,7 +646,6 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Muntiacus_reevesi_micrurus_230869896.jpg"
     },
     "illustration": null,
-    "unlockDate": "2026-12-15",
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -729,7 +723,6 @@
       "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Pteropus_formosus_by_J.G._Keulemans_(PZS_1873_PL_XXII).jpg"
     },
-    "unlockDate": "2026-12-26",
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -807,7 +800,6 @@
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Prionailurus_bengalensis_-_CHANG,_Yun-Hsin.jpg"
     },
-    "unlockDate": "2027-01-06",
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -885,7 +877,6 @@
       "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Paguma_larvata_Hardwicke.jpg"
     },
-    "unlockDate": "2027-01-17",
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -957,7 +948,6 @@
       "sourceUrl": "https://www.inaturalist.org/photos/254810868"
     },
     "illustration": null,
-    "unlockDate": "2027-01-28",
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -1035,7 +1025,6 @@
       "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Otter_(Lutra_lutra)_Otter._Lutra._Loutre._(titel_op_object),_RP-T-BR-2017-1-1-65.jpg"
     },
-    "unlockDate": "2027-02-07",
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -1113,7 +1102,6 @@
       "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Civetkat_(Viverra),_alpenmarmot_(Marmota_marmota),_luipaard_(Panthera_pardus)_en_tijger_(Panthera_tigris),_RP-T-BR-2017-1-1-95.jpg"
     },
-    "unlockDate": "2027-02-17",
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -1185,7 +1173,6 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:PZ_lion_pride.jpg"
     },
     "illustration": null,
-    "unlockDate": "2027-02-26",
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -1257,7 +1244,6 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:TheCheethcat.jpg"
     },
     "illustration": null,
-    "unlockDate": "2027-03-05",
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -1335,7 +1321,6 @@
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Loxodonta_africana2.jpg"
     },
-    "unlockDate": "2027-03-11",
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -1413,7 +1398,6 @@
       "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Giraffa_camelopardalis_(Giraf),_RP-T-1914-17-150.jpg"
     },
-    "unlockDate": "2027-03-16",
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -1491,7 +1475,6 @@
       "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Equus_quagga_quagga_lithograph.jpg"
     },
-    "unlockDate": "2027-03-20",
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -1563,7 +1546,6 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Portrait_Hippopotamus_in_the_water.jpg"
     },
     "illustration": null,
-    "unlockDate": "2027-03-24",
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -1641,7 +1623,6 @@
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Diceros_bicornis_introduction.jpg"
     },
-    "unlockDate": "2027-03-27",
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -1719,7 +1700,6 @@
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Gorila_de_llanura_occidental._Gorilla_gorilla_-_Blanca_Mart%C3%AD_de_Ahumada.jpg"
     },
-    "unlockDate": "2027-03-29",
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",

@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 // Builds data/animals.json from data/card-list.csv.
 //
-//   node scripts/build-cards.mjs              first `limit` rows (see build.config.json)
+//   node scripts/build-cards.mjs              first `limit` cards in drop order (see build.config.json)
 //   node scripts/build-cards.mjs --all        every row
-//   node scripts/build-cards.mjs --limit 40   first 40 rows
+//   node scripts/build-cards.mjs --limit 40   first 40 cards in drop order
 //   node scripts/build-cards.mjs --only leopard-cat,koala
-//   node scripts/build-cards.mjs --offline    no network: re-merge, re-schedule, make thumbs
+//   node scripts/build-cards.mjs --offline    no network: re-merge, re-plan drops, make thumbs
 //   node scripts/build-cards.mjs --prune      also delete image files no card uses any more
 //
+// Also writes data/drops.json, the weekly pack plan (see lib/drops.mjs).
 // Your hand edits in animals.json are never overwritten (see lib/merge.mjs).
 
 import { existsSync } from 'node:fs';
@@ -28,12 +29,14 @@ import { findPhotos } from './lib/inaturalist.mjs';
 import { downloadImage, ensureThumb, shortHash, thumbPath } from './lib/images.mjs';
 import { isAllowedLicenseName } from './lib/licenses.mjs';
 import { mergeCard, canUpdate } from './lib/merge.mjs';
+import { planDrops, dropOrder, DropPlanError } from './lib/drops.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const P = {
   csv: path.join(ROOT, 'data/card-list.csv'),
   groups: path.join(ROOT, 'data/groups.json'),
   cards: path.join(ROOT, 'data/animals.json'),
+  drops: path.join(ROOT, 'data/drops.json'),
   state: path.join(ROOT, 'data/build-state.json'),
   report: path.join(ROOT, 'data/build-report.md'),
   locations: path.join(ROOT, 'data/locations.json'),
@@ -64,23 +67,6 @@ export const slugify = s => s
 // 台 and 臺 are both correct in Taiwan; don't flag a difference that is only that.
 const zhKey = s => (s ?? '').replace(/台/g, '臺').replace(/[（）()\s]/g, '');
 
-const addDays = (iso, n) => {
-  const d = new Date(`${iso}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + n);
-  return d.toISOString().slice(0, 10);
-};
-
-// Unlock order deals cards round-robin across groups so new cards rotate through
-// the binder. Computed over the whole CSV so dates don't shift when the limit changes.
-function unlockSchedule(rows, groups, { start, initial, everyDays }) {
-  const queues = groups.map(g => rows.filter(r => r.groupId === g.id));
-  const order = [];
-  while (queues.some(q => q.length)) for (const q of queues) if (q.length) order.push(q.shift());
-  const dates = new Map();
-  order.forEach((row, i) => dates.set(row, addDays(start, Math.max(0, i - initial + 1) * everyDays)));
-  return dates;
-}
-
 function blankCard(row) {
   return {
     id: row.id,
@@ -93,12 +79,11 @@ function blankCard(row) {
     taiwan: row.taiwan === 'Y',
     photo: null,
     illustration: null,
-    unlockDate: null,
   };
 }
 
 const KEY_ORDER = ['id', 'group', 'scientificName', 'name', 'facts', 'habitat', 'status', 'taiwan',
-  'photo', 'illustration', 'unlockDate', 'map', 'mapBounds', 'range', 'place', 'fossilSite', 'profile', 'stats', 'compare', 'lifeCycle', 'silhouette',
+  'photo', 'illustration', 'map', 'mapBounds', 'range', 'place', 'fossilSite', 'profile', 'stats', 'compare', 'lifeCycle', 'silhouette',
   'taxonomy', 'wikidata', 'locked', '_draft'];
 function orderKeys(card) {
   const out = {};
@@ -288,7 +273,6 @@ async function main() {
 
   const existing = await readJson(P.cards, []);
   const state = await readJson(P.state, {});
-  const dates = unlockSchedule(rows, groups, cfg.unlock);
   const locations = await readJson(P.locations, {}); // globe pins for places and fossils
 
   // Match existing cards by id, then scientific name, then Chinese name, so renaming
@@ -303,10 +287,18 @@ async function main() {
   };
   const matched = rows.map(row => ({ row, card: findExisting(row) }));
 
+  // The pack plan. Checked before anything is downloaded, so a bad config fails fast.
+  const drops = planDrops(matched.map(m => ({ id: m.card?.id ?? m.row.id, groupId: m.row.groupId })), groups, cfg.drops ?? {});
+  const position = dropOrder(drops);
+  const rank = m => position.get(m.card?.id ?? m.row.id) ?? position.size + m.row.index;
+  const inDropOrder = [...matched].sort((x, y) => rank(x) - rank(y));
+
+  // Offline, only cards that already exist are re-merged: a new card needs the network.
+  const pool = args.offline ? inDropOrder.filter(m => m.card) : inDropOrder;
   const limit = args.all ? Infinity : (args.limit ?? cfg.limit ?? Infinity);
   const selected = args.only
-    ? matched.filter(m => args.only.includes(m.row.id) || args.only.includes(m.card?.id))
-    : matched.slice(0, limit);
+    ? pool.filter(m => args.only.includes(m.row.id) || args.only.includes(m.card?.id))
+    : pool.slice(0, limit);
 
   const report = new Map(); // id -> { issues, notes }
   let n = 0;
@@ -329,7 +321,6 @@ async function main() {
       group: row.groupId,
       'name.en': row.name_en,
       taiwan: row.taiwan === 'Y',
-      unlockDate: dates.get(row),
       scientificName: row.scientific_name || null,
     };
     if (row.name_zh) values['name.zh'] = row.name_zh;
@@ -396,13 +387,18 @@ async function main() {
     unused = [];
   }
 
+  // unlockDate is gone: packs follow each profile's own weekly schedule (data/drops.json).
+  for (const c of [...cards, ...orphans]) delete c.unlockDate;
+  for (const st of Object.values(state)) delete st.unlockDate;
+
   await writeJson(P.cards, [...cards, ...orphans].map(orderKeys));
   await writeJson(P.state, state);
-  await writeFile(P.report, renderReport({ rows, cards, orphans, report, imageProblems, unused, selected }), 'utf8');
-  console.log(`\nWrote ${path.relative(ROOT, P.cards)} (${cards.length + orphans.length} cards) and ${path.relative(ROOT, P.report)}`);
+  await writeJson(P.drops, { cardsPerPack: cfg.drops.cardsPerPack, seriesDrops: cfg.drops.seriesCards / cfg.drops.cardsPerPack, drops });
+  await writeFile(P.report, renderReport({ rows, cards, orphans, report, imageProblems, unused, selected, drops }), 'utf8');
+  console.log(`\nWrote ${path.relative(ROOT, P.cards)} (${cards.length + orphans.length} cards), ${path.relative(ROOT, P.drops)} (${drops.length} drops) and ${path.relative(ROOT, P.report)}`);
 }
 
-function renderReport({ rows, cards, orphans, report, imageProblems, unused, selected }) {
+function renderReport({ rows, cards, orphans, report, imageProblems, unused, selected, drops }) {
   const L = [];
   const species = cards.filter(c => c.scientificName);
   const topics = cards.filter(c => !c.scientificName);
@@ -420,7 +416,13 @@ function renderReport({ rows, cards, orphans, report, imageProblems, unused, sel
   L.push(`- Cards without a photo: ${noPhoto.length}`);
   L.push(`- Cards with facts still to write: ${factsTodo.length}`);
   L.push(`- Cards with habitat still to write: ${habitatTodo.length}`);
-  L.push(`- Cards with inside pages (profile, statistics, life cycle): ${cards.filter(c => c.profile || c.stats || c.lifeCycle).length}`, '');
+  L.push(`- Cards with inside pages (profile, statistics, life cycle): ${cards.filter(c => c.profile || c.stats || c.lifeCycle).length}`);
+  // Drops are granted in order, so the first one with a missing card holds back the rest.
+  const built = new Set(cards.map(c => c.id));
+  const ready = drops.findIndex(d => d.cards.some(c => !c.id || !built.has(c.id)));
+  const waiting = drops[ready];
+  const missing = waiting?.cards.filter(c => !c.id || !built.has(c.id)).map(c => c.id ?? `a ${c.group} row not in the CSV yet`);
+  L.push(`- Drops ready in order: ${ready < 0 ? drops.length : ready} of ${drops.length} planned${waiting ? ` (${waiting.id} waits for: ${missing.join(', ')})` : ''}`, '');
 
   const attention = [...report.values()].filter(r => r.issues.length);
   L.push('## Needs your attention', '');
@@ -476,6 +478,6 @@ function renderReport({ rows, cards, orphans, report, imageProblems, unused, sel
 }
 
 main().catch(err => {
-  console.error(err);
+  console.error(err instanceof DropPlanError ? `\nCan't plan the drops: ${err.message}` : err);
   process.exit(1);
 });
