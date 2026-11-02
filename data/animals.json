@@ -390,16 +390,16 @@
     },
     "facts": [
       {
-        "en": "",
-        "zh": ""
+        "en": "Its scales are made of keratin, the same stuff as your fingernails.",
+        "zh": "牠的鱗片是角蛋白做的，跟你的指甲是一樣的材質。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "When it feels scared, it rolls up into a tight, scaly ball.",
+        "zh": "感到害怕的時候，牠會把身體捲成一顆硬硬的球。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "It has no teeth. It slurps up ants and termites with a long, sticky tongue.",
+        "zh": "牠沒有牙齒，靠又長又黏的舌頭來吃螞蟻和白蟻。"
       }
     ],
     "habitat": {
@@ -469,7 +469,10 @@
         "zh": "穿山甲屬"
       }
     },
-    "wikidata": "Q842283"
+    "wikidata": "Q842283",
+    "_draft": [
+      "facts"
+    ]
   },
   {
     "id": "taiwan-serow",
@@ -483,16 +486,16 @@
     },
     "facts": [
       {
-        "en": "",
-        "zh": ""
+        "en": "It lives only in Taiwan and can climb steep, rocky cliffs with ease.",
+        "zh": "牠只住在臺灣，可以輕輕鬆鬆爬上又陡又多石頭的山壁。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "Both males and females have short, pointy horns.",
+        "zh": "公的和母的頭上都有短短尖尖的角。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "Its Chinese name means “long-maned mountain goat”, because of the longer hair on its neck.",
+        "zh": "牠脖子上的毛比較長，像馬的鬃毛，所以叫做「長鬃山羊」。"
       }
     ],
     "habitat": {
@@ -562,7 +565,10 @@
         "zh": ""
       }
     },
-    "wikidata": "Q715983"
+    "wikidata": "Q715983",
+    "_draft": [
+      "facts"
+    ]
   },
   {
     "id": "formosan-sambar-deer",
@@ -576,16 +582,16 @@
     },
     "facts": [
       {
-        "en": "",
-        "zh": ""
+        "en": "It is the biggest deer in Taiwan.",
+        "zh": "牠是臺灣體型最大的鹿。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "Its Chinese name means “water deer”, because it loves bathing in water and rolling in mud.",
+        "zh": "牠很喜歡泡水、在泥巴裡打滾，所以叫做「水鹿」。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "Every year, the male’s antlers fall off and new ones grow back.",
+        "zh": "公鹿的角每年都會掉下來，然後再長出新的角。"
       }
     ],
     "habitat": {
@@ -655,7 +661,10 @@
         "zh": ""
       }
     },
-    "wikidata": "Q2165287"
+    "wikidata": "Q2165287",
+    "_draft": [
+      "facts"
+    ]
   },
   {
     "id": "formosan-muntjac",
@@ -1793,16 +1802,16 @@
     },
     "facts": [
       {
-        "en": "",
-        "zh": ""
+        "en": "It lives only in Taiwan, and its tail is longer than the rest of its body.",
+        "zh": "牠只住在臺灣，尾巴比身體其他部分加起來還要長。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "Older brothers and sisters help their parents feed the new chicks.",
+        "zh": "家裡的哥哥姊姊會幫爸媽一起餵剛出生的小鳥。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "Its Taiwanese nickname means “long-tailed mountain lady”.",
+        "zh": "臺語叫牠「長尾山娘」，意思是尾巴長長的山中姑娘。"
       }
     ],
     "habitat": {
@@ -1866,7 +1875,10 @@
         "zh": "藍鵲屬"
       }
     },
-    "wikidata": "Q94533"
+    "wikidata": "Q94533",
+    "_draft": [
+      "facts"
+    ]
   },
   {
     "id": "swinhoe-s-pheasant",
@@ -1879,16 +1891,16 @@
     },
     "facts": [
       {
-        "en": "",
-        "zh": ""
+        "en": "The male has shiny blue-black feathers, a white crest and a bright red face.",
+        "zh": "公鳥全身是發亮的藍黑色羽毛，頭上有白色的羽冠，臉是鮮紅色的。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "The female is brown, which helps her hide on the forest floor while she sits on her eggs.",
+        "zh": "母鳥是褐色的，孵蛋的時候躲在森林地上，很不容易被發現。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "It lives only in Taiwan’s mountain forests and is very shy.",
+        "zh": "牠只住在臺灣的山區森林裡，個性非常害羞。"
       }
     ],
     "habitat": {
@@ -1952,7 +1964,10 @@
         "zh": ""
       }
     },
-    "wikidata": "Q715245"
+    "wikidata": "Q715245",
+    "_draft": [
+      "facts"
+    ]
   },
   {
     "id": "mikado-pheasant",
@@ -1966,16 +1981,16 @@
     },
     "facts": [
       {
-        "en": "",
-        "zh": ""
+        "en": "You can find it on the back of Taiwan’s 1,000-dollar note.",
+        "zh": "臺灣的千元鈔票背面就有帝雉喔！"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "It walks quietly through misty mountain forests, so people call it “the king of the mist”.",
+        "zh": "牠常在起霧的高山森林裡安靜地走動，所以被叫做「迷霧中的王者」。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "The male’s long tail has white stripes across it.",
+        "zh": "公鳥長長的尾巴上有一條條白色的橫紋。"
       }
     ],
     "habitat": {
@@ -2045,7 +2060,10 @@
         "zh": "長尾雉屬"
       }
     },
-    "wikidata": "Q715266"
+    "wikidata": "Q715266",
+    "_draft": [
+      "facts"
+    ]
   },
   {
     "id": "taiwan-barbet",
@@ -2058,16 +2076,16 @@
     },
     "facts": [
       {
-        "en": "",
-        "zh": ""
+        "en": "It has five bright colours (green, yellow, blue, red and black), which is why its Chinese name means “five-coloured bird”.",
+        "zh": "牠身上有綠、黃、藍、紅、黑五種鮮豔的顏色，所以叫做「五色鳥」。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "Its “kok-kok-kok” call sounds like a monk tapping a wooden fish drum, so people nicknamed it “the colourful monk”.",
+        "zh": "牠「咯、咯、咯」的叫聲很像和尚在敲木魚，所以有個外號叫「花和尚」。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "It digs its nest hole in old, soft tree trunks with its strong beak.",
+        "zh": "牠會用強壯的嘴巴，在老樹幹上挖洞做巢。"
       }
     ],
     "habitat": {
@@ -2131,7 +2149,10 @@
         "zh": "擬啄木鳥屬"
       }
     },
-    "wikidata": "Q27074855"
+    "wikidata": "Q27074855",
+    "_draft": [
+      "facts"
+    ]
   },
   {
     "id": "brown-spotted-pit-viper",
@@ -2144,16 +2165,16 @@
     },
     "facts": [
       {
-        "en": "",
-        "zh": ""
+        "en": "Its Chinese name means “turtle-shell flower”, because the brown pattern on its back looks like a turtle’s shell.",
+        "zh": "牠背上的褐色花紋很像烏龜殼，所以叫做「龜殼花」。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "Two little pits on its face can feel the warmth of other animals, even in the dark.",
+        "zh": "牠臉上有兩個小小的凹洞，就算在黑漆漆的地方，也能感覺到其他動物身上的熱。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "It is venomous. If you ever see one, don’t touch it: step back slowly and tell a grown-up.",
+        "zh": "牠有毒！如果看到牠，千萬不要碰，慢慢退開，然後告訴大人。"
       }
     ],
     "habitat": {
@@ -2217,7 +2238,10 @@
         "zh": "原矛頭蝮屬"
       }
     },
-    "wikidata": "Q716295"
+    "wikidata": "Q716295",
+    "_draft": [
+      "facts"
+    ]
   },
   {
     "id": "formosan-landlocked-salmon",
@@ -2231,16 +2255,16 @@
     },
     "facts": [
       {
-        "en": "",
-        "zh": ""
+        "en": "Most salmon swim out to the sea, but this one spends its whole life in mountain streams.",
+        "zh": "大部分的鮭魚會游到大海，但牠一輩子都住在高山的溪流裡。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "It needs cold, clean water, so it lives in only a few streams high in the mountains.",
+        "zh": "牠需要又冷又乾淨的水，所以只住在高山上少數幾條溪裡。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "People in Taiwan call it a “national treasure fish”.",
+        "zh": "臺灣人叫牠「國寶魚」。"
       }
     ],
     "habitat": {
@@ -2313,6 +2337,9 @@
     "wikidata": "Q704366",
     "locked": [
       "illustration"
+    ],
+    "_draft": [
+      "facts"
     ]
   },
   {
@@ -2326,16 +2353,16 @@
     },
     "facts": [
       {
-        "en": "",
-        "zh": ""
+        "en": "It is one of the biggest moths in the world: its open wings can be as wide as a dinner plate.",
+        "zh": "牠是世界上最大的蛾之一，翅膀張開來跟一個大盤子差不多寬。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "The tips of its wings look a bit like snake heads, which may help scare away hungry birds.",
+        "zh": "牠翅膀尖端的花紋有點像蛇頭，可能可以嚇跑想吃牠的鳥。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "Grown-up Atlas moths have no working mouth, so they never eat and live for only one or two weeks.",
+        "zh": "長大的皇蛾沒有可以用的嘴巴，所以完全不吃東西，只能活一到兩個星期。"
       }
     ],
     "habitat": {
@@ -2405,7 +2432,10 @@
         "zh": "蛇頭蛾屬"
       }
     },
-    "wikidata": "Q167435"
+    "wikidata": "Q167435",
+    "_draft": [
+      "facts"
+    ]
   },
   {
     "id": "migration",
@@ -2418,16 +2448,16 @@
     },
     "facts": [
       {
-        "en": "",
-        "zh": ""
+        "en": "Migration is a long journey that animals make, often every year, to find food, warmth or a safe place to raise babies.",
+        "zh": "遷徙是動物的長途旅行，常常每年都會出發，為了找食物、找溫暖的地方，或找安全的地方養寶寶。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "The Arctic tern makes the longest migration of any animal, flying from near the North Pole to near the South Pole and back every year.",
+        "zh": "北極燕鷗是遷徙最遠的動物，每年從北極附近飛到南極附近，再飛回來。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "Every winter, black-faced spoonbills fly to Taiwan to escape the cold further north.",
+        "zh": "每年冬天，黑面琵鷺會飛到臺灣，躲開北方的寒冷。"
       }
     ],
     "habitat": {
@@ -2437,7 +2467,10 @@
     "status": null,
     "taiwan": false,
     "photo": null,
-    "illustration": null
+    "illustration": null,
+    "_draft": [
+      "facts"
+    ]
   },
   {
     "id": "central-mountain-range",
@@ -2450,16 +2483,16 @@
     },
     "facts": [
       {
-        "en": "",
-        "zh": ""
+        "en": "It runs down the middle of Taiwan from north to south, like the island’s backbone.",
+        "zh": "它從北到南穿過臺灣中間，就像臺灣的脊椎骨。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "Two huge pieces of the Earth’s crust are slowly pushing together here, so the mountains are still rising a tiny bit every year.",
+        "zh": "地球上兩大塊地殼在這裡慢慢互相擠壓，所以這些山現在每年還在長高一點點。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "Rain that falls on the west side flows to the Taiwan Strait, and rain on the east side flows to the Pacific Ocean.",
+        "zh": "下在山西邊的雨會流向臺灣海峽，下在東邊的雨會流向太平洋。"
       }
     ],
     "habitat": {
@@ -2474,7 +2507,10 @@
       "lat": 23.7,
       "lng": 121.1,
       "site": "Central Mountain Range, Taiwan"
-    }
+    },
+    "_draft": [
+      "facts"
+    ]
   },
   {
     "id": "kenting-coral-reefs",
@@ -2487,16 +2523,16 @@
     },
     "facts": [
       {
-        "en": "",
-        "zh": ""
+        "en": "Corals may look like plants or rocks, but they are really lots of tiny animals living together.",
+        "zh": "珊瑚看起來像植物或石頭，其實是很多小小的動物住在一起。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "Kenting is at the southern tip of Taiwan, where warm sea water helps corals grow.",
+        "zh": "墾丁在臺灣的最南端，溫暖的海水讓珊瑚長得很好。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "On a few spring nights after the full moon, many corals release their eggs at the same time, like an underwater snowstorm.",
+        "zh": "春天滿月後的幾個晚上，很多珊瑚會同時排卵，看起來就像海底在下雪。"
       }
     ],
     "habitat": {
@@ -2511,7 +2547,10 @@
       "lat": 21.95,
       "lng": 120.78,
       "site": "Kenting, Pingtung, Taiwan"
-    }
+    },
+    "_draft": [
+      "facts"
+    ]
   },
   {
     "id": "saving-the-formosan-black-bear",
@@ -2524,16 +2563,16 @@
     },
     "facts": [
       {
-        "en": "",
-        "zh": ""
+        "en": "Scientists think there may be only a few hundred Formosan black bears left in the wild.",
+        "zh": "科學家估計，野外的臺灣黑熊可能只剩下幾百隻。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "Traps that people set for other animals are a big danger to bears, so rangers and volunteers search the forests to remove them.",
+        "zh": "人們為了抓其他動物設下的陷阱，對黑熊是很大的危險，所以保育人員和志工會到森林裡把陷阱找出來拆掉。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "Since 1989, a law in Taiwan has protected the bears, so no one is allowed to hunt them.",
+        "zh": "從 1989 年開始，臺灣的法律就保護臺灣黑熊，任何人都不可以獵捕牠們。"
       }
     ],
     "habitat": {
@@ -2543,7 +2582,10 @@
     "status": null,
     "taiwan": true,
     "photo": null,
-    "illustration": null
+    "illustration": null,
+    "_draft": [
+      "facts"
+    ]
   },
   {
     "id": "how-animals-fly",
@@ -2556,16 +2598,16 @@
     },
     "facts": [
       {
-        "en": "",
-        "zh": ""
+        "en": "Many birds have hollow bones filled with air, which keeps them light enough to fly.",
+        "zh": "很多鳥的骨頭是中空的，裡面充滿空氣，讓牠們夠輕，才飛得起來。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "A bat’s wing is thin skin stretched between its very long finger bones.",
+        "zh": "蝙蝠的翅膀是一層薄薄的皮膚，撐在牠很長的手指骨之間。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "Hummingbirds can hover in one spot and even fly backwards.",
+        "zh": "蜂鳥可以停在空中不動，甚至還能倒著飛。"
       }
     ],
     "habitat": {
@@ -2575,7 +2617,10 @@
     "status": null,
     "taiwan": false,
     "photo": null,
-    "illustration": null
+    "illustration": null,
+    "_draft": [
+      "facts"
+    ]
   },
   {
     "id": "tyrannosaurus-rex",
@@ -2588,16 +2633,16 @@
     },
     "facts": [
       {
-        "en": "",
-        "zh": ""
+        "en": "It lived about 66 million years ago, long before there were any people.",
+        "zh": "牠生活在大約六千六百萬年前，那時候世界上還沒有人類。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "Its biggest teeth, roots and all, were about as long as a banana.",
+        "zh": "牠最大的牙齒連牙根算進去，差不多跟一根香蕉一樣長。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "Its arms were short, with just two fingers on each hand.",
+        "zh": "牠的手臂很短，每隻手只有兩根手指。"
       }
     ],
     "habitat": {
@@ -2663,6 +2708,9 @@
     "wikidata": "Q13098211",
     "locked": [
       "illustration"
+    ],
+    "_draft": [
+      "facts"
     ]
   },
   {
@@ -2676,16 +2724,16 @@
     },
     "facts": [
       {
-        "en": "",
-        "zh": ""
+        "en": "Most are less than 1 millimetre long, so you need a microscope to see one clearly.",
+        "zh": "大部分還不到 1 公釐長，要用顯微鏡才看得清楚。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "It has eight chubby legs with tiny claws and plods along like a little bear.",
+        "zh": "牠有八隻胖胖的腳，腳上有小爪子，走起路來慢吞吞的，像一隻小熊。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "It can survive drying out and freezing, and some have even survived a trip to outer space!",
+        "zh": "牠可以撐過乾掉和結冰，有些甚至去過外太空還活著回來！"
       }
     ],
     "habitat": {
@@ -2735,7 +2783,10 @@
         "zh": ""
       }
     },
-    "wikidata": "Q5194"
+    "wikidata": "Q5194",
+    "_draft": [
+      "facts"
+    ]
   },
   {
     "id": "taiwan-cherry",
@@ -2748,16 +2799,16 @@
     },
     "facts": [
       {
-        "en": "",
-        "zh": ""
+        "en": "It flowers in winter, around Lunar New Year, earlier than most other cherry trees.",
+        "zh": "它在冬天、差不多過年的時候開花，比大部分的櫻花都早。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "Its deep pink flowers hang down like little bells.",
+        "zh": "深粉紅色的花朵朝下開，像一個個小鈴鐺。"
       },
       {
-        "en": "",
-        "zh": ""
+        "en": "Birds such as white-eyes visit the flowers to sip the sweet nectar.",
+        "zh": "綠繡眼這些小鳥會飛來吸甜甜的花蜜。"
       }
     ],
     "habitat": {
@@ -2814,6 +2865,9 @@
     "wikidata": "Q149633",
     "locked": [
       "photo"
+    ],
+    "_draft": [
+      "facts"
     ]
   }
 ]

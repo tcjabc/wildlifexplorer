@@ -1,15 +1,15 @@
 # Build report
 
-Generated 2026-11-02 12:22 UTC. Re-written on every build.
+Generated 2026-11-02 12:23 UTC. Re-written on every build.
 
 ## Summary
 
 - Rows in card-list.csv: 218
 - Cards in animals.json: 35 (30 species, 5 topic)
-- Processed this run: 5
+- Processed this run: 20 (offline: Wikidata, name and image checks were skipped, so they are not listed below; run without --offline for them)
 - Rows not built yet: 183 (run with `--all` or a bigger `--limit`)
 - Cards without a photo: 5
-- Cards with facts still to write: 33
+- Cards with facts still to write: 15
 - Cards with habitat still to write: 33
 - Cards with inside pages (profile, statistics, life cycle): 2
 
@@ -62,25 +62,25 @@ A drop arrives only when all its cards are built and their facts are written (no
 ### Series 1 cards that still need content
 
 - 🐘 Formosan Black Bear (`formosan-black-bear`, s1-w01): facts are a draft to check
-- 🦜 Taiwan Blue Magpie (`taiwan-blue-magpie`, s1-w01): facts (0 of 3 written in both languages)
-- 🧭 Central Mountain Range (`central-mountain-range`, s1-w01): facts (0 of 3 written in both languages)
+- 🦜 Taiwan Blue Magpie (`taiwan-blue-magpie`, s1-w01): facts are a draft to check
+- 🧭 Central Mountain Range (`central-mountain-range`, s1-w01): facts are a draft to check
 - 🐘 Formosan Rock Macaque (`formosan-rock-macaque`, s1-w02): facts are a draft to check
-- 🐢 Brown-spotted Pit Viper (`brown-spotted-pit-viper`, s1-w02): facts (0 of 3 written in both languages)
-- 🌿 Taiwan Cherry (`taiwan-cherry`, s1-w02): facts (0 of 3 written in both languages)
-- 🦜 Swinhoe's Pheasant (`swinhoe-s-pheasant`, s1-w03): facts (0 of 3 written in both languages)
-- 🐠 Formosan Landlocked Salmon (`formosan-landlocked-salmon`, s1-w03): facts (0 of 3 written in both languages)
-- 🦋 Atlas Moth (`atlas-moth`, s1-w03): facts (0 of 3 written in both languages)
-- 🐘 Chinese Pangolin (`chinese-pangolin`, s1-w04): facts (0 of 3 written in both languages)
-- 🦖 Tyrannosaurus rex (`tyrannosaurus-rex`, s1-w04): facts (0 of 3 written in both languages)
-- 🦠 Tardigrade (Water Bear) (`tardigrade-water-bear`, s1-w04): facts (0 of 3 written in both languages)
-- 🐾 Migration (`migration`, s1-w05): facts (0 of 3 written in both languages)
-- 🦴 How Animals Fly (`how-animals-fly`, s1-w05): facts (0 of 3 written in both languages)
-- 🌱 Saving the Formosan Black Bear (`saving-the-formosan-black-bear`, s1-w05): facts (0 of 3 written in both languages)
-- 🐘 Taiwan Serow (`taiwan-serow`, s1-w06): facts (0 of 3 written in both languages)
-- 🦜 Mikado Pheasant (`mikado-pheasant`, s1-w06): facts (0 of 3 written in both languages)
-- 🧭 Kenting Coral Reefs (`kenting-coral-reefs`, s1-w06): facts (0 of 3 written in both languages)
-- 🐘 Formosan Sambar Deer (`formosan-sambar-deer`, s1-w07): facts (0 of 3 written in both languages)
-- 🦜 Taiwan Barbet (`taiwan-barbet`, s1-w07): facts (0 of 3 written in both languages)
+- 🐢 Brown-spotted Pit Viper (`brown-spotted-pit-viper`, s1-w02): facts are a draft to check
+- 🌿 Taiwan Cherry (`taiwan-cherry`, s1-w02): facts are a draft to check
+- 🦜 Swinhoe's Pheasant (`swinhoe-s-pheasant`, s1-w03): facts are a draft to check
+- 🐠 Formosan Landlocked Salmon (`formosan-landlocked-salmon`, s1-w03): facts are a draft to check
+- 🦋 Atlas Moth (`atlas-moth`, s1-w03): facts are a draft to check
+- 🐘 Chinese Pangolin (`chinese-pangolin`, s1-w04): facts are a draft to check
+- 🦖 Tyrannosaurus rex (`tyrannosaurus-rex`, s1-w04): facts are a draft to check
+- 🦠 Tardigrade (Water Bear) (`tardigrade-water-bear`, s1-w04): facts are a draft to check
+- 🐾 Migration (`migration`, s1-w05): facts are a draft to check
+- 🦴 How Animals Fly (`how-animals-fly`, s1-w05): facts are a draft to check
+- 🌱 Saving the Formosan Black Bear (`saving-the-formosan-black-bear`, s1-w05): facts are a draft to check
+- 🐘 Taiwan Serow (`taiwan-serow`, s1-w06): facts are a draft to check
+- 🦜 Mikado Pheasant (`mikado-pheasant`, s1-w06): facts are a draft to check
+- 🧭 Kenting Coral Reefs (`kenting-coral-reefs`, s1-w06): facts are a draft to check
+- 🐘 Formosan Sambar Deer (`formosan-sambar-deer`, s1-w07): facts are a draft to check
+- 🦜 Taiwan Barbet (`taiwan-barbet`, s1-w07): facts are a draft to check
 - 🌿 Formosan Red Cypress (`formosan-red-cypress`, s1-w07): not built yet
 - 🐘 Formosan Muntjac (`formosan-muntjac`, s1-w08): facts (0 of 3 written in both languages)
 - 🐢 Chinese Cobra (`chinese-cobra`, s1-w08): not built yet
@@ -151,21 +151,7 @@ A drop arrives only when all its cards are built and their facts are written (no
 
 ## Needs your attention
 
-### Formosan Landlocked Salmon · 櫻花鉤吻鮭 (`formosan-landlocked-salmon`)
-
-- No IUCN status on Wikidata — add "status" by hand if you know it
-
-### Chinese Pangolin · 穿山甲 (`chinese-pangolin`)
-
-- Illustration auto-picked by search — please check it (add "illustration" to the card's "locked" list to keep it and stop this reminder): https://commons.wikimedia.org/wiki/File:PSM_V21_D612_Manis_pentadactyla.jpg
-
-### Taiwan Serow · 臺灣長鬃山羊 (`taiwan-serow`)
-
-- Illustration auto-picked by search — please check it (add "illustration" to the card's "locked" list to keep it and stop this reminder): https://commons.wikimedia.org/wiki/File:Capricornis_swinhoei_Joseph_Wolf.jpg
-
-### Mikado Pheasant · 帝雉 (`mikado-pheasant`)
-
-- Illustration auto-picked by search — please check it (add "illustration" to the card's "locked" list to keep it and stop this reminder): https://commons.wikimedia.org/wiki/File:Syrmaticus_mikado_(illustration).jpg
+Nothing — all processed cards look fine.
 
 ## Topic cards (written by hand)
 
@@ -183,11 +169,21 @@ Written by Claude as a starting point. Check or rewrite it, then remove the fiel
 
 - Formosan Black Bear · 臺灣黑熊 (`formosan-black-bear`): facts, habitat, profile, stats, compare, lifeCycle
 - Formosan Rock Macaque · 臺灣獼猴 (`formosan-rock-macaque`): facts, habitat, profile, stats, compare, lifeCycle
-
-## Notes
-
-- **Formosan Landlocked Salmon**: Chinese name: kept yours (櫻花鉤吻鮭); Wikidata's 臺灣櫻花鉤吻鮭 is stored as name.zhAlt; range shape from 87 GBIF records (land)
-- **Chinese Pangolin**: Chinese name: kept yours (穿山甲); Wikidata's 中華穿山甲 is stored as name.zhAlt; silhouette is of a related animal (Manis culionensis); range shape from 104 CC0/CC BY GBIF records (land, 1 island(s) filled)
-- **Taiwan Serow**: Chinese name: kept yours (臺灣長鬃山羊); Wikidata's 臺灣山羊 is stored as name.zhAlt; silhouette is of a related animal (Aepyceros melampus); range shape from 2077 CC0/CC BY GBIF records (land)
-- **Mikado Pheasant**: Chinese name: kept yours (帝雉); Wikidata's 黑長尾雉 is stored as name.zhAlt; silhouette is of a related animal (Arborophila hyperythra); range shape from 4028 CC0/CC BY GBIF records (land)
-- **Formosan Sambar Deer**: status VU is the parent species' IUCN status (no subspecies assessment); Chinese name: kept yours (水鹿); Wikidata's 臺灣水鹿 is stored as name.zhAlt; silhouette is of a related animal (Odocoileus virginianus); range shape from 92 CC0/CC BY GBIF records (land)
+- Chinese Pangolin · 穿山甲 (`chinese-pangolin`): facts
+- Taiwan Serow · 臺灣長鬃山羊 (`taiwan-serow`): facts
+- Formosan Sambar Deer · 水鹿 (`formosan-sambar-deer`): facts
+- Taiwan Blue Magpie · 臺灣藍鵲 (`taiwan-blue-magpie`): facts
+- Swinhoe's Pheasant · 藍腹鷴 (`swinhoe-s-pheasant`): facts
+- Mikado Pheasant · 帝雉 (`mikado-pheasant`): facts
+- Taiwan Barbet · 五色鳥 (`taiwan-barbet`): facts
+- Brown-spotted Pit Viper · 龜殼花 (`brown-spotted-pit-viper`): facts
+- Formosan Landlocked Salmon · 櫻花鉤吻鮭 (`formosan-landlocked-salmon`): facts
+- Atlas Moth · 皇蛾 (`atlas-moth`): facts
+- Migration · 遷徙 (`migration`): facts
+- Central Mountain Range · 中央山脈 (`central-mountain-range`): facts
+- Kenting Coral Reefs · 墾丁珊瑚礁 (`kenting-coral-reefs`): facts
+- Saving the Formosan Black Bear · 守護臺灣黑熊 (`saving-the-formosan-black-bear`): facts
+- How Animals Fly · 動物怎麼飛 (`how-animals-fly`): facts
+- Tyrannosaurus rex · 暴龍 (`tyrannosaurus-rex`): facts
+- Tardigrade (Water Bear) · 水熊蟲 (`tardigrade-water-bear`): facts
+- Taiwan Cherry · 山櫻花 (`taiwan-cherry`): facts
