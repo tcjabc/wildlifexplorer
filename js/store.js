@@ -19,6 +19,7 @@ export const state = {
   regions: { continents: [], biomes: [] }, // continent and biome tags (data/regions.json)
   badgeCfg: null,   // { regions, badges, secrets }: what can be earned
   lookalikes: { entries: {}, groups: [] },
+  notes: [],        // Field Notes index records for this profile (notes-store.js)
   quiz: { best: {} },
   packs: [],        // this profile's packs on its current timeline, in drop order
   legacy: null,     // progress saved before there were profiles, until it moves into one
@@ -156,6 +157,8 @@ export async function updateProfile(id, patch) {
     ...pickFields(patch, prev),
     ...('zhuyin' in patch && { zhuyin: Boolean(patch.zhuyin) }),
     ...('rate' in patch && { rate: patch.rate }),
+    // Field Notes input: 'pen' (only a pen draws; fingers turn pages) or 'finger'.
+    ...('notesInput' in patch && { notesInput: patch.notesInput }),
     parent: { ...prev.parent, ...patch.parent },
   });
   await db.put('profiles', next);

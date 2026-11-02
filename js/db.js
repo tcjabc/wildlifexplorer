@@ -6,12 +6,14 @@
 //   collection  { id, profileId, cardId, … }  cards a profile has collected
 //   badges      { id, profileId, groupId, … }
 //   quiz        { id, profileId, kind, best }
+//   notes       { id, profileId, pageId, cardIds, … }  Field Notes pages (their content is in OPFS)
+//   notefiles   { id, profileId, blob }      page files, where OPFS isn't available (notes-store.js)
 // Falls back to memory if IndexedDB is unavailable (some private-browsing modes), so the
 // app still runs; nothing is kept after the page closes then.
 
 const DB_NAME = 'wildlife-explorer';
-const VERSION = 2;
-const BY_PROFILE = ['packs', 'collection', 'badges', 'quiz'];
+const VERSION = 3;
+const BY_PROFILE = ['packs', 'collection', 'badges', 'quiz', 'notes', 'notefiles'];
 const STORES = ['meta', 'profiles', ...BY_PROFILE];
 const LEGACY = 'kv'; // version 1: one key-value store for a single child
 
@@ -23,12 +25,13 @@ function open() {
     const req = indexedDB.open(DB_NAME, VERSION);
     req.onupgradeneeded = e => {
       const db = req.result;
-      if (e.oldVersion < 2) {
-        for (const name of STORES) {
-          const store = db.createObjectStore(name, { keyPath: 'id' });
-          if (BY_PROFILE.includes(name)) store.createIndex('profileId', 'profileId');
-        }
-      }
+      // Each version adds the stores it introduced.
+      const add = names => names.forEach(name => {
+        const store = db.createObjectStore(name, { keyPath: 'id' });
+        if (BY_PROFILE.includes(name)) store.createIndex('profileId', 'profileId');
+      });
+      if (e.oldVersion < 2) add(['meta', 'profiles', 'packs', 'collection', 'badges', 'quiz']);
+      if (e.oldVersion < 3) add(['notes', 'notefiles']);
     };
     req.onsuccess = () => {
       const db = req.result;
@@ -56,6 +59,7 @@ function idbAccess(t) {
     get: (name, id) => done(os(name).get(id)),
     all: (name, profileId) => done(profileId === undefined ? os(name).getAll() : os(name).index('profileId').getAll(profileId)),
     put: (name, value) => done(os(name).put(value)),
+    remove: (name, id) => done(os(name).delete(id)),
     add: (name, value) => new Promise((resolve, reject) => {
       const r = os(name).add(value);
       r.onsuccess = () => resolve(true);
@@ -77,6 +81,7 @@ function memoryAccess() {
     all: async (name, profileId) => [...memory.get(name).values()]
       .filter(v => profileId === undefined || v.profileId === profileId).map(copy),
     put: async (name, value) => { memory.get(name).set(value.id, copy(value)); },
+    remove: async (name, id) => { memory.get(name).delete(id); },
     add: async (name, value) => {
       if (memory.get(name).has(value.id)) return false;
       memory.get(name).set(value.id, copy(value));
@@ -108,6 +113,7 @@ export async function tx(stores, mode, fn) {
 export const get = (store, id) => tx([store], 'readonly', a => a.get(store, id));
 export const all = (store, profileId) => tx([store], 'readonly', a => a.all(store, profileId));
 export const put = (store, value) => tx([store], 'readwrite', a => a.put(store, value));
+export const remove = (store, id) => tx([store], 'readwrite', a => a.remove(store, id));
 
 export async function getMeta(id, fallback) {
   const rec = await get('meta', id).catch(() => undefined);
