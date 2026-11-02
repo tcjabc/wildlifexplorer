@@ -40,6 +40,7 @@
   --c-map-sea: #d8eef6;
   --c-map-land: #9ccf8f;
   --c-map-spot: #d7263d;
+  --c-map-glow: rgb(120 190 235 / 0.45);  /* thin atmosphere around the globe */
   --c-callout: #ffc93c;
   --c-callout-ink: #3b2a00;
   --c-callout-soft: rgb(255 201 60 / 0.35);

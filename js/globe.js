@@ -77,8 +77,7 @@ function tokens(el) {
   const s = getComputedStyle(el);
   const v = name => s.getPropertyValue(name).trim();
   return {
-    sea: v('--c-map-sea'), land: v('--c-map-land'), grid: v('--c-shine'),
-    shine: v('--c-shine'), shade: v('--c-shade'), shadeFaint: v('--c-shade-faint'),
+    sea: v('--c-map-sea'), land: v('--c-map-land'), grid: v('--c-shine'), glow: v('--c-map-glow'),
     group: g => v(`--g-${g}`),
   };
 }
@@ -204,12 +203,17 @@ export function createGlobe(stage, { onFrame, onTap, onInteract } = {}) {
     ctx.clearRect(0, 0, w, ht);
     const { cx, cy, r } = basis();
 
-    // Sea, with a soft shadow while the globe still fits on screen.
-    ctx.save();
-    if (r < Math.max(w, ht)) { ctx.shadowColor = col.shade; ctx.shadowBlur = 28; ctx.shadowOffsetY = 10; }
+    // A thin glow of atmosphere outside the rim while the globe still fits on screen,
+    // then the sea. No shading on the disc itself: it would read as a bowl.
+    if (r < Math.max(w, ht)) {
+      const g = ctx.createRadialGradient(cx, cy, r * 0.98, cx, cy, r * 1.07);
+      g.addColorStop(0, col.glow);
+      g.addColorStop(1, 'transparent');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(cx, cy, r * 1.07, 0, Math.PI * 2); ctx.fill();
+    }
     ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
     ctx.fillStyle = col.sea; ctx.fill();
-    ctx.restore();
 
     ctx.save();
     ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
@@ -242,16 +246,6 @@ export function createGlobe(stage, { onFrame, onTap, onInteract } = {}) {
         ctx.stroke();
       }
       ctx.globalAlpha = 1;
-    }
-
-    // Light from the top left, darker towards the rim: the round look.
-    if (r < Math.max(w, ht) * 1.5) {
-      const g = ctx.createRadialGradient(cx - r * 0.35, cy - r * 0.4, 0, cx, cy, r);
-      g.addColorStop(0, col.shine);
-      g.addColorStop(0.55, 'transparent');
-      g.addColorStop(1, col.shadeFaint);
-      ctx.fillStyle = g;
-      ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
     }
     ctx.restore();
 
