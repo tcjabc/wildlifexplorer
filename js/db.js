@@ -32,7 +32,10 @@ function open() {
     };
     req.onsuccess = () => {
       const db = req.result;
-      db.onversionchange = () => db.close(); // let a newer version in another tab upgrade
+      // Let a newer version in another tab upgrade (or delete) the database; the next
+      // call opens it again instead of failing on the closed connection.
+      db.onversionchange = () => { db.close(); dbPromise = null; };
+      db.onclose = () => { dbPromise = null; };
       resolve(db);
     };
     req.onerror = () => reject(req.error);
