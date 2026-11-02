@@ -352,15 +352,16 @@
 /* Sizes and the "not yet" note on one line each, in both languages. */
 .cmp-look__item .cmp__num .bi { flex-direction: row; flex-wrap: wrap; justify-content: center; column-gap: 0.4em; }
 .cmp-look__pic { display: block; height: auto; transform-origin: 50% 100%; }
-.cmp-look__photo { aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--r-sm); }
+/* No silhouette yet: a neutral outline at the right size; dark when not collected yet. */
 .cmp-look__box {
-  aspect-ratio: 4 / 3; display: grid; place-items: center; border-radius: var(--r-sm);
-  background: var(--c-locked); color: var(--c-locked-ink); font-weight: var(--fw-bold); font-size: var(--card-fs-title);
+  aspect-ratio: 4 / 3; display: grid; place-items: center; border-radius: var(--r-md);
+  border: var(--bw-mid) dashed var(--c-ink-faint); background: var(--c-paper); color: var(--c-ink-faint);
+  font-weight: var(--fw-bold); font-size: var(--card-fs-title);
 }
+.cmp-look__box.is-locked { filter: none; opacity: 1; border-style: solid; border-color: var(--c-locked); background: var(--c-locked); color: var(--c-locked-ink); }
 /* Not collected yet: a dark silhouette. */
 .cmp-look__pic.is-locked { filter: brightness(0); opacity: 0.55; }
 .cmp-look__name { display: inline-flex; align-items: center; gap: var(--s-1); }
-.cmp-look__thumb { width: var(--callout-dot); height: var(--callout-dot); border-radius: 50%; object-fit: cover; flex: none; }
 .cmp-look__q {
   display: grid; place-items: center; width: var(--callout-dot); height: var(--callout-dot); border-radius: 50%; flex: none;
   background: var(--g); color: var(--g-ink); font-weight: var(--fw-bold);

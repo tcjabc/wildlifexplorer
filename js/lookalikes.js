@@ -7,7 +7,7 @@
 // Cards not built yet are left out, and draft groups only show in parent preview.
 import { h, mount } from './dom.js';
 import { bi, tx } from './i18n.js';
-import { state, isVisible, thumbOf } from './store.js';
+import { state, isVisible } from './store.js';
 import { lengthText } from './units.js';
 
 const KEY = { length: 'lengthCm', height: 'heightCm', wingspan: 'wingspanCm' };
@@ -35,27 +35,25 @@ export function lookalikesOf(card) {
 function memberOf(other, key) {
   if (other.entry) {
     const e = other.entry;
-    return { name: e.name, group: e.group, silhouette: e.silhouette?.file, photo: e.photo?.file, size: e.size?.[key] };
+    return { name: e.name, group: e.group, silhouette: e.silhouette?.file, size: e.size?.[key] };
   }
   const c = other.card;
   const open = isVisible(c);
   return {
-    name: c.name, group: c.group, silhouette: c.silhouette?.file, photo: open ? (c.photo ?? c.illustration)?.file : null,
+    name: c.name, group: c.group, silhouette: c.silhouette?.file,
     size: c.stats?.[key], href: open ? `#/card/${encodeURIComponent(c.id)}` : null, locked: !open,
   };
 }
 
-// The silhouette; without one, the photo in a frame (a group emoji could be a different
-// animal, e.g. the mammals' elephant); locked or with neither, a dark frame with a "?".
+// Silhouette against silhouette. An animal with no silhouette yet is a neutral outline with
+// a "?", still drawn to scale (a group emoji could be a different animal, e.g. the mammals'
+// elephant). Not collected yet: the silhouette (or outline) is dark.
 function figure(m) {
   const pic = m.silhouette
     ? h('img', { class: ['cmp-look__pic', m.locked && 'is-locked'], src: m.silhouette, alt: '' })
-    : m.photo
-      ? h('img', { class: 'cmp-look__pic cmp-look__photo', src: thumbOf(m.photo), alt: '' })
-      : h('span', { class: 'cmp-look__pic cmp-look__box', 'aria-hidden': 'true' }, '?');
+    : h('span', { class: ['cmp-look__pic', 'cmp-look__box', m.locked && 'is-locked'], 'aria-hidden': 'true' }, '?');
   const caption = h('figcaption', null,
     h('span', { class: 'cmp-look__name' },
-      m.photo && h('img', { class: 'cmp-look__thumb', src: thumbOf(m.photo), alt: '' }),
       m.locked && h('span', { class: 'cmp-look__q', 'aria-hidden': 'true' }, '?'),
       bi(m.name)),
     m.size && h('span', { class: 'cmp__num' }, bi(lengthText(m.size.min, m.size.max))),
@@ -70,9 +68,8 @@ function layout(figs, measure, run) {
   const avail = cssNum('--compare-look-h');
   const colW = cssNum('--card-w') * 0.4; // each animal has half the panel
   const dims = figs.map(({ pic, m }) => {
-    // Photos and "?" frames are drawn 4:3; silhouettes keep their own shape.
-    const framed = pic.classList.contains('cmp-look__photo') || pic.classList.contains('cmp-look__box');
-    const ratio = framed ? 0.75 : (pic.naturalHeight / pic.naturalWidth || 0.6);
+    // Outlines are drawn 4:3; silhouettes keep their own shape.
+    const ratio = pic.classList.contains('cmp-look__box') ? 0.75 : (pic.naturalHeight / pic.naturalWidth || 0.6);
     const size = mid(m.size);
     // Length and wingspan are measured across, height up and down.
     return measure === 'height' ? { w: size / ratio, h: size } : { w: size, h: size * ratio };
