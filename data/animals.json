@@ -470,6 +470,9 @@
       }
     },
     "wikidata": "Q842283",
+    "locked": [
+      "illustration"
+    ],
     "_draft": [
       "facts"
     ]
@@ -2433,6 +2436,9 @@
       }
     },
     "wikidata": "Q167435",
+    "locked": [
+      "illustration"
+    ],
     "_draft": [
       "facts"
     ]
@@ -2567,8 +2573,8 @@
         "zh": "科學家估計，野外的臺灣黑熊可能只剩下幾百隻。"
       },
       {
-        "en": "Traps that people set for other animals are a big danger to bears, so rangers and volunteers search the forests to remove them.",
-        "zh": "人們為了抓其他動物設下的陷阱，對黑熊是很大的危險，所以保育人員和志工會到森林裡把陷阱找出來拆掉。"
+        "en": "Rangers and volunteers walk through the forests to find and take away traps left by people, so bears can roam safely.",
+        "zh": "保育人員和志工會走進森林，把人們留下的陷阱找出來拿走，讓黑熊可以安心地到處走。"
       },
       {
         "en": "Since 1989, a law in Taiwan has protected the bears, so no one is allowed to hunt them.",
