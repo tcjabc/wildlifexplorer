@@ -11,7 +11,10 @@ It runs on GitHub Pages and works fully offline once it has been opened.
   is made. A sheet says "New pack arrived!"; packs wait in **Packs** until the child opens them.
 - **Card view**: big photo (or the illustration when there is no photo), names, fun facts, habitat,
   IUCN conservation badge, "Found in Taiwan" badge, and a credit line you can tap.
-- **Badges** for finishing a group. **Quiz**: picture → name, and true/false facts.
+- **Badges**: for finishing a group, Bronze/Silver/Gold for continents and habitats, and secret
+  badges. **Quiz**: picture → name, and true/false facts.
+- **Creature comparison**: You (the animal against your own size) or Animal (lookalikes side by
+  side, with how to tell them apart). **Globe**: filter the pins by continent or habitat.
 - **Read aloud** (Web Speech API): English in an en-GB voice, Chinese in a zh-TW voice.
 - **Language**: EN / 中 / Both, per profile.
 - **For grown-ups** (behind a sum): pack day and time, units, preview, start over, delete.
@@ -365,6 +368,36 @@ section to `SECTIONS` in `js/views/parents.js`.
 `badges` and `quiz`, each record with an id and `createdAt` / `updatedAt` / `deletedAt`, ready
 to sync to a server later. Height and weight are stored in cm and kg whatever the units. Progress
 from the version before profiles moves into the first profile.
+
+## Badges, tags and lookalikes
+
+**Tags.** Every species card has `continents` and `biomes` (habitat) lists in
+`data/animals.json`, using the ids in `data/regions.json` (7 continents, 8 habitats). Badges
+and the Globe filter both read them. Tag a card where it lives in the wild (coastal seas
+included); prehistoric animals where their fossils were found; topic cards only when the topic is
+set in a place (Kenting Coral Reefs, World Explorer cards). General topics (Migration, How Animals
+Fly) have no tags and don't count. A species card can't arrive until its tags are checked (remove
+`"tags"` from `_draft`).
+
+**Badges** (per profile, only collected cards count):
+
+- *Groups*: every card in a group.
+- *Continents and habitats*: Bronze/Silver/Gold at 3/10/25 tagged cards, set in `data/badges.json`.
+  `counts` lowers them for regions with few animals (Antarctica 1/3/5, polar 2/5/10). To add a
+  tier (e.g. Platinum), add it there and give it a colour as `--tier-<id>` in `css/tokens.css`.
+- *Secret*: `data/secret-badges.json`: a set of card ids, with separate English and Chinese titles
+  (they can be different jokes). Hidden on the Badges page until earned.
+
+Earning one: the medal drops in (a new tier turns over from the old metal; a secret badge is a "?"
+card to turn over), rub it to polish it, then flick it up to the Badges button.
+
+**Lookalikes** (`data/lookalikes.json`): groups of easily confused animals, defined once and shown
+on every member's card in the Animal comparison. A member is a card id, or `entry:<id>` for an
+animal with no card (name, size, photo and silhouette in `entries`). `measure` says what the
+side-by-side view is drawn to scale by: `length` (`stats.lengthCm`), `height` (`stats.heightCm`)
+or `wingspan` (`stats.wingspanCm`). A collected card shows in full and opens on tap; one not
+collected yet is a dark silhouette; cards not built yet are left out. Groups with `"draft": true`
+only show in parent preview. The build report lists what each group still needs.
 
 ## Language and read-aloud
 
