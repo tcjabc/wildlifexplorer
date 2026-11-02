@@ -5,12 +5,16 @@ HTML/CSS/JavaScript Progressive Web App: no framework, no backend, no accounts, 
 It runs on GitHub Pages and works fully offline once it has been opened.
 
 - **Binder**: 11 coloured group tabs. Cards you haven't collected yet show as silhouettes.
-- **New cards** arrive on their `unlockDate` with a "New card arrived! 新卡片來了！" reveal.
+- **Profiles**: a picker on every launch ("Who's exploring today?"). A profile is one person or a
+  whole family; packs, binder, badges and quiz scores are per profile.
+- **Packs**: a pack of 3 cards arrives every week, starting with Series 1, Week 1 when the profile
+  is made. A sheet says "New pack arrived!"; packs wait in **Packs** until the child opens them.
 - **Card view**: big photo (and illustration, if there is one), names, fun facts, habitat,
   IUCN conservation badge, "Found in Taiwan" badge, and a credit line you can tap.
 - **Badges** for finishing a group. **Quiz**: picture → name, and true/false facts.
 - **Read aloud** (Web Speech API): English in an en-GB voice, Chinese in a zh-TW voice.
-- **Language**: EN / 中 / Both (default Both), remembered on the device.
+- **Language**: EN / 中 / Both, per profile.
+- **For grown-ups** (behind a sum): pack day and time, units, preview, start over, delete.
 - Progress is kept in IndexedDB on each device. Nothing leaves the device.
 
 ## Folders
@@ -88,11 +92,11 @@ which follows the CSV order.
 ## Running the build script
 
 ```bash
-npm run build                                   # first `limit` rows (20 for now, see below)
+npm run build                                   # first `limit` cards in drop order (see below)
 npm run build:all                               # every row in the CSV
-node scripts/build-cards.mjs --limit 60         # first 60 rows
+node scripts/build-cards.mjs --limit 60         # first 60 cards in drop order
 node scripts/build-cards.mjs --only leopard-cat,koala   # just these cards
-node scripts/build-cards.mjs --offline          # no network: re-merge, re-date, make thumbnails
+node scripts/build-cards.mjs --offline          # no network: re-merge existing cards, re-plan drops, thumbnails
 node scripts/build-cards.mjs --prune            # also delete images no card uses any more
 ```
 
@@ -124,14 +128,14 @@ Settings live in `scripts/build.config.json`:
 
 | Setting | Meaning |
 |---|---|
-| `limit` | rows processed by `npm run build` (20 while testing; raise it or use `--all`) |
+| `limit` | cards processed by `npm run build`, in drop order, so the earliest packs fill first (raise it or use `--all`) |
 | `image.maxSize` / `quality` | full-size image limit and WebP quality |
 | `image.thumbSize` / `thumbQuality` | thumbnail size and quality |
 | `image.minWidth` | skip source images narrower than this |
 | `illustrationSearch` | `false` to stop searching Commons for illustrations |
-| `unlock.start` | the date the first cards arrive |
-| `unlock.initial` | how many cards are already there on that day |
-| `unlock.everyDays` | days between each new card after that |
+| `drops.cardsPerPack` | cards in each weekly pack (3) |
+| `drops.seriesCards` | cards in a series (87, so 29 weekly drops) |
+| `drops.groupSizes` | how many cards of each group every series has (they must add up to `seriesCards`) |
 | `userAgent` | identifies the script to Wikimedia/iNaturalist (please keep a contact URL in it) |
 
 ### After a build: check the report
@@ -166,7 +170,6 @@ Each card looks like this:
   "taiwan": true,
   "photo": { "file": "img/…webp", "author": "…", "license": "CC BY-SA 3.0", "licenseUrl": "…", "sourceUrl": "…" },
   "illustration": null,
-  "unlockDate": "2026-11-01",
   "taxonomy": { "class": { "sci": "Mammalia", "en": "mammal", "zh": "哺乳動物" }, "…": "…" },
   "wikidata": "Q716455"
 }
@@ -176,7 +179,6 @@ Each card looks like this:
   read aloud best. For topic cards the facts appear under "About this topic 認識這個主題".
 - **habitat**: one `{ en, zh }` pair. For topic cards you can leave it empty.
 - **status**: an IUCN code — `EX` `EW` `CR` `EN` `VU` `NT` `LC` `DD` `NE` — or `null`.
-- **unlockDate**: `YYYY-MM-DD`, the local day the card arrives. Change it to reschedule a card.
 - **photo / illustration**: to use your own picture, put it in `img/`, then fill in all five
   fields (`file`, `author`, `license`, `licenseUrl`, `sourceUrl`). The next build makes its thumbnail
   and warns you if the licence isn't one of the four allowed ones.
@@ -187,7 +189,7 @@ Each card looks like this:
 You can re-run the build as often as you like:
 
 - `facts`, `habitat` and any field you add are **never** touched by the build.
-- For the fields the build fills in (names, status, taxonomy, photo, illustration, unlockDate…),
+- For the fields the build fills in (names, status, taxonomy, photo, illustration…),
   `data/build-state.json` remembers what the build wrote last time. If the value in
   `animals.json` is different, you changed it, so the build leaves it alone (the report says
   "Kept your edit of …").
@@ -243,7 +245,7 @@ fields. Any you leave out are simply not shown, and a card with no inside fields
   animation: **length** (silhouettes side by side), **weight** (a balance; the lighter side fills with
   copies until it levels out, with a counter and "= Elephant × n" for huge numbers), **lifespan**
   (birthday timelines) and **diet** (a plate filling up). "You" is 120 cm, 23 kg and 6 years old
-  unless a child enters their own under More → "You, for creature comparisons" (saved on that device only).
+  unless the profile has its own height, weight and age (Welcome form, or More → Edit profile).
 - **compare**: how big the animal's silhouette is in cm, either `width` (nose to tail tip) or
   `height`. Leave it out to use `lengthCm`. The silhouette itself is found by the build (from
   PhyloPic, CC0/PD/CC BY/CC BY-SA only) and stored in `silhouette`. If there is none for the exact
@@ -310,27 +312,48 @@ above every layer.
 In the app, children open a card by dragging the cover's right edge, like turning a page.
 Swipe up to turn the card over, and swipe down to put it back in the binder.
 
-## How unlocking works
+## Packs and drops
 
-The build gives every card an `unlockDate`. Cards are dealt **round-robin across the groups**
-(one mammal, one bird, one reptile…) so new arrivals rotate through the binder, and the dates
-are worked out over the whole CSV so they don't move when you process more rows later.
-With the current settings, the first 12 cards in that order arrive on 2026-11-01 and then
-one new card arrives each day.
+**The plan** (`data/drops.json`, written by the build) is the same for every profile. A **series**
+has 87 cards in 29 weekly **drops** of 3, with the same number of cards from each group every
+series (`drops` in `build.config.json`). Series 1 takes the first rows of each group in
+`card-list.csv`, series 2 the next ones, and so on, so **add new rows at the end of their group**
+or later drops shift. No drop ever has two cards from the same group; the build stops with a
+message saying which setting to change if that becomes impossible. A slot whose row isn't in the
+CSV yet is planned as `"id": null`. `data/build-report.md` says how many drops are ready.
 
-When the app opens (or comes back to the front), every card whose date has passed and that hasn't
-been opened on this device yet arrives as a sealed foil pack: swipe across the top to cut it open
-(or tap "Tap to open"), then flick the card up into the binder (or tap "Put in binder").
-Opened = collected. Completing every card in a group earns that group's badge.
+**Each profile's timeline**: Series 1, Week 1 arrives the moment the profile is made; after that
+one drop a week on the profile's pack day and time (Parents area), with one week off between
+series (kept free for a "Series complete" celebration later). The order is the same for everyone;
+only the dates differ.
 
-**For grown-ups**: More → "For grown-ups" (answer the sum) has
-*Show all cards (preview)* — shows every card without counting them as collected, handy for checking
-your facts — and *Reset all progress*.
+- Each drop is granted **once per profile**: the pack's id is profile + drop id, and it is written
+  with an add that fails if it already exists, so reloads, two tabs or a repeated check can't
+  grant or open it again.
+- A drop whose cards aren't all built yet **waits** (and the ones after it wait too). Once its cards
+  exist, it arrives, and any later drops that are already due catch up straight away.
+- Packs are never opened for the child. A "New pack arrived!" sheet (Open now / Later) is shown
+  once per pack; unopened packs wait in **Packs** for as long as the child likes, and always open
+  **oldest first**.
+- Opening: swipe across the top to cut the pack (or tap "Tap to open"). The cards are collected at
+  that moment. Then flick each card up into the binder (or tap "Next card"), and see all three at
+  the end. Completing every card in a group earns that group's badge.
+
+**For grown-ups**: More → "For grown-ups" (answer the sum). Settings are per profile: pack day and
+time, metric/imperial, °C/°F, *Show all cards (preview)* (shows every card without counting them as
+collected, handy for checking your facts), edit, *Start over from Series 1, Week 1*, and delete.
+A new profile copies the pack day/time and units of the existing ones. To add a setting, add a
+section to `SECTIONS` in `js/views/parents.js`.
+
+**Stored on the device** (IndexedDB, see `js/db.js`): `profiles`, `packs`, `collection`,
+`badges` and `quiz`, each record with an id and `createdAt` / `updatedAt` / `deletedAt`, ready
+to sync to a server later. Height and weight are stored in cm and kg whatever the units. Progress
+from the version before profiles moves into the first profile.
 
 ## Language and read-aloud
 
 - All UI text is in `lang/en.json` and `lang/zh-TW.json` (same keys). `{n}`-style placeholders are filled in by the app.
-- The language choice (EN / 中 / Both) is stored in IndexedDB on the device.
+- The language choice (EN / 中 / Both) is stored with each profile.
 - Read-aloud uses the device's own voices. On iPad, voices can be added under
   Settings → Accessibility → Spoken Content → Voices (English (UK), Chinese (Taiwan)).
   In Both mode the English is read first, then the Chinese.
