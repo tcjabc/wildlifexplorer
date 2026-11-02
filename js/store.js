@@ -159,6 +159,8 @@ export async function updateProfile(id, patch) {
     ...('rate' in patch && { rate: patch.rate }),
     // Field Notes input: 'pen' (only a pen draws; fingers turn pages) or 'finger'.
     ...('notesInput' in patch && { notesInput: patch.notesInput }),
+    // Set once, the first time a pen draws: the switch to pen-only happens only then.
+    ...('notesPenSeen' in patch && { notesPenSeen: Boolean(patch.notesPenSeen) }),
     parent: { ...prev.parent, ...patch.parent },
   });
   await db.put('profiles', next);
