@@ -41,6 +41,24 @@
   --c-map-land: #9ccf8f;
   --c-map-spot: #d7263d;
   --c-map-glow: rgb(120 190 235 / 0.45);  /* thin atmosphere around the globe */
+  --c-map-home: #ffcf3f;                  /* home country outline, above every layer */
+
+  /* Globe map layers (js/layers.js). */
+  --c-depth-1: #9fd0ec;   /* deeper than 200 m */
+  --c-depth-2: #5ea7d8;   /* 2,000 m */
+  --c-depth-3: #2f78bd;   /* 4,000 m */
+  --c-depth-4: #1b4b8f;   /* 6,000 m and the deep trenches */
+  --c-forest-tropical: #1e8f3e;
+  --c-forest-temperate: #7fbf4d;
+  --c-forest-boreal: #2f6b57;
+  --c-reef: #ff6f91;
+  --c-relief-low: #9cc47e;
+  --c-relief-dry: #d8c38f;
+  --c-relief-high: #f4f1ea;
+  --c-night: #0b1430;
+  --c-city-lights: #ffd27a;
+  /* Temperature: °C and colour. scripts/make-layers.mjs paints the pictures with it. */
+  --c-temp-scale: -30 #3b2a8f, -15 #2f6fd6, 0 #9ad8f5, 10 #74c77f, 20 #f3df55, 30 #f5973a, 40 #dd3f2a, 50 #8e1b3a;
   --c-callout: #ffc93c;
   --c-callout-ink: #3b2a00;
   --c-callout-soft: rgb(255 201 60 / 0.35);
@@ -120,6 +138,7 @@
   --tap-lg: 72px;
   --tap-sm: 48px;       /* secondary controls (credit line) */
   --tap-xs: 44px;       /* badges and squeezed controls on phones */
+  --legend-sw: 14px;    /* colour squares in the Globe legend */
   --header-h: 68px;
   --header-h-compact: 56px;
   --size-brand: 44px;
