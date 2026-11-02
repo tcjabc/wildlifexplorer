@@ -508,19 +508,13 @@
     "status": "LC",
     "taiwan": true,
     "photo": {
-      "file": "img/taiwan-serow-photo-20abf2.webp",
-      "author": "Licheng Shih",
-      "license": "CC BY 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Capricornis_swinhoei_206048818.jpg"
+      "file": "img/taiwan-serow-photo-729169.webp",
+      "author": "longan Jiang",
+      "license": "CC BY-SA 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Ta%C3%AFwan_Serow.jpg"
     },
-    "illustration": {
-      "file": "img/taiwan-serow-illustration-fbdbb4.webp",
-      "author": "Joseph Wolf",
-      "license": "Public domain",
-      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Capricornis_swinhoei_Joseph_Wolf.jpg"
-    },
+    "illustration": null,
     "mapBounds": {
       "west": 120.4,
       "south": 22.96,
@@ -569,6 +563,10 @@
       }
     },
     "wikidata": "Q715983",
+    "locked": [
+      "photo",
+      "illustration"
+    ],
     "_draft": [
       "facts"
     ]
@@ -2010,11 +2008,12 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Mikado_Pheasant_398.jpg"
     },
     "illustration": {
-      "file": "img/mikado-pheasant-illustration-1b2787.webp",
-      "author": "Biodiversity Heritage Library",
+      "file": "img/mikado-pheasant-illustration-6a14a4.webp",
+      "author": "Herbert Goodchild (via Biodiversity Heritage Library)",
       "license": "Public domain",
       "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Syrmaticus_mikado_(illustration).jpg"
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Syrmaticus_mikado_(illustration).jpg",
+      "note": "Cropped to remove the printed caption."
     },
     "mapBounds": {
       "west": 120.3,
@@ -2064,6 +2063,9 @@
       }
     },
     "wikidata": "Q715266",
+    "locked": [
+      "illustration"
+    ],
     "_draft": [
       "facts"
     ]
@@ -2749,19 +2751,13 @@
     "status": null,
     "taiwan": false,
     "photo": {
-      "file": "img/tardigrade-water-bear-photo-3dbf20.webp",
-      "author": "Collier Sparks",
-      "license": "CC0 1.0",
-      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-      "sourceUrl": "https://www.inaturalist.org/photos/540796595"
+      "file": "img/tardigrade-water-bear-photo-e86ecd.webp",
+      "author": "Schokraie E, Warnken U, Hotz-Wagenblatt A, Grohme MA, Hengherr S, et al. (2012)",
+      "license": "CC BY 2.5",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.5/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:SEM_image_of_Milnesium_tardigradum_in_active_state_-_journal.pone.0045682.g001-2.png"
     },
-    "illustration": {
-      "file": "img/tardigrade-water-bear-illustration-4e1bb3.webp",
-      "author": "B kimmel",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Tardigrada_body_parts.png"
-    },
+    "illustration": null,
     "mapBounds": {
       "west": -126.61,
       "south": -91.13,
@@ -2790,6 +2786,10 @@
       }
     },
     "wikidata": "Q5194",
+    "locked": [
+      "photo",
+      "illustration"
+    ],
     "_draft": [
       "facts"
     ]
