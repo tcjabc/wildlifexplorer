@@ -6,6 +6,9 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 /* App shell: the header stays put and only <main> scrolls. The body is exactly the
    dynamic viewport height, so nothing hides behind browser toolbars on iPad. */
 html, body { height: 100%; }
+/* The body clips (not the viewport), so the binder zooming up behind the card viewer can't
+   widen the page on phones. */
+html { overflow: hidden; }
 body {
   margin: 0;
   height: 100dvh;
@@ -830,6 +833,16 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
 }
 
 @media (max-width: 520px) {
+  /* Phones: the main nav moves to a tab bar along the bottom, so the header fits. */
+  body { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom)); }
+  .nav {
+    position: fixed; left: 0; right: 0; bottom: 0; height: calc(var(--nav-h) + env(safe-area-inset-bottom));
+    justify-content: space-around; gap: 0;
+    padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    background: var(--c-surface); box-shadow: var(--shadow-1);
+  }
+  .nav__item { flex: 1; min-width: 0; border-radius: 0; }
+  .notice { bottom: calc(var(--nav-h) + var(--s-3) + env(safe-area-inset-bottom)); }
   .bi--brand > .t-en, .bi--brand > .t-zh { font-size: var(--fs-sm); }
   .brand__icon { width: var(--size-brand-sm); height: var(--size-brand-sm); }
   .seg--lang .seg__btn { padding: var(--s-1) var(--s-2); min-width: var(--tap-xs); }

@@ -157,6 +157,7 @@
   --legend-sw: 14px;    /* colour squares in the Globe legend */
   --header-h: 68px;
   --header-h-compact: 56px;
+  --nav-h: 64px;        /* the bottom tab bar on phones */
   --size-brand: 44px;
   --size-brand-sm: 38px;
   --size-dot: 36px;     /* numbered fact circles, IUCN code */

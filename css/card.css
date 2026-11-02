@@ -20,6 +20,12 @@
 .viewer__bar > .viewer__group { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .viewer__bar > .btn, .viewer__bar > .viewer__no { flex: none; }
 @media (max-width: 600px) { .viewer__bar > .viewer__group { display: none; } }
+/* Phones: squeeze the buttons so the bar never pushes the page wider than the screen. */
+@media (max-width: 520px) {
+  .viewer__bar { gap: var(--s-1); padding-left: max(var(--s-2), env(safe-area-inset-left)); padding-right: max(var(--s-2), env(safe-area-inset-right)); }
+  .viewer__bar > .btn { min-width: var(--tap-xs); min-height: var(--tap-xs); }
+  .viewer__bar > .viewer__no { display: none; }
+}
 .viewer__bar .btn { background: var(--c-veil); color: var(--c-ink); }
 .viewer__bar .btn--read.is-speaking { background: var(--c-accent); }
 .viewer__group, .viewer__no { font-weight: var(--fw-bold); }
