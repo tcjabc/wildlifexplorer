@@ -142,7 +142,7 @@ Settings live in `scripts/build.config.json`:
 
 `data/build-report.md` lists, card by card:
 
-- Chinese names that differ from Wikidata, or are missing;
+- missing Chinese names (a name that differs from Wikidata is kept, and Wikidata's is stored as `name.zhAlt`);
 - species with no IUCN status;
 - cards with no photo (add one by hand) or a photo with an unknown author;
 - **illustrations found by search — always look at these**, the search can pick an odd picture.
@@ -331,7 +331,8 @@ change would have affected a frozen drop (a frozen card removed from the CSV or 
 group, a new row added above frozen ones, a size change that no longer fits a frozen week).
 
 **Ready**: a drop arrives only when all its cards are built **and their 3 facts are written in
-English and Chinese** (and not still marked as a draft in `_draft`). An empty topic slot doesn't
+English and Chinese** (and not still marked as a draft in `_draft`). Claude's drafts carry
+`"facts"` in `_draft`: check them, then remove it. An empty topic slot doesn't
 count. `data/build-report.md` shows Series 1 week by week, which drops are ready, and what each
 card still needs.
 
@@ -353,8 +354,9 @@ only the dates differ.
   the end. Completing every card in a group earns that group's badge.
 
 **For grown-ups**: More → "For grown-ups" (answer the sum). Settings are per profile: pack day and
-time, metric/imperial, °C/°F, *Show all cards (preview)* (shows every card without counting them as
-collected, handy for checking your facts), edit, *Start over from Series 1, Week 1*, and delete.
+time, metric/imperial, °C/°F, *Preview* (shows every card without counting them as collected,
+handy for checking your facts, and lets packs arrive as soon as their cards are built, so you can
+try pack opening before the facts are done; use *Start over* afterwards), edit, *Start over from Series 1, Week 1*, and delete.
 A new profile copies the pack day/time and units of the existing ones. To add a setting, add a
 section to `SECTIONS` in `js/views/parents.js`.
 
