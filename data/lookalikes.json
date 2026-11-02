@@ -1,0 +1,175 @@
+{
+  "note": "Lookalikes for the 'Animal' comparison. A group is defined once and shows on every member's card. A member is a card id, or 'entry:<id>' for a standalone animal with no card (see 'entries'). 'measure' is what the side-by-side view is drawn to scale by: 'length' (stats.lengthCm), 'height' (stats.heightCm, at the shoulder) or 'wingspan' (stats.wingspanCm). Groups with \"draft\": true are only shown in parent preview until you check them and remove it.",
+  "entries": {
+    "jaguar": {
+      "group": "mammals",
+      "name": { "en": "Jaguar", "zh": "美洲豹" },
+      "scientificName": "Panthera onca",
+      "size": { "lengthCm": { "min": 112, "max": 185 } },
+      "photo": null,
+      "silhouette": null
+    },
+    "house-cat": {
+      "group": "mammals",
+      "name": { "en": "House cat", "zh": "家貓" },
+      "scientificName": "Felis catus",
+      "size": { "lengthCm": { "min": 40, "max": 50 } },
+      "photo": null,
+      "silhouette": null
+    },
+    "white-rhinoceros": {
+      "group": "mammals",
+      "name": { "en": "White Rhinoceros", "zh": "白犀牛" },
+      "scientificName": "Ceratotherium simum",
+      "size": { "heightCm": { "min": 150, "max": 185 } },
+      "photo": null,
+      "silhouette": null
+    },
+    "mock-viper": {
+      "group": "reptiles",
+      "name": { "en": "Mock Viper", "zh": "擬龜殼花" },
+      "scientificName": "Psammodynastes pulverulentus",
+      "size": { "lengthCm": { "min": 40, "max": 60 } },
+      "photo": null,
+      "silhouette": null
+    }
+  },
+  "groups": [
+    {
+      "id": "spotted-big-cats",
+      "title": { "en": "Spotted big cats", "zh": "身上有斑點的大貓" },
+      "measure": "length",
+      "members": ["cheetah", "amur-leopard", "entry:jaguar"],
+      "differences": [
+        { "en": "A cheetah has solid black spots, and a black “tear line” runs from each eye to its mouth.", "zh": "獵豹身上是實心的黑點，眼睛到嘴邊各有一條黑色的「淚痕」。" },
+        { "en": "Leopards and jaguars have rosettes: rings of spots like little flowers. A jaguar’s rosettes often have a dot in the middle.", "zh": "花豹和美洲豹身上是一圈圈像小花的梅花斑，美洲豹的梅花斑中間常常還有一個小黑點。" },
+        { "en": "The cheetah is slim with long legs for running fast; the jaguar is the stockiest and strongest.", "zh": "獵豹身材細長、腳很長，適合快跑；美洲豹最壯、力氣最大。" },
+        { "en": "Jaguars live in the Americas, cheetahs in Africa (and a few in Iran), and leopards in Africa and Asia.", "zh": "美洲豹住在美洲，獵豹住在非洲（伊朗也有少數），花豹住在非洲和亞洲。" }
+      ],
+      "draft": true
+    },
+    {
+      "id": "elephants",
+      "title": { "en": "Elephants", "zh": "大象" },
+      "measure": "height",
+      "members": ["african-elephant", "asian-elephant"],
+      "differences": [
+        { "en": "African elephants have huge ears shaped a bit like Africa; Asian elephants have smaller, rounder ears.", "zh": "非洲象的耳朵很大，形狀有點像非洲地圖；亞洲象的耳朵比較小、比較圓。" },
+        { "en": "The tip of an African elephant’s trunk has two “fingers”; an Asian elephant’s has one.", "zh": "非洲象的鼻子末端有兩個「手指」，亞洲象只有一個。" },
+        { "en": "African elephants are bigger, and both males and females usually have tusks; many Asian elephants have none.", "zh": "非洲象體型比較大，公象和母象通常都有象牙；很多亞洲象沒有象牙。" },
+        { "en": "An Asian elephant’s back is rounded, and its head has two bumps on top.", "zh": "亞洲象的背是圓拱形的，頭頂上有兩個鼓起來的小包。" }
+      ],
+      "draft": true
+    },
+    {
+      "id": "taiwan-pheasants",
+      "title": { "en": "Taiwan’s mountain pheasants", "zh": "臺灣山上的雉雞" },
+      "measure": "length",
+      "members": ["swinhoe-s-pheasant", "mikado-pheasant"],
+      "differences": [
+        { "en": "The male Swinhoe’s Pheasant has a white crest and a white back; the male Mikado Pheasant has neither.", "zh": "藍腹鷴公鳥頭上有白色的羽冠、背上是白的；帝雉公鳥都沒有。" },
+        { "en": "The male Mikado Pheasant’s long tail is black with white stripes across it; Swinhoe’s has white feathers in the middle of its tail.", "zh": "帝雉公鳥的長尾巴是黑色加白色橫紋；藍腹鷴公鳥尾巴中間的羽毛是白色的。" },
+        { "en": "Both males have red skin around their eyes, but Swinhoe’s Pheasant lives lower down the mountains than the Mikado Pheasant.", "zh": "兩種公鳥眼睛周圍都是紅色的，但藍腹鷴住在比較低的山上，帝雉住在比較高的山上。" }
+      ],
+      "draft": true
+    },
+    {
+      "id": "night-flyers",
+      "title": { "en": "Night flyers", "zh": "夜晚的飛行家" },
+      "measure": "length",
+      "members": ["formosan-flying-fox", "red-and-white-giant-flying-squirrel"],
+      "differences": [
+        { "en": "The flying fox is a bat: it really flies by flapping its wings.", "zh": "臺灣狐蝠是蝙蝠，會拍動翅膀真的飛起來。" },
+        { "en": "The flying squirrel can’t flap. It glides from tree to tree on a furry skin “cape” between its legs.", "zh": "大赤鼯鼠不會拍翅膀，牠靠四肢之間毛茸茸的皮膜，從一棵樹滑翔到另一棵樹。" },
+        { "en": "The flying squirrel has a long, fluffy tail; the flying fox has no tail you can see.", "zh": "大赤鼯鼠有一條長長、蓬鬆的尾巴，臺灣狐蝠看不到尾巴。" },
+        { "en": "Both come out at night, and both like eating fruit and leaves.", "zh": "牠們都在晚上出來活動，也都喜歡吃果實和葉子。" }
+      ],
+      "draft": true
+    },
+    {
+      "id": "armoured-diggers",
+      "title": { "en": "Armoured diggers", "zh": "披著盔甲的挖洞高手" },
+      "measure": "length",
+      "members": ["chinese-pangolin", "nine-banded-armadillo"],
+      "differences": [
+        { "en": "A pangolin is covered in overlapping scales like a pine cone; an armadillo has bands of bony armour.", "zh": "穿山甲身上是一片片疊在一起、像松果的鱗片；犰狳身上是一圈圈骨頭做的盔甲。" },
+        { "en": "Pangolins live in Asia and Africa; armadillos live in the Americas.", "zh": "穿山甲住在亞洲和非洲，犰狳住在美洲。" },
+        { "en": "A pangolin has no teeth at all; an armadillo has small, peg-like teeth.", "zh": "穿山甲完全沒有牙齒，犰狳有小小的、像木樁一樣的牙齒。" }
+      ],
+      "draft": true
+    },
+    {
+      "id": "wild-cat-or-house-cat",
+      "title": { "en": "Wild cat or house cat?", "zh": "石虎還是家貓？" },
+      "measure": "length",
+      "members": ["leopard-cat", "entry:house-cat"],
+      "differences": [
+        { "en": "A leopard cat has two white stripes running from its eyes up over its forehead, and white spots on the back of its round ears.", "zh": "石虎的額頭上有兩條從眼睛往上延伸的白色條紋，圓圓的耳朵背面有白色斑點。" },
+        { "en": "Its body is covered in dark spots, and its tail has rings near the tip.", "zh": "石虎全身有深色斑點，尾巴末端有一圈圈的環紋。" },
+        { "en": "Leopard cats are wild and shy and live in Taiwan’s low hills. They are not pets.", "zh": "石虎是野生動物，很怕人，住在臺灣的淺山，不是寵物。" }
+      ],
+      "draft": true
+    },
+    {
+      "id": "taiwan-hoofed",
+      "title": { "en": "Taiwan’s hoofed mountain animals", "zh": "臺灣山上的有蹄動物" },
+      "measure": "height",
+      "members": ["formosan-muntjac", "formosan-sambar-deer", "taiwan-serow"],
+      "differences": [
+        { "en": "The muntjac is the smallest, about as tall as a big dog, and it barks when it is scared.", "zh": "山羌最小，差不多跟一隻大狗一樣高，受到驚嚇時會發出像狗叫的聲音。" },
+        { "en": "The sambar deer is the biggest. Males grow large branching antlers that fall off every year.", "zh": "水鹿最大，公鹿會長出大大的分叉鹿角，每年都會脫落。" },
+        { "en": "The serow is not a deer: its short, pointy horns never fall off, and it has a mane on its neck.", "zh": "長鬃山羊不是鹿！牠短短尖尖的角不會脫落，脖子上還有鬃毛。" }
+      ],
+      "draft": true
+    },
+    {
+      "id": "great-apes",
+      "title": { "en": "Great apes", "zh": "大型猿類" },
+      "measure": "height",
+      "members": ["western-lowland-gorilla", "chimpanzee"],
+      "differences": [
+        { "en": "Gorillas are much bigger and heavier: a big male can weigh as much as two or three grown-up people.", "zh": "大猩猩比黑猩猩大很多，大公猩猩的體重差不多是兩、三個大人加起來那麼重。" },
+        { "en": "A grown-up male gorilla has silver hair on his back, so he is called a silverback.", "zh": "成年的公大猩猩背上的毛是銀色的，所以叫做「銀背」。" },
+        { "en": "Chimpanzees have big ears that stick out, and they are great at using tools, like poking sticks into termite mounds.", "zh": "黑猩猩的耳朵大大的、往外翹，很會用工具，例如拿樹枝去釣白蟻。" }
+      ],
+      "draft": true
+    },
+    {
+      "id": "rhinos",
+      "title": { "en": "Rhinos", "zh": "犀牛" },
+      "measure": "height",
+      "members": ["black-rhinoceros", "entry:white-rhinoceros"],
+      "differences": [
+        { "en": "A black rhino has a pointed, hooked upper lip for picking leaves; a white rhino has a wide, square lip for eating grass.", "zh": "黑犀牛的上唇尖尖的、像鉤子，用來摘樹葉；白犀牛的嘴唇又寬又平，適合吃草。" },
+        { "en": "Despite their names, both are grey!", "zh": "其實牠們兩個都是灰色的喔！" },
+        { "en": "The white rhino is bigger and keeps its head low to graze; the black rhino holds its head higher.", "zh": "白犀牛比較大，常常低著頭吃草；黑犀牛的頭抬得比較高。" }
+      ],
+      "draft": true
+    },
+    {
+      "id": "venomous-or-harmless",
+      "title": { "en": "Venomous or harmless?", "zh": "有毒還是沒毒？" },
+      "measure": "length",
+      "members": ["brown-spotted-pit-viper", "entry:mock-viper"],
+      "differences": [
+        { "en": "Never touch any snake, even one you think is harmless. Step back slowly and tell a grown-up.", "zh": "任何蛇都不要碰，就算你覺得牠沒有毒也一樣。慢慢退開，然後告訴大人。" },
+        { "en": "The mock viper is harmless to people, but it copies the pit viper’s brown pattern, which helps keep enemies away.", "zh": "擬龜殼花對人沒有危險，但牠模仿龜殼花的褐色花紋，讓敵人不敢靠近。" },
+        { "en": "The pit viper has a bigger, triangle-shaped head with heat-sensing pits on its face; the mock viper is smaller.", "zh": "龜殼花的頭比較大、呈三角形，臉上有感熱的小凹洞；擬龜殼花體型比較小。" },
+        { "en": "Even experts can mix them up, so leave telling them apart to grown-ups.", "zh": "連專家有時候都會認錯，所以分辨的工作就交給大人吧。" }
+      ],
+      "draft": true
+    },
+    {
+      "id": "moth-or-butterfly",
+      "title": { "en": "Moth or butterfly?", "zh": "蛾還是蝴蝶？" },
+      "measure": "wingspan",
+      "members": ["atlas-moth", "golden-birdwing"],
+      "differences": [
+        { "en": "Most butterflies have thin antennae with little knobs at the ends; a moth’s antennae are often feathery or plain.", "zh": "大部分的蝴蝶觸角細細的、末端有小圓球；蛾的觸角常常像羽毛，或是沒有小圓球。" },
+        { "en": "Butterflies usually fly in the daytime, and many moths fly at night.", "zh": "蝴蝶大多在白天飛，很多蛾在晚上飛。" },
+        { "en": "When resting, butterflies often fold their wings up over their backs; moths often keep them open or flat.", "zh": "停下來休息時，蝴蝶常把翅膀合起來立在背上，蛾常把翅膀攤開或平放。" }
+      ],
+      "draft": true
+    }
+  ]
+}

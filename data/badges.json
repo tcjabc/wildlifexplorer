@@ -1,0 +1,12 @@
+{
+  "note": "Continent and biome badge tiers. 'count' is how many collected cards with that tag earn the tier. 'counts' lowers (or raises) them for one region where few animals live. To add a tier (e.g. platinum), add it here and give it a colour as --tier-<id> in css/tokens.css.",
+  "tiers": [
+    { "id": "bronze", "count": 3,  "name": { "en": "Bronze", "zh": "銅牌" } },
+    { "id": "silver", "count": 10, "name": { "en": "Silver", "zh": "銀牌" } },
+    { "id": "gold",   "count": 25, "name": { "en": "Gold",   "zh": "金牌" } }
+  ],
+  "counts": {
+    "antarctica": { "bronze": 1, "silver": 3, "gold": 5 },
+    "polar":      { "bronze": 2, "silver": 5, "gold": 10 }
+  }
+}

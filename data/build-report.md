@@ -1,6 +1,6 @@
 # Build report
 
-Generated 2026-11-02 13:17 UTC. Re-written on every build.
+Generated 2026-11-02 13:54 UTC. Re-written on every build.
 
 ## Summary
 
@@ -11,7 +11,7 @@ Generated 2026-11-02 13:17 UTC. Re-written on every build.
 - Cards without a photo: 5
 - Cards with facts still to write: 15
 - Cards with habitat still to write: 33
-- Cards with inside pages (profile, statistics, life cycle): 2
+- Cards with inside pages (profile, statistics, life cycle): 17
 
 ## Drops
 
@@ -61,93 +61,215 @@ A drop arrives only when all its cards are built and their facts are written (no
 
 ### Series 1 cards that still need content
 
-- 🐘 Formosan Black Bear (`formosan-black-bear`, s1-w01): facts are a draft to check
-- 🦜 Taiwan Blue Magpie (`taiwan-blue-magpie`, s1-w01): facts are a draft to check
-- 🧭 Central Mountain Range (`central-mountain-range`, s1-w01): facts are a draft to check
-- 🐘 Formosan Rock Macaque (`formosan-rock-macaque`, s1-w02): facts are a draft to check
-- 🐢 Brown-spotted Pit Viper (`brown-spotted-pit-viper`, s1-w02): facts are a draft to check
-- 🌿 Taiwan Cherry (`taiwan-cherry`, s1-w02): facts are a draft to check
-- 🦜 Swinhoe's Pheasant (`swinhoe-s-pheasant`, s1-w03): facts are a draft to check
-- 🐠 Formosan Landlocked Salmon (`formosan-landlocked-salmon`, s1-w03): facts are a draft to check
-- 🦋 Atlas Moth (`atlas-moth`, s1-w03): facts are a draft to check
-- 🐘 Chinese Pangolin (`chinese-pangolin`, s1-w04): facts are a draft to check
-- 🦖 Tyrannosaurus rex (`tyrannosaurus-rex`, s1-w04): facts are a draft to check
-- 🦠 Tardigrade (Water Bear) (`tardigrade-water-bear`, s1-w04): facts are a draft to check
+- 🐘 Formosan Black Bear (`formosan-black-bear`, s1-w01): facts are a draft to check; tags are a draft to check
+- 🦜 Taiwan Blue Magpie (`taiwan-blue-magpie`, s1-w01): facts are a draft to check; tags are a draft to check
+- 🧭 Central Mountain Range (`central-mountain-range`, s1-w01): facts are a draft to check; tags are a draft to check
+- 🐘 Formosan Rock Macaque (`formosan-rock-macaque`, s1-w02): facts are a draft to check; tags are a draft to check
+- 🐢 Brown-spotted Pit Viper (`brown-spotted-pit-viper`, s1-w02): facts are a draft to check; tags are a draft to check
+- 🌿 Taiwan Cherry (`taiwan-cherry`, s1-w02): facts are a draft to check; tags are a draft to check
+- 🦜 Swinhoe's Pheasant (`swinhoe-s-pheasant`, s1-w03): facts are a draft to check; tags are a draft to check
+- 🐠 Formosan Landlocked Salmon (`formosan-landlocked-salmon`, s1-w03): facts are a draft to check; tags are a draft to check
+- 🦋 Atlas Moth (`atlas-moth`, s1-w03): facts are a draft to check; tags are a draft to check
+- 🐘 Chinese Pangolin (`chinese-pangolin`, s1-w04): facts are a draft to check; tags are a draft to check
+- 🦖 Tyrannosaurus rex (`tyrannosaurus-rex`, s1-w04): facts are a draft to check; tags are a draft to check
+- 🦠 Tardigrade (Water Bear) (`tardigrade-water-bear`, s1-w04): facts are a draft to check; tags are a draft to check
 - 🐾 Migration (`migration`, s1-w05): facts are a draft to check
 - 🦴 How Animals Fly (`how-animals-fly`, s1-w05): facts are a draft to check
-- 🌱 Saving the Formosan Black Bear (`saving-the-formosan-black-bear`, s1-w05): facts are a draft to check
-- 🐘 Taiwan Serow (`taiwan-serow`, s1-w06): facts are a draft to check
-- 🦜 Mikado Pheasant (`mikado-pheasant`, s1-w06): facts are a draft to check
-- 🧭 Kenting Coral Reefs (`kenting-coral-reefs`, s1-w06): facts are a draft to check
-- 🐘 Formosan Sambar Deer (`formosan-sambar-deer`, s1-w07): facts are a draft to check
-- 🦜 Taiwan Barbet (`taiwan-barbet`, s1-w07): facts are a draft to check
+- 🌱 Saving the Formosan Black Bear (`saving-the-formosan-black-bear`, s1-w05): facts are a draft to check; tags are a draft to check
+- 🐘 Taiwan Serow (`taiwan-serow`, s1-w06): facts are a draft to check; tags are a draft to check
+- 🦜 Mikado Pheasant (`mikado-pheasant`, s1-w06): facts are a draft to check; tags are a draft to check
+- 🧭 Kenting Coral Reefs (`kenting-coral-reefs`, s1-w06): facts are a draft to check; tags are a draft to check
+- 🐘 Formosan Sambar Deer (`formosan-sambar-deer`, s1-w07): facts are a draft to check; tags are a draft to check
+- 🦜 Taiwan Barbet (`taiwan-barbet`, s1-w07): facts are a draft to check; tags are a draft to check
 - 🌿 Formosan Red Cypress (`formosan-red-cypress`, s1-w07): not built yet
-- 🐘 Formosan Muntjac (`formosan-muntjac`, s1-w08): facts (0 of 3 written in both languages)
+- 🐘 Formosan Muntjac (`formosan-muntjac`, s1-w08): facts (0 of 3 written in both languages); tags are a draft to check
 - 🐢 Chinese Cobra (`chinese-cobra`, s1-w08): not built yet
 - 🐠 Whale Shark (`whale-shark`, s1-w08): not built yet
 - 🦜 Black-faced Spoonbill (`black-faced-spoonbill`, s1-w09): not built yet
 - 🦋 Golden Birdwing (`golden-birdwing`, s1-w09): not built yet
 - 🦖 Triceratops (`triceratops`, s1-w09): not built yet
-- 🐘 Formosan Flying Fox (`formosan-flying-fox`, s1-w10): facts (0 of 3 written in both languages)
+- 🐘 Formosan Flying Fox (`formosan-flying-fox`, s1-w10): facts (0 of 3 written in both languages); tags are a draft to check
 - 🦠 Amoeba (`amoeba`, s1-w10): not built yet
 - 🐾 Hibernation (`hibernation`, s1-w10): not built yet
 - 🦜 Crested Serpent Eagle (`crested-serpent-eagle`, s1-w11): not built yet
 - 🦴 Venomous vs Poisonous (`venomous-vs-poisonous`, s1-w11): not built yet
 - 🌱 Leopard Cats and Roadkill (`leopard-cats-and-roadkill`, s1-w11): not built yet
-- 🐘 Leopard Cat (`leopard-cat`, s1-w12): facts (0 of 3 written in both languages)
+- 🐘 Leopard Cat (`leopard-cat`, s1-w12): facts (0 of 3 written in both languages); tags are a draft to check
 - 🧭 Orchid Island (Lanyu) (`orchid-island-lanyu`, s1-w12): not built yet
 - 🌿 Camphor Tree (`camphor-tree`, s1-w12): not built yet
-- 🐘 Masked Palm Civet (`masked-palm-civet`, s1-w13): facts (0 of 3 written in both languages)
+- 🐘 Masked Palm Civet (`masked-palm-civet`, s1-w13): facts (0 of 3 written in both languages); tags are a draft to check
 - 🦜 Malayan Night Heron (`malayan-night-heron`, s1-w13): not built yet
 - 🐢 Swinhoe's Japalure (`swinhoe-s-japalure`, s1-w13): not built yet
-- 🐘 Red and White Giant Flying Squirrel (`red-and-white-giant-flying-squirrel`, s1-w14): facts (0 of 3 written in both languages)
+- 🐘 Red and White Giant Flying Squirrel (`red-and-white-giant-flying-squirrel`, s1-w14): facts (0 of 3 written in both languages); tags are a draft to check
 - 🐠 Ocean Sunfish (`ocean-sunfish`, s1-w14): not built yet
 - 🦋 Purple Crow Butterfly (`purple-crow-butterfly`, s1-w14): not built yet
 - 🦜 Collared Scops Owl (`collared-scops-owl`, s1-w15): not built yet
 - 🦖 Stegosaurus (`stegosaurus`, s1-w15): not built yet
 - 🦠 Paramecium (`paramecium`, s1-w15): not built yet
-- 🐘 Eurasian Otter (`eurasian-otter`, s1-w16): facts (0 of 3 written in both languages)
+- 🐘 Eurasian Otter (`eurasian-otter`, s1-w16): facts (0 of 3 written in both languages); tags are a draft to check
 - 🐾 Camouflage (`camouflage`, s1-w16): not built yet
 - 🦴 Carnivores, Herbivores and Omnivores (`carnivores-herbivores-and-omnivores`, s1-w16): not built yet
-- 🐘 Bengal Tiger (`bengal-tiger`, s1-w17): facts (0 of 3 written in both languages)
+- 🐘 Bengal Tiger (`bengal-tiger`, s1-w17): facts (0 of 3 written in both languages); tags are a draft to check
 - 🦜 Fairy Pitta (`fairy-pitta`, s1-w17): not built yet
 - 🌱 The Black-faced Spoonbill Comeback (`the-black-faced-spoonbill-comeback`, s1-w17): not built yet
-- 🐘 Lion (`lion`, s1-w18): facts (0 of 3 written in both languages)
+- 🐘 Lion (`lion`, s1-w18): facts (0 of 3 written in both languages); tags are a draft to check
 - 🧭 Qigu Lagoon (`qigu-lagoon`, s1-w18): not built yet
 - 🌿 Formosa Lily (`formosa-lily`, s1-w18): not built yet
 - 🦜 Taiwan Bamboo Partridge (`taiwan-bamboo-partridge`, s1-w19): not built yet
 - 🐢 Green Sea Turtle (`green-sea-turtle`, s1-w19): not built yet
 - 🐠 Mudskipper (`mudskipper`, s1-w19): not built yet
-- 🐘 Cheetah (`cheetah`, s1-w20): facts (0 of 3 written in both languages)
+- 🐘 Cheetah (`cheetah`, s1-w20): facts (0 of 3 written in both languages); tags are a draft to check
 - 🦋 Firefly (`firefly`, s1-w20): not built yet
 - 🦖 Brachiosaurus (`brachiosaurus`, s1-w20): not built yet
 - 🦜 Common Kingfisher (`common-kingfisher`, s1-w21): not built yet
 - 🦠 Euglena (`euglena`, s1-w21): not built yet
 - 🐾 Mimicry (`mimicry`, s1-w21): not built yet
-- 🐘 African Elephant (`african-elephant`, s1-w22): facts (0 of 3 written in both languages)
+- 🐘 African Elephant (`african-elephant`, s1-w22): facts (0 of 3 written in both languages); tags are a draft to check
 - 🦴 What Teeth Tell Us (`what-teeth-tell-us`, s1-w22): not built yet
 - 🌱 Plastic in the Ocean (`plastic-in-the-ocean`, s1-w22): not built yet
-- 🐘 Giraffe (`giraffe`, s1-w23): facts (0 of 3 written in both languages)
+- 🐘 Giraffe (`giraffe`, s1-w23): facts (0 of 3 written in both languages); tags are a draft to check
 - 🦜 Bald Eagle (`bald-eagle`, s1-w23): not built yet
 - 🧭 Amazon Rainforest (`amazon-rainforest`, s1-w23): not built yet
-- 🐘 Plains Zebra (`plains-zebra`, s1-w24): facts (0 of 3 written in both languages)
+- 🐘 Plains Zebra (`plains-zebra`, s1-w24): facts (0 of 3 written in both languages); tags are a draft to check
 - 🦜 Peregrine Falcon (`peregrine-falcon`, s1-w24): not built yet
 - 🌿 Moth Orchid (`moth-orchid`, s1-w24): not built yet
 - 🐢 Moltrecht's Green Tree Frog (`moltrecht-s-green-tree-frog`, s1-w25): not built yet
 - 🐠 Great White Shark (`great-white-shark`, s1-w25): not built yet
 - 🦋 Japanese Rhinoceros Beetle (`japanese-rhinoceros-beetle`, s1-w25): not built yet
-- 🐘 Hippopotamus (`hippopotamus`, s1-w26): facts (0 of 3 written in both languages)
+- 🐘 Hippopotamus (`hippopotamus`, s1-w26): facts (0 of 3 written in both languages); tags are a draft to check
 - 🦖 Velociraptor (`velociraptor`, s1-w26): not built yet
 - 🦠 Water Flea (`water-flea`, s1-w26): not built yet
 - 🦜 Snowy Owl (`snowy-owl`, s1-w27): not built yet
 - 🐾 Nests and Dens (`nests-and-dens`, s1-w27): not built yet
 - 🦴 Skin, Scales, Feathers and Fur (`skin-scales-feathers-and-fur`, s1-w27): not built yet
-- 🐘 Black Rhinoceros (`black-rhinoceros`, s1-w28): facts (0 of 3 written in both languages)
+- 🐘 Black Rhinoceros (`black-rhinoceros`, s1-w28): facts (0 of 3 written in both languages); tags are a draft to check
 - 🧭 Serengeti (`serengeti`, s1-w28): not built yet
 - 🌱 Coral Bleaching (`coral-bleaching`, s1-w28): not built yet
-- 🐘 Western Lowland Gorilla (`western-lowland-gorilla`, s1-w29): facts (0 of 3 written in both languages)
+- 🐘 Western Lowland Gorilla (`western-lowland-gorilla`, s1-w29): facts (0 of 3 written in both languages); tags are a draft to check
 - 🦜 Emperor Penguin (`emperor-penguin`, s1-w29): not built yet
 - 🌿 Chinese Banyan (`chinese-banyan`, s1-w29): not built yet
+
+## Regions and badges
+
+Cards count towards a region badge once collected. Tiers and counts are in data/badges.json. "Tagged" counts every built card with that tag, drafts included.
+
+### Continents
+
+| Continent | Tagged cards | Bronze | Silver | Gold |
+|---|---|---|---|---|
+| 🐼 Asia | 26 | 3 ✓ | 10 ✓ | 25 ✓ |
+| 🦁 Africa | 10 | 3 ✓ | 10 ✓ | 25 |
+| 🦔 Europe | 2 | 3 | 10 | 25 |
+| 🦬 North America | 2 | 3 | 10 | 25 |
+| 🦜 South America | 1 | 3 | 10 | 25 |
+| 🦘 Oceania | 1 | 3 | 10 | 25 |
+| 🐧 Antarctica | 1 | 1 ✓ | 3 | 5 |
+
+### Biomes
+
+| Biome | Tagged cards | Bronze | Silver | Gold |
+|---|---|---|---|---|
+| 🌴 Rainforest | 2 | 3 | 10 | 25 |
+| 🌲 Forest | 22 | 3 ✓ | 10 ✓ | 25 |
+| 🌾 Grassland | 8 | 3 ✓ | 10 | 25 |
+| 🏜️ Desert | 1 | 3 | 10 | 25 |
+| ⛰️ Mountains | 11 | 3 ✓ | 10 ✓ | 25 |
+| 🏞️ Rivers & Wetlands | 4 | 3 ✓ | 10 | 25 |
+| 🌊 Ocean | 2 | 3 | 10 | 25 |
+| ❄️ Polar | 1 | 2 | 5 | 10 |
+
+- Species cards without tags (they can't arrive yet): none
+- Cards whose tags are a draft to check: 33 (`formosan-black-bear`, `formosan-rock-macaque`, `chinese-pangolin`, `taiwan-serow`, `formosan-sambar-deer`, `formosan-muntjac`, `formosan-flying-fox`, `leopard-cat`, `masked-palm-civet`, `red-and-white-giant-flying-squirrel`, `eurasian-otter`, `bengal-tiger`, `lion`, `cheetah`, `african-elephant`, `giraffe`, `plains-zebra`, `hippopotamus`, `black-rhinoceros`, `western-lowland-gorilla`, `taiwan-blue-magpie`, `swinhoe-s-pheasant`, `mikado-pheasant`, `taiwan-barbet`, `brown-spotted-pit-viper`, `formosan-landlocked-salmon`, `atlas-moth`, `central-mountain-range`, `kenting-coral-reefs`, `saving-the-formosan-black-bear`, `tyrannosaurus-rex`, `tardigrade-water-bear`, `taiwan-cherry`)
+- Topic cards with no tags (they don't count towards region badges): `migration`, `how-animals-fly`
+
+## Secret badges
+
+Hidden until earned. Defined in data/secret-badges.json.
+
+- 🐼 `pandas`: Giant Panda (not built yet) + Red Panda (not built yet)
+  - EN: What’s black and white and red all over?
+  - ZH: 大小貓熊
+
+## Lookalikes
+
+For the "Animal" comparison. Defined in data/lookalikes.json; a group shows on a card once at least one other member is built (or a standalone entry), and groups marked "draft" only show in parent preview.
+
+### Spotted big cats · 身上有斑點的大貓 (`spotted-big-cats`) (draft)
+
+- ✓ Cheetah: needs silhouette (the group emoji is drawn instead) (size is a draft)
+- ○ Amur Leopard: not built yet (s3-w08)
+- ◆ Jaguar · 美洲豹 (standalone): needs photo, silhouette
+
+### Elephants · 大象 (`elephants`) (draft)
+
+- ✓ African Elephant: needs silhouette (the group emoji is drawn instead) (size is a draft)
+- ○ Asian Elephant: not built yet (s3-w07)
+
+### Taiwan’s mountain pheasants · 臺灣山上的雉雞 (`taiwan-pheasants`) (draft)
+
+- ✓ Swinhoe's Pheasant (size is a draft)
+- ✓ Mikado Pheasant (size is a draft)
+
+### Night flyers · 夜晚的飛行家 (`night-flyers`) (draft)
+
+- ✓ Formosan Flying Fox: needs silhouette (the group emoji is drawn instead) (size is a draft)
+- ✓ Red and White Giant Flying Squirrel: needs silhouette (the group emoji is drawn instead) (size is a draft)
+
+### Armoured diggers · 披著盔甲的挖洞高手 (`armoured-diggers`) (draft)
+
+- ✓ Chinese Pangolin (size is a draft)
+- ○ Nine-banded Armadillo: not built yet (s2-w18)
+
+### Wild cat or house cat? · 石虎還是家貓？ (`wild-cat-or-house-cat`) (draft)
+
+- ✓ Leopard Cat: needs silhouette (the group emoji is drawn instead) (size is a draft)
+- ◆ House cat · 家貓 (standalone): needs photo, silhouette
+
+### Taiwan’s hoofed mountain animals · 臺灣山上的有蹄動物 (`taiwan-hoofed`) (draft)
+
+- ✓ Formosan Muntjac: needs silhouette (the group emoji is drawn instead) (size is a draft)
+- ✓ Formosan Sambar Deer (size is a draft)
+- ✓ Taiwan Serow (size is a draft)
+
+### Great apes · 大型猿類 (`great-apes`) (draft)
+
+- ✓ Western Lowland Gorilla: needs silhouette (the group emoji is drawn instead) (size is a draft)
+- ○ Chimpanzee: not built yet (s2-w01)
+
+### Rhinos · 犀牛 (`rhinos`) (draft)
+
+- ✓ Black Rhinoceros: needs silhouette (the group emoji is drawn instead) (size is a draft)
+- ◆ White Rhinoceros · 白犀牛 (standalone): needs photo, silhouette
+
+### Venomous or harmless? · 有毒還是沒毒？ (`venomous-or-harmless`) (draft)
+
+- ✓ Brown-spotted Pit Viper (size is a draft)
+- ◆ Mock Viper · 擬龜殼花 (standalone): needs photo, silhouette
+
+### Moth or butterfly? · 蛾還是蝴蝶？ (`moth-or-butterfly`) (draft)
+
+- ✓ Atlas Moth (size is a draft)
+- ○ Golden Birdwing: not built yet (s1-w09)
+
+### Lookalike content still needed
+
+- Cheetah (`cheetah`, spotted-big-cats): silhouette (the group emoji is drawn instead)
+- Amur Leopard (`amur-leopard`, spotted-big-cats): not built yet
+- Jaguar (standalone, spotted-big-cats): photo, silhouette
+- African Elephant (`african-elephant`, elephants): silhouette (the group emoji is drawn instead)
+- Asian Elephant (`asian-elephant`, elephants): not built yet
+- Formosan Flying Fox (`formosan-flying-fox`, night-flyers): silhouette (the group emoji is drawn instead)
+- Red and White Giant Flying Squirrel (`red-and-white-giant-flying-squirrel`, night-flyers): silhouette (the group emoji is drawn instead)
+- Nine-banded Armadillo (`nine-banded-armadillo`, armoured-diggers): not built yet
+- Leopard Cat (`leopard-cat`, wild-cat-or-house-cat): silhouette (the group emoji is drawn instead)
+- House cat (standalone, wild-cat-or-house-cat): photo, silhouette
+- Formosan Muntjac (`formosan-muntjac`, taiwan-hoofed): silhouette (the group emoji is drawn instead)
+- Western Lowland Gorilla (`western-lowland-gorilla`, great-apes): silhouette (the group emoji is drawn instead)
+- Chimpanzee (`chimpanzee`, great-apes): not built yet
+- Black Rhinoceros (`black-rhinoceros`, rhinos): silhouette (the group emoji is drawn instead)
+- White Rhinoceros (standalone, rhinos): photo, silhouette
+- Mock Viper (standalone, venomous-or-harmless): photo, silhouette
+- Golden Birdwing (`golden-birdwing`, moth-or-butterfly): not built yet
 
 ## Needs your attention
 
@@ -190,23 +312,38 @@ These have no scientific name, so the build only creates the slots. Add facts, a
 
 Written by Claude as a starting point. Check or rewrite it, then remove the field name from `_draft`.
 
-- Formosan Black Bear · 臺灣黑熊 (`formosan-black-bear`): facts, habitat, profile, stats, compare, lifeCycle
-- Formosan Rock Macaque · 臺灣獼猴 (`formosan-rock-macaque`): facts, habitat, profile, stats, compare, lifeCycle
-- Chinese Pangolin · 穿山甲 (`chinese-pangolin`): facts
-- Taiwan Serow · 臺灣長鬃山羊 (`taiwan-serow`): facts
-- Formosan Sambar Deer · 水鹿 (`formosan-sambar-deer`): facts
-- Taiwan Blue Magpie · 臺灣藍鵲 (`taiwan-blue-magpie`): facts
-- Swinhoe's Pheasant · 藍腹鷴 (`swinhoe-s-pheasant`): facts
-- Mikado Pheasant · 帝雉 (`mikado-pheasant`): facts
-- Taiwan Barbet · 五色鳥 (`taiwan-barbet`): facts
-- Brown-spotted Pit Viper · 龜殼花 (`brown-spotted-pit-viper`): facts
-- Formosan Landlocked Salmon · 櫻花鉤吻鮭 (`formosan-landlocked-salmon`): facts
-- Atlas Moth · 皇蛾 (`atlas-moth`): facts
+- Formosan Black Bear · 臺灣黑熊 (`formosan-black-bear`): facts, habitat, profile, stats, compare, lifeCycle, tags
+- Formosan Rock Macaque · 臺灣獼猴 (`formosan-rock-macaque`): facts, habitat, profile, stats, compare, lifeCycle, tags
+- Chinese Pangolin · 穿山甲 (`chinese-pangolin`): facts, tags, stats
+- Taiwan Serow · 臺灣長鬃山羊 (`taiwan-serow`): facts, tags, stats
+- Formosan Sambar Deer · 水鹿 (`formosan-sambar-deer`): facts, tags, stats
+- Formosan Muntjac · 山羌 (`formosan-muntjac`): tags, stats
+- Formosan Flying Fox · 臺灣狐蝠 (`formosan-flying-fox`): tags, stats
+- Leopard Cat · 石虎 (`leopard-cat`): tags, stats
+- Masked Palm Civet · 白鼻心 (`masked-palm-civet`): tags
+- Red and White Giant Flying Squirrel · 大赤鼯鼠 (`red-and-white-giant-flying-squirrel`): tags, stats
+- Eurasian Otter · 歐亞水獺 (`eurasian-otter`): tags
+- Bengal Tiger · 孟加拉虎 (`bengal-tiger`): tags
+- Lion · 獅子 (`lion`): tags
+- Cheetah · 獵豹 (`cheetah`): tags, stats
+- African Elephant · 非洲象 (`african-elephant`): tags, stats
+- Giraffe · 長頸鹿 (`giraffe`): tags
+- Plains Zebra · 平原斑馬 (`plains-zebra`): tags
+- Hippopotamus · 河馬 (`hippopotamus`): tags
+- Black Rhinoceros · 黑犀牛 (`black-rhinoceros`): tags, stats
+- Western Lowland Gorilla · 西部低地大猩猩 (`western-lowland-gorilla`): tags, stats
+- Taiwan Blue Magpie · 臺灣藍鵲 (`taiwan-blue-magpie`): facts, tags
+- Swinhoe's Pheasant · 藍腹鷴 (`swinhoe-s-pheasant`): facts, tags, stats
+- Mikado Pheasant · 帝雉 (`mikado-pheasant`): facts, tags, stats
+- Taiwan Barbet · 五色鳥 (`taiwan-barbet`): facts, tags
+- Brown-spotted Pit Viper · 龜殼花 (`brown-spotted-pit-viper`): facts, tags, stats
+- Formosan Landlocked Salmon · 櫻花鉤吻鮭 (`formosan-landlocked-salmon`): facts, tags
+- Atlas Moth · 皇蛾 (`atlas-moth`): facts, tags, stats
 - Migration · 遷徙 (`migration`): facts
-- Central Mountain Range · 中央山脈 (`central-mountain-range`): facts
-- Kenting Coral Reefs · 墾丁珊瑚礁 (`kenting-coral-reefs`): facts
-- Saving the Formosan Black Bear · 守護臺灣黑熊 (`saving-the-formosan-black-bear`): facts
+- Central Mountain Range · 中央山脈 (`central-mountain-range`): facts, tags
+- Kenting Coral Reefs · 墾丁珊瑚礁 (`kenting-coral-reefs`): facts, tags
+- Saving the Formosan Black Bear · 守護臺灣黑熊 (`saving-the-formosan-black-bear`): facts, tags
 - How Animals Fly · 動物怎麼飛 (`how-animals-fly`): facts
-- Tyrannosaurus rex · 暴龍 (`tyrannosaurus-rex`): facts
-- Tardigrade (Water Bear) · 水熊蟲 (`tardigrade-water-bear`): facts
-- Taiwan Cherry · 山櫻花 (`taiwan-cherry`): facts
+- Tyrannosaurus rex · 暴龍 (`tyrannosaurus-rex`): facts, tags
+- Tardigrade (Water Bear) · 水熊蟲 (`tardigrade-water-bear`): facts, tags
+- Taiwan Cherry · 山櫻花 (`taiwan-cherry`): facts, tags

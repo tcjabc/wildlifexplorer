@@ -28,6 +28,13 @@
     },
     "status": "VU",
     "taiwan": true,
+    "continents": [
+      "asia"
+    ],
+    "biomes": [
+      "forest",
+      "mountains"
+    ],
     "photo": {
       "file": "img/formosan-black-bear-photo-ac54e9.webp",
       "author": "smartneddy",
@@ -187,7 +194,8 @@
       "profile",
       "stats",
       "compare",
-      "lifeCycle"
+      "lifeCycle",
+      "tags"
     ]
   },
   {
@@ -219,6 +227,13 @@
     },
     "status": "LC",
     "taiwan": true,
+    "continents": [
+      "asia"
+    ],
+    "biomes": [
+      "forest",
+      "mountains"
+    ],
     "photo": {
       "file": "img/formosan-rock-macaque-photo-be22f9.webp",
       "author": "KaurJmeb",
@@ -375,7 +390,8 @@
       "profile",
       "stats",
       "compare",
-      "lifeCycle"
+      "lifeCycle",
+      "tags"
     ]
   },
   {
@@ -408,6 +424,12 @@
     },
     "status": "CR",
     "taiwan": true,
+    "continents": [
+      "asia"
+    ],
+    "biomes": [
+      "forest"
+    ],
     "photo": {
       "file": "img/chinese-pangolin-photo-015ea9.webp",
       "author": "U.S. Fish and Wildlife Service Headquarters",
@@ -429,6 +451,12 @@
       "north": 25.68
     },
     "range": "data/ranges/chinese-pangolin.json",
+    "stats": {
+      "lengthCm": {
+        "min": 40,
+        "max": 58
+      }
+    },
     "silhouette": {
       "file": "img/silhouettes/chinese-pangolin-06a2d0.svg",
       "author": "Steven Traver",
@@ -474,7 +502,9 @@
       "illustration"
     ],
     "_draft": [
-      "facts"
+      "facts",
+      "tags",
+      "stats"
     ]
   },
   {
@@ -507,6 +537,13 @@
     },
     "status": "LC",
     "taiwan": true,
+    "continents": [
+      "asia"
+    ],
+    "biomes": [
+      "mountains",
+      "forest"
+    ],
     "photo": {
       "file": "img/taiwan-serow-photo-729169.webp",
       "author": "longan Jiang",
@@ -522,6 +559,12 @@
       "north": 25.24
     },
     "range": "data/ranges/taiwan-serow.json",
+    "stats": {
+      "heightCm": {
+        "min": 50,
+        "max": 70
+      }
+    },
     "silhouette": {
       "file": "img/silhouettes/taiwan-serow-18d819.svg",
       "author": "Rick Wilhelmsen",
@@ -568,7 +611,9 @@
       "illustration"
     ],
     "_draft": [
-      "facts"
+      "facts",
+      "tags",
+      "stats"
     ]
   },
   {
@@ -601,6 +646,13 @@
     },
     "status": "VU",
     "taiwan": true,
+    "continents": [
+      "asia"
+    ],
+    "biomes": [
+      "mountains",
+      "forest"
+    ],
     "photo": {
       "file": "img/formosan-sambar-deer-photo-bbdc30.webp",
       "author": "曾昱承 Yu-Cheng Zeng",
@@ -622,6 +674,12 @@
       "north": 25.66
     },
     "range": "data/ranges/formosan-sambar-deer.json",
+    "stats": {
+      "heightCm": {
+        "min": 100,
+        "max": 120
+      }
+    },
     "silhouette": {
       "file": "img/silhouettes/formosan-sambar-deer-011001.svg",
       "author": "Caleb M. Gordon",
@@ -664,7 +722,9 @@
     },
     "wikidata": "Q2165287",
     "_draft": [
-      "facts"
+      "facts",
+      "tags",
+      "stats"
     ]
   },
   {
@@ -696,6 +756,12 @@
     },
     "status": "LC",
     "taiwan": true,
+    "continents": [
+      "asia"
+    ],
+    "biomes": [
+      "forest"
+    ],
     "photo": {
       "file": "img/formosan-muntjac-photo-b21714.webp",
       "author": "王朝威",
@@ -704,6 +770,12 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Muntiacus_reevesi_micrurus_230869896.jpg"
     },
     "illustration": null,
+    "stats": {
+      "heightCm": {
+        "min": 40,
+        "max": 50
+      }
+    },
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -736,7 +808,11 @@
         "zh": "麂屬"
       }
     },
-    "wikidata": "Q20908353"
+    "wikidata": "Q20908353",
+    "_draft": [
+      "tags",
+      "stats"
+    ]
   },
   {
     "id": "formosan-flying-fox",
@@ -767,6 +843,12 @@
     },
     "status": "VU",
     "taiwan": true,
+    "continents": [
+      "asia"
+    ],
+    "biomes": [
+      "forest"
+    ],
     "photo": {
       "file": "img/formosan-flying-fox-photo-d0df76.webp",
       "author": "尹若宇",
@@ -780,6 +862,12 @@
       "license": "Public domain",
       "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Pteropus_formosus_by_J.G._Keulemans_(PZS_1873_PL_XXII).jpg"
+    },
+    "stats": {
+      "lengthCm": {
+        "min": 18,
+        "max": 24
+      }
     },
     "taxonomy": {
       "kingdom": {
@@ -813,7 +901,11 @@
         "zh": "狐蝠屬"
       }
     },
-    "wikidata": "Q20905734"
+    "wikidata": "Q20905734",
+    "_draft": [
+      "tags",
+      "stats"
+    ]
   },
   {
     "id": "leopard-cat",
@@ -844,6 +936,12 @@
     },
     "status": "LC",
     "taiwan": true,
+    "continents": [
+      "asia"
+    ],
+    "biomes": [
+      "forest"
+    ],
     "photo": {
       "file": "img/leopard-cat-photo-ef23b5.webp",
       "author": "Soumyajit Nandy",
@@ -857,6 +955,12 @@
       "license": "CC BY-SA 3.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Prionailurus_bengalensis_-_CHANG,_Yun-Hsin.jpg"
+    },
+    "stats": {
+      "lengthCm": {
+        "min": 45,
+        "max": 55
+      }
     },
     "taxonomy": {
       "kingdom": {
@@ -890,7 +994,11 @@
         "zh": "豹貓屬"
       }
     },
-    "wikidata": "Q42627"
+    "wikidata": "Q42627",
+    "_draft": [
+      "tags",
+      "stats"
+    ]
   },
   {
     "id": "masked-palm-civet",
@@ -921,6 +1029,12 @@
     },
     "status": "LC",
     "taiwan": true,
+    "continents": [
+      "asia"
+    ],
+    "biomes": [
+      "forest"
+    ],
     "photo": {
       "file": "img/masked-palm-civet-photo-5cd009.webp",
       "author": "Denise Chan from Hong Kong, China",
@@ -967,7 +1081,10 @@
         "zh": "果子貍屬"
       }
     },
-    "wikidata": "Q626049"
+    "wikidata": "Q626049",
+    "_draft": [
+      "tags"
+    ]
   },
   {
     "id": "red-and-white-giant-flying-squirrel",
@@ -998,6 +1115,12 @@
     },
     "status": "LC",
     "taiwan": true,
+    "continents": [
+      "asia"
+    ],
+    "biomes": [
+      "forest"
+    ],
     "photo": {
       "file": "img/red-and-white-giant-flying-squirrel-photo-a51a0c.webp",
       "author": "Ahirbudhnyan M",
@@ -1006,6 +1129,12 @@
       "sourceUrl": "https://www.inaturalist.org/photos/254810868"
     },
     "illustration": null,
+    "stats": {
+      "lengthCm": {
+        "min": 37,
+        "max": 46
+      }
+    },
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -1038,7 +1167,11 @@
         "zh": "鼯鼠屬"
       }
     },
-    "wikidata": "Q1767097"
+    "wikidata": "Q1767097",
+    "_draft": [
+      "tags",
+      "stats"
+    ]
   },
   {
     "id": "eurasian-otter",
@@ -1069,6 +1202,14 @@
     },
     "status": "NT",
     "taiwan": true,
+    "continents": [
+      "asia",
+      "europe",
+      "africa"
+    ],
+    "biomes": [
+      "freshwater"
+    ],
     "photo": {
       "file": "img/eurasian-otter-photo-88f636.webp",
       "author": "Diego González Dopico",
@@ -1115,7 +1256,10 @@
         "zh": "水獺屬"
       }
     },
-    "wikidata": "Q29995"
+    "wikidata": "Q29995",
+    "_draft": [
+      "tags"
+    ]
   },
   {
     "id": "bengal-tiger",
@@ -1146,6 +1290,13 @@
     },
     "status": "EN",
     "taiwan": false,
+    "continents": [
+      "asia"
+    ],
+    "biomes": [
+      "forest",
+      "grassland"
+    ],
     "photo": {
       "file": "img/bengal-tiger-photo-15472e.webp",
       "author": "Tisha Mukherjee",
@@ -1192,7 +1343,10 @@
         "zh": "豹屬"
       }
     },
-    "wikidata": "Q80952"
+    "wikidata": "Q80952",
+    "_draft": [
+      "tags"
+    ]
   },
   {
     "id": "lion",
@@ -1223,6 +1377,13 @@
     },
     "status": "VU",
     "taiwan": false,
+    "continents": [
+      "africa",
+      "asia"
+    ],
+    "biomes": [
+      "grassland"
+    ],
     "photo": {
       "file": "img/lion-photo-7317db.webp",
       "author": "GinaFranchi",
@@ -1263,7 +1424,10 @@
         "zh": "豹屬"
       }
     },
-    "wikidata": "Q140"
+    "wikidata": "Q140",
+    "_draft": [
+      "tags"
+    ]
   },
   {
     "id": "cheetah",
@@ -1294,6 +1458,14 @@
     },
     "status": "VU",
     "taiwan": false,
+    "continents": [
+      "africa",
+      "asia"
+    ],
+    "biomes": [
+      "grassland",
+      "desert"
+    ],
     "photo": {
       "file": "img/cheetah-photo-eadc12.webp",
       "author": "James Temple",
@@ -1302,6 +1474,12 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:TheCheethcat.jpg"
     },
     "illustration": null,
+    "stats": {
+      "lengthCm": {
+        "min": 110,
+        "max": 150
+      }
+    },
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -1334,7 +1512,11 @@
         "zh": "獵豹屬"
       }
     },
-    "wikidata": "Q23907"
+    "wikidata": "Q23907",
+    "_draft": [
+      "tags",
+      "stats"
+    ]
   },
   {
     "id": "african-elephant",
@@ -1365,6 +1547,12 @@
     },
     "status": "EN",
     "taiwan": false,
+    "continents": [
+      "africa"
+    ],
+    "biomes": [
+      "grassland"
+    ],
     "photo": {
       "file": "img/african-elephant-photo-627e92.webp",
       "author": "Giles Laurent",
@@ -1378,6 +1566,12 @@
       "license": "CC BY-SA 3.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Loxodonta_africana2.jpg"
+    },
+    "stats": {
+      "heightCm": {
+        "min": 220,
+        "max": 400
+      }
     },
     "taxonomy": {
       "kingdom": {
@@ -1411,7 +1605,11 @@
         "zh": "非洲象屬"
       }
     },
-    "wikidata": "Q36557"
+    "wikidata": "Q36557",
+    "_draft": [
+      "tags",
+      "stats"
+    ]
   },
   {
     "id": "giraffe",
@@ -1442,6 +1640,12 @@
     },
     "status": "VU",
     "taiwan": false,
+    "continents": [
+      "africa"
+    ],
+    "biomes": [
+      "grassland"
+    ],
     "photo": {
       "file": "img/giraffe-photo-fb03ed.webp",
       "author": "Thomas Fuhrmann",
@@ -1488,7 +1692,10 @@
         "zh": "長頸鹿屬"
       }
     },
-    "wikidata": "Q15083"
+    "wikidata": "Q15083",
+    "_draft": [
+      "tags"
+    ]
   },
   {
     "id": "plains-zebra",
@@ -1519,6 +1726,12 @@
     },
     "status": "NT",
     "taiwan": false,
+    "continents": [
+      "africa"
+    ],
+    "biomes": [
+      "grassland"
+    ],
     "photo": {
       "file": "img/plains-zebra-photo-7d1f2d.webp",
       "author": "Ltshears",
@@ -1565,7 +1778,10 @@
         "zh": "馬屬"
       }
     },
-    "wikidata": "Q245305"
+    "wikidata": "Q245305",
+    "_draft": [
+      "tags"
+    ]
   },
   {
     "id": "hippopotamus",
@@ -1596,6 +1812,13 @@
     },
     "status": "VU",
     "taiwan": false,
+    "continents": [
+      "africa"
+    ],
+    "biomes": [
+      "freshwater",
+      "grassland"
+    ],
     "photo": {
       "file": "img/hippopotamus-photo-629276.webp",
       "author": "Muhammad Mahdi Karim",
@@ -1636,7 +1859,10 @@
         "zh": "河馬屬"
       }
     },
-    "wikidata": "Q34505"
+    "wikidata": "Q34505",
+    "_draft": [
+      "tags"
+    ]
   },
   {
     "id": "black-rhinoceros",
@@ -1667,6 +1893,12 @@
     },
     "status": "CR",
     "taiwan": false,
+    "continents": [
+      "africa"
+    ],
+    "biomes": [
+      "grassland"
+    ],
     "photo": {
       "file": "img/black-rhinoceros-photo-7eb995.webp",
       "author": "Yathin S Krishnappa",
@@ -1680,6 +1912,12 @@
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Diceros_bicornis_introduction.jpg"
+    },
+    "stats": {
+      "heightCm": {
+        "min": 140,
+        "max": 170
+      }
     },
     "taxonomy": {
       "kingdom": {
@@ -1713,7 +1951,11 @@
         "zh": "黑犀屬"
       }
     },
-    "wikidata": "Q95036"
+    "wikidata": "Q95036",
+    "_draft": [
+      "tags",
+      "stats"
+    ]
   },
   {
     "id": "western-lowland-gorilla",
@@ -1744,6 +1986,12 @@
     },
     "status": "CR",
     "taiwan": false,
+    "continents": [
+      "africa"
+    ],
+    "biomes": [
+      "rainforest"
+    ],
     "photo": {
       "file": "img/western-lowland-gorilla-photo-bc7581.webp",
       "author": "Rennett Stowe from USA",
@@ -1757,6 +2005,12 @@
       "license": "CC BY-SA 3.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Gorila_de_llanura_occidental._Gorilla_gorilla_-_Blanca_Mart%C3%AD_de_Ahumada.jpg"
+    },
+    "stats": {
+      "heightCm": {
+        "min": 140,
+        "max": 180
+      }
     },
     "taxonomy": {
       "kingdom": {
@@ -1790,7 +2044,11 @@
         "zh": "大猩猩屬"
       }
     },
-    "wikidata": "Q876500"
+    "wikidata": "Q876500",
+    "_draft": [
+      "tags",
+      "stats"
+    ]
   },
   {
     "id": "taiwan-blue-magpie",
@@ -1821,6 +2079,12 @@
     },
     "status": "LC",
     "taiwan": true,
+    "continents": [
+      "asia"
+    ],
+    "biomes": [
+      "forest"
+    ],
     "photo": {
       "file": "img/taiwan-blue-magpie-photo-c4683c.webp",
       "author": "Charles J. Sharp",
@@ -1878,7 +2142,8 @@
     },
     "wikidata": "Q94533",
     "_draft": [
-      "facts"
+      "facts",
+      "tags"
     ]
   },
   {
@@ -1910,6 +2175,13 @@
     },
     "status": "NT",
     "taiwan": true,
+    "continents": [
+      "asia"
+    ],
+    "biomes": [
+      "forest",
+      "mountains"
+    ],
     "photo": {
       "file": "img/swinhoe-s-pheasant-photo-5c9f0f.webp",
       "author": "Alnus",
@@ -1925,6 +2197,12 @@
       "north": 25.68
     },
     "range": "data/ranges/swinhoe-s-pheasant.json",
+    "stats": {
+      "lengthCm": {
+        "min": 50,
+        "max": 72
+      }
+    },
     "silhouette": {
       "file": "img/silhouettes/swinhoe-s-pheasant-836d7f.svg",
       "author": "Unknown",
@@ -1967,7 +2245,9 @@
     },
     "wikidata": "Q715245",
     "_draft": [
-      "facts"
+      "facts",
+      "tags",
+      "stats"
     ]
   },
   {
@@ -2000,6 +2280,13 @@
     },
     "status": "LC",
     "taiwan": true,
+    "continents": [
+      "asia"
+    ],
+    "biomes": [
+      "forest",
+      "mountains"
+    ],
     "photo": {
       "file": "img/mikado-pheasant-photo-e6ce25.webp",
       "author": "Snowyowls (photographer) / Jako (uploader)",
@@ -2022,6 +2309,12 @@
       "north": 25.13
     },
     "range": "data/ranges/mikado-pheasant.json",
+    "stats": {
+      "lengthCm": {
+        "min": 47,
+        "max": 88
+      }
+    },
     "silhouette": {
       "file": "img/silhouettes/mikado-pheasant-836d7f.svg",
       "author": "Unknown",
@@ -2067,7 +2360,9 @@
       "illustration"
     ],
     "_draft": [
-      "facts"
+      "facts",
+      "tags",
+      "stats"
     ]
   },
   {
@@ -2099,6 +2394,12 @@
     },
     "status": "LC",
     "taiwan": true,
+    "continents": [
+      "asia"
+    ],
+    "biomes": [
+      "forest"
+    ],
     "photo": {
       "file": "img/taiwan-barbet-photo-fe0232.webp",
       "author": "Ben Keen",
@@ -2156,7 +2457,8 @@
     },
     "wikidata": "Q27074855",
     "_draft": [
-      "facts"
+      "facts",
+      "tags"
     ]
   },
   {
@@ -2188,6 +2490,12 @@
     },
     "status": "LC",
     "taiwan": true,
+    "continents": [
+      "asia"
+    ],
+    "biomes": [
+      "forest"
+    ],
     "photo": {
       "file": "img/brown-spotted-pit-viper-photo-3f13f9.webp",
       "author": "[Photo: A.V. Pham] Pham AV, Ziegler T, Nguyen TQ (2020) New records and an updated checklist of snakes from Son La Province, Vietnam. Biodiversity Data Journal 8: e52779. https://doi.org/10.3897/BDJ.8.e52779",
@@ -2203,6 +2511,12 @@
       "north": 28.02
     },
     "range": "data/ranges/brown-spotted-pit-viper.json",
+    "stats": {
+      "lengthCm": {
+        "min": 60,
+        "max": 110
+      }
+    },
     "silhouette": {
       "file": "img/silhouettes/brown-spotted-pit-viper-2efefa.svg",
       "author": "Beth Reinke",
@@ -2245,7 +2559,9 @@
     },
     "wikidata": "Q716295",
     "_draft": [
-      "facts"
+      "facts",
+      "tags",
+      "stats"
     ]
   },
   {
@@ -2278,6 +2594,13 @@
     },
     "status": null,
     "taiwan": true,
+    "continents": [
+      "asia"
+    ],
+    "biomes": [
+      "freshwater",
+      "mountains"
+    ],
     "photo": {
       "file": "img/formosan-landlocked-salmon-photo-05c78b.webp",
       "author": "邱文強",
@@ -2344,7 +2667,8 @@
       "illustration"
     ],
     "_draft": [
-      "facts"
+      "facts",
+      "tags"
     ]
   },
   {
@@ -2376,6 +2700,13 @@
     },
     "status": null,
     "taiwan": true,
+    "continents": [
+      "asia"
+    ],
+    "biomes": [
+      "rainforest",
+      "forest"
+    ],
     "photo": {
       "file": "img/atlas-moth-photo-25a126.webp",
       "author": "Quartl",
@@ -2397,6 +2728,12 @@
       "north": 33.09
     },
     "range": "data/ranges/atlas-moth.json",
+    "stats": {
+      "wingspanCm": {
+        "min": 20,
+        "max": 25
+      }
+    },
     "silhouette": {
       "file": "img/silhouettes/atlas-moth-817479.svg",
       "author": "Lauren Otolski",
@@ -2442,7 +2779,9 @@
       "illustration"
     ],
     "_draft": [
-      "facts"
+      "facts",
+      "tags",
+      "stats"
     ]
   },
   {
@@ -2509,6 +2848,13 @@
     },
     "status": null,
     "taiwan": true,
+    "continents": [
+      "asia"
+    ],
+    "biomes": [
+      "mountains",
+      "forest"
+    ],
     "photo": null,
     "illustration": null,
     "place": {
@@ -2517,7 +2863,8 @@
       "site": "Central Mountain Range, Taiwan"
     },
     "_draft": [
-      "facts"
+      "facts",
+      "tags"
     ]
   },
   {
@@ -2549,6 +2896,12 @@
     },
     "status": null,
     "taiwan": true,
+    "continents": [
+      "asia"
+    ],
+    "biomes": [
+      "ocean"
+    ],
     "photo": null,
     "illustration": null,
     "place": {
@@ -2557,7 +2910,8 @@
       "site": "Kenting, Pingtung, Taiwan"
     },
     "_draft": [
-      "facts"
+      "facts",
+      "tags"
     ]
   },
   {
@@ -2589,10 +2943,18 @@
     },
     "status": null,
     "taiwan": true,
+    "continents": [
+      "asia"
+    ],
+    "biomes": [
+      "forest",
+      "mountains"
+    ],
     "photo": null,
     "illustration": null,
     "_draft": [
-      "facts"
+      "facts",
+      "tags"
     ]
   },
   {
@@ -2659,6 +3021,12 @@
     },
     "status": null,
     "taiwan": false,
+    "continents": [
+      "north-america"
+    ],
+    "biomes": [
+      "forest"
+    ],
     "photo": {
       "file": "img/tyrannosaurus-rex-photo-4149c1.webp",
       "author": "Connie Ma from Chicago, United States of America",
@@ -2718,7 +3086,8 @@
       "illustration"
     ],
     "_draft": [
-      "facts"
+      "facts",
+      "tags"
     ]
   },
   {
@@ -2750,6 +3119,22 @@
     },
     "status": null,
     "taiwan": false,
+    "continents": [
+      "asia",
+      "africa",
+      "europe",
+      "north-america",
+      "south-america",
+      "oceania",
+      "antarctica"
+    ],
+    "biomes": [
+      "forest",
+      "mountains",
+      "freshwater",
+      "ocean",
+      "polar"
+    ],
     "photo": {
       "file": "img/tardigrade-water-bear-photo-e86ecd.webp",
       "author": "Schokraie E, Warnken U, Hotz-Wagenblatt A, Grohme MA, Hengherr S, et al. (2012)",
@@ -2791,7 +3176,8 @@
       "illustration"
     ],
     "_draft": [
-      "facts"
+      "facts",
+      "tags"
     ]
   },
   {
@@ -2823,6 +3209,13 @@
     },
     "status": null,
     "taiwan": true,
+    "continents": [
+      "asia"
+    ],
+    "biomes": [
+      "forest",
+      "mountains"
+    ],
     "photo": {
       "file": "img/taiwan-cherry-photo-534fdc.webp",
       "author": "Gió Đông",
@@ -2873,7 +3266,8 @@
       "photo"
     ],
     "_draft": [
-      "facts"
+      "facts",
+      "tags"
     ]
   }
 ]

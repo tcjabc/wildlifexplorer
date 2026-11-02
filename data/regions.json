@@ -1,0 +1,21 @@
+{
+  "continents": [
+    { "id": "asia",          "emoji": "🐼", "center": [100, 35],  "name": { "en": "Asia",          "zh": "亞洲" } },
+    { "id": "africa",        "emoji": "🦁", "center": [20, 5],    "name": { "en": "Africa",        "zh": "非洲" } },
+    { "id": "europe",        "emoji": "🦔", "center": [15, 52],   "name": { "en": "Europe",        "zh": "歐洲" } },
+    { "id": "north-america", "emoji": "🦬", "center": [-100, 45], "name": { "en": "North America", "zh": "北美洲" } },
+    { "id": "south-america", "emoji": "🦜", "center": [-60, -15], "name": { "en": "South America", "zh": "南美洲" } },
+    { "id": "oceania",       "emoji": "🦘", "center": [140, -25], "name": { "en": "Oceania",       "zh": "大洋洲" } },
+    { "id": "antarctica",    "emoji": "🐧", "center": [0, -80],   "name": { "en": "Antarctica",    "zh": "南極洲" } }
+  ],
+  "biomes": [
+    { "id": "rainforest", "emoji": "🌴", "name": { "en": "Rainforest",        "zh": "熱帶雨林" } },
+    { "id": "forest",     "emoji": "🌲", "name": { "en": "Forest",            "zh": "森林" } },
+    { "id": "grassland",  "emoji": "🌾", "name": { "en": "Grassland",         "zh": "草原" } },
+    { "id": "desert",     "emoji": "🏜️", "name": { "en": "Desert",            "zh": "沙漠" } },
+    { "id": "mountains",  "emoji": "⛰️", "name": { "en": "Mountains",         "zh": "高山" } },
+    { "id": "freshwater", "emoji": "🏞️", "name": { "en": "Rivers & Wetlands", "zh": "河流與濕地" } },
+    { "id": "ocean",      "emoji": "🌊", "name": { "en": "Ocean",             "zh": "海洋" } },
+    { "id": "polar",      "emoji": "❄️", "name": { "en": "Polar",             "zh": "極地" } }
+  ]
+}

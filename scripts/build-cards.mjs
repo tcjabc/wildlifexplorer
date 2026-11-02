@@ -32,6 +32,7 @@ import { isAllowedLicenseName } from './lib/licenses.mjs';
 import { mergeCard, canUpdate } from './lib/merge.mjs';
 import { planDrops, dropOrder, DropPlanError } from './lib/drops.mjs';
 import { isReady, stillNeeds } from '../js/ready.js';
+import { renderBadgeSections } from './lib/badges-report.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const P = {
@@ -43,6 +44,10 @@ const P = {
   state: path.join(ROOT, 'data/build-state.json'),
   report: path.join(ROOT, 'data/build-report.md'),
   locations: path.join(ROOT, 'data/locations.json'),
+  regions: path.join(ROOT, 'data/regions.json'),
+  badges: path.join(ROOT, 'data/badges.json'),
+  secrets: path.join(ROOT, 'data/secret-badges.json'),
+  lookalikes: path.join(ROOT, 'data/lookalikes.json'),
   config: path.join(ROOT, 'scripts/build.config.json'),
 };
 
@@ -85,7 +90,7 @@ function blankCard(row) {
   };
 }
 
-const KEY_ORDER = ['id', 'group', 'scientificName', 'name', 'facts', 'habitat', 'status', 'taiwan',
+const KEY_ORDER = ['id', 'group', 'scientificName', 'name', 'facts', 'habitat', 'status', 'taiwan', 'continents', 'biomes',
   'photo', 'illustration', 'map', 'mapBounds', 'range', 'place', 'fossilSite', 'profile', 'stats', 'compare', 'lifeCycle', 'silhouette',
   'taxonomy', 'wikidata', 'locked', '_draft'];
 function orderKeys(card) {
@@ -279,6 +284,15 @@ async function main() {
   const existing = await readJson(P.cards, []);
   const state = await readJson(P.state, {});
   const locations = await readJson(P.locations, {}); // globe pins for places and fossils
+  // Badge and lookalike config, for the report's checks.
+  const extra = {
+    regions: await readJson(P.regions, { continents: [], biomes: [] }),
+    badges: await readJson(P.badges, { tiers: [] }),
+    secrets: await readJson(P.secrets, { badges: [] }),
+    lookalikes: await readJson(P.lookalikes, { entries: {}, groups: [] }),
+  };
+  // Standalone lookalikes carry pictures too; check and thumbnail them like cards.
+  const entryCards = Object.entries(extra.lookalikes.entries ?? {}).map(([id, e]) => ({ ...e, id: `entry:${id}` }));
 
   // Match existing cards by id, then scientific name, then Chinese name, so renaming
   // a card in the CSV doesn't lose the facts you wrote for it.
@@ -368,7 +382,7 @@ async function main() {
 
   // Thumbnails for every referenced image, including ones you added by hand.
   const imageProblems = [];
-  for (const card of [...cards, ...orphans]) {
+  for (const card of [...cards, ...orphans, ...entryCards]) {
     for (const kind of ['photo', 'illustration']) {
       const img = card[kind];
       if (!img?.file) continue;
@@ -385,7 +399,7 @@ async function main() {
   }
 
   // Images on disk that no card uses any more (left in place; delete them if you like).
-  const referenced = new Set(cards.concat(orphans).flatMap(c => [c.photo?.file, c.illustration?.file]).filter(Boolean));
+  const referenced = new Set([...cards, ...orphans, ...entryCards].flatMap(c => [c.photo?.file, c.illustration?.file]).filter(Boolean));
   const imgDir = path.join(ROOT, 'img');
   let unused = existsSync(imgDir)
     ? (await readdir(imgDir)).filter(f => /\.(webp|jpe?g|png)$/i.test(f) && !referenced.has(`img/${f}`))
@@ -411,7 +425,7 @@ async function main() {
     drops: plan.lock,
   });
   const newlyFrozen = Object.keys(plan.lock).filter(id => !locked[id]);
-  await writeFile(P.report, renderReport({ rows, cards, orphans, report, imageProblems, unused, selected, drops, groups, warnings: plan.warnings, newlyFrozen, offline: args.offline }), 'utf8');
+  await writeFile(P.report, renderReport({ rows, cards, orphans, report, imageProblems, unused, selected, drops, groups, warnings: plan.warnings, newlyFrozen, offline: args.offline, extra }), 'utf8');
   console.log(`\nWrote ${path.relative(ROOT, P.cards)} (${cards.length + orphans.length} cards), ${path.relative(ROOT, P.drops)} (${drops.length} drops) and ${path.relative(ROOT, P.report)}`);
 }
 
@@ -454,7 +468,7 @@ function renderDrops(L, { rows, cards, drops, groups, warnings, newlyFrozen }) {
   L.push('');
 }
 
-function renderReport({ rows, cards, orphans, report, imageProblems, unused, selected, drops, groups, warnings, newlyFrozen, offline }) {
+function renderReport({ rows, cards, orphans, report, imageProblems, unused, selected, drops, groups, warnings, newlyFrozen, offline, extra }) {
   const L = [];
   const species = cards.filter(c => c.scientificName);
   const topics = cards.filter(c => !c.scientificName);
@@ -474,6 +488,7 @@ function renderReport({ rows, cards, orphans, report, imageProblems, unused, sel
   L.push(`- Cards with habitat still to write: ${habitatTodo.length}`);
   L.push(`- Cards with inside pages (profile, statistics, life cycle): ${cards.filter(c => c.profile || c.stats || c.lifeCycle).length}`, '');
   renderDrops(L, { rows, cards, drops, groups, warnings, newlyFrozen });
+  L.push(...renderBadgeSections({ rows, cards, drops, cfg: extra }));
 
   const attention = [...report.values()].filter(r => r.issues.length);
   L.push('## Needs your attention', '');
