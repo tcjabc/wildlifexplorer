@@ -5,6 +5,10 @@
 // - Swipe up to turn the card over, swipe down to go back to the binder.
 // Every gesture follows the finger; on release a spring finishes or undoes it.
 //
+// Field Notes: 📓 opens the notebook beside the card (landscape: side by side with a
+// draggable divider; portrait tablet: one above the other; phones: Card / Notes tabs). Either
+// pane can fill the screen (double-tap its bar, or pinch out) and come back (pinch in).
+//
 // Sharpness: the card is laid out at its real on-screen size with CSS zoom (never a small
 // card scaled up). While it moves it uses 3D transforms; at rest every transform comes off
 // and the cover / open spread / back is drawn flat, so text and photos stay crisp.
@@ -18,6 +22,8 @@ import {
 import { cardNo, groupTitle } from './components.js';
 import { track, spring, tween, clamp, lerp, haptic } from './gesture.js';
 import { speak, stop, isSpeaking, speechSupported } from './speech.js';
+import { notebook } from './notebook.js';
+import { notesCount } from './notes-store.js';
 
 const cssNum = name => parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
 const DONE = 0.999;
@@ -229,6 +235,14 @@ function wireGestures() {
       mode = null;
     },
     cancel: () => { mode = null; v.dragging = false; draw(); },
+    // With the notebook open, pinching the card fills the screen with it (or brings it back).
+    pinchStart: () => { stopMotion(); mode = null; v.dragging = false; },
+    pinchMove: () => {},
+    pinchEnd: ({ scale }) => {
+      if (!v.split) return;
+      if (scale > 1.25) maximise('card');
+      else if (scale < 0.8) maximise(null);
+    },
   });
 }
 
@@ -283,8 +297,19 @@ function buildBar(card) {
     readButton(),
     hasInside(card) && h('button', { class: 'btn btn--icon', type: 'button', 'aria-label': label('card.open'), onclick: toggleOpen }, '📖'),
     hasBack(card) && h('button', { class: 'btn btn--icon', type: 'button', 'aria-label': label('card.turnOver'), onclick: toggleFlip }, '🔄'),
+    notesButton(card),
     nav(siblings[i - 1], 'card.prev', '‹'),
     nav(siblings[i + 1], 'card.next', '›'));
+}
+
+// 📓 with the number of pages linked to this card.
+function notesButton(card) {
+  const n = notesCount(card.id);
+  return h('button', {
+    class: ['btn btn--icon viewer__notes', v?.split && 'is-on'], type: 'button',
+    'aria-label': label(n === 0 ? 'notes.open' : n === 1 ? 'notes.openCount.one' : 'notes.openCount.many', { n }), 'aria-pressed': String(Boolean(v?.split)),
+    onclick: () => toggleNotes(),
+  }, h('span', { 'aria-hidden': 'true' }, '📓'), n > 0 && h('span', { class: 'viewer__notes-n', 'aria-hidden': 'true' }, String(n)));
 }
 
 function setCard(card) {
@@ -293,6 +318,8 @@ function setCard(card) {
   mount(v.zoomer, v.built.pos);
   v.zoom = 0;
   const bar = buildBar(card);
+  // Double-tap the bar (not a button) to fill the screen with the card, or come back.
+  bar.addEventListener('dblclick', e => { if (v.split && !e.target.closest('button')) maximise(v.max === 'card' ? null : 'card'); });
   v.bar.replaceWith(bar);
   v.bar = bar;
   v.chrome = [v.bar, v.hint];
@@ -312,11 +339,12 @@ export function open(card, { fromEl, main, onDismiss } = {}) {
   const bar = h('div');
   const sheet = h('dialog', { class: 'sheet' });
   sheet.addEventListener('click', e => { if (e.target === sheet) sheet.close(); });
-  const el = h('div', { class: 'viewer', role: 'dialog', 'aria-modal': 'true' }, scrim, bar, stage, hint, sheet);
+  const pane = h('div', { class: 'viewer__pane' }, bar, stage, hint);
+  const el = h('div', { class: 'viewer', role: 'dialog', 'aria-modal': 'true' }, scrim, pane, sheet);
   el.addEventListener('wheel', e => e.preventDefault(), { passive: false });
   document.body.append(el);
 
-  v = { el, scrim, zoomer, stage, hint, bar, sheet, main, fromEl, onDismiss, p: 0, f: 0, z: 0, cancel: null };
+  v = { el, pane, scrim, zoomer, stage, hint, bar, sheet, main, fromEl, onDismiss, p: 0, f: 0, z: 0, cancel: null, split: null, max: null };
   setCard(card);
   if (main && fromEl) {
     const m = main.getBoundingClientRect(), r = fromEl.getBoundingClientRect();
@@ -325,7 +353,7 @@ export function open(card, { fromEl, main, onDismiss } = {}) {
   measure();
   draw();
   wireGestures();
-  v.onResize = () => { measure(); draw(); };
+  v.onResize = () => { fitSplit(); measure(); draw(); };
   window.addEventListener('resize', v.onResize);
 
   v.zoomCancel = tween({ from: 0, to: 1, duration: 520, onUpdate: z => { v.z = z; draw(); }, onDone: () => { v.zoomCancel = null; draw(); } });
@@ -337,6 +365,7 @@ export function show(card) {
   stopMotion();
   stop();
   setCard(card);
+  if (v.split) { closeNotes(); openNotes(); }
   v.fromEl = v.main?.querySelector(`.tile[data-card="${CSS.escape(card.id)}"]`) ?? v.fromEl;
   v.z = 1;
   measure();
@@ -346,6 +375,7 @@ export function show(card) {
 
 function teardown() {
   if (!v) return;
+  v.split?.book.destroy();
   stopMotion();
   stopZoom();
   stop();
@@ -353,6 +383,123 @@ function teardown() {
   ['transform', 'filter', 'transform-origin'].forEach(p => v.main?.style.removeProperty(p));
   v.el.remove();
   v = null;
+}
+
+// ---------- Field Notes beside the card ----------
+
+// Side by side and stacked each remember their own divider position (kept on this device).
+const stacked = () => getComputedStyle(v.el).flexDirection === 'column';
+const splitKey = () => `we-notes-split-${stacked() ? 'col' : 'row'}`;
+// Stacked starts with more room for the page.
+const readSplit = () => { const d = stacked() ? 0.4 : 0.5; try { return Number(localStorage.getItem(splitKey())) || d; } catch { return d; } };
+// Turning the tablet swaps between the two.
+function fitSplit() {
+  if (!v?.split || v.split.stacked === stacked()) return;
+  v.split.stacked = stacked();
+  v.el.style.setProperty('--split', String(readSplit()));
+}
+const relayout = () => requestAnimationFrame(() => { if (v) { measure(); draw(); } });
+
+export function openNotes() {
+  if (!v || v.split) return;
+  const book = notebook({
+    cardId: v.card.id, beside: true,
+    onMaximise: m => maximise(m === 'toggle' ? (v.max === 'notes' ? null : 'notes') : m === 'max' ? 'notes' : null),
+    onClose: () => toggleNotes(false),
+  });
+  const divider = h('div', { class: 'viewer__divider', role: 'separator', 'aria-label': label('notes.divider'), tabindex: '0' });
+  const notesPane = h('div', { class: 'viewer__notespane' }, book.el);
+  const tab = (id, key, icon) => h('button', { type: 'button', role: 'tab', class: 'viewer__tab', 'data-pane': id, onclick: () => showPane(id) },
+    h('span', { 'aria-hidden': 'true' }, icon), tx(key));
+  const tabs = h('div', { class: 'viewer__tabs', role: 'tablist' }, tab('card', 'notes.tabCard', '🃏'), tab('notes', 'notes.tabNotes', '📓'));
+  v.el.insertBefore(tabs, v.pane);
+  v.pane.after(divider, notesPane);
+  v.split = { book, divider, notesPane, tabs, stacked: null };
+  v.el.classList.add('is-split');
+  fitSplit();
+  showPane('notes');
+  wireDivider(divider);
+  wireTabSwipe(tabs);
+  v.bar.querySelector('.viewer__notes')?.classList.add('is-on');
+  relayout();
+}
+
+function closeNotes() {
+  if (!v?.split) return;
+  const { book, divider, notesPane, tabs } = v.split;
+  book.destroy();
+  [divider, notesPane, tabs].forEach(x => x.remove());
+  v.split = null;
+  v.max = null;
+  v.el.classList.remove('is-split', 'is-max-card', 'is-max-notes');
+  v.el.removeAttribute('data-pane');
+  // The page count on 📓 may have changed.
+  v.bar.querySelector('.viewer__notes')?.replaceWith(notesButton(v.card));
+  relayout();
+}
+
+export function toggleNotes(open = !v?.split) { if (open) openNotes(); else closeNotes(); }
+
+// null: both panes; 'card' or 'notes': that pane fills the screen.
+function maximise(which) {
+  if (!v?.split) return;
+  v.max = which;
+  v.el.classList.toggle('is-max-card', which === 'card');
+  v.el.classList.toggle('is-max-notes', which === 'notes');
+  haptic(8);
+  relayout();
+}
+
+// Phones: one pane at a time; tap a tab or swipe across the tabs.
+function showPane(id) {
+  v.el.dataset.pane = id;
+  v.split.tabs.querySelectorAll('[data-pane]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.pane === id)));
+  relayout();
+}
+function wireTabSwipe(tabs) {
+  let x0 = null;
+  tabs.addEventListener('pointerdown', e => { x0 = e.clientX; });
+  tabs.addEventListener('pointerup', e => {
+    if (x0 == null) return;
+    const dx = e.clientX - x0;
+    x0 = null;
+    if (Math.abs(dx) > 50) showPane(dx < 0 ? 'notes' : 'card');
+  });
+}
+
+// Drag the divider to give either pane more room (kept on this device).
+function wireDivider(divider) {
+  const setTo = k => {
+    const x = clamp(k, 0.25, 0.75);
+    v.el.style.setProperty('--split', String(x));
+    try { localStorage.setItem(splitKey(), String(x)); } catch { /* fine without */ }
+  };
+  divider.addEventListener('pointerdown', e => {
+    try { divider.setPointerCapture(e.pointerId); } catch { /* gone */ }
+    divider.classList.add('is-dragging');
+    const r = v.el.getBoundingClientRect();
+    const onMove = ev => {
+      setTo(stacked() ? (ev.clientY - r.top) / r.height : (ev.clientX - r.left) / r.width);
+      measure();
+      draw();
+    };
+    const onUp = () => {
+      divider.classList.remove('is-dragging');
+      divider.removeEventListener('pointermove', onMove);
+      divider.removeEventListener('pointerup', onUp);
+      relayout();
+    };
+    divider.addEventListener('pointermove', onMove);
+    divider.addEventListener('pointerup', onUp);
+  });
+  divider.addEventListener('keydown', e => {
+    const step = { ArrowLeft: -0.05, ArrowUp: -0.05, ArrowRight: 0.05, ArrowDown: 0.05 }[e.key];
+    if (!step) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setTo(Number(v.el.style.getPropertyValue('--split')) + step);
+    relayout();
+  });
 }
 
 // Close with the zoom running backwards into the tile.
