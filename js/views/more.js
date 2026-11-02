@@ -5,6 +5,7 @@ import { speak, speechSupported } from '../speech.js';
 import { langSwitch } from '../chrome.js';
 import { offlineStatus } from '../offline.js';
 import { CHILD_DEFAULT } from '../compare.js';
+import { setZhuyin } from '../zhuyin.js';
 
 let gateOpen = false;
 
@@ -51,6 +52,16 @@ export function render(main) {
     },
   }, tx(`more.${r}`)));
 
+  // How Chinese names first show on cards (a tap on a name switches it for this visit).
+  const zyButtons = [false, true].map(on => h('button', {
+    type: 'button', role: 'radio', class: 'seg__btn', 'aria-checked': String(state.settings.zhuyin === on),
+    onclick: async e => {
+      await saveSettings({ zhuyin: on });
+      setZhuyin(on);
+      zyButtons.forEach(b => b.setAttribute('aria-checked', String(b === e.currentTarget)));
+    },
+  }, tx(on ? 'more.zhZhuyin' : 'more.zhPlain')));
+
   const parentZone = h('div');
   renderParentZone(parentZone);
 
@@ -79,6 +90,11 @@ export function render(main) {
     h('p', { class: 'muted' }, tx('more.collectedCount', progress())),
 
     h('div', { class: 'panel' }, h('h2', { class: 'panel__title' }, tx('lang.label')), langSwitch()),
+
+    h('div', { class: 'panel' },
+      h('h2', { class: 'panel__title' }, tx('more.zhNames')),
+      h('div', { class: 'seg', role: 'radiogroup', 'aria-label': label('more.zhNames') }, zyButtons),
+      h('p', { class: 'muted' }, tx('more.zhNote'))),
 
     h('div', { class: 'panel' },
       h('h2', { class: 'panel__title' }, tx('more.speech')),

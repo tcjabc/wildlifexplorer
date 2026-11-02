@@ -33,6 +33,7 @@ const SHELL = [
   'js/compare.js',
   'js/magnifier.js',
   'js/globe.js',
+  'js/zhuyin.js',
   'js/views/binder.js',
   'js/views/globe.js',
   'js/views/quiz.js',

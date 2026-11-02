@@ -333,6 +333,13 @@ async function main() {
       scientificName: row.scientific_name || null,
     };
     if (row.name_zh) values['name.zh'] = row.name_zh;
+    // Zhuyin: one syllable per Chinese character, separated by spaces.
+    if (row.zhuyin) {
+      values['name.zhuyin'] = row.zhuyin;
+      const han = [...row.name_zh].filter(c => /\p{Script=Han}/u.test(c)).length;
+      const syl = row.zhuyin.split(/\s+/).length;
+      if (syl !== han) issues.push(`Zhuyin has ${syl} syllables but ${row.name_zh} has ${han} characters`);
+    } else if (row.name_zh) issues.push('No zhuyin in the list for the Chinese name');
     const loc = locations[row.id] ?? locations[id];
     if (loc?.place) values.place = loc.place;
     if (loc?.fossilSite) values.fossilSite = loc.fossilSite;

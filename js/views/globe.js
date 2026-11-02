@@ -16,6 +16,7 @@ import { picture, groupTitle, cardNo } from '../components.js';
 import { createGlobe, toVec } from '../globe.js';
 import { loadRange, rangePolygons } from '../worldmap.js';
 import { track, haptic } from '../gesture.js';
+import { nameBi } from '../zhuyin.js';
 
 const NEAR_SIDE = 0.06;   // pins this close to the rim fade out
 const TOUCH = 0.8;        // pins closer than this many pin widths stack up
@@ -220,7 +221,7 @@ export function render(main) {
         h('p', { class: 'gsheet__meta' },
           h('span', { class: 'gsheet__no' }, tx('card.number', { n: cardNo(card.number) })),
           g && groupTitle(g)),
-        h('h2', { class: 'gsheet__name' }, bi(card.name)),
+        h('h2', { class: 'gsheet__name' }, nameBi(card.name)),
         fact && h('p', { class: 'gsheet__fact' }, bi(fact)),
         h('a', { class: 'btn btn--primary btn--big gsheet__open', href: `#/card/${encodeURIComponent(card.id)}` },
           h('span', { 'aria-hidden': 'true' }, '📒'), tx('globe.openInBinder'))));

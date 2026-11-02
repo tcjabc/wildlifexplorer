@@ -67,6 +67,28 @@ html[data-lang="both"] .bi > .t-zh { font-size: 0.94em; }
 .bi--title > .t-zh { font-size: var(--fs-xl) !important; line-height: 1.2; }
 html[data-lang="zh"] .bi--title > .t-zh { font-size: var(--fs-xxl) !important; }
 
+/* Chinese names with zhuyin (js/zhuyin.js): tap to switch 漢字 ↔ 注音. */
+.zyname {
+  display: block; padding: 0; border: 0; background: none; color: inherit;
+  font: inherit; line-height: inherit; text-align: inherit; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain { display: none; }
+.zyname__zy { display: flex; flex-wrap: wrap; align-items: center; row-gap: 0.12em; line-height: 1; }
+.zyname__zy--long { font-size: 0.88em; }
+.zy { display: inline-flex; align-items: center; }
+.zy__r {
+  display: grid; grid-template-columns: auto auto; grid-template-rows: auto auto;
+  margin-left: var(--zy-gap); margin-right: 0.12em;
+  font-size: calc(var(--zy-ratio) * 1em); font-weight: var(--fw-semi); line-height: 1.02;
+}
+.zy__n { grid-area: 1 / 1; justify-self: center; line-height: 0.5; }
+.zy__b { grid-area: 2 / 1; display: flex; flex-direction: column; align-items: center; }
+/* Tone mark beside the last symbol, a little above its middle. */
+.zy__t { grid-area: 2 / 2; align-self: end; margin-bottom: 0.45em; margin-left: 0.04em; }
+.zyname.is-turning { animation: zy-turn 0.28s var(--ease-bounce); }
+@keyframes zy-turn { from { transform: rotateX(80deg); opacity: 0.3; } to { transform: none; opacity: 1; } }
+
 /* ---------- Buttons & controls ---------- */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: var(--s-2);

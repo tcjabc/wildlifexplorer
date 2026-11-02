@@ -151,6 +151,8 @@
   --card-fs-sm: 12px;
   --card-fs-title: 19px;
   --card-fs-name: 30px;
+  --zy-ratio: 0.36;     /* zhuyin size, as a share of the character beside it */
+  --zy-gap: 0.04em;     /* between a character and its zhuyin column */
   --spot: 10px;         /* map location dot */
   --callout-dot: 26px;  /* numbered steps, IUCN code on card pages */
   --hotspot: 24px;      /* numbered bubbles in the Profile list */

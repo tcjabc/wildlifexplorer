@@ -10,6 +10,7 @@ import { runReveals } from './reveal.js';
 import { registerOffline } from './offline.js';
 import { stop } from './speech.js';
 import * as viewer from './viewer.js';
+import { setZhuyin } from './zhuyin.js';
 
 import * as binder from './views/binder.js';
 import * as globe from './views/globe.js';
@@ -98,6 +99,7 @@ function checkNewCards() {
 async function boot() {
   await Promise.all([loadStrings(), store.init()]);
   setMode(store.state.settings.lang);
+  setZhuyin(store.state.settings.zhuyin);
   route();
   document.body.classList.remove('is-loading');
   main.removeAttribute('aria-busy');

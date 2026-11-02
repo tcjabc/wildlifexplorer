@@ -73,6 +73,9 @@ service workers need `localhost` or `https`.)
    - `scientific_name` filled in → a **species card**: the build looks it up for you.
    - `scientific_name` empty → a **topic card** (behaviour, places, conservation…): you write it all by hand.
    - `taiwan`: `Y` shows the "Found in Taiwan 臺灣在地" badge.
+   - `zhuyin`: one syllable per Chinese character, separated by spaces, Taiwan (教育部) readings. First tone unmarked,
+     neutral tone in front (`˙ㄉㄜ`). Shown beside the Chinese name on cards (tap the name, or set the default in More).
+     The build reports a syllable count that doesn't match. Readings still to check are listed in `data/zhuyin-review.md`.
    - `name_en` becomes the card's id (`Taiwan Blue Magpie` → `taiwan-blue-magpie`). Names must be unique.
 
 2. Run the build (below), read `data/build-report.md`, then write the facts.

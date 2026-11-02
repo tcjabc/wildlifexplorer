@@ -4,6 +4,7 @@
     "scientificName": "Ursus thibetanus formosanus",
     "name.en": "Formosan Black Bear",
     "name.zh": "臺灣黑熊",
+    "name.zhuyin": "ㄊㄞˊ ㄨㄢ ㄏㄟ ㄒㄩㄥˊ",
     "taiwan": true,
     "status": "VU",
     "taxonomy": {
@@ -75,6 +76,7 @@
     "scientificName": "Macaca cyclopis",
     "name.en": "Formosan Rock Macaque",
     "name.zh": "臺灣獼猴",
+    "name.zhuyin": "ㄊㄞˊ ㄨㄢ ㄇㄧˊ ㄏㄡˊ",
     "taiwan": true,
     "status": "LC",
     "taxonomy": {
@@ -139,6 +141,7 @@
     "scientificName": "Manis pentadactyla",
     "name.en": "Chinese Pangolin",
     "name.zh": "穿山甲",
+    "name.zhuyin": "ㄔㄨㄢ ㄕㄢ ㄐㄧㄚˇ",
     "taiwan": true,
     "status": "CR",
     "taxonomy": {
@@ -195,6 +198,7 @@
     "scientificName": "Capricornis swinhoei",
     "name.en": "Taiwan Serow",
     "name.zh": "臺灣長鬃山羊",
+    "name.zhuyin": "ㄊㄞˊ ㄨㄢ ㄔㄤˊ ㄗㄨㄥ ㄕㄢ ㄧㄤˊ",
     "taiwan": true,
     "status": "LC",
     "taxonomy": {
@@ -251,6 +255,7 @@
     "scientificName": "Rusa unicolor swinhoii",
     "name.en": "Formosan Sambar Deer",
     "name.zh": "水鹿",
+    "name.zhuyin": "ㄕㄨㄟˇ ㄌㄨˋ",
     "taiwan": true,
     "status": "VU",
     "taxonomy": {
@@ -307,6 +312,7 @@
     "scientificName": "Muntiacus reevesi micrurus",
     "name.en": "Formosan Muntjac",
     "name.zh": "山羌",
+    "name.zhuyin": "ㄕㄢ ㄑㄧㄤ",
     "taiwan": true,
     "status": "LC",
     "taxonomy": {
@@ -356,6 +362,7 @@
     "scientificName": "Pteropus dasymallus formosus",
     "name.en": "Formosan Flying Fox",
     "name.zh": "臺灣狐蝠",
+    "name.zhuyin": "ㄊㄞˊ ㄨㄢ ㄏㄨˊ ㄈㄨˊ",
     "taiwan": true,
     "status": "VU",
     "taxonomy": {
@@ -412,6 +419,7 @@
     "scientificName": "Prionailurus bengalensis",
     "name.en": "Leopard Cat",
     "name.zh": "石虎",
+    "name.zhuyin": "ㄕˊ ㄏㄨˇ",
     "taiwan": true,
     "status": "LC",
     "taxonomy": {
@@ -468,6 +476,7 @@
     "scientificName": "Paguma larvata",
     "name.en": "Masked Palm Civet",
     "name.zh": "白鼻心",
+    "name.zhuyin": "ㄅㄞˊ ㄅㄧˊ ㄒㄧㄣ",
     "taiwan": true,
     "status": "LC",
     "taxonomy": {
@@ -524,6 +533,7 @@
     "scientificName": "Petaurista philippensis",
     "name.en": "Red and White Giant Flying Squirrel",
     "name.zh": "大赤鼯鼠",
+    "name.zhuyin": "ㄉㄚˋ ㄔˋ ㄨˊ ㄕㄨˇ",
     "taiwan": true,
     "status": "LC",
     "taxonomy": {
@@ -573,6 +583,7 @@
     "scientificName": "Lutra lutra",
     "name.en": "Eurasian Otter",
     "name.zh": "歐亞水獺",
+    "name.zhuyin": "ㄡ ㄧㄚˋ ㄕㄨㄟˇ ㄊㄚˋ",
     "taiwan": true,
     "status": "NT",
     "taxonomy": {
@@ -629,6 +640,7 @@
     "scientificName": "Panthera tigris tigris",
     "name.en": "Bengal Tiger",
     "name.zh": "孟加拉虎",
+    "name.zhuyin": "ㄇㄥˋ ㄐㄧㄚ ㄌㄚ ㄏㄨˇ",
     "taiwan": false,
     "status": "EN",
     "taxonomy": {
@@ -685,6 +697,7 @@
     "scientificName": "Panthera leo",
     "name.en": "Lion",
     "name.zh": "獅子",
+    "name.zhuyin": "ㄕ ˙ㄗ",
     "taiwan": false,
     "status": "VU",
     "taxonomy": {
@@ -734,6 +747,7 @@
     "scientificName": "Acinonyx jubatus",
     "name.en": "Cheetah",
     "name.zh": "獵豹",
+    "name.zhuyin": "ㄌㄧㄝˋ ㄅㄠˋ",
     "taiwan": false,
     "status": "VU",
     "taxonomy": {
@@ -783,6 +797,7 @@
     "scientificName": "Loxodonta africana",
     "name.en": "African Elephant",
     "name.zh": "非洲象",
+    "name.zhuyin": "ㄈㄟ ㄓㄡ ㄒㄧㄤˋ",
     "taiwan": false,
     "status": "EN",
     "taxonomy": {
@@ -839,6 +854,7 @@
     "scientificName": "Giraffa camelopardalis",
     "name.en": "Giraffe",
     "name.zh": "長頸鹿",
+    "name.zhuyin": "ㄔㄤˊ ㄐㄧㄥˇ ㄌㄨˋ",
     "taiwan": false,
     "status": "VU",
     "taxonomy": {
@@ -895,6 +911,7 @@
     "scientificName": "Equus quagga",
     "name.en": "Plains Zebra",
     "name.zh": "平原斑馬",
+    "name.zhuyin": "ㄆㄧㄥˊ ㄩㄢˊ ㄅㄢ ㄇㄚˇ",
     "taiwan": false,
     "status": "NT",
     "taxonomy": {
@@ -951,6 +968,7 @@
     "scientificName": "Hippopotamus amphibius",
     "name.en": "Hippopotamus",
     "name.zh": "河馬",
+    "name.zhuyin": "ㄏㄜˊ ㄇㄚˇ",
     "taiwan": false,
     "status": "VU",
     "taxonomy": {
@@ -1000,6 +1018,7 @@
     "scientificName": "Diceros bicornis",
     "name.en": "Black Rhinoceros",
     "name.zh": "黑犀牛",
+    "name.zhuyin": "ㄏㄟ ㄒㄧ ㄋㄧㄡˊ",
     "taiwan": false,
     "status": "CR",
     "taxonomy": {
@@ -1056,6 +1075,7 @@
     "scientificName": "Gorilla gorilla gorilla",
     "name.en": "Western Lowland Gorilla",
     "name.zh": "西部低地大猩猩",
+    "name.zhuyin": "ㄒㄧ ㄅㄨˋ ㄉㄧ ㄉㄧˋ ㄉㄚˋ ㄒㄧㄥ ㄒㄧㄥ",
     "taiwan": false,
     "status": "CR",
     "taxonomy": {

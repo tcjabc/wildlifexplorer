@@ -5,7 +5,7 @@ export const state = {
   cards: [],
   groups: [],
   byId: new Map(),
-  settings: { lang: 'both', rate: 'normal', preview: false },
+  settings: { lang: 'both', rate: 'normal', preview: false, zhuyin: false },
   collected: {},  // id -> date it was revealed
   badges: {},     // group id -> date earned
   quiz: { best: {} },

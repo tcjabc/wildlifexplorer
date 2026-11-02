@@ -8,6 +8,7 @@ import { worldMap } from './worldmap.js';
 import { comparePanel, modesFor } from './compare.js';
 import { magnifier } from './magnifier.js';
 import { track, haptic } from './gesture.js';
+import { nameBi } from './zhuyin.js';
 
 const filled = p => p && (p.en || p.zh);
 export const factsOf = card => (card.facts ?? []).filter(filled);
@@ -41,7 +42,7 @@ export function coverPage(card, { onCredit } = {}) {
         onclick: () => onCredit?.(kind),
       }, kind === 'photo' ? '📷' : '🎨')),
     h('div', { class: 'cover__names' },
-      h('h1', { class: 'cover__name' }, bi(card.name, 'bi--cover')),
+      h('h1', { class: 'cover__name' }, nameBi(card.name, 'bi--cover')),
       card.scientificName && h('p', { class: 'cover__sci', lang: 'la' }, card.scientificName)),
     h('div', { class: 'cover__bottom' },
       facts.length > 0 && h('ol', { class: 'cover__facts' }, facts.slice(0, 3).map(f => h('li', null, bi(f)))),
