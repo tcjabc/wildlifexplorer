@@ -99,6 +99,15 @@
   --tier-gold: #f4c534;    --tier-gold-ink: #3b2a00;
   --c-secret: #2c3640;     --c-secret-ink: #ffc93c;   /* the "?" of a secret badge */
 
+  /* Field Notes notebook (also read by js/notes-render.js for the page canvas) */
+  --nb-kraft: #b98b5e;      --nb-kraft-deep: #8f6a45;   --nb-kraft-ink: #3b2a1a;
+  --nb-paper: #fbf7ec;      --nb-dot: #c9bfa8;          --nb-grid: #e6dfcf;
+  --nb-ink: #3d3a35;        --nb-stamp: #c0392b;        --nb-tape: rgb(236 222 176 / 0.78);
+  --nb-photo-edge: #ffffff; --nb-shadow: rgb(40 30 20 / 0.28);
+  /* Coloured pencils */
+  --pencil-graphite: #4a4a4a; --pencil-red: #d7263d;   --pencil-orange: #f17105; --pencil-yellow: #e6a800;
+  --pencil-green: #2b8f47;    --pencil-blue: #1e78d2;  --pencil-purple: #8e44ad; --pencil-brown: #8b5e3c;
+
   /* IUCN Red List badge colours (the Red List's own palette) */
   --iucn-ex: #000000;  --iucn-ex-ink: #ff5a5a;
   --iucn-ew: #542344;  --iucn-ew-ink: #ffffff;
