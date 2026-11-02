@@ -1,6 +1,6 @@
 # Build report
 
-Generated 2026-11-02 14:44 UTC. Re-written on every build.
+Generated 2026-11-02 15:00 UTC. Re-written on every build.
 
 ## Summary
 
@@ -196,7 +196,7 @@ For the "Animal" comparison. Defined in data/lookalikes.json; a group shows on a
 
 ### Spotted big cats · 身上有斑點的大貓 (`spotted-big-cats`) (draft)
 
-- ✓ Cheetah: needs silhouette (the group emoji is drawn instead) (size is a draft)
+- ✓ Cheetah: needs silhouette (a "?" outline is drawn instead) (size is a draft)
 - ○ Amur Leopard: not built yet (s3-w08)
 - ◆ Jaguar · 美洲豹 (standalone)
 
@@ -212,8 +212,8 @@ For the "Animal" comparison. Defined in data/lookalikes.json; a group shows on a
 
 ### Night flyers · 夜晚的飛行家 (`night-flyers`) (draft)
 
-- ✓ Formosan Flying Fox: needs silhouette (the group emoji is drawn instead) (size is a draft)
-- ✓ Red and White Giant Flying Squirrel: needs silhouette (the group emoji is drawn instead) (size is a draft)
+- ✓ Formosan Flying Fox: needs silhouette (a "?" outline is drawn instead) (size is a draft)
+- ✓ Red and White Giant Flying Squirrel: needs silhouette (a "?" outline is drawn instead) (size is a draft)
 
 ### Armoured diggers · 披著盔甲的挖洞高手 (`armoured-diggers`) (draft)
 
@@ -222,7 +222,7 @@ For the "Animal" comparison. Defined in data/lookalikes.json; a group shows on a
 
 ### Wild cat or house cat? · 石虎還是家貓？ (`wild-cat-or-house-cat`) (draft)
 
-- ✓ Leopard Cat: needs silhouette (the group emoji is drawn instead) (size is a draft)
+- ✓ Leopard Cat: needs silhouette (a "?" outline is drawn instead) (size is a draft)
 - ◆ House cat · 家貓 (standalone)
 
 ### Taiwan’s hoofed mountain animals · 臺灣山上的有蹄動物 (`taiwan-hoofed`) (draft)
@@ -253,13 +253,13 @@ For the "Animal" comparison. Defined in data/lookalikes.json; a group shows on a
 
 ### Lookalike content still needed
 
-- Cheetah (`cheetah`, spotted-big-cats): silhouette (the group emoji is drawn instead)
+- Cheetah (`cheetah`, spotted-big-cats): silhouette (a "?" outline is drawn instead)
 - Amur Leopard (`amur-leopard`, spotted-big-cats): not built yet
 - Asian Elephant (`asian-elephant`, elephants): not built yet
-- Formosan Flying Fox (`formosan-flying-fox`, night-flyers): silhouette (the group emoji is drawn instead)
-- Red and White Giant Flying Squirrel (`red-and-white-giant-flying-squirrel`, night-flyers): silhouette (the group emoji is drawn instead)
+- Formosan Flying Fox (`formosan-flying-fox`, night-flyers): silhouette (a "?" outline is drawn instead)
+- Red and White Giant Flying Squirrel (`red-and-white-giant-flying-squirrel`, night-flyers): silhouette (a "?" outline is drawn instead)
 - Nine-banded Armadillo (`nine-banded-armadillo`, armoured-diggers): not built yet
-- Leopard Cat (`leopard-cat`, wild-cat-or-house-cat): silhouette (the group emoji is drawn instead)
+- Leopard Cat (`leopard-cat`, wild-cat-or-house-cat): silhouette (a "?" outline is drawn instead)
 - Chimpanzee (`chimpanzee`, great-apes): not built yet
 - Mock Viper (standalone, venomous-or-harmless): silhouette
 - Golden Birdwing (`golden-birdwing`, moth-or-butterfly): not built yet

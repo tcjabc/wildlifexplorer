@@ -353,6 +353,10 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
 .sheet::backdrop { background: var(--c-overlay); }
 .sheet__title { font-size: var(--fs-lg); margin-bottom: var(--s-4); display: flex; gap: var(--s-2); align-items: center; }
 .sheet__actions { display: flex; flex-wrap: wrap; gap: var(--s-2); margin-top: var(--s-5); }
+/* A lookalike's photo (Animal comparison). */
+.look-card__img { width: 100%; max-height: 50dvh; object-fit: contain; border-radius: var(--r-md); background: var(--c-bg-deep); }
+.look-card__credit { margin-top: var(--s-3); color: var(--c-ink-soft); font-size: var(--fs-xs); }
+.look-card .sheet__title { margin-bottom: var(--s-3); }
 .facts-list { display: grid; grid-template-columns: auto 1fr; gap: var(--s-2) var(--s-4); margin: 0; }
 .facts-list dt { font-weight: var(--fw-bold); color: var(--c-ink-soft); }
 .facts-list dd { margin: 0; word-break: break-word; }

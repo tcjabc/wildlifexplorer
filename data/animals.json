@@ -880,6 +880,10 @@
       "lengthCm": {
         "min": 18,
         "max": 24
+      },
+      "wingspanCm": {
+        "min": 124,
+        "max": 141
       }
     },
     "taxonomy": {
@@ -1146,6 +1150,10 @@
       "lengthCm": {
         "min": 37,
         "max": 46
+      },
+      "wingspanCm": {
+        "min": 45,
+        "max": 55
       }
     },
     "taxonomy": {

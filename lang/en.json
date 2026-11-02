@@ -285,5 +285,6 @@
   "compare.measure.height": "height",
   "compare.measure.wingspan": "wingspan",
   "credits.lookalike": "Lookalike",
-  "card.lookalikes": "Lookalikes"
+  "card.lookalikes": "Lookalikes",
+  "compare.seePhoto": "See a photo of {name}"
 }

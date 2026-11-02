@@ -347,8 +347,11 @@
   margin: 0; display: grid; grid-template-rows: var(--compare-look-h) auto; justify-items: center; align-items: end;
   color: inherit; text-decoration: none;
 }
-.cmp-look__item figcaption { padding-top: var(--s-2); text-align: center; font-size: var(--card-fs-sm); font-weight: var(--fw-semi); align-self: start; }
-.cmp-look__item figcaption .bi { align-items: center; }
+/* A standalone lookalike is a button: tap it to see its photo. */
+button.cmp-look__item { padding: 0; border: 0; background: none; font: inherit; cursor: pointer; }
+.cmp-look__cam { font-size: var(--card-fs-sm); }
+.cmp-look__caption { padding-top: var(--s-2); text-align: center; font-size: var(--card-fs-sm); font-weight: var(--fw-semi); align-self: start; }
+.cmp-look__caption .bi { align-items: center; }
 /* Sizes and the "not yet" note on one line each, in both languages. */
 .cmp-look__item .cmp__num .bi { flex-direction: row; flex-wrap: wrap; justify-content: center; column-gap: 0.4em; }
 .cmp-look__pic { display: block; height: auto; transform-origin: 50% 100%; }

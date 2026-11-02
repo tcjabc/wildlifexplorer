@@ -285,5 +285,6 @@
   "compare.measure.height": "高度",
   "compare.measure.wingspan": "翼展",
   "credits.lookalike": "長得像的動物",
-  "card.lookalikes": "長得像的動物"
+  "card.lookalikes": "長得像的動物",
+  "compare.seePhoto": "看{name}的照片"
 }

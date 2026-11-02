@@ -3,11 +3,11 @@
 // shows on every member's card.
 //   another card the profile has (or parent preview) → shown in full, tap to open it
 //   another card not collected yet → a locked silhouette, as a teaser
-//   a standalone entry (an animal with no card) → shown in full
+//   a standalone entry (an animal with no card) → shown in full; tap it to see its photo
 // Cards not built yet are left out, and draft groups only show in parent preview.
-import { h, mount } from './dom.js';
-import { bi, tx } from './i18n.js';
-import { state, isVisible } from './store.js';
+import { h, mount, safeUrl } from './dom.js';
+import { bi, tx, label, plain } from './i18n.js';
+import { state, isVisible, thumbOf } from './store.js';
 import { lengthText } from './units.js';
 
 const KEY = { length: 'lengthCm', height: 'heightCm', wingspan: 'wingspanCm' };
@@ -35,7 +35,7 @@ export function lookalikesOf(card) {
 function memberOf(other, key) {
   if (other.entry) {
     const e = other.entry;
-    return { name: e.name, group: e.group, silhouette: e.silhouette?.file, size: e.size?.[key] };
+    return { name: e.name, group: e.group, silhouette: e.silhouette?.file, size: e.size?.[key], photo: e.photo?.file ? e.photo : null };
   }
   const c = other.card;
   const open = isVisible(c);
@@ -52,14 +52,43 @@ function figure(m) {
   const pic = m.silhouette
     ? h('img', { class: ['cmp-look__pic', m.locked && 'is-locked'], src: m.silhouette, alt: '' })
     : h('span', { class: ['cmp-look__pic', 'cmp-look__box', m.locked && 'is-locked'], 'aria-hidden': 'true' }, '?');
-  const caption = h('figcaption', null,
+  // A span, not a figcaption: the item is often a link or a button.
+  const caption = h('span', { class: 'cmp-look__caption' },
     h('span', { class: 'cmp-look__name' },
       m.locked && h('span', { class: 'cmp-look__q', 'aria-hidden': 'true' }, '?'),
-      bi(m.name)),
+      bi(m.name),
+      m.photo && h('span', { class: 'cmp-look__cam', 'aria-hidden': 'true' }, '📷')),
     m.size && h('span', { class: 'cmp__num' }, bi(lengthText(m.size.min, m.size.max))),
     m.locked && h('span', { class: 'cmp__num' }, tx('compare.notYet')));
-  const el = h(m.href ? 'a' : 'figure', { class: ['cmp-look__item', m.locked && 'is-locked'], href: m.href, 'data-group': m.group }, pic, caption);
+  const attrs = { class: ['cmp-look__item', m.locked && 'is-locked'], 'data-group': m.group };
+  const el = m.href ? h('a', { ...attrs, href: m.href }, pic, caption)
+    : m.photo ? h('button', { ...attrs, type: 'button', 'aria-label': label('compare.seePhoto', { name: m.name }), onclick: () => photoCard(m) }, pic, caption)
+      : h('figure', attrs, pic, caption);
   return { el, pic, m };
+}
+
+// A small card with a standalone lookalike's photo: name, picture and credit line.
+function photoCard(m) {
+  const p = m.photo;
+  const lic = safeUrl(p.licenseUrl), src = safeUrl(p.sourceUrl);
+  const close = () => { dialog.close(); dialog.remove(); };
+  const dialog = h('dialog', { class: 'sheet look-card', 'aria-label': plain(m.name), 'data-group': m.group },
+    h('h2', { class: 'sheet__title' }, bi(m.name)),
+    h('img', {
+      class: 'look-card__img', src: p.file, srcset: `${thumbOf(p.file)} 480w, ${p.file} 1200w`, sizes: '(min-width: 700px) 520px, 92vw',
+      alt: plain(m.name),
+    }),
+    h('p', { class: 'look-card__credit' },
+      h('span', { 'aria-hidden': 'true' }, '📷 '), p.author, ' · ',
+      lic ? h('a', { href: lic, target: '_blank', rel: 'noopener' }, p.license) : p.license,
+      src && ' · ', src && h('a', { href: src, target: '_blank', rel: 'noopener' }, tx('card.source'))),
+    h('div', { class: 'sheet__actions' }, h('button', { class: 'btn btn--primary', type: 'button', onclick: close }, tx('card.close'))));
+  // Escape closes only this card, not the card behind it; a tap outside closes it too.
+  dialog.addEventListener('keydown', e => e.stopPropagation());
+  dialog.addEventListener('close', () => dialog.remove());
+  dialog.addEventListener('click', e => { if (e.target === dialog) close(); });
+  document.body.append(dialog);
+  dialog.showModal();
 }
 
 // Size the two figures so 1 cm is the same on both (once the silhouettes have loaded).

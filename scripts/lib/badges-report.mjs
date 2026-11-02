@@ -74,7 +74,7 @@ export function renderBadgeSections({ rows, cards, drops, cfg }) {
         todo.push(`${name(m)} (\`${m}\`, ${g.id}): not built yet`);
         continue;
       }
-      const needs = [!c.stats?.[key] && `size (stats.${key})`, !c.silhouette?.file && 'silhouette (the group emoji is drawn instead)'].filter(Boolean);
+      const needs = [!c.stats?.[key] && `size (stats.${key})`, !c.silhouette?.file && 'silhouette (a "?" outline is drawn instead)'].filter(Boolean);
       const draft = (c._draft ?? []).includes('stats') ? ' (size is a draft)' : '';
       L.push(`- ✓ ${c.name.en}${needs.length ? `: needs ${needs.join(', ')}` : ''}${draft}`);
       if (needs.length) todo.push(`${c.name.en} (\`${c.id}\`, ${g.id}): ${needs.join(', ')}`);

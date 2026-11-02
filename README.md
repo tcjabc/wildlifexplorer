@@ -396,7 +396,8 @@ on every member's card in the Animal comparison. A member is a card id, or `entr
 animal with no card (name, size, photo and silhouette in `entries`). `measure` says what the
 side-by-side view is drawn to scale by: `length` (`stats.lengthCm`), `height` (`stats.heightCm`)
 or `wingspan` (`stats.wingspanCm`). A collected card shows in full and opens on tap; one not
-collected yet is a dark silhouette; cards not built yet are left out. Groups with `"draft": true`
+collected yet is a dark silhouette; cards not built yet are left out. Tapping a standalone
+lookalike shows its photo with its credit. Groups with `"draft": true`
 only show in parent preview. The build report lists what each group still needs.
 
 **Silhouettes.** The comparison is silhouette against silhouette; an animal without one is a "?"
