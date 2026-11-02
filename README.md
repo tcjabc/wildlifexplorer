@@ -15,6 +15,9 @@ It runs on GitHub Pages and works fully offline once it has been opened.
   badges. **Quiz**: picture → name, and true/false facts.
 - **Creature comparison**: You (the animal against your own size) or Animal (lookalikes side by
   side, with how to tell them apart). **Globe**: filter the pins by continent or habitat.
+- **Field Notes**: a researcher's notebook per profile. Draw with a pencil (pen pressure and
+  palm rejection), write, stamp collected animals, roll footprints and tape in photos, beside the
+  card or on its own page. Back it up to a zip.
 - **Read aloud** (Web Speech API): English in an en-GB voice, Chinese in a zh-TW voice.
 - **Language**: EN / 中 / Both, per profile.
 - **For grown-ups** (behind a sum): pack day and time, units, preview, start over, delete.
@@ -365,8 +368,9 @@ A new profile copies the pack day/time and units of the existing ones. To add a 
 section to `SECTIONS` in `js/views/parents.js`.
 
 **Stored on the device** (IndexedDB, see `js/db.js`): `profiles`, `packs`, `collection`,
-`badges` and `quiz`, each record with an id and `createdAt` / `updatedAt` / `deletedAt`, ready
-to sync to a server later. Height and weight are stored in cm and kg whatever the units. Progress
+`badges`, `quiz` and `notes` (the Field Notes index), each record with an id and `createdAt` /
+`updatedAt` / `deletedAt`, ready to sync to a server later. Field Notes pages and photos are files
+in the browser's private storage (OPFS), with IndexedDB (`notefiles`) as the fallback. Height and weight are stored in cm and kg whatever the units. Progress
 from the version before profiles moves into the first profile.
 
 ## Badges, tags and lookalikes
@@ -414,6 +418,35 @@ edge. `--crop x,y,w,h` (fractions of the photo) helps when something else stands
 animal; camouflaged animals (e.g. a snake on leaf litter) often don't work. A silhouette made from
 a photo is a derivative of it: give it the photo's author and licence, add
 `"derivedFrom": "<the photo's sourceUrl>"`, and lock `"silhouette"`.
+
+## Field Notes
+
+One notebook per profile (📓 in the nav, or 📓 on a card). Code: `js/notebook.js` (the UI),
+`js/notes-render.js` (drawing a page), `js/notes-store.js` (storage), `js/notes-io.js` (backup),
+`js/zip.js`, styles in `css/notes.css`.
+
+- **Beside a card**: tablets in landscape show the card and the notebook side by side; drag the
+  divider (kept on the device, separately for side by side and stacked). Portrait tablets stack
+  them; phones have Card / Notes tabs. Double-tap a pane's bar, or pinch out, to fill the screen
+  with it; pinch in to come back.
+- **Links**: a page made or drawn on beside a card links to that card; a stamp links its animal.
+  The card's 📓 (and the badge on its binder tile) shows how many pages link to it. New pages get
+  the date, the animal's name and an "Observed" stamp in the profile's language.
+- **Tools**: pencil in 8 colours and two sizes, eraser (whole marks), text, stamps (collected
+  cards' silhouettes, or the group emoji), footprint roller (cat paw, hoof, bird, bear), move
+  (drag, the corner handles or a two-finger pinch to resize and turn; ✕ to remove), photos, undo
+  and redo (Ctrl/⌘+Z). Swipe across the page with a finger to turn it.
+- **Pen or finger**: the first time a pen touches the page, the notebook switches to *Pen only*
+  so a resting hand doesn't draw. The toggle at the end of the toolbar (first, on phones) switches
+  back to finger drawing at any time; the choice is kept per profile. Touches wider than a finger
+  are ignored, and so are touches while the pen is down.
+- **Backup** (⋯ menu): *Back up all my notes* makes a zip (`manifest.json`, `pages/*.json`,
+  `photos/*.jpg`) and shares or downloads it; *Restore from a backup* adds pages that aren't there
+  yet and never overwrites; *Save this page as a picture* makes a PNG. Where the browser supports
+  it (not Safari), *Also save to a folder* writes the same files into a folder you pick.
+- **Page file** (`version: 1`): `paper` (`dots`/`grid`), `header` (`date`, `cardId`), `links`, and
+  `items` in page units (1000 × 1400): `s` pencil (`p` = x, y, pressure…), `x` text, `m` stamp,
+  `f` footprints, `p` photo (`id` of a file in `photos/`).
 
 ## Language and read-aloud
 
