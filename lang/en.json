@@ -254,7 +254,7 @@
   "parents.celsius": "Celsius (°C)",
   "parents.fahrenheit": "Fahrenheit (°F)",
   "parents.preview": "Preview for {name}",
-  "parents.previewOn": "Show all cards (preview, doesn’t count as collected)",
+  "parents.previewOn": "Preview: show all cards (they don’t count as collected), and let packs arrive before their facts are written. Packs opened in preview stay; use “Start over” afterwards.",
   "parents.profile": "{name}’s profile",
   "parents.reset": "Start over from Series 1, Week 1",
   "parents.resetConfirm": "Start {name} over? Their cards, packs and badges will be cleared, and Series 1, Week 1 arrives again.",

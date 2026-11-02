@@ -5,7 +5,7 @@ import { h, mount } from '../dom.js';
 import { bi, tx, label, plain, dateText } from '../i18n.js';
 import { state, updateProfile, createProfile, deleteProfile, resetProfile } from '../store.js';
 import { avatar, profileForm } from '../profiles.js';
-import { nextDropText } from '../packs.js';
+import { nextDropText, checkDrops } from '../packs.js';
 
 let gateOpen = false;
 let selectedId = null;
@@ -28,12 +28,12 @@ function scheduleSection(p, redraw) {
   // 1 Nov 2026 is a Sunday, so day d of that week has getDay() === d.
   const day = h('select', {
     id: 'pa-day', class: 'input input--wide',
-    onchange: async e => { await updateProfile(p.id, { parent: { dropDay: Number(e.target.value) } }); redraw(); },
+    onchange: async e => { await updateProfile(p.id, { parent: { dropDay: Number(e.target.value) } }); await checkDrops(); redraw(); },
   }, [0, 1, 2, 3, 4, 5, 6].map(d => h('option', { value: d, selected: d === p.parent.dropDay },
     plain(dateText(new Date(2026, 10, 1 + d), { weekday: 'long' })))));
   const time = h('input', {
     id: 'pa-time', class: 'input', type: 'time', value: p.parent.dropTime, required: true,
-    onchange: async e => { if (e.target.value) { await updateProfile(p.id, { parent: { dropTime: e.target.value } }); redraw(); } },
+    onchange: async e => { if (e.target.value) { await updateProfile(p.id, { parent: { dropTime: e.target.value } }); await checkDrops(); redraw(); } },
   });
   return [
     h('div', { class: 'field-row' }, field('pa-day', 'parents.dropDay', day), field('pa-time', 'parents.dropTime', time)),
@@ -53,7 +53,8 @@ function unitsSection(p, redraw) {
 
 function previewSection(p) {
   return h('label', { class: 'switch' },
-    h('input', { type: 'checkbox', checked: p.parent.preview, onchange: e => updateProfile(p.id, { parent: { preview: e.target.checked } }) }),
+    // Preview also lets packs arrive before their cards are ready, to try them out.
+    h('input', { type: 'checkbox', checked: p.parent.preview, onchange: async e => { await updateProfile(p.id, { parent: { preview: e.target.checked } }); await checkDrops(); } }),
     h('span', { class: 'switch__track', 'aria-hidden': 'true' }),
     h('span', null, tx('parents.previewOn')));
 }

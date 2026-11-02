@@ -254,7 +254,7 @@
   "parents.celsius": "攝氏（°C）",
   "parents.fahrenheit": "華氏（°F）",
   "parents.preview": "{name} 的預覽",
-  "parents.previewOn": "顯示所有卡片（預覽，不算收集）",
+  "parents.previewOn": "預覽：顯示所有卡片（不算收集），而且卡片的小知識還沒寫好也能收到卡包。預覽時打開的卡包會保留，測試完請用「重新開始」。",
   "parents.profile": "{name} 的個人資料",
   "parents.reset": "從第 1 系列第 1 週重新開始",
   "parents.resetConfirm": "確定要讓 {name} 重新開始嗎？卡片、卡包和徽章都會清除，然後重新從第 1 系列第 1 週開始。",

@@ -156,7 +156,7 @@ export async function updateProfile(id, patch) {
   if (state.profile?.id === id) {
     state.profile = next;
     emit('profile');
-    if (patch.parent?.dropDay !== undefined || patch.parent?.dropTime !== undefined) await grantDue();
+    if (['dropDay', 'dropTime', 'preview'].some(k => patch.parent?.[k] !== undefined)) await grantDue();
   }
 }
 
@@ -225,7 +225,9 @@ export async function resetProfile(id) {
 // ---------- Packs ----------
 
 // A drop can arrive once every card in it is built and its facts are written (ready.js).
-const dropReady = drop => drop.cards.every(c => c.id && isReady(state.byId.get(c.id)));
+// In parent preview a built card is enough, so grown-ups can try packs before then.
+const dropReady = drop => drop.cards.every(c => c.id && state.byId.has(c.id) &&
+  (state.profile?.parent.preview || isReady(state.byId.get(c.id))));
 const scheduleOf = p => ({ startAt: p.timeline.startAt, parent: p.parent, seriesDrops: state.seriesDrops });
 
 // Grant every drop that is due, in order, exactly once. A drop whose cards aren't ready
