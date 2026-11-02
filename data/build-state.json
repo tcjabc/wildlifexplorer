@@ -188,7 +188,22 @@
       "license": "Public domain",
       "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:PSM_V21_D612_Manis_pentadactyla.jpg"
-    }
+    },
+    "silhouette": {
+      "file": "img/silhouettes/chinese-pangolin-06a2d0.svg",
+      "author": "Steven Traver",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceUrl": "https://www.phylopic.org/images/f628f6fe-6e2d-4173-a20f-265dc7d2d04f",
+      "taxon": "Manis culionensis"
+    },
+    "mapBounds": {
+      "west": 119.67,
+      "south": 21.52,
+      "east": 122.33,
+      "north": 25.68
+    },
+    "range": "data/ranges/chinese-pangolin.json"
   },
   "taiwan-serow": {
     "group": "mammals",
@@ -244,7 +259,22 @@
       "license": "Public domain",
       "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Capricornis_swinhoei_Joseph_Wolf.jpg"
-    }
+    },
+    "silhouette": {
+      "file": "img/silhouettes/taiwan-serow-18d819.svg",
+      "author": "Rick Wilhelmsen",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "sourceUrl": "https://www.phylopic.org/images/dbf0cb01-952e-418c-909c-08c75c3d5ef4",
+      "taxon": "Aepyceros melampus"
+    },
+    "mapBounds": {
+      "west": 120.4,
+      "south": 22.96,
+      "east": 122.05,
+      "north": 25.24
+    },
+    "range": "data/ranges/taiwan-serow.json"
   },
   "formosan-sambar-deer": {
     "group": "mammals",
@@ -300,7 +330,22 @@
       "license": "Public domain",
       "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:The_deer_of_all_lands_(1898)_Formosan_sambar_in_Woburn_Abbey.png"
-    }
+    },
+    "silhouette": {
+      "file": "img/silhouettes/formosan-sambar-deer-011001.svg",
+      "author": "Caleb M. Gordon",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceUrl": "https://www.phylopic.org/images/09e12cc6-4885-402c-95df-f331608e27c1",
+      "taxon": "Odocoileus virginianus"
+    },
+    "mapBounds": {
+      "west": 120.39,
+      "south": 22.81,
+      "east": 122.07,
+      "north": 25.66
+    },
+    "range": "data/ranges/formosan-sambar-deer.json"
   },
   "formosan-muntjac": {
     "group": "mammals",
@@ -1106,5 +1151,693 @@
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Gorila_de_llanura_occidental._Gorilla_gorilla_-_Blanca_Mart%C3%AD_de_Ahumada.jpg"
     }
+  },
+  "taiwan-blue-magpie": {
+    "group": "birds",
+    "scientificName": "Urocissa caerulea",
+    "name.en": "Taiwan Blue Magpie",
+    "name.zh": "臺灣藍鵲",
+    "name.zhuyin": "ㄊㄞˊ ㄨㄢ ㄌㄢˊ ㄑㄩㄝˋ",
+    "taiwan": true,
+    "status": "LC",
+    "taxonomy": {
+      "kingdom": {
+        "sci": "Animalia",
+        "en": "animal",
+        "zh": "動物界"
+      },
+      "phylum": {
+        "sci": "Chordata",
+        "en": "",
+        "zh": "脊索動物門"
+      },
+      "class": {
+        "sci": "Aves",
+        "en": "bird",
+        "zh": "鳥綱"
+      },
+      "order": {
+        "sci": "Passeriformes",
+        "en": "passerines",
+        "zh": "雀形目"
+      },
+      "family": {
+        "sci": "Corvidae",
+        "en": "Corvidae",
+        "zh": "鴉科"
+      },
+      "genus": {
+        "sci": "Urocissa",
+        "en": "Urocissa",
+        "zh": "藍鵲屬"
+      }
+    },
+    "wikidata": "Q94533",
+    "photo": {
+      "file": "img/taiwan-blue-magpie-photo-c4683c.webp",
+      "author": "Charles J. Sharp",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Taiwan_blue_magpie_(Urocissa_caerulea)_Xindian.jpg"
+    },
+    "silhouette": {
+      "file": "img/silhouettes/taiwan-blue-magpie-d4b35a.svg",
+      "author": "Lip Kee Yap (vectorized by T. Michael Keesey)",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "sourceUrl": "https://www.phylopic.org/images/f51db955-33ed-4846-b8cf-e5b4c8217ced",
+      "taxon": "Urocissa flavirostris"
+    },
+    "mapBounds": {
+      "west": 119.67,
+      "south": 21.52,
+      "east": 122.33,
+      "north": 25.68
+    },
+    "range": "data/ranges/taiwan-blue-magpie.json"
+  },
+  "central-mountain-range": {
+    "group": "world-explorer",
+    "scientificName": null,
+    "name.en": "Central Mountain Range",
+    "name.zh": "中央山脈",
+    "name.zhuyin": "ㄓㄨㄥ ㄧㄤ ㄕㄢ ㄇㄞˋ",
+    "taiwan": true,
+    "place": {
+      "lat": 23.7,
+      "lng": 121.1,
+      "site": "Central Mountain Range, Taiwan"
+    }
+  },
+  "brown-spotted-pit-viper": {
+    "group": "reptiles",
+    "scientificName": "Protobothrops mucrosquamatus",
+    "name.en": "Brown-spotted Pit Viper",
+    "name.zh": "龜殼花",
+    "name.zhuyin": "ㄍㄨㄟ ㄎㄜˊ ㄏㄨㄚ",
+    "taiwan": true,
+    "status": "LC",
+    "taxonomy": {
+      "kingdom": {
+        "sci": "Animalia",
+        "en": "animal",
+        "zh": "動物界"
+      },
+      "phylum": {
+        "sci": "Chordata",
+        "en": "",
+        "zh": "脊索動物門"
+      },
+      "class": {
+        "sci": "Reptilia",
+        "en": "Reptilia",
+        "zh": "爬行動物"
+      },
+      "order": {
+        "sci": "Squamata",
+        "en": "Squamata",
+        "zh": "有鱗目"
+      },
+      "family": {
+        "sci": "Viperidae",
+        "en": "viper",
+        "zh": "蝰蛇科"
+      },
+      "genus": {
+        "sci": "Protobothrops",
+        "en": "Protobothrops",
+        "zh": "原矛頭蝮屬"
+      }
+    },
+    "wikidata": "Q716295",
+    "photo": {
+      "file": "img/brown-spotted-pit-viper-photo-3f13f9.webp",
+      "author": "[Photo: A.V. Pham] Pham AV, Ziegler T, Nguyen TQ (2020) New records and an updated checklist of snakes from Son La Province, Vietnam. Biodiversity Data Journal 8: e52779. https://doi.org/10.3897/BDJ.8.e52779",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Protobothrops_mucrosquamatus_(10.3897-BDJ.8.e52779)_Figure_6.jpeg"
+    },
+    "silhouette": {
+      "file": "img/silhouettes/brown-spotted-pit-viper-2efefa.svg",
+      "author": "Beth Reinke",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceUrl": "https://www.phylopic.org/images/a1cd1814-e0b4-409c-af18-8cb2f841569c",
+      "taxon": "Vipera berus"
+    },
+    "mapBounds": {
+      "west": 110.83,
+      "south": 21.27,
+      "east": 123.12,
+      "north": 28.02
+    },
+    "range": "data/ranges/brown-spotted-pit-viper.json"
+  },
+  "taiwan-cherry": {
+    "group": "plants",
+    "scientificName": "Prunus campanulata",
+    "name.en": "Taiwan Cherry",
+    "name.zh": "山櫻花",
+    "name.zhuyin": "ㄕㄢ ㄧㄥ ㄏㄨㄚ",
+    "taiwan": true,
+    "status": null,
+    "taxonomy": {
+      "kingdom": {
+        "sci": "Plantae",
+        "en": "plant",
+        "zh": "植物"
+      },
+      "order": {
+        "sci": "Rosales",
+        "en": "",
+        "zh": "薔薇目"
+      },
+      "family": {
+        "sci": "Rosaceae",
+        "en": "Rosaceae",
+        "zh": "蔷薇科"
+      },
+      "genus": {
+        "sci": "Prunus",
+        "en": "Prunus",
+        "zh": "李屬"
+      }
+    },
+    "wikidata": "Q149633",
+    "photo": {
+      "file": "img/taiwan-cherry-photo-9116a9.webp",
+      "author": "Unknown",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Hikanzakura.JPG"
+    },
+    "silhouette": {
+      "file": "img/silhouettes/taiwan-cherry-4d43e4.svg",
+      "author": "Benjamint444",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "sourceUrl": "https://www.phylopic.org/images/44c956aa-5dde-42f9-92d5-52380d1a0312",
+      "taxon": "Prunus avium"
+    },
+    "mapBounds": {
+      "west": -90.79,
+      "south": -55.89,
+      "east": 207.39,
+      "north": 39.83
+    },
+    "range": "data/ranges/taiwan-cherry.json"
+  },
+  "swinhoe-s-pheasant": {
+    "group": "birds",
+    "scientificName": "Lophura swinhoii",
+    "name.en": "Swinhoe's Pheasant",
+    "name.zh": "藍腹鷴",
+    "name.zhuyin": "ㄌㄢˊ ㄈㄨˋ ㄒㄧㄢˊ",
+    "taiwan": true,
+    "status": "NT",
+    "taxonomy": {
+      "kingdom": {
+        "sci": "Animalia",
+        "en": "animal",
+        "zh": "動物界"
+      },
+      "phylum": {
+        "sci": "Chordata",
+        "en": "",
+        "zh": "脊索動物門"
+      },
+      "class": {
+        "sci": "Aves",
+        "en": "bird",
+        "zh": "鳥綱"
+      },
+      "order": {
+        "sci": "Galliformes",
+        "en": "",
+        "zh": "雞形目"
+      },
+      "family": {
+        "sci": "Phasianidae",
+        "en": "",
+        "zh": "雉科"
+      },
+      "genus": {
+        "sci": "Lophura",
+        "en": "Lophura",
+        "zh": ""
+      }
+    },
+    "wikidata": "Q715245",
+    "photo": {
+      "file": "img/swinhoe-s-pheasant-photo-5c9f0f.webp",
+      "author": "Alnus",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Swinhoe%27s_Pheasant_0673.jpg"
+    },
+    "silhouette": {
+      "file": "img/silhouettes/swinhoe-s-pheasant-836d7f.svg",
+      "author": "Unknown",
+      "license": "Public domain",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "sourceUrl": "https://www.phylopic.org/images/14269801-89fe-405c-a425-2286c54ee60d",
+      "taxon": "Arborophila hyperythra"
+    },
+    "mapBounds": {
+      "west": 119.67,
+      "south": 21.52,
+      "east": 122.33,
+      "north": 25.68
+    },
+    "range": "data/ranges/swinhoe-s-pheasant.json"
+  },
+  "formosan-landlocked-salmon": {
+    "group": "fish",
+    "scientificName": "Oncorhynchus masou formosanus",
+    "name.en": "Formosan Landlocked Salmon",
+    "name.zh": "櫻花鉤吻鮭",
+    "name.zhuyin": "ㄧㄥ ㄏㄨㄚ ㄍㄡ ㄨㄣˇ ㄍㄨㄟ",
+    "taiwan": true,
+    "status": null,
+    "taxonomy": {
+      "kingdom": {
+        "sci": "Animalia",
+        "en": "animal",
+        "zh": "動物界"
+      },
+      "phylum": {
+        "sci": "Chordata",
+        "en": "",
+        "zh": "脊索動物門"
+      },
+      "class": {
+        "sci": "Teleostei",
+        "en": "",
+        "zh": "真骨魚綱"
+      },
+      "order": {
+        "sci": "Salmoniformes",
+        "en": "Salmoniformes",
+        "zh": "鮭形目"
+      },
+      "family": {
+        "sci": "Salmonidae",
+        "en": "Salmonidae",
+        "zh": "鮭科"
+      },
+      "genus": {
+        "sci": "Oncorhynchus",
+        "en": "Oncorhynchus",
+        "zh": "太平洋鮭屬"
+      }
+    },
+    "wikidata": "Q704366",
+    "photo": {
+      "file": "img/formosan-landlocked-salmon-photo-05c78b.webp",
+      "author": "邱文強",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:DSC08243_%E6%AB%BB%E8%8A%B1%E9%89%A4%E5%90%BB%E9%AE%AD%E7%9A%84%E5%84%AA%E6%B8%B8%E8%87%AA%E5%9C%A8.jpg"
+    },
+    "illustration": {
+      "file": "img/formosan-landlocked-salmon-illustration-37053a.webp",
+      "author": "David Starr Jordan",
+      "license": "Public domain",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:FMIB_51763_Masu_(female),_Oncorhynchus_masou_(Brevoort)_Aomori,_Japan.jpeg"
+    },
+    "silhouette": {
+      "file": "img/silhouettes/formosan-landlocked-salmon-e74227.svg",
+      "author": "Unknown",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceUrl": "https://www.phylopic.org/images/da335376-7980-4e23-b310-4fa9ba042a9b",
+      "taxon": "Oncorhynchus masou"
+    },
+    "mapBounds": {
+      "west": 120.72,
+      "south": 23.53,
+      "east": 121.85,
+      "north": 24.86
+    },
+    "range": "data/ranges/formosan-landlocked-salmon.json"
+  },
+  "atlas-moth": {
+    "group": "invertebrates",
+    "scientificName": "Attacus atlas",
+    "name.en": "Atlas Moth",
+    "name.zh": "皇蛾",
+    "name.zhuyin": "ㄏㄨㄤˊ ㄜˊ",
+    "taiwan": true,
+    "status": null,
+    "taxonomy": {
+      "kingdom": {
+        "sci": "Animalia",
+        "en": "animal",
+        "zh": "動物界"
+      },
+      "phylum": {
+        "sci": "Arthropoda",
+        "en": "arthropod",
+        "zh": "節肢動物"
+      },
+      "class": {
+        "sci": "Insecta",
+        "en": "insect",
+        "zh": "昆蟲"
+      },
+      "order": {
+        "sci": "Lepidoptera",
+        "en": "",
+        "zh": ""
+      },
+      "family": {
+        "sci": "Saturniidae",
+        "en": "Saturniidae",
+        "zh": "天蠶蛾科"
+      },
+      "genus": {
+        "sci": "Attacus",
+        "en": "Attacus",
+        "zh": "蛇頭蛾屬"
+      }
+    },
+    "wikidata": "Q167435",
+    "photo": {
+      "file": "img/atlas-moth-photo-25a126.webp",
+      "author": "Quartl",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Attacus_atlas_qtl1.jpg"
+    },
+    "illustration": {
+      "file": "img/atlas-moth-illustration-f48783.webp",
+      "author": "Pieter Cramer / Caspar Stoll",
+      "license": "Public domain",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Attacus_atlas_ill.png"
+    },
+    "silhouette": {
+      "file": "img/silhouettes/atlas-moth-817479.svg",
+      "author": "Lauren Otolski",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceUrl": "https://www.phylopic.org/images/db83e712-f735-40b0-94f4-a5db2c3ee0b7",
+      "taxon": "Eacles imperialis"
+    },
+    "mapBounds": {
+      "west": 67.34,
+      "south": -13.43,
+      "east": 127.78,
+      "north": 33.09
+    },
+    "range": "data/ranges/atlas-moth.json"
+  },
+  "tyrannosaurus-rex": {
+    "group": "prehistoric",
+    "scientificName": "Tyrannosaurus rex",
+    "name.en": "Tyrannosaurus rex",
+    "name.zh": "暴龍",
+    "name.zhuyin": "ㄅㄠˋ ㄌㄨㄥˊ",
+    "taiwan": false,
+    "status": null,
+    "taxonomy": {
+      "kingdom": {
+        "sci": "Animalia",
+        "en": "animal",
+        "zh": "動物界"
+      },
+      "phylum": {
+        "sci": "Chordata",
+        "en": "",
+        "zh": "脊索動物門"
+      },
+      "class": {
+        "sci": "Reptilia",
+        "en": "Reptilia",
+        "zh": "爬行動物"
+      },
+      "family": {
+        "sci": "Tyrannosauridae",
+        "en": "Tyrannosauridae",
+        "zh": "暴龍科"
+      },
+      "genus": {
+        "sci": "Tyrannosaurus",
+        "en": "Tyrannosaurus",
+        "zh": "暴龍屬"
+      }
+    },
+    "wikidata": "Q13098211",
+    "photo": {
+      "file": "img/tyrannosaurus-rex-photo-4149c1.webp",
+      "author": "Connie Ma from Chicago, United States of America",
+      "license": "CC BY-SA 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Sues_skeleton_white_background.jpg"
+    },
+    "illustration": {
+      "file": "img/tyrannosaurus-rex-illustration-2473ad.webp",
+      "author": "Rjcastillo",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Tyrannosaurus_Rex,_Expo_Dinosaurios_2023_-_A740970.jpg"
+    },
+    "silhouette": {
+      "file": "img/silhouettes/tyrannosaurus-rex-5c0ca8.svg",
+      "author": "artrociraptor",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceUrl": "https://www.phylopic.org/images/0c393043-8916-49b7-95df-5216285e7d17",
+      "taxon": "Tyrannosaurus rex"
+    },
+    "fossilSite": {
+      "lat": 47.6,
+      "lng": -106.3,
+      "site": "Hell Creek Formation, Montana, USA"
+    }
+  },
+  "tardigrade-water-bear": {
+    "group": "microscopic",
+    "scientificName": "Tardigrada",
+    "name.en": "Tardigrade (Water Bear)",
+    "name.zh": "水熊蟲",
+    "name.zhuyin": "ㄕㄨㄟˇ ㄒㄩㄥˊ ㄔㄨㄥˊ",
+    "taiwan": false,
+    "status": null,
+    "taxonomy": {
+      "kingdom": {
+        "sci": "Animalia",
+        "en": "animal",
+        "zh": "動物界"
+      },
+      "phylum": {
+        "sci": "Tardigrada",
+        "en": "tardigrade",
+        "zh": ""
+      }
+    },
+    "wikidata": "Q5194",
+    "photo": {
+      "file": "img/tardigrade-water-bear-photo-3dbf20.webp",
+      "author": "Collier Sparks",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceUrl": "https://www.inaturalist.org/photos/540796595"
+    },
+    "illustration": {
+      "file": "img/tardigrade-water-bear-illustration-4e1bb3.webp",
+      "author": "B kimmel",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Tardigrada_body_parts.png"
+    },
+    "silhouette": {
+      "file": "img/silhouettes/tardigrade-water-bear-0813c8.svg",
+      "author": "Fernando Carezzano",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceUrl": "https://www.phylopic.org/images/0957b8c0-a052-4f7d-a1ac-95f2179c6582",
+      "taxon": "Tardigrada"
+    },
+    "mapBounds": {
+      "west": -126.61,
+      "south": -91.13,
+      "east": 156.11,
+      "north": 99.66
+    },
+    "range": "data/ranges/tardigrade-water-bear.json"
+  },
+  "migration": {
+    "group": "behavior",
+    "scientificName": null,
+    "name.en": "Migration",
+    "name.zh": "遷徙",
+    "name.zhuyin": "ㄑㄧㄢ ㄒㄧˇ",
+    "taiwan": false
+  },
+  "how-animals-fly": {
+    "group": "how-animals-work",
+    "scientificName": null,
+    "name.en": "How Animals Fly",
+    "name.zh": "動物怎麼飛",
+    "name.zhuyin": "ㄉㄨㄥˋ ㄨˋ ㄗㄣˇ ˙ㄇㄜ ㄈㄟ",
+    "taiwan": false
+  },
+  "saving-the-formosan-black-bear": {
+    "group": "conservation",
+    "scientificName": null,
+    "name.en": "Saving the Formosan Black Bear",
+    "name.zh": "守護臺灣黑熊",
+    "name.zhuyin": "ㄕㄡˇ ㄏㄨˋ ㄊㄞˊ ㄨㄢ ㄏㄟ ㄒㄩㄥˊ",
+    "taiwan": true
+  },
+  "mikado-pheasant": {
+    "group": "birds",
+    "scientificName": "Syrmaticus mikado",
+    "name.en": "Mikado Pheasant",
+    "name.zh": "帝雉",
+    "name.zhuyin": "ㄉㄧˋ ㄓˋ",
+    "taiwan": true,
+    "status": "LC",
+    "taxonomy": {
+      "kingdom": {
+        "sci": "Animalia",
+        "en": "animal",
+        "zh": "動物界"
+      },
+      "phylum": {
+        "sci": "Chordata",
+        "en": "",
+        "zh": "脊索動物門"
+      },
+      "class": {
+        "sci": "Aves",
+        "en": "bird",
+        "zh": "鳥綱"
+      },
+      "order": {
+        "sci": "Galliformes",
+        "en": "",
+        "zh": "雞形目"
+      },
+      "family": {
+        "sci": "Phasianidae",
+        "en": "",
+        "zh": "雉科"
+      },
+      "genus": {
+        "sci": "Syrmaticus",
+        "en": "Syrmaticus",
+        "zh": "長尾雉屬"
+      }
+    },
+    "wikidata": "Q715266",
+    "photo": {
+      "file": "img/mikado-pheasant-photo-e6ce25.webp",
+      "author": "Snowyowls (photographer) / Jako (uploader)",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Mikado_Pheasant_398.jpg"
+    },
+    "illustration": {
+      "file": "img/mikado-pheasant-illustration-1b2787.webp",
+      "author": "Biodiversity Heritage Library",
+      "license": "Public domain",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Syrmaticus_mikado_(illustration).jpg"
+    },
+    "silhouette": {
+      "file": "img/silhouettes/mikado-pheasant-836d7f.svg",
+      "author": "Unknown",
+      "license": "Public domain",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "sourceUrl": "https://www.phylopic.org/images/14269801-89fe-405c-a425-2286c54ee60d",
+      "taxon": "Arborophila hyperythra"
+    },
+    "mapBounds": {
+      "west": 120.3,
+      "south": 22.48,
+      "east": 122.1,
+      "north": 25.13
+    },
+    "range": "data/ranges/mikado-pheasant.json"
+  },
+  "kenting-coral-reefs": {
+    "group": "world-explorer",
+    "scientificName": null,
+    "name.en": "Kenting Coral Reefs",
+    "name.zh": "墾丁珊瑚礁",
+    "name.zhuyin": "ㄎㄣˇ ㄉㄧㄥ ㄕㄢ ㄏㄨˊ ㄐㄧㄠ",
+    "taiwan": true,
+    "place": {
+      "lat": 21.95,
+      "lng": 120.78,
+      "site": "Kenting, Pingtung, Taiwan"
+    }
+  },
+  "taiwan-barbet": {
+    "group": "birds",
+    "scientificName": "Psilopogon nuchalis",
+    "name.en": "Taiwan Barbet",
+    "name.zh": "五色鳥",
+    "name.zhuyin": "ㄨˇ ㄙㄜˋ ㄋㄧㄠˇ",
+    "taiwan": true,
+    "status": "LC",
+    "taxonomy": {
+      "kingdom": {
+        "sci": "Animalia",
+        "en": "animal",
+        "zh": "動物界"
+      },
+      "phylum": {
+        "sci": "Chordata",
+        "en": "",
+        "zh": "脊索動物門"
+      },
+      "class": {
+        "sci": "Aves",
+        "en": "bird",
+        "zh": "鳥綱"
+      },
+      "order": {
+        "sci": "Piciformes",
+        "en": "Piciformes",
+        "zh": "鴷形目"
+      },
+      "family": {
+        "sci": "Megalaimidae",
+        "en": "Megalaimidae",
+        "zh": ""
+      },
+      "genus": {
+        "sci": "Psilopogon",
+        "en": "Psilopogon",
+        "zh": "擬啄木鳥屬"
+      }
+    },
+    "wikidata": "Q27074855",
+    "photo": {
+      "file": "img/taiwan-barbet-photo-fe0232.webp",
+      "author": "Ben Keen",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Psilopogon_nuchalis_-_Ben_Keen_-_252080992.png"
+    },
+    "silhouette": {
+      "file": "img/silhouettes/taiwan-barbet-9f025d.svg",
+      "author": "Rohit N",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceUrl": "https://www.phylopic.org/images/a2d2ea45-a95c-4654-acc6-58e16da87357",
+      "taxon": "Psilopogon viridis"
+    },
+    "mapBounds": {
+      "west": 119.67,
+      "south": 21.52,
+      "east": 122.33,
+      "north": 25.68
+    },
+    "range": "data/ranges/taiwan-barbet.json"
   }
 }
