@@ -2252,11 +2252,11 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:DSC08243_%E6%AB%BB%E8%8A%B1%E9%89%A4%E5%90%BB%E9%AE%AD%E7%9A%84%E5%84%AA%E6%B8%B8%E8%87%AA%E5%9C%A8.jpg"
     },
     "illustration": {
-      "file": "img/formosan-landlocked-salmon-illustration-37053a.webp",
-      "author": "David Starr Jordan",
+      "file": "img/formosan-landlocked-salmon-illustration-9160aa.webp",
+      "author": "Jordan and Oshima",
       "license": "Public domain",
       "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:FMIB_51763_Masu_(female),_Oncorhynchus_masou_(Brevoort)_Aomori,_Japan.jpeg"
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Oncorhynchus_masou_formosanus_001.jpg"
     },
     "mapBounds": {
       "west": 120.72,
@@ -2305,7 +2305,10 @@
         "zh": "太平洋鮭屬"
       }
     },
-    "wikidata": "Q704366"
+    "wikidata": "Q704366",
+    "locked": [
+      "illustration"
+    ]
   },
   {
     "id": "atlas-moth",
@@ -2606,11 +2609,11 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Sues_skeleton_white_background.jpg"
     },
     "illustration": {
-      "file": "img/tyrannosaurus-rex-illustration-2473ad.webp",
-      "author": "Rjcastillo",
+      "file": "img/tyrannosaurus-rex-illustration-bf63e2.webp",
+      "author": "Steveoc 86",
       "license": "CC BY-SA 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Tyrannosaurus_Rex,_Expo_Dinosaurios_2023_-_A740970.jpg"
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Tyrannosaurus-rex-Profile-steveoc86_(coloured).png"
     },
     "fossilSite": {
       "lat": 47.6,
@@ -2652,7 +2655,10 @@
         "zh": "暴龍屬"
       }
     },
-    "wikidata": "Q13098211"
+    "wikidata": "Q13098211",
+    "locked": [
+      "illustration"
+    ]
   },
   {
     "id": "tardigrade-water-bear",
@@ -2756,11 +2762,11 @@
     "status": null,
     "taiwan": true,
     "photo": {
-      "file": "img/taiwan-cherry-photo-9116a9.webp",
-      "author": "Unknown",
-      "license": "CC BY-SA 3.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
-      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Hikanzakura.JPG"
+      "file": "img/taiwan-cherry-photo-534fdc.webp",
+      "author": "Gió Đông",
+      "license": "Public domain",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Prunus_campanulata_01.jpg"
     },
     "illustration": null,
     "mapBounds": {
@@ -2800,6 +2806,9 @@
         "zh": "李屬"
       }
     },
-    "wikidata": "Q149633"
+    "wikidata": "Q149633",
+    "locked": [
+      "photo"
+    ]
   }
 ]
