@@ -886,6 +886,17 @@
         "max": 141
       }
     },
+    "compare": {
+      "width": 133
+    },
+    "silhouette": {
+      "file": "img/silhouettes/formosan-flying-fox-86e4a8.svg",
+      "author": "Andy Wilson",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceUrl": "https://www.phylopic.org/images/9999598f-e938-4467-8088-57ef85bffe05",
+      "taxon": "Pteropus medius"
+    },
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -919,9 +930,13 @@
       }
     },
     "wikidata": "Q20905734",
+    "locked": [
+      "silhouette"
+    ],
     "_draft": [
       "tags",
-      "stats"
+      "stats",
+      "compare"
     ]
   },
   {
@@ -1156,6 +1171,17 @@
         "max": 55
       }
     },
+    "compare": {
+      "width": 50
+    },
+    "silhouette": {
+      "file": "img/silhouettes/red-and-white-giant-flying-squirrel-eeaae0.svg",
+      "author": "Unknown",
+      "license": "Public domain",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "sourceUrl": "https://www.phylopic.org/images/ad8efb1e-2875-40d6-ade8-585e8c2d6d6e",
+      "taxon": "Petaurista leucogenys"
+    },
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -1189,9 +1215,13 @@
       }
     },
     "wikidata": "Q1767097",
+    "locked": [
+      "silhouette"
+    ],
     "_draft": [
       "tags",
-      "stats"
+      "stats",
+      "compare"
     ]
   },
   {
@@ -1501,6 +1531,16 @@
         "max": 150
       }
     },
+    "silhouette": {
+      "file": "img/silhouettes/cheetah-photo-e378d6.png",
+      "author": "Thomas Fuhrmann",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Masai_Mara_National_Reserve_2021-08_-_cheetah_-_Acinonyx_jubatus.jpg",
+      "taxon": "Acinonyx jubatus",
+      "derivedFrom": "https://commons.wikimedia.org/wiki/File:Masai_Mara_National_Reserve_2021-08_-_cheetah_-_Acinonyx_jubatus.jpg",
+      "note": "Traced from a photo (scripts/make-silhouette.mjs)."
+    },
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -1534,6 +1574,9 @@
       }
     },
     "wikidata": "Q23907",
+    "locked": [
+      "silhouette"
+    ],
     "_draft": [
       "tags",
       "stats"

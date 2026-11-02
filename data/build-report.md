@@ -1,6 +1,6 @@
 # Build report
 
-Generated 2026-11-02 15:00 UTC. Re-written on every build.
+Generated 2026-11-02 15:03 UTC. Re-written on every build.
 
 ## Summary
 
@@ -196,7 +196,7 @@ For the "Animal" comparison. Defined in data/lookalikes.json; a group shows on a
 
 ### Spotted big cats · 身上有斑點的大貓 (`spotted-big-cats`) (draft)
 
-- ✓ Cheetah: needs silhouette (a "?" outline is drawn instead) (size is a draft)
+- ✓ Cheetah (size is a draft)
 - ○ Amur Leopard: not built yet (s3-w08)
 - ◆ Jaguar · 美洲豹 (standalone)
 
@@ -212,8 +212,8 @@ For the "Animal" comparison. Defined in data/lookalikes.json; a group shows on a
 
 ### Night flyers · 夜晚的飛行家 (`night-flyers`) (draft)
 
-- ✓ Formosan Flying Fox: needs silhouette (a "?" outline is drawn instead) (size is a draft)
-- ✓ Red and White Giant Flying Squirrel: needs silhouette (a "?" outline is drawn instead) (size is a draft)
+- ✓ Formosan Flying Fox (size is a draft)
+- ✓ Red and White Giant Flying Squirrel (size is a draft)
 
 ### Armoured diggers · 披著盔甲的挖洞高手 (`armoured-diggers`) (draft)
 
@@ -253,11 +253,8 @@ For the "Animal" comparison. Defined in data/lookalikes.json; a group shows on a
 
 ### Lookalike content still needed
 
-- Cheetah (`cheetah`, spotted-big-cats): silhouette (a "?" outline is drawn instead)
 - Amur Leopard (`amur-leopard`, spotted-big-cats): not built yet
 - Asian Elephant (`asian-elephant`, elephants): not built yet
-- Formosan Flying Fox (`formosan-flying-fox`, night-flyers): silhouette (a "?" outline is drawn instead)
-- Red and White Giant Flying Squirrel (`red-and-white-giant-flying-squirrel`, night-flyers): silhouette (a "?" outline is drawn instead)
 - Nine-banded Armadillo (`nine-banded-armadillo`, armoured-diggers): not built yet
 - Leopard Cat (`leopard-cat`, wild-cat-or-house-cat): silhouette (a "?" outline is drawn instead)
 - Chimpanzee (`chimpanzee`, great-apes): not built yet
@@ -266,14 +263,11 @@ For the "Animal" comparison. Defined in data/lookalikes.json; a group shows on a
 
 ## Needs silhouette
 
-12 species have no silhouette. In the Animal comparison they are drawn as a "?" outline at the right size.
+9 species have no silhouette. In the Animal comparison they are drawn as a "?" outline at the right size.
 
 ### In a lookalike group
 
-- Formosan Flying Fox (`formosan-flying-fox`): night-flyers
 - Leopard Cat (`leopard-cat`): wild-cat-or-house-cat
-- Red and White Giant Flying Squirrel (`red-and-white-giant-flying-squirrel`): night-flyers
-- Cheetah (`cheetah`): spotted-big-cats
 - Mock Viper (standalone): venomous-or-harmless
 
 ### Other species cards (no "You" length comparison)
@@ -333,10 +327,10 @@ Written by Claude as a starting point. Check or rewrite it, then remove the fiel
 - Taiwan Serow · 臺灣長鬃山羊 (`taiwan-serow`): facts, tags, stats
 - Formosan Sambar Deer · 水鹿 (`formosan-sambar-deer`): facts, tags, stats
 - Formosan Muntjac · 山羌 (`formosan-muntjac`): tags, stats
-- Formosan Flying Fox · 臺灣狐蝠 (`formosan-flying-fox`): tags, stats
+- Formosan Flying Fox · 臺灣狐蝠 (`formosan-flying-fox`): tags, stats, compare
 - Leopard Cat · 石虎 (`leopard-cat`): tags, stats
 - Masked Palm Civet · 白鼻心 (`masked-palm-civet`): tags
-- Red and White Giant Flying Squirrel · 大赤鼯鼠 (`red-and-white-giant-flying-squirrel`): tags, stats
+- Red and White Giant Flying Squirrel · 大赤鼯鼠 (`red-and-white-giant-flying-squirrel`): tags, stats, compare
 - Eurasian Otter · 歐亞水獺 (`eurasian-otter`): tags
 - Bengal Tiger · 孟加拉虎 (`bengal-tiger`): tags
 - Lion · 獅子 (`lion`): tags
