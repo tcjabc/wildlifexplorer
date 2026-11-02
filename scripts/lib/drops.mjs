@@ -4,8 +4,9 @@
 // build.config.json). Each drop holds cardsPerPack cards, never two from the same group,
 // and every group is spread evenly over the series.
 //
-// Freezing: as soon as every slot of a drop has a card, the drop is written to
-// data/drops.lock.json and never changes again, whatever happens to card-list.csv later.
+// Freezing: as soon as a drop is ready (every card in it built and its facts written,
+// see js/ready.js), it is written to data/drops.lock.json and never changes again,
+// whatever happens to card-list.csv later. Until then a drop can still be re-planned.
 // Rows that aren't in a frozen drop yet fill the open slots in CSV order, per group.
 // A slot with no row for it yet is planned with "id": null, and its drop waits.
 
@@ -57,8 +58,8 @@ const sameGroups = (a, b) => a.map(c => c.group ?? c).sort().join() === b.map(c 
 
 // rows: [{ id, groupId, name, line }] in CSV order. lock: the frozen drops so far
 // ({ dropId: [{ group, id }] }). previous: card ids in the last plan (to spot new rows).
-// Returns { drops, lock, warnings }.
-export function planDrops(rows, groups, cfg, lock = {}, previous = null) {
+// ready(id): whether that card is ready. Returns { drops, lock, warnings }.
+export function planDrops(rows, groups, cfg, lock = {}, previous = null, ready = () => false) {
   const pattern = seriesPattern(groups, cfg);
   const perSeries = pattern.length;
   const rowById = new Map(rows.map(r => [r.id, r]));
@@ -99,7 +100,7 @@ export function planDrops(rows, groups, cfg, lock = {}, previous = null) {
         return;
       }
       const cards = groupIds.map(group => ({ group, id: queue.get(group).shift()?.id ?? null }));
-      const frozen = cards.every(c => c.id);
+      const frozen = cards.every(c => c.id && ready(c.id));
       if (frozen) nextLock[id] = cards;
       drops.push({ id, series: s, week: i + 1, frozen, cards });
     });

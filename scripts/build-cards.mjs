@@ -296,7 +296,7 @@ async function main() {
   const lastPlan = await readJson(P.drops, null);
   const previous = lastPlan ? new Set(lastPlan.drops.flatMap(d => d.cards.map(c => c.id)).filter(Boolean)) : null;
   const plan = planDrops(matched.map(m => ({ id: m.card?.id ?? m.row.id, groupId: m.row.groupId, name: m.row.name_en, line: m.row.index + 2 })),
-    groups, cfg.drops ?? {}, locked, previous);
+    groups, cfg.drops ?? {}, locked, previous, id => isReady(existing.find(c => c.id === id)));
   const { drops } = plan;
   for (const w of plan.warnings) console.warn(`Warning: ${w}`);
   const position = dropOrder(drops);
@@ -405,11 +405,11 @@ async function main() {
   await writeJson(P.state, state);
   await writeJson(P.drops, { cardsPerPack: cfg.drops.cardsPerPack, seriesDrops: cfg.drops.seriesCards / cfg.drops.cardsPerPack, drops });
   await writeJson(P.lock, {
-    note: 'Frozen drops: written by the build as soon as every slot of a drop has a card, and never changed by it again. Delete an entry only if no one can have received that drop yet.',
+    note: 'Frozen drops: written by the build as soon as a drop is ready (all its cards built, facts written and not a draft), and never changed by it again. Delete an entry only if no one can have received that drop yet.',
     drops: plan.lock,
   });
   const newlyFrozen = Object.keys(plan.lock).filter(id => !locked[id]);
-  await writeFile(P.report, renderReport({ rows, cards, orphans, report, imageProblems, unused, selected, drops, groups, warnings: plan.warnings, newlyFrozen }), 'utf8');
+  await writeFile(P.report, renderReport({ rows, cards, orphans, report, imageProblems, unused, selected, drops, groups, warnings: plan.warnings, newlyFrozen, offline: args.offline }), 'utf8');
   console.log(`\nWrote ${path.relative(ROOT, P.cards)} (${cards.length + orphans.length} cards), ${path.relative(ROOT, P.drops)} (${drops.length} drops) and ${path.relative(ROOT, P.report)}`);
 }
 
@@ -452,7 +452,7 @@ function renderDrops(L, { rows, cards, drops, groups, warnings, newlyFrozen }) {
   L.push('');
 }
 
-function renderReport({ rows, cards, orphans, report, imageProblems, unused, selected, drops, groups, warnings, newlyFrozen }) {
+function renderReport({ rows, cards, orphans, report, imageProblems, unused, selected, drops, groups, warnings, newlyFrozen, offline }) {
   const L = [];
   const species = cards.filter(c => c.scientificName);
   const topics = cards.filter(c => !c.scientificName);
@@ -465,7 +465,7 @@ function renderReport({ rows, cards, orphans, report, imageProblems, unused, sel
   L.push('## Summary', '');
   L.push(`- Rows in card-list.csv: ${rows.length}`);
   L.push(`- Cards in animals.json: ${cards.length} (${species.length} species, ${topics.length} topic)`);
-  L.push(`- Processed this run: ${selected.length}`);
+  L.push(`- Processed this run: ${selected.length}${offline ? ' (offline: Wikidata, name and image checks were skipped, so they are not listed below; run without --offline for them)' : ''}`);
   L.push(`- Rows not built yet: ${rows.length - cards.length} (run with \`--all\` or a bigger \`--limit\`)`);
   L.push(`- Cards without a photo: ${noPhoto.length}`);
   L.push(`- Cards with facts still to write: ${factsTodo.length}`);

@@ -322,8 +322,10 @@ smaller groups every five or six weeks); the build stops with a message saying w
 change if that becomes impossible. Rows fill the slots of their group in `card-list.csv` order.
 A slot with no row for it yet is planned as `"id": null`, and nothing is borrowed from another group.
 
-**Frozen drops**: as soon as every slot of a drop has a card, the build writes it to
-`data/drops.lock.json` and never changes it again: editing, inserting or removing CSV rows, or
+**Frozen drops**: as soon as a drop is **ready** (see below), the build writes it to
+`data/drops.lock.json` and never changes it again. Until then it can still be re-planned. After
+you finish a card (and clear its draft flag), run the build (`--offline` is enough) to freeze the
+drops it completes: editing, inserting or removing CSV rows, or
 changing `groupSizes`, only re-plans the drops that aren't frozen yet. The build warns when a
 change would have affected a frozen drop (a frozen card removed from the CSV or moved to another
 group, a new row added above frozen ones, a size change that no longer fits a frozen week).
