@@ -1,6 +1,6 @@
 # Build report
 
-Generated 2026-11-02 13:09 UTC. Re-written on every build.
+Generated 2026-11-02 13:17 UTC. Re-written on every build.
 
 ## Summary
 
@@ -162,6 +162,29 @@ These have no scientific name, so the build only creates the slots. Add facts, a
 - Kenting Coral Reefs · 墾丁珊瑚礁 (`kenting-coral-reefs`) — no image yet
 - Saving the Formosan Black Bear · 守護臺灣黑熊 (`saving-the-formosan-black-bear`) — no image yet
 - How Animals Fly · 動物怎麼飛 (`how-animals-fly`) — no image yet
+
+## Needs illustration
+
+18 cards have an empty illustration slot, in drop order. A card shows its photo (or, with neither, the group emoji). To add your own sketch, put it in img/, fill in "illustration" (file, author, license, licenseUrl, sourceUrl) and keep "illustration" in "locked".
+
+- s1-w01: Taiwan Blue Magpie · 臺灣藍鵲 (`taiwan-blue-magpie`): none found
+- s1-w01: Central Mountain Range · 中央山脈 (`central-mountain-range`): topic card, no photo either
+- s1-w02: Formosan Rock Macaque · 臺灣獼猴 (`formosan-rock-macaque`): none found
+- s1-w02: Brown-spotted Pit Viper · 龜殼花 (`brown-spotted-pit-viper`): none found
+- s1-w02: Taiwan Cherry · 山櫻花 (`taiwan-cherry`): none found
+- s1-w03: Swinhoe's Pheasant · 藍腹鷴 (`swinhoe-s-pheasant`): none found
+- s1-w04: Tardigrade (Water Bear) · 水熊蟲 (`tardigrade-water-bear`): left empty on purpose (locked)
+- s1-w05: Migration · 遷徙 (`migration`): topic card, no photo either
+- s1-w05: Saving the Formosan Black Bear · 守護臺灣黑熊 (`saving-the-formosan-black-bear`): topic card, no photo either
+- s1-w05: How Animals Fly · 動物怎麼飛 (`how-animals-fly`): topic card, no photo either
+- s1-w06: Taiwan Serow · 臺灣長鬃山羊 (`taiwan-serow`): left empty on purpose (locked)
+- s1-w06: Kenting Coral Reefs · 墾丁珊瑚礁 (`kenting-coral-reefs`): topic card, no photo either
+- s1-w07: Taiwan Barbet · 五色鳥 (`taiwan-barbet`): none found
+- s1-w08: Formosan Muntjac · 山羌 (`formosan-muntjac`): none found
+- s1-w14: Red and White Giant Flying Squirrel · 大赤鼯鼠 (`red-and-white-giant-flying-squirrel`): none found
+- s1-w18: Lion · 獅子 (`lion`): none found
+- s1-w20: Cheetah · 獵豹 (`cheetah`): none found
+- s1-w26: Hippopotamus · 河馬 (`hippopotamus`): none found
 
 ## Draft text to check
 

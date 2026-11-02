@@ -9,7 +9,7 @@ It runs on GitHub Pages and works fully offline once it has been opened.
   whole family; packs, binder, badges and quiz scores are per profile.
 - **Packs**: a pack of 3 cards arrives every week, starting with Series 1, Week 1 when the profile
   is made. A sheet says "New pack arrived!"; packs wait in **Packs** until the child opens them.
-- **Card view**: big photo (and illustration, if there is one), names, fun facts, habitat,
+- **Card view**: big photo (or the illustration when there is no photo), names, fun facts, habitat,
   IUCN conservation badge, "Found in Taiwan" badge, and a credit line you can tap.
 - **Badges** for finishing a group. **Quiz**: picture → name, and true/false facts.
 - **Read aloud** (Web Speech API): English in an en-GB voice, Chinese in a zh-TW voice.
@@ -148,6 +148,7 @@ Settings live in `scripts/build.config.json`:
 - **illustrations found by search — always look at these**, the search can pick an odd picture.
   If it's good, add `"illustration"` to the card's `"locked"` list (see below) to keep it and stop the reminder;
 - topic cards that still need everything;
+- **Needs illustration**: cards with an empty illustration slot, in drop order (for your own sketches);
 - image files no card uses any more.
 
 ## Writing facts (editing `data/animals.json`)

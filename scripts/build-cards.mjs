@@ -497,6 +497,20 @@ function renderReport({ rows, cards, orphans, report, imageProblems, unused, sel
     L.push('');
   }
 
+  // Cards with nothing in the illustration slot, in the order their drops come.
+  const dropOf = new Map(drops.flatMap(d => d.cards.filter(c => c.id).map(c => [c.id, d.id])));
+  const noIllustration = cards.filter(c => !c.illustration?.file)
+    .sort((a, b) => (dropOf.get(a.id) ?? '~').localeCompare(dropOf.get(b.id) ?? '~'));
+  if (noIllustration.length) {
+    L.push('## Needs illustration', '');
+    L.push(`${noIllustration.length} cards have an empty illustration slot, in drop order. A card shows its photo (or, with neither, the group emoji). To add your own sketch, put it in img/, fill in "illustration" (file, author, license, licenseUrl, sourceUrl) and keep "illustration" in "locked".`, '');
+    for (const c of noIllustration) {
+      const why = (c.locked ?? []).includes('illustration') ? 'left empty on purpose (locked)' : c.scientificName ? 'none found' : 'topic card';
+      L.push(`- ${dropOf.get(c.id) ?? 'not planned'}: ${c.name.en} · ${c.name.zh} (\`${c.id}\`): ${why}${c.photo ? '' : ', no photo either'}`);
+    }
+    L.push('');
+  }
+
   if (orphans.length) {
     L.push('## Cards no longer in card-list.csv', '');
     L.push('Kept in animals.json so nothing you wrote is lost. Delete them by hand if you don\'t want them.', '');
