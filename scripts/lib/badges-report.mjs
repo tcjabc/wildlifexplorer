@@ -86,6 +86,27 @@ export function renderBadgeSections({ rows, cards, drops, cfg }) {
   if (!todo.length) L.push('Nothing.');
   L.push('');
 
+  // ---- silhouettes ----
+  // The Animal comparison is silhouette against silhouette, so lookalikes come first; other
+  // species cards only miss the "You" length comparison.
+  const inGroups = new Map();
+  for (const g of cfg.lookalikes.groups) for (const m of g.members) inGroups.set(m, [...(inGroups.get(m) ?? []), g.id]);
+  const noSil = [
+    ...cards.filter(c => c.scientificName && !c.silhouette?.file).map(c => ({ key: c.id, label: `${c.name.en} (\`${c.id}\`)` })),
+    ...Object.entries(entries).filter(([, e]) => !e.silhouette?.file).map(([id, e]) => ({ key: `entry:${id}`, label: `${e.name.en} (standalone)` })),
+  ];
+  const lookFirst = noSil.filter(x => inGroups.has(x.key));
+  const rest = noSil.filter(x => !inGroups.has(x.key));
+  L.push('## Needs silhouette', '');
+  L.push(`${noSil.length} species have no silhouette. In the Animal comparison they are drawn as a "?" outline at the right size.`, '');
+  L.push('### In a lookalike group', '');
+  for (const x of lookFirst) L.push(`- ${x.label}: ${inGroups.get(x.key).join(', ')}`);
+  if (!lookFirst.length) L.push('None.');
+  L.push('', '### Other species cards (no "You" length comparison)', '');
+  for (const x of rest) L.push(`- ${x.label}`);
+  if (!rest.length) L.push('None.');
+  L.push('');
+
   if (warnings.length) {
     L.push('## Tag and badge problems', '');
     for (const w of warnings) L.push(`- ${w}`);

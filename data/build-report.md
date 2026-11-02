@@ -1,6 +1,6 @@
 # Build report
 
-Generated 2026-11-02 13:54 UTC. Re-written on every build.
+Generated 2026-11-02 14:17 UTC. Re-written on every build.
 
 ## Summary
 
@@ -270,6 +270,35 @@ For the "Animal" comparison. Defined in data/lookalikes.json; a group shows on a
 - White Rhinoceros (standalone, rhinos): photo, silhouette
 - Mock Viper (standalone, venomous-or-harmless): photo, silhouette
 - Golden Birdwing (`golden-birdwing`, moth-or-butterfly): not built yet
+
+## Needs silhouette
+
+19 species have no silhouette. In the Animal comparison they are drawn as a "?" outline at the right size.
+
+### In a lookalike group
+
+- Formosan Muntjac (`formosan-muntjac`): taiwan-hoofed
+- Formosan Flying Fox (`formosan-flying-fox`): night-flyers
+- Leopard Cat (`leopard-cat`): wild-cat-or-house-cat
+- Red and White Giant Flying Squirrel (`red-and-white-giant-flying-squirrel`): night-flyers
+- Cheetah (`cheetah`): spotted-big-cats
+- African Elephant (`african-elephant`): elephants
+- Black Rhinoceros (`black-rhinoceros`): rhinos
+- Western Lowland Gorilla (`western-lowland-gorilla`): great-apes
+- Jaguar (standalone): spotted-big-cats
+- House cat (standalone): wild-cat-or-house-cat
+- White Rhinoceros (standalone): rhinos
+- Mock Viper (standalone): venomous-or-harmless
+
+### Other species cards (no "You" length comparison)
+
+- Masked Palm Civet (`masked-palm-civet`)
+- Eurasian Otter (`eurasian-otter`)
+- Bengal Tiger (`bengal-tiger`)
+- Lion (`lion`)
+- Giraffe (`giraffe`)
+- Plains Zebra (`plains-zebra`)
+- Hippopotamus (`hippopotamus`)
 
 ## Needs your attention
 
