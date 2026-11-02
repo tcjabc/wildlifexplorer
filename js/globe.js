@@ -32,7 +32,7 @@ export function toVec(lon, lat) {
 
 // Polygons ([[ [lon, lat]… ]…] in degrees) → rings of unit vectors, plus a bounding cap
 // (centre and angular radius) for skipping shapes that are out of sight.
-function prepare(polys) {
+export function prepare(polys) {
   return polys.map(rings => {
     const vecs = rings.map(ring => {
       const out = new Float32Array(ring.length * 3);
@@ -61,6 +61,17 @@ function loadLand() {
   return land;
 }
 
+// The home country's outline (assets/home.json, same format as globe.json), drawn with a
+// glow above every layer.
+let homeShape = null;
+function loadHome() {
+  homeShape ??= fetch('assets/home.json').then(r => r.json()).then(d => {
+    const unflat = flat => { const out = []; for (let i = 0; i < flat.length; i += 2) out.push([flat[i] * d.unit, flat[i + 1] * d.unit]); return out; };
+    return prepare(d.polys.map(rings => rings.map(unflat)));
+  });
+  return homeShape;
+}
+
 // Lines of latitude and longitude every 30°, as short segments.
 const GRATICULE = (() => {
   const lines = [];
@@ -78,15 +89,24 @@ function tokens(el) {
   const v = name => s.getPropertyValue(name).trim();
   return {
     sea: v('--c-map-sea'), land: v('--c-map-land'), grid: v('--c-shine'), glow: v('--c-map-glow'),
+    home: v('--c-map-home'), homeEdge: v('--c-shade-strong'),
     group: g => v(`--g-${g}`),
   };
 }
 
 export function createGlobe(stage, { onFrame, onTap, onInteract } = {}) {
+  // Bottom to top: sea and land, the picture layer (WebGL, made when first needed), the
+  // overlay. Only the bottom canvas takes taps.
   const canvas = h('canvas', { class: 'globe__canvas', 'aria-hidden': 'true' });
-  stage.prepend(canvas);
-  const ctx = canvas.getContext('2d');
+  const overCanvas = h('canvas', { class: 'globe__canvas globe__canvas--over', 'aria-hidden': 'true' });
+  stage.prepend(canvas, overCanvas);
+  const baseCtx = canvas.getContext('2d'), overCtx = overCanvas.getContext('2d');
+  let ctx = baseCtx; // the canvas being drawn on
   const col = tokens(stage);
+  let layer = null;          // see setLayer
+  let sphere = null;         // js/globegl.js, once a picture layer has been shown
+  let home = null;
+  loadHome().then(p => { home = p; dirty = true; }).catch(() => {});
 
   const view = { lon: saved.lon, lat: saved.lat, k: saved.k, dy: 0 };
   let size = { w: 1, h: 1, dpr: 1, r: 1 };
@@ -98,6 +118,15 @@ export function createGlobe(stage, { onFrame, onTap, onInteract } = {}) {
   let glide = null;          // { vx, vy } in px per ms
   let flight = null;         // cancel function of a running tween
   let offset = 0;            // where view.dy is heading (room for the card sheet)
+  let fit = 1, fitTo = 1;    // globe size while a legend takes room (setRoom)
+  let room = null;           // { top, bottom } px
+  let held = false;          // the card sheet has set the offset
+  function applyRoom() {
+    if (!room || size.h < 2) { fitTo = 1; if (!held) offset = 0; return; }
+    const free = size.h - room.top - room.bottom;
+    fitTo = clamp(Math.min(size.w, free) / Math.min(size.w, size.h), 0.55, 1);
+    if (!held) offset = (room.top - room.bottom) / 2;
+  }
   let paused = false;
   const reduced = reducedMotion();
 
@@ -108,7 +137,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract } = {}) {
   function basis() {
     const l = view.lon * DEG, p = view.lat * DEG;
     const cl = Math.cos(l), sl = Math.sin(l), cp = Math.cos(p), sp = Math.sin(p);
-    const r = size.r * view.k;
+    const r = size.r * view.k * fit;
     const cx = size.w / 2, cy = size.h / 2 + view.dy;
     // How far from the centre the screen reaches, as an angle on the globe.
     const reach = Math.hypot(Math.max(cx, size.w - cx), Math.max(cy, size.h - cy));
@@ -197,10 +226,14 @@ export function createGlobe(stage, { onFrame, onTap, onInteract } = {}) {
     }
   }
 
+  // Shapes drawn per layer: [{ polys, near?, fill }] (prepared); near is the detailed
+  // version for zooming in, as with the land.
+  const fillAll = list => { for (const s of list ?? []) fillPolys((view.k >= NEAR_K && s.near) || s.polys, s.fill); };
+
   function draw() {
     const { w, h: ht, dpr } = size;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, w, ht);
+    ctx = baseCtx;
+    for (const c of [baseCtx, overCtx]) { c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, w, ht); }
     const { cx, cy, r } = basis();
 
     // A thin glow of atmosphere outside the rim while the globe still fits on screen,
@@ -218,6 +251,8 @@ export function createGlobe(stage, { onFrame, onTap, onInteract } = {}) {
     ctx.save();
     ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
 
+    fillAll(layer?.sea);
+
     // Graticule (near side only).
     ctx.strokeStyle = col.grid; ctx.lineWidth = 1;
     ctx.beginPath();
@@ -233,6 +268,17 @@ export function createGlobe(stage, { onFrame, onTap, onInteract } = {}) {
     ctx.stroke();
 
     if (polys) fillPolys(view.k >= NEAR_K ? polys.near : polys.far, col.land);
+    fillAll(layer?.land);
+    ctx.restore();
+
+    // The picture layer, if any, between the two canvases.
+    if (sphere) sphere.draw(B, size);
+
+    // Above every layer: reef points, the selected range, the home outline, pin fans.
+    ctx = overCtx;
+    ctx.save();
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
+    if (layer?.points) drawPoints(layer.points);
 
     if (range) {
       ctx.globalAlpha = 0.5;
@@ -247,9 +293,46 @@ export function createGlobe(stage, { onFrame, onTap, onInteract } = {}) {
       }
       ctx.globalAlpha = 1;
     }
+    if (home) {
+      ctx.lineJoin = 'round';
+      // A dark edge so it stands out on every layer, a soft glow, then the bright line.
+      for (const [width, alpha, colour] of [[5, 0.45, col.homeEdge], [9, 0.3, col.home], [2.5, 1, col.home]]) {
+        ctx.globalAlpha = alpha; ctx.lineWidth = width; ctx.strokeStyle = colour;
+        for (const p of home) {
+          if (!inSight(p)) continue;
+          ctx.beginPath();
+          for (const ring of p.rings) trace(ring);
+          ctx.stroke();
+        }
+      }
+      ctx.globalAlpha = 1;
+    }
     ctx.restore();
 
     onFrame?.({ project, ctx, k: view.k, radius: r });
+  }
+
+  // Glowing dots (reefs): one soft sprite, stamped at every point on the near side.
+  let sprite = null;
+  function drawPoints({ vecs, colour }) {
+    const d = 24;
+    if (sprite?.colour !== colour) {
+      const c = document.createElement('canvas');
+      c.width = c.height = d * 2;
+      const g = c.getContext('2d');
+      const grad = g.createRadialGradient(d, d, 0, d, d, d);
+      grad.addColorStop(0, '#fff');
+      grad.addColorStop(0.18, colour);
+      grad.addColorStop(1, `${colour.slice(0, 7)}00`); // the same colour, clear (not black)
+      g.fillStyle = grad;
+      g.fillRect(0, 0, d * 2, d * 2);
+      sprite = { c, colour };
+    }
+    const s = clamp(5 * Math.sqrt(view.k), 5, 22); // dot size on screen
+    for (let i = 0; i < vecs.length; i += 3) {
+      const [x, y, z] = project([vecs[i], vecs[i + 1], vecs[i + 2]]);
+      if (z > 0) ctx.drawImage(sprite.c, x - s, y - s, s * 2, s * 2);
+    }
   }
 
   // ---------- the loop ----------
@@ -269,6 +352,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract } = {}) {
       dirty = true;
     }
     if (Math.abs(offset - view.dy) > 0.5) { view.dy += (offset - view.dy) * Math.min(1, dt / 90); dirty = true; }
+    if (Math.abs(fitTo - fit) > 0.002) { fit += (fitTo - fit) * Math.min(1, dt / 90); dirty = true; }
     if (dirty) { dirty = false; draw(); }
   }
 
@@ -280,7 +364,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract } = {}) {
 
   // Drag by (dx, dy) screen pixels: the ground under the finger follows it.
   function rotateBy(dx, dy) {
-    const s = 1 / (size.r * view.k * DEG);
+    const s = 1 / (size.r * view.k * fit * DEG);
     view.lon = wrap(view.lon - (dx * s) / Math.max(0.35, Math.cos(view.lat * DEG)));
     view.lat = clamp(view.lat + dy * s, -MAX_LAT, MAX_LAT);
     dirty = true;
@@ -362,9 +446,9 @@ export function createGlobe(stage, { onFrame, onTap, onInteract } = {}) {
   const ro = new ResizeObserver(([entry]) => {
     const { width: w, height: ht } = entry.contentRect;
     const dpr = Math.min(2, window.devicePixelRatio || 1);
-    canvas.width = Math.round(w * dpr);
-    canvas.height = Math.round(ht * dpr);
+    for (const c of [canvas, overCanvas]) { c.width = Math.round(w * dpr); c.height = Math.round(ht * dpr); }
     size = { w, h: ht, dpr, r: Math.min(w, ht) * RADIUS };
+    applyRoom();
     dirty = true;
   });
   ro.observe(stage);
@@ -373,13 +457,37 @@ export function createGlobe(stage, { onFrame, onTap, onInteract } = {}) {
   return {
     ready: loadLand(),
     get k() { return view.k; },
-    get radius() { return size.r; },
+    get radius() { return size.r * fit; },
     redraw() { dirty = true; },
     pause(on) { paused = on; if (!on) lastTouch = performance.now(); },
     // Room at the bottom (px) for the card sheet: the globe slides up to stay in view.
-    setOffset(px) { offset = -px / 2; dirty = true; },
+    setOffset(px) { held = px > 0; offset = -px / 2; dirty = true; },
+    // Keep the globe in the space between top and bottom (px), e.g. under the layer chips
+    // and above a legend: it moves there and shrinks if it has to.
+    setRoom(top, bottom) { room = top || bottom ? { top, bottom } : null; applyRoom(); dirty = true; },
     // polys: GeoJSON-style [[ [lon, lat]… ]…] lists, or null to clear.
     setRange(list, group) { range = list ? { polys: prepare(list), colour: col.group(group) } : null; dirty = true; },
+    // A map layer, or null for the plain globe:
+    //   sea:    [{ polys, near?, fill }] drawn on the sea, under the land (prepared with prepare())
+    //   land:   [{ polys, near?, fill }] drawn on the land
+    //   points: { vecs, colour } glowing dots above everything (flat unit vectors)
+    //   raster: a js/globegl.js spec, drawn above sea and land
+    // Resolves when the layer is showing; rejects if its pictures can't be shown.
+    async setLayer(next) {
+      layer = next;
+      dirty = true;
+      if (next?.raster && !sphere) {
+        const { createSphere } = await import('./globegl.js');
+        const glCanvas = h('canvas', { class: 'globe__canvas globe__canvas--gl', 'aria-hidden': 'true' });
+        sphere = createSphere(glCanvas);
+        if (!sphere) throw new Error('WebGL 2 is not available');
+        overCanvas.before(glCanvas);
+      }
+      await sphere?.set(next?.raster ?? null);
+      dirty = true;
+    },
+    // Change the picture layer's settings (e.g. where the sun is) without reloading it.
+    updateRaster(patch) { sphere?.update(patch); dirty = true; },
     // Turn (and zoom) to a place.
     flyTo(lon, lat, k = view.k, { duration = 700, onDone } = {}) {
       touched();
@@ -402,6 +510,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract } = {}) {
       flight?.();
       untrack();
       ro.disconnect();
+      sphere?.destroy();
       Object.assign(saved, { lon: view.lon, lat: view.lat, k: view.k });
     },
   };
