@@ -1,6 +1,6 @@
 # Build report
 
-Generated 2026-11-02 14:17 UTC. Re-written on every build.
+Generated 2026-11-02 14:44 UTC. Re-written on every build.
 
 ## Summary
 
@@ -198,11 +198,11 @@ For the "Animal" comparison. Defined in data/lookalikes.json; a group shows on a
 
 - ✓ Cheetah: needs silhouette (the group emoji is drawn instead) (size is a draft)
 - ○ Amur Leopard: not built yet (s3-w08)
-- ◆ Jaguar · 美洲豹 (standalone): needs photo, silhouette
+- ◆ Jaguar · 美洲豹 (standalone)
 
 ### Elephants · 大象 (`elephants`) (draft)
 
-- ✓ African Elephant: needs silhouette (the group emoji is drawn instead) (size is a draft)
+- ✓ African Elephant (size is a draft)
 - ○ Asian Elephant: not built yet (s3-w07)
 
 ### Taiwan’s mountain pheasants · 臺灣山上的雉雞 (`taiwan-pheasants`) (draft)
@@ -223,28 +223,28 @@ For the "Animal" comparison. Defined in data/lookalikes.json; a group shows on a
 ### Wild cat or house cat? · 石虎還是家貓？ (`wild-cat-or-house-cat`) (draft)
 
 - ✓ Leopard Cat: needs silhouette (the group emoji is drawn instead) (size is a draft)
-- ◆ House cat · 家貓 (standalone): needs photo, silhouette
+- ◆ House cat · 家貓 (standalone)
 
 ### Taiwan’s hoofed mountain animals · 臺灣山上的有蹄動物 (`taiwan-hoofed`) (draft)
 
-- ✓ Formosan Muntjac: needs silhouette (the group emoji is drawn instead) (size is a draft)
+- ✓ Formosan Muntjac (size is a draft)
 - ✓ Formosan Sambar Deer (size is a draft)
 - ✓ Taiwan Serow (size is a draft)
 
 ### Great apes · 大型猿類 (`great-apes`) (draft)
 
-- ✓ Western Lowland Gorilla: needs silhouette (the group emoji is drawn instead) (size is a draft)
+- ✓ Western Lowland Gorilla (size is a draft)
 - ○ Chimpanzee: not built yet (s2-w01)
 
 ### Rhinos · 犀牛 (`rhinos`) (draft)
 
-- ✓ Black Rhinoceros: needs silhouette (the group emoji is drawn instead) (size is a draft)
-- ◆ White Rhinoceros · 白犀牛 (standalone): needs photo, silhouette
+- ✓ Black Rhinoceros (size is a draft)
+- ◆ White Rhinoceros · 白犀牛 (standalone)
 
 ### Venomous or harmless? · 有毒還是沒毒？ (`venomous-or-harmless`) (draft)
 
 - ✓ Brown-spotted Pit Viper (size is a draft)
-- ◆ Mock Viper · 擬龜殼花 (standalone): needs photo, silhouette
+- ◆ Mock Viper · 擬龜殼花 (standalone): needs silhouette
 
 ### Moth or butterfly? · 蛾還是蝴蝶？ (`moth-or-butterfly`) (draft)
 
@@ -255,39 +255,25 @@ For the "Animal" comparison. Defined in data/lookalikes.json; a group shows on a
 
 - Cheetah (`cheetah`, spotted-big-cats): silhouette (the group emoji is drawn instead)
 - Amur Leopard (`amur-leopard`, spotted-big-cats): not built yet
-- Jaguar (standalone, spotted-big-cats): photo, silhouette
-- African Elephant (`african-elephant`, elephants): silhouette (the group emoji is drawn instead)
 - Asian Elephant (`asian-elephant`, elephants): not built yet
 - Formosan Flying Fox (`formosan-flying-fox`, night-flyers): silhouette (the group emoji is drawn instead)
 - Red and White Giant Flying Squirrel (`red-and-white-giant-flying-squirrel`, night-flyers): silhouette (the group emoji is drawn instead)
 - Nine-banded Armadillo (`nine-banded-armadillo`, armoured-diggers): not built yet
 - Leopard Cat (`leopard-cat`, wild-cat-or-house-cat): silhouette (the group emoji is drawn instead)
-- House cat (standalone, wild-cat-or-house-cat): photo, silhouette
-- Formosan Muntjac (`formosan-muntjac`, taiwan-hoofed): silhouette (the group emoji is drawn instead)
-- Western Lowland Gorilla (`western-lowland-gorilla`, great-apes): silhouette (the group emoji is drawn instead)
 - Chimpanzee (`chimpanzee`, great-apes): not built yet
-- Black Rhinoceros (`black-rhinoceros`, rhinos): silhouette (the group emoji is drawn instead)
-- White Rhinoceros (standalone, rhinos): photo, silhouette
-- Mock Viper (standalone, venomous-or-harmless): photo, silhouette
+- Mock Viper (standalone, venomous-or-harmless): silhouette
 - Golden Birdwing (`golden-birdwing`, moth-or-butterfly): not built yet
 
 ## Needs silhouette
 
-19 species have no silhouette. In the Animal comparison they are drawn as a "?" outline at the right size.
+12 species have no silhouette. In the Animal comparison they are drawn as a "?" outline at the right size.
 
 ### In a lookalike group
 
-- Formosan Muntjac (`formosan-muntjac`): taiwan-hoofed
 - Formosan Flying Fox (`formosan-flying-fox`): night-flyers
 - Leopard Cat (`leopard-cat`): wild-cat-or-house-cat
 - Red and White Giant Flying Squirrel (`red-and-white-giant-flying-squirrel`): night-flyers
 - Cheetah (`cheetah`): spotted-big-cats
-- African Elephant (`african-elephant`): elephants
-- Black Rhinoceros (`black-rhinoceros`): rhinos
-- Western Lowland Gorilla (`western-lowland-gorilla`): great-apes
-- Jaguar (standalone): spotted-big-cats
-- House cat (standalone): wild-cat-or-house-cat
-- White Rhinoceros (standalone): rhinos
 - Mock Viper (standalone): venomous-or-harmless
 
 ### Other species cards (no "You" length comparison)

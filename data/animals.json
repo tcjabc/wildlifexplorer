@@ -776,6 +776,16 @@
         "max": 50
       }
     },
+    "silhouette": {
+      "file": "img/silhouettes/formosan-muntjac-photo-5b1bf0.png",
+      "author": "王朝威",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Muntiacus_reevesi_micrurus_230869896.jpg",
+      "taxon": "Muntiacus reevesi micrurus",
+      "derivedFrom": "https://commons.wikimedia.org/wiki/File:Muntiacus_reevesi_micrurus_230869896.jpg",
+      "note": "Traced from the card photo (scripts/make-silhouette.mjs)."
+    },
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -809,6 +819,9 @@
       }
     },
     "wikidata": "Q20908353",
+    "locked": [
+      "silhouette"
+    ],
     "_draft": [
       "tags",
       "stats"
@@ -1573,6 +1586,14 @@
         "max": 400
       }
     },
+    "silhouette": {
+      "file": "img/silhouettes/african-elephant-48294b.svg",
+      "author": "Margot Michaud",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceUrl": "https://www.phylopic.org/images/2a070808-0874-409d-81c0-d0c1995e54bb",
+      "taxon": "Loxodonta africana"
+    },
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -1606,6 +1627,9 @@
       }
     },
     "wikidata": "Q36557",
+    "locked": [
+      "silhouette"
+    ],
     "_draft": [
       "tags",
       "stats"
@@ -1919,6 +1943,14 @@
         "max": 170
       }
     },
+    "silhouette": {
+      "file": "img/silhouettes/black-rhinoceros-fa198a.svg",
+      "author": "Christophe Mallet",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceUrl": "https://www.phylopic.org/images/0f140008-ea45-48a8-b868-9235db6fbddb",
+      "taxon": "Diceros bicornis"
+    },
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -1952,6 +1984,9 @@
       }
     },
     "wikidata": "Q95036",
+    "locked": [
+      "silhouette"
+    ],
     "_draft": [
       "tags",
       "stats"
@@ -2012,6 +2047,14 @@
         "max": 180
       }
     },
+    "silhouette": {
+      "file": "img/silhouettes/western-lowland-gorilla-df2e2a.svg",
+      "author": "Margot Michaud",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceUrl": "https://www.phylopic.org/images/142e0571-3b5f-443d-a887-b572a224ea22",
+      "taxon": "Gorilla gorilla"
+    },
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -2045,6 +2088,9 @@
       }
     },
     "wikidata": "Q876500",
+    "locked": [
+      "silhouette"
+    ],
     "_draft": [
       "tags",
       "stats"
