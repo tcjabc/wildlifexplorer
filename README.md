@@ -135,7 +135,7 @@ Settings live in `scripts/build.config.json`:
 | `illustrationSearch` | `false` to stop searching Commons for illustrations |
 | `drops.cardsPerPack` | cards in each weekly pack (3) |
 | `drops.seriesCards` | cards in a series (87, so 29 weekly drops) |
-| `drops.groupSizes` | how many cards of each group every series has (they must add up to `seriesCards`) |
+| `drops.groupSizes` | how many cards of each group every series has (they must add up to `seriesCards`; frozen drops keep theirs) |
 | `userAgent` | identifies the script to Wikimedia/iNaturalist (please keep a contact URL in it) |
 
 ### After a build: check the report
@@ -316,11 +316,22 @@ Swipe up to turn the card over, and swipe down to put it back in the binder.
 
 **The plan** (`data/drops.json`, written by the build) is the same for every profile. A **series**
 has 87 cards in 29 weekly **drops** of 3, with the same number of cards from each group every
-series (`drops` in `build.config.json`). Series 1 takes the first rows of each group in
-`card-list.csv`, series 2 the next ones, and so on, so **add new rows at the end of their group**
-or later drops shift. No drop ever has two cards from the same group; the build stops with a
-message saying which setting to change if that becomes impossible. A slot whose row isn't in the
-CSV yet is planned as `"id": null`. `data/build-report.md` says how many drops are ready.
+series (`drops.groupSizes` in `build.config.json`). No drop ever has two cards from the same
+group, and every group is spread evenly over the series (mammals and birds come most weeks, the
+smaller groups every five or six weeks); the build stops with a message saying which setting to
+change if that becomes impossible. Rows fill the slots of their group in `card-list.csv` order.
+A slot with no row for it yet is planned as `"id": null`, and nothing is borrowed from another group.
+
+**Frozen drops**: as soon as every slot of a drop has a card, the build writes it to
+`data/drops.lock.json` and never changes it again: editing, inserting or removing CSV rows, or
+changing `groupSizes`, only re-plans the drops that aren't frozen yet. The build warns when a
+change would have affected a frozen drop (a frozen card removed from the CSV or moved to another
+group, a new row added above frozen ones, a size change that no longer fits a frozen week).
+
+**Ready**: a drop arrives only when all its cards are built **and their 3 facts are written in
+English and Chinese** (and not still marked as a draft in `_draft`). An empty topic slot doesn't
+count. `data/build-report.md` shows Series 1 week by week, which drops are ready, and what each
+card still needs.
 
 **Each profile's timeline**: Series 1, Week 1 arrives the moment the profile is made; after that
 one drop a week on the profile's pack day and time (Parents area), with one week off between
@@ -330,8 +341,8 @@ only the dates differ.
 - Each drop is granted **once per profile**: the pack's id is profile + drop id, and it is written
   with an add that fails if it already exists, so reloads, two tabs or a repeated check can't
   grant or open it again.
-- A drop whose cards aren't all built yet **waits** (and the ones after it wait too). Once its cards
-  exist, it arrives, and any later drops that are already due catch up straight away.
+- A drop whose cards aren't all ready yet **waits** (and the ones after it wait too). Once they
+  are, it arrives, and any later drops that are already due catch up straight away.
 - Packs are never opened for the child. A "New pack arrived!" sheet (Open now / Later) is shown
   once per pack; unopened packs wait in **Packs** for as long as the child likes, and always open
   **oldest first**.

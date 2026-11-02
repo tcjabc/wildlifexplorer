@@ -34,6 +34,16 @@ function overlay() {
   return { el, scrim };
 }
 
+// A hidden page has no layout (every size is 0), so wait until the page is shown and the
+// pack has a size before measuring it.
+async function laidOut(el) {
+  while (document.hidden || !el.offsetWidth) {
+    await new Promise(r => (document.hidden
+      ? document.addEventListener('visibilitychange', r, { once: true })
+      : requestAnimationFrame(r)));
+  }
+}
+
 function scene(ui, ...children) {
   const el = h('div', { class: 'reveal__scene' }, children);
   ui.el.querySelector('.reveal__scene')?.remove();
@@ -107,6 +117,7 @@ async function openOne(ui, record) {
   const actions = h('div', { class: 'reveal__actions', hidden: true }, next);
   const counter = h('p', { class: 'reveal__more', hidden: true });
   scene(ui, h('p', { class: 'reveal__title' }, tx('reveal.title')), pack, help, tapBtn, actions, counter);
+  await laidOut(pack);
 
   // Size the cards inside the pack. offsetWidth/Height ignore the drop-in animation's transform.
   const W = pack.offsetWidth, H = pack.offsetHeight;

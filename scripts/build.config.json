@@ -13,18 +13,18 @@
     "cardsPerPack": 3,
     "seriesCards": 87,
     "groupSizes": {
-      "mammals": 21,
-      "birds": 10,
-      "reptiles": 7,
-      "fish": 6,
-      "invertebrates": 7,
-      "prehistoric": 6,
+      "mammals": 20,
+      "birds": 15,
+      "reptiles": 5,
+      "fish": 5,
+      "invertebrates": 5,
+      "prehistoric": 5,
       "microscopic": 5,
-      "behavior": 4,
+      "behavior": 5,
       "how-animals-work": 5,
-      "world-explorer": 5,
-      "conservation": 3,
-      "plants": 8
+      "world-explorer": 6,
+      "conservation": 5,
+      "plants": 6
     }
   }
 }

@@ -3,6 +3,7 @@
 // scores all belong to the profile that is using the app.
 import * as db from './db.js';
 import { dueAt } from './schedule.js';
+import { isReady } from './ready.js';
 
 export const state = {
   cards: [],
@@ -223,10 +224,11 @@ export async function resetProfile(id) {
 
 // ---------- Packs ----------
 
-const dropReady = drop => drop.cards.every(c => c.id && state.byId.has(c.id));
+// A drop can arrive once every card in it is built and its facts are written (ready.js).
+const dropReady = drop => drop.cards.every(c => c.id && isReady(state.byId.get(c.id)));
 const scheduleOf = p => ({ startAt: p.timeline.startAt, parent: p.parent, seriesDrops: state.seriesDrops });
 
-// Grant every drop that is due, in order, exactly once. A drop whose cards aren't built
+// Grant every drop that is due, in order, exactly once. A drop whose cards aren't ready
 // yet waits (and holds back the ones after it); once it is ready it arrives with its
 // original due time, and any later drops that are also due catch up straight away.
 // Each pack's id is profile + timeline epoch + drop id, and it is written with add(), so
@@ -273,7 +275,7 @@ export const inUnopenedPack = cardId => unopenedPacks().some(p => p.cardIds.incl
 export const dropById = id => state.drops.find(d => d.id === id);
 
 // When the next pack is due: { due, waiting } (waiting: due already, but its cards
-// aren't built yet), or null when every planned drop has arrived.
+// aren't ready yet), or null when every planned drop has arrived.
 export function nextDrop() {
   const p = state.profile;
   const prev = state.packs.at(-1) ?? null;

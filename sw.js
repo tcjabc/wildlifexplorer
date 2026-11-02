@@ -54,6 +54,7 @@ const SHELL = [
   'js/packs.js',
   'js/units.js',
   'js/countries.js',
+  'js/ready.js',
   'lang/en.json',
   'lang/zh-TW.json',
   'data/animals.json',

@@ -8,7 +8,8 @@
 //   node scripts/build-cards.mjs --offline    no network: re-merge, re-plan drops, make thumbs
 //   node scripts/build-cards.mjs --prune      also delete image files no card uses any more
 //
-// Also writes data/drops.json, the weekly pack plan (see lib/drops.mjs).
+// Also writes data/drops.json, the weekly pack plan, and freezes complete drops in
+// data/drops.lock.json (see lib/drops.mjs).
 // Your hand edits in animals.json are never overwritten (see lib/merge.mjs).
 
 import { existsSync } from 'node:fs';
@@ -30,6 +31,7 @@ import { downloadImage, ensureThumb, shortHash, thumbPath } from './lib/images.m
 import { isAllowedLicenseName } from './lib/licenses.mjs';
 import { mergeCard, canUpdate } from './lib/merge.mjs';
 import { planDrops, dropOrder, DropPlanError } from './lib/drops.mjs';
+import { isReady, stillNeeds } from '../js/ready.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const P = {
@@ -37,6 +39,7 @@ const P = {
   groups: path.join(ROOT, 'data/groups.json'),
   cards: path.join(ROOT, 'data/animals.json'),
   drops: path.join(ROOT, 'data/drops.json'),
+  lock: path.join(ROOT, 'data/drops.lock.json'),
   state: path.join(ROOT, 'data/build-state.json'),
   report: path.join(ROOT, 'data/build-report.md'),
   locations: path.join(ROOT, 'data/locations.json'),
@@ -288,7 +291,14 @@ async function main() {
   const matched = rows.map(row => ({ row, card: findExisting(row) }));
 
   // The pack plan. Checked before anything is downloaded, so a bad config fails fast.
-  const drops = planDrops(matched.map(m => ({ id: m.card?.id ?? m.row.id, groupId: m.row.groupId })), groups, cfg.drops ?? {});
+  // Frozen drops never change; the last plan tells which rows are new.
+  const locked = (await readJson(P.lock, {})).drops ?? {};
+  const lastPlan = await readJson(P.drops, null);
+  const previous = lastPlan ? new Set(lastPlan.drops.flatMap(d => d.cards.map(c => c.id)).filter(Boolean)) : null;
+  const plan = planDrops(matched.map(m => ({ id: m.card?.id ?? m.row.id, groupId: m.row.groupId, name: m.row.name_en, line: m.row.index + 2 })),
+    groups, cfg.drops ?? {}, locked, previous);
+  const { drops } = plan;
+  for (const w of plan.warnings) console.warn(`Warning: ${w}`);
   const position = dropOrder(drops);
   const rank = m => position.get(m.card?.id ?? m.row.id) ?? position.size + m.row.index;
   const inDropOrder = [...matched].sort((x, y) => rank(x) - rank(y));
@@ -394,11 +404,55 @@ async function main() {
   await writeJson(P.cards, [...cards, ...orphans].map(orderKeys));
   await writeJson(P.state, state);
   await writeJson(P.drops, { cardsPerPack: cfg.drops.cardsPerPack, seriesDrops: cfg.drops.seriesCards / cfg.drops.cardsPerPack, drops });
-  await writeFile(P.report, renderReport({ rows, cards, orphans, report, imageProblems, unused, selected, drops }), 'utf8');
+  await writeJson(P.lock, {
+    note: 'Frozen drops: written by the build as soon as every slot of a drop has a card, and never changed by it again. Delete an entry only if no one can have received that drop yet.',
+    drops: plan.lock,
+  });
+  const newlyFrozen = Object.keys(plan.lock).filter(id => !locked[id]);
+  await writeFile(P.report, renderReport({ rows, cards, orphans, report, imageProblems, unused, selected, drops, groups, warnings: plan.warnings, newlyFrozen }), 'utf8');
   console.log(`\nWrote ${path.relative(ROOT, P.cards)} (${cards.length + orphans.length} cards), ${path.relative(ROOT, P.drops)} (${drops.length} drops) and ${path.relative(ROOT, P.report)}`);
 }
 
-function renderReport({ rows, cards, orphans, report, imageProblems, unused, selected, drops }) {
+// Drops: every series in short, Series 1 week by week, and what holds drops back.
+function renderDrops(L, { rows, cards, drops, groups, warnings, newlyFrozen }) {
+  const byId = new Map(cards.map(c => [c.id, c]));
+  const rowName = new Map(rows.map(r => [r.id, r.name_en]));
+  const emoji = new Map(groups.map(g => [g.id, g.emoji]));
+  const ready = d => d.cards.every(c => c.id && isReady(byId.get(c.id)));
+  const firstWaiting = drops.findIndex(d => !ready(d));
+  const inOrder = firstWaiting < 0 ? drops.length : firstWaiting;
+  const name = c => (c.id ? `${byId.get(c.id)?.name?.en ?? rowName.get(c.id) ?? c.id}` : `(no ${c.group} row in the CSV yet)`);
+
+  L.push('## Drops', '');
+  L.push('A drop arrives only when all its cards are built and their facts are written (not a draft). Drops arrive in order, so the first one that isn\'t ready holds back the rest.', '');
+  L.push(`- Planned: ${drops.length} drops; frozen in data/drops.lock.json: ${drops.filter(d => d.frozen).length}${newlyFrozen.length ? ` (${newlyFrozen.length} frozen by this build)` : ''}`);
+  L.push(`- Ready to arrive in order: ${inOrder}${drops[firstWaiting] ? ` (${drops[firstWaiting].id} is the first that waits)` : ''}`);
+  L.push(`- Ready on their own (all three cards complete): ${drops.filter(ready).length}`);
+  for (const s of [...new Set(drops.map(d => d.series))]) {
+    const list = drops.filter(d => d.series === s);
+    L.push(`- Series ${s}: ${list.filter(d => d.cards.every(c => c.id)).length} of ${list.length} drops have all their cards in the CSV, ${list.filter(ready).length} ready`);
+  }
+  L.push('');
+  if (warnings.length) {
+    L.push('### Drop warnings', '');
+    for (const w of warnings) L.push(`- ${w}`);
+    L.push('');
+  }
+  L.push('### Series 1, week by week', '');
+  L.push('| Week | Cards | Ready |', '|---|---|---|');
+  for (const d of drops.filter(x => x.series === 1)) {
+    const waitsFor = d.cards.filter(c => !c.id || !isReady(byId.get(c.id))).map(name);
+    L.push(`| ${d.week} (\`${d.id}\`) | ${d.cards.map(c => `${emoji.get(c.group)} ${name(c)}`).join(' · ')} | ${waitsFor.length ? `no: ${waitsFor.join(', ')}` : 'yes'} |`);
+  }
+  L.push('');
+  const todo = drops.filter(x => x.series === 1).flatMap(d => d.cards.filter(c => c.id && !isReady(byId.get(c.id))).map(c => ({ c, d })));
+  L.push('### Series 1 cards that still need content', '');
+  if (!todo.length) L.push('None.');
+  for (const { c, d } of todo) L.push(`- ${emoji.get(c.group)} ${name(c)} (\`${c.id}\`, ${d.id}): ${stillNeeds(byId.get(c.id)).join('; ')}`);
+  L.push('');
+}
+
+function renderReport({ rows, cards, orphans, report, imageProblems, unused, selected, drops, groups, warnings, newlyFrozen }) {
   const L = [];
   const species = cards.filter(c => c.scientificName);
   const topics = cards.filter(c => !c.scientificName);
@@ -416,13 +470,8 @@ function renderReport({ rows, cards, orphans, report, imageProblems, unused, sel
   L.push(`- Cards without a photo: ${noPhoto.length}`);
   L.push(`- Cards with facts still to write: ${factsTodo.length}`);
   L.push(`- Cards with habitat still to write: ${habitatTodo.length}`);
-  L.push(`- Cards with inside pages (profile, statistics, life cycle): ${cards.filter(c => c.profile || c.stats || c.lifeCycle).length}`);
-  // Drops are granted in order, so the first one with a missing card holds back the rest.
-  const built = new Set(cards.map(c => c.id));
-  const ready = drops.findIndex(d => d.cards.some(c => !c.id || !built.has(c.id)));
-  const waiting = drops[ready];
-  const missing = waiting?.cards.filter(c => !c.id || !built.has(c.id)).map(c => c.id ?? `a ${c.group} row not in the CSV yet`);
-  L.push(`- Drops ready in order: ${ready < 0 ? drops.length : ready} of ${drops.length} planned${waiting ? ` (${waiting.id} waits for: ${missing.join(', ')})` : ''}`, '');
+  L.push(`- Cards with inside pages (profile, statistics, life cycle): ${cards.filter(c => c.profile || c.stats || c.lifeCycle).length}`, '');
+  renderDrops(L, { rows, cards, drops, groups, warnings, newlyFrozen });
 
   const attention = [...report.values()].filter(r => r.issues.length);
   L.push('## Needs your attention', '');
