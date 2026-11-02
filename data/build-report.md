@@ -1,12 +1,12 @@
 # Build report
 
-Generated 2026-11-02 12:18 UTC. Re-written on every build.
+Generated 2026-11-02 12:22 UTC. Re-written on every build.
 
 ## Summary
 
 - Rows in card-list.csv: 218
 - Cards in animals.json: 35 (30 species, 5 topic)
-- Processed this run: 20 (offline: Wikidata, name and image checks were skipped, so they are not listed below; run without --offline for them)
+- Processed this run: 5
 - Rows not built yet: 183 (run with `--all` or a bigger `--limit`)
 - Cards without a photo: 5
 - Cards with facts still to write: 33
@@ -151,7 +151,21 @@ A drop arrives only when all its cards are built and their facts are written (no
 
 ## Needs your attention
 
-Nothing — all processed cards look fine.
+### Formosan Landlocked Salmon · 櫻花鉤吻鮭 (`formosan-landlocked-salmon`)
+
+- No IUCN status on Wikidata — add "status" by hand if you know it
+
+### Chinese Pangolin · 穿山甲 (`chinese-pangolin`)
+
+- Illustration auto-picked by search — please check it (add "illustration" to the card's "locked" list to keep it and stop this reminder): https://commons.wikimedia.org/wiki/File:PSM_V21_D612_Manis_pentadactyla.jpg
+
+### Taiwan Serow · 臺灣長鬃山羊 (`taiwan-serow`)
+
+- Illustration auto-picked by search — please check it (add "illustration" to the card's "locked" list to keep it and stop this reminder): https://commons.wikimedia.org/wiki/File:Capricornis_swinhoei_Joseph_Wolf.jpg
+
+### Mikado Pheasant · 帝雉 (`mikado-pheasant`)
+
+- Illustration auto-picked by search — please check it (add "illustration" to the card's "locked" list to keep it and stop this reminder): https://commons.wikimedia.org/wiki/File:Syrmaticus_mikado_(illustration).jpg
 
 ## Topic cards (written by hand)
 
@@ -169,3 +183,11 @@ Written by Claude as a starting point. Check or rewrite it, then remove the fiel
 
 - Formosan Black Bear · 臺灣黑熊 (`formosan-black-bear`): facts, habitat, profile, stats, compare, lifeCycle
 - Formosan Rock Macaque · 臺灣獼猴 (`formosan-rock-macaque`): facts, habitat, profile, stats, compare, lifeCycle
+
+## Notes
+
+- **Formosan Landlocked Salmon**: Chinese name: kept yours (櫻花鉤吻鮭); Wikidata's 臺灣櫻花鉤吻鮭 is stored as name.zhAlt; range shape from 87 GBIF records (land)
+- **Chinese Pangolin**: Chinese name: kept yours (穿山甲); Wikidata's 中華穿山甲 is stored as name.zhAlt; silhouette is of a related animal (Manis culionensis); range shape from 104 CC0/CC BY GBIF records (land, 1 island(s) filled)
+- **Taiwan Serow**: Chinese name: kept yours (臺灣長鬃山羊); Wikidata's 臺灣山羊 is stored as name.zhAlt; silhouette is of a related animal (Aepyceros melampus); range shape from 2077 CC0/CC BY GBIF records (land)
+- **Mikado Pheasant**: Chinese name: kept yours (帝雉); Wikidata's 黑長尾雉 is stored as name.zhAlt; silhouette is of a related animal (Arborophila hyperythra); range shape from 4028 CC0/CC BY GBIF records (land)
+- **Formosan Sambar Deer**: status VU is the parent species' IUCN status (no subspecies assessment); Chinese name: kept yours (水鹿); Wikidata's 臺灣水鹿 is stored as name.zhAlt; silhouette is of a related animal (Odocoileus virginianus); range shape from 92 CC0/CC BY GBIF records (land)

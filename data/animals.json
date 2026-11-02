@@ -385,7 +385,8 @@
     "name": {
       "en": "Chinese Pangolin",
       "zh": "穿山甲",
-      "zhuyin": "ㄔㄨㄢ ㄕㄢ ㄐㄧㄚˇ"
+      "zhuyin": "ㄔㄨㄢ ㄕㄢ ㄐㄧㄚˇ",
+      "zhAlt": "中華穿山甲"
     },
     "facts": [
       {
@@ -477,7 +478,8 @@
     "name": {
       "en": "Taiwan Serow",
       "zh": "臺灣長鬃山羊",
-      "zhuyin": "ㄊㄞˊ ㄨㄢ ㄔㄤˊ ㄗㄨㄥ ㄕㄢ ㄧㄤˊ"
+      "zhuyin": "ㄊㄞˊ ㄨㄢ ㄔㄤˊ ㄗㄨㄥ ㄕㄢ ㄧㄤˊ",
+      "zhAlt": "臺灣山羊"
     },
     "facts": [
       {
@@ -569,7 +571,8 @@
     "name": {
       "en": "Formosan Sambar Deer",
       "zh": "水鹿",
-      "zhuyin": "ㄕㄨㄟˇ ㄌㄨˋ"
+      "zhuyin": "ㄕㄨㄟˇ ㄌㄨˋ",
+      "zhAlt": "臺灣水鹿"
     },
     "facts": [
       {
@@ -1958,7 +1961,8 @@
     "name": {
       "en": "Mikado Pheasant",
       "zh": "帝雉",
-      "zhuyin": "ㄉㄧˋ ㄓˋ"
+      "zhuyin": "ㄉㄧˋ ㄓˋ",
+      "zhAlt": "黑長尾雉"
     },
     "facts": [
       {
@@ -2222,7 +2226,8 @@
     "name": {
       "en": "Formosan Landlocked Salmon",
       "zh": "櫻花鉤吻鮭",
-      "zhuyin": "ㄧㄥ ㄏㄨㄚ ㄍㄡ ㄨㄣˇ ㄍㄨㄟ"
+      "zhuyin": "ㄧㄥ ㄏㄨㄚ ㄍㄡ ㄨㄣˇ ㄍㄨㄟ",
+      "zhAlt": "臺灣櫻花鉤吻鮭"
     },
     "facts": [
       {

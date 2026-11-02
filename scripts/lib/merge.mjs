@@ -7,7 +7,7 @@
 // Fields the build never writes (facts, habitat, anything you add) are never touched.
 
 export const BUILD_FIELDS = [
-  'group', 'scientificName', 'name.en', 'name.zh', 'name.zhuyin', 'taiwan', 'status',
+  'group', 'scientificName', 'name.en', 'name.zh', 'name.zhAlt', 'name.zhuyin', 'taiwan', 'status',
   'taxonomy', 'wikidata', 'photo', 'illustration', 'silhouette', 'mapBounds', 'range', 'place', 'fossilSite',
 ];
 

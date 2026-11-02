@@ -130,7 +130,9 @@ async function processSpecies(row, card, prevState, cfg, issues, notes) {
     } else if (!wd.labelZhTw) {
       notes.push('Wikidata has no zh-TW label to confirm the Chinese name against');
     } else if (zhKey(wd.labelZhTw) !== zhKey(row.name_zh)) {
-      issues.push(`zh-TW name differs: your list has ${row.name_zh}, Wikidata has ${wd.labelZhTw}`);
+      // Your name is the one shown; Wikidata's is kept as an alternate (e.g. for search later).
+      values['name.zhAlt'] = wd.labelZhTw;
+      notes.push(`Chinese name: kept yours (${row.name_zh}); Wikidata's ${wd.labelZhTw} is stored as name.zhAlt`);
     }
   }
 
