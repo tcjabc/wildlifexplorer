@@ -1,6 +1,7 @@
 import { h, mount, safeUrl } from '../dom.js';
 import { bi, tx } from '../i18n.js';
 import { state, thumbOf, isVisible } from '../store.js';
+import { LAYERS, LAYER_CREDITS } from '../layers.js';
 
 function link(url, text) {
   const href = safeUrl(url);
@@ -27,5 +28,14 @@ export function render(main) {
           h('p', { class: 'credits__name' }, bi(card.name), ' ',
             h('span', { class: 'chip' }, tx(`credits.${kind}`))),
           h('p', null, img.author, ' · ', link(img.licenseUrl, img.license), ' · ', link(img.sourceUrl, tx('card.source')))))))
-      : h('p', null, tx('credits.none'))));
+      : h('p', null, tx('credits.none')),
+    h('h2', { class: 'panel__title' }, h('span', { 'aria-hidden': 'true' }, '🌍 '), tx('credits.layers')),
+    h('ul', { class: 'credits' }, LAYER_CREDITS.map(c => {
+      const L = LAYERS.find(l => l.id === c.layer);
+      return h('li', { class: 'credits__item' },
+        h('span', { class: 'credits__emoji', 'aria-hidden': 'true' }, L?.emoji ?? '🏠'),
+        h('div', { class: 'credits__text' },
+          h('p', { class: 'credits__name' }, tx(L ? `layer.${L.id}` : 'credits.home')),
+          h('p', null, c.author, ' · ', link(c.licenseUrl, c.license), ' · ', link(c.sourceUrl, tx('card.source')))));
+    }))));
 }

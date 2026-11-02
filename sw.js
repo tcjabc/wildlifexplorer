@@ -1,10 +1,15 @@
 // Service worker: makes the whole app work offline.
 //  - App files and data: network first (so updates show up), cache as fallback.
 //  - Images: cache first (their file names change when the picture changes).
-// Bump VERSION to throw away every old cache.
-const VERSION = 'v9';
+//  - Globe map layers: cache first, only once a layer is first shown (own LAYERS_VERSION).
+// Bump VERSION to throw away the app and image caches.
+const VERSION = 'v10';
 const SHELL_CACHE = `shell-${VERSION}`;
 const IMAGE_CACHE = `images-${VERSION}`;
+// Globe map layers (assets/layers/): big, so only cached once a layer is first shown, and
+// kept across releases. Bump LAYERS_VERSION when scripts/make-layers.mjs is re-run.
+const LAYERS_VERSION = 'l1';
+const LAYER_CACHE = `layers-${LAYERS_VERSION}`;
 const NETWORK_TIMEOUT_MS = 3000;
 
 const SHELL = [
@@ -34,6 +39,8 @@ const SHELL = [
   'js/magnifier.js',
   'js/globe.js',
   'js/zhuyin.js',
+  'js/globegl.js',
+  'js/layers.js',
   'js/views/binder.js',
   'js/views/globe.js',
   'js/views/quiz.js',
@@ -49,6 +56,7 @@ const SHELL = [
   'icons/apple-touch-icon.png',
   'assets/world.svg',
   'assets/globe.json',
+  'assets/home.json',
   'assets/child.svg',
 ];
 
@@ -86,7 +94,7 @@ self.addEventListener('install', event => {
 
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
-    const keep = new Set([SHELL_CACHE, IMAGE_CACHE]);
+    const keep = new Set([SHELL_CACHE, IMAGE_CACHE, LAYER_CACHE]);
     for (const key of await caches.keys()) if (!keep.has(key)) await caches.delete(key);
     await self.clients.claim();
   })());
@@ -119,8 +127,8 @@ async function networkFirst(request) {
   }
 }
 
-async function cacheFirst(request) {
-  const cache = await caches.open(IMAGE_CACHE);
+async function cacheFirst(request, name = IMAGE_CACHE) {
+  const cache = await caches.open(name);
   const cached = await cache.match(request, { ignoreSearch: true });
   if (cached) return cached;
   const response = await fetch(request);
@@ -133,6 +141,7 @@ self.addEventListener('fetch', event => {
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
-  const isImage = url.pathname.includes('/img/');
-  event.respondWith(isImage ? cacheFirst(request) : networkFirst(request));
+  if (url.pathname.includes('/assets/layers/')) event.respondWith(cacheFirst(request, LAYER_CACHE));
+  else if (url.pathname.includes('/img/')) event.respondWith(cacheFirst(request));
+  else event.respondWith(networkFirst(request));
 });

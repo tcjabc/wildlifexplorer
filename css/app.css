@@ -396,14 +396,62 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
 }
 .globe__stage:active { cursor: grabbing; }
 .globe__canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.globe__canvas--gl, .globe__canvas--over { pointer-events: none; }
 .globe__pins { position: absolute; inset: 0; pointer-events: none; }
+.globe__foot {
+  position: absolute; left: var(--s-3); right: var(--s-3); bottom: calc(var(--s-3) + env(safe-area-inset-bottom));
+  display: flex; flex-direction: column; align-items: center; gap: var(--s-2); pointer-events: none;
+}
 .globe__hint {
-  position: absolute; left: var(--s-4); right: var(--s-4); bottom: calc(var(--s-4) + env(safe-area-inset-bottom));
-  width: fit-content; max-width: calc(100% - 2 * var(--s-4)); margin: 0 auto; padding: var(--s-2) var(--s-4);
+  width: fit-content; max-width: 100%; margin: 0; padding: var(--s-2) var(--s-4);
   border-radius: var(--r-pill); background: var(--c-veil); color: var(--c-ink-soft);
-  font-size: var(--fs-xs); font-weight: var(--fw-semi); text-align: center; pointer-events: none;
+  font-size: var(--fs-xs); font-weight: var(--fw-semi); text-align: center;
 }
 .globe__hint .bi { align-items: center; }
+.globe.has-layer .globe__hint { display: none; }
+
+/* Map layer chips along the top, scrolling sideways on narrow screens. */
+.glayers {
+  position: absolute; top: var(--s-2); left: 0; right: 0;
+  display: flex; gap: var(--s-2); padding: 0 var(--s-3) var(--s-1);
+  overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+.glayers::-webkit-scrollbar { display: none; }
+.glayer {
+  flex: none; display: inline-flex; align-items: center; gap: var(--s-1);
+  min-height: var(--tap-sm); padding: var(--s-1) var(--s-3) var(--s-1) var(--s-2);
+  border: var(--bw-thin) solid var(--c-line); border-radius: var(--r-pill);
+  background: var(--c-veil); color: var(--c-ink); box-shadow: var(--shadow-1);
+  font: inherit; font-size: var(--fs-xs); font-weight: var(--fw-bold); cursor: pointer;
+}
+.glayer .bi { line-height: 1.1; text-align: left; }
+.glayer__emoji { font-size: var(--fs-lg); line-height: 1; }
+.glayer[aria-pressed="true"] { background: var(--c-primary); border-color: var(--c-primary); color: var(--c-on-primary); }
+.glayer.is-loading .glayer__emoji { animation: pulse 0.8s ease-in-out infinite; }
+.glayer.is-failed { border-color: var(--c-bad); }
+
+/* The legend for the layer that is on. */
+.glegend {
+  width: min(100%, var(--sheet-w)); padding: var(--s-2) var(--s-3);
+  border-radius: var(--r-md); background: var(--c-veil); box-shadow: var(--shadow-1);
+  font-size: var(--fs-xs); pointer-events: auto;
+}
+.glegend[hidden] { display: none; }
+.glegend__title { margin: 0 0 var(--s-1); font-weight: var(--fw-bold); display: flex; align-items: center; gap: var(--s-1); }
+.glegend__title .bi { flex-direction: row; gap: 0.4em; }
+.glegend__items { display: flex; flex-wrap: wrap; gap: var(--s-1) var(--s-3); margin: 0; padding: 0; list-style: none; }
+.glegend__items li { display: flex; align-items: center; gap: var(--s-1); }
+.glegend__sw {
+  flex: none; width: var(--legend-sw); height: var(--legend-sw); border-radius: var(--r-sm);
+  background: var(--sw); box-shadow: inset 0 0 0 var(--bw-thin) var(--c-shade-faint);
+}
+.glegend__bar { height: var(--legend-sw); border-radius: var(--r-pill); }
+.glegend__scale { display: flex; justify-content: space-between; margin-top: 2px; font-weight: var(--fw-semi); }
+.glegend__months { display: flex; align-items: center; gap: var(--s-2); margin-top: var(--s-1); font-weight: var(--fw-bold); }
+.glegend__monthname { flex: none; min-width: 6.5em; }
+.glegend__monthname .bi { flex-direction: row; gap: 0.4em; }
+.glegend__month { flex: 1; min-width: 0; height: var(--tap-sm); accent-color: var(--c-primary); }
+.glegend__note { margin: var(--s-1) 0 0; color: var(--c-ink-soft); }
 
 /* Photo pins: placed by transform on every frame (views/globe.js). */
 .gpin {
@@ -556,6 +604,7 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
 .credits__name { font-weight: var(--fw-bold); font-size: var(--fs-sm); }
 .credits__name .bi { flex-direction: row; flex-wrap: wrap; column-gap: 0.5em; }
 .credits__text a { word-break: break-word; }
+.credits__emoji { display: grid; place-items: center; width: var(--size-thumb); font-size: var(--fs-xl); }
 
 /* ---------- Tablet & landscape ---------- */
 @media (min-width: 700px) {

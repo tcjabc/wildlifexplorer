@@ -17,6 +17,7 @@ import { createGlobe, toVec } from '../globe.js';
 import { loadRange, rangePolygons } from '../worldmap.js';
 import { track, haptic } from '../gesture.js';
 import { nameBi } from '../zhuyin.js';
+import { LAYERS, tempStops } from '../layers.js';
 
 const NEAR_SIDE = 0.06;   // pins this close to the rim fade out
 const TOUCH = 0.8;        // pins closer than this many pin widths stack up
@@ -24,6 +25,9 @@ const FAN_MS = 300;
 
 let globe = null;
 let sheet = null;          // { el, scrim, pin }
+// The map layer and month, kept while visiting other tabs.
+let shownLayer = null;
+let tempMonth = new Date().getMonth() + 1;
 
 // ---------- where pins go ----------
 
@@ -97,7 +101,10 @@ export function render(main) {
   const layer = h('div', { class: 'globe__pins' });
   const hint = h('p', { class: 'globe__hint' }, tx('globe.hint'));
   const stage = h('div', { class: 'globe__stage' }, layer);
-  const view = h('section', { class: 'globe', 'aria-label': label('nav.globe') }, stage, hint);
+  const bar = h('div', { class: 'glayers', role: 'toolbar', 'aria-label': label('globe.layers') });
+  const legend = h('div', { class: 'glegend', hidden: true });
+  const view = h('section', { class: 'globe', 'aria-label': label('nav.globe') },
+    stage, bar, h('div', { class: 'globe__foot' }, legend, hint));
   mount(main, view);
 
   const pins = [];          // { card, lon, lat, v, el, x, y, z, stack }
@@ -262,6 +269,7 @@ export function render(main) {
     sheet = null;
     globe.pause(false);
     globe.setOffset(0);
+    fitGlobe();
     if (animate && !reducedMotion()) {
       scrim.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 220, fill: 'forwards' });
       el.animate([{ transform: `translateY(${from}px)` }, { transform: 'translateY(110%)' }], { duration: 240, easing: 'ease-in', fill: 'forwards' })
@@ -288,9 +296,97 @@ export function render(main) {
     pins.sort((a, b) => a.card.number - b.card.number);
   });
 
-  const onResize = () => measure();
+  // ---------- map layers ----------
+  const col = name => getComputedStyle(view).getPropertyValue(name).trim();
+  let ticker = 0;
+  let wanted = null;
+  const chips = LAYERS.map(L => h('button', {
+    class: 'glayer', type: 'button', 'aria-pressed': 'false', 'data-layer': L.id,
+    onclick: () => choose(shownLayer === L.id ? null : L.id),
+  }, h('span', { class: 'glayer__emoji', 'aria-hidden': 'true' }, L.emoji), tx(`layer.${L.id}`)));
+  bar.append(...chips);
+
+  const swatch = token => h('span', { class: 'glegend__sw', style: { '--sw': `var(${token})` }, 'aria-hidden': 'true' });
+
+  function tempScale() {
+    const stops = tempStops(col);
+    const lo = stops[0].v, hi = stops.at(-1).v;
+    const grad = stops.map(s => `${s.colour} ${(((s.v - lo) / (hi - lo)) * 100).toFixed(1)}%`).join(', ');
+    const month = h('input', {
+      class: 'glegend__month', type: 'range', min: 1, max: 12, step: 1, value: tempMonth,
+      'aria-label': label('layer.temp.month'),
+      oninput: e => { tempMonth = Number(e.target.value); mount(name, tx(`month.${tempMonth}`)); show(LAYERS.find(l => l.id === 'temp')); },
+    });
+    const name = h('span', { class: 'glegend__monthname' }, tx(`month.${tempMonth}`));
+    return [
+      h('div', { class: 'glegend__bar', style: { background: `linear-gradient(to right, ${grad})` }, 'aria-hidden': 'true' }),
+      h('div', { class: 'glegend__scale' },
+        h('span', null, '❄️ ', `${lo}°C`), h('span', null, '0°C'), h('span', null, `${hi}°C `, '🔥')),
+      h('label', { class: 'glegend__months' }, name, month),
+    ];
+  }
+
+  // While a legend shows, the globe moves into the space between the chips and the legend
+  // (and shrinks if it must) instead of hiding behind them.
+  function fitGlobe() {
+    if (!globe || sheet) return;
+    if (legend.hidden) { globe.setRoom(0, 0); return; }
+    const vb = view.getBoundingClientRect();
+    globe.setRoom(bar.getBoundingClientRect().bottom - vb.top, vb.bottom - legend.getBoundingClientRect().top);
+  }
+
+  function renderLegend(L, failed = false) {
+    legend.hidden = false;
+    queueMicrotask(fitGlobe);
+    mount(legend,
+      h('p', { class: 'glegend__title' }, h('span', { 'aria-hidden': 'true' }, `${L.emoji} `), tx(`layer.${L.id}`)),
+      failed
+        ? h('p', { class: 'glegend__note' }, tx('layer.failed'))
+        : [
+          L.legend === 'temp'
+            ? tempScale()
+            : h('ul', { class: 'glegend__items' }, L.legend.map(([token, key]) => h('li', null, swatch(token), tx(key)))),
+          L.note && h('p', { class: 'glegend__note' }, tx(L.note, { year: 2024 })),
+        ]);
+  }
+
+  // Load a layer's data and show it on the globe (also used when the month changes).
+  async function show(L) {
+    wanted = L;
+    const chip = chips.find(c => c.dataset.layer === L.id);
+    chip.classList.add('is-loading');
+    try {
+      const spec = await L.load({ col, month: tempMonth });
+      if (wanted !== L || !globe) return;
+      await globe.setLayer(spec);
+      if (L.tick && !ticker) ticker = setInterval(() => globe?.updateRaster(L.tick()), 60000);
+    } catch {
+      if (wanted !== L || !globe) return;
+      chip.classList.add('is-failed');
+      renderLegend(L, true);
+      globe.setLayer(null).catch(() => {});
+    } finally {
+      chip.classList.remove('is-loading');
+    }
+  }
+
+  function choose(id) {
+    shownLayer = id;
+    clearInterval(ticker);
+    ticker = 0;
+    view.classList.toggle('has-layer', Boolean(id));
+    chips.forEach(c => { c.setAttribute('aria-pressed', String(c.dataset.layer === id)); c.classList.remove('is-failed'); });
+    const L = LAYERS.find(l => l.id === id);
+    if (!L) { wanted = null; legend.hidden = true; fitGlobe(); globe.setLayer(null).catch(() => {}); return; }
+    renderLegend(L);
+    show(L);
+  }
+  if (shownLayer) choose(shownLayer);
+
+  const onResize = () => { measure(); fitGlobe(); };
   window.addEventListener('resize', onResize);
   return () => {
+    clearInterval(ticker);
     window.removeEventListener('resize', onResize);
     closeSheet({ animate: false });
     globe.destroy();

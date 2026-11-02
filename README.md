@@ -36,6 +36,8 @@ img/, img/thumbs/   card pictures (WebP, max 1200 px) and 480 px thumbnails
 img/silhouettes/    animal silhouettes (SVG) for size comparisons
 icons/              app icons (made by `npm run icons`)
 assets/             world map (Natural Earth) and child silhouette for the card pages
+assets/layers/      Globe map layers (made by scripts/make-layers.mjs; see CREDITS.md)
+data-raw/           big downloaded datasets for the layers (git-ignored)
 scripts/            the build script and helpers (run on your computer only)
 ```
 
@@ -284,6 +286,27 @@ if you change them in `animals.json` your values are kept. The globe's land
 (`assets/globe.json`) is made by `node scripts/make-globe.mjs`: simplified coastlines for the
 whole-globe view, full 1:50m detail when zoomed in.
 
+### Globe map layers
+
+The chips along the top of the Globe switch on one map layer at a time: 🏔️ topography,
+🌳 forests, 🪸 coral reefs, 🌙 day & night (live, from the device clock), 🌡️ temperature
+(with a month slider) and 🌊 ocean depth. Each has a small legend. Taiwan's outline glows
+above every layer.
+
+- Picture layers (topography, night lights, temperature) are drawn with WebGL 2 by
+  `js/globegl.js`, on a canvas between the land and the pins. It is only created when such
+  a layer is first switched on. Shape layers (forests, depth, reefs) are drawn like the land.
+- Phones load 2048×1024 pictures, tablets and computers 4096×2048.
+- Nothing is downloaded until a layer is first switched on; the service worker then keeps it
+  (`layers-…` cache), so it works offline from then on.
+- To rebuild the files: `node scripts/make-layers.mjs` (all) or name some, e.g.
+  `node scripts/make-layers.mjs temp depth`. It downloads the raw datasets into `data-raw/`
+  the first time (about 300 MB), needs only Node (sharp and mapshaper), and writes
+  `assets/layers/` and `assets/home.json`. After re-running it, bump `LAYERS_VERSION` in `sw.js`.
+- Colours live in `css/tokens.css` (`--c-depth-*`, `--c-forest-*`, `--c-temp-scale` …). The
+  temperature pictures are painted with `--c-temp-scale`, so re-run `make-layers.mjs temp` if you change it.
+- Sources and licences: [CREDITS.md](CREDITS.md).
+
 In the app, children open a card by dragging the cover's right edge, like turning a page.
 Swipe up to turn the card over, and swipe down to put it back in the binder.
 
@@ -319,7 +342,7 @@ App files and data are fetched fresh when online (falling back to the cache afte
 offline); images are served from the cache first, because their file names change whenever the picture changes.
 
 After you push an update, an open app picks it up on its next launch. If something looks stuck,
-bump `VERSION` in `sw.js`; that clears the old caches. If you add or rename a file under `js/`,
+bump `VERSION` in `sw.js`; that clears the old caches (except the Globe map layers, which have their own `LAYERS_VERSION`). If you add or rename a file under `js/`,
 add it to the `SHELL` list in `sw.js` too.
 
 ## Publishing on GitHub Pages
@@ -345,3 +368,4 @@ The icon is drawn in `scripts/make-icons.mjs`; run `npm run icons` after changin
 Names, classification and conservation status: [Wikidata](https://www.wikidata.org/) (CC0).
 Pictures: [Wikimedia Commons](https://commons.wikimedia.org/) and [iNaturalist](https://www.inaturalist.org/)
 contributors. Every picture's author, licence and source are listed in the app under More → Picture credits.
+Map and Globe layer datasets: [CREDITS.md](CREDITS.md).
