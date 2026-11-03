@@ -30,7 +30,7 @@ export class AuthError extends Error {
 }
 
 // Where the email link should come back to: this page, without its query or hash, so the
-// template can always add "?token_hash=…" (also under the GitHub Pages subpath).
+// template can always add "?token_hash=…" (whatever path the app is served under).
 export const redirectUrl = loc => loc.origin + loc.pathname;
 
 function errorCode(status, body) {

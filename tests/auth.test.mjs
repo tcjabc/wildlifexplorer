@@ -40,7 +40,7 @@ function setup({ routes = {}, start = Date.UTC(2026, 10, 3, 12), locks = 'fake' 
     url: URL_, key: 'sb_publishable_test', store, fetch,
     now: () => clock,
     locks: () => (locks === 'fake' ? fakeLocks : undefined),
-    location: () => ({ origin: 'https://tcjabc.github.io', pathname: '/wildlifexplorer/', search: '?a=1', hash: '#/parents' }),
+    location: () => ({ origin: 'https://wildfile.app', pathname: '/', search: '?a=1', hash: '#/parents' }),
   });
   return {
     auth, calls, session,
@@ -61,11 +61,11 @@ async function signedIn(opts = {}) {
   return s;
 }
 
-test('redirect_to is always origin + pathname: no query, no hash (GitHub Pages subpath too)', async () => {
-  assert.equal(redirectUrl({ origin: 'https://tcjabc.github.io', pathname: '/wildlifexplorer/', search: '?x=1', hash: '#/parents' }),
-    'https://tcjabc.github.io/wildlifexplorer/');
-  assert.equal(redirectUrl({ origin: 'https://tcjabc.github.io', pathname: '/wildlifexplorer/index.html', search: '?token_hash=old&type=email', hash: '#/binder' }),
-    'https://tcjabc.github.io/wildlifexplorer/index.html');
+test('redirect_to is always origin + pathname: no query, no hash (under a subpath too)', async () => {
+  assert.equal(redirectUrl({ origin: 'https://wildfile.app', pathname: '/', search: '?x=1', hash: '#/parents' }), 'https://wildfile.app/');
+  assert.equal(redirectUrl({ origin: 'https://wildfile.app', pathname: '/index.html', search: '?token_hash=old&type=email', hash: '#/binder' }),
+    'https://wildfile.app/index.html');
+  assert.equal(redirectUrl({ origin: 'http://localhost:8080', pathname: '/preview/', search: '?x=1', hash: '#/more' }), 'http://localhost:8080/preview/');
   assert.equal(redirectUrl({ origin: 'http://localhost:8080', pathname: '/', search: '', hash: '' }), 'http://localhost:8080/');
   assert.equal(redirectUrl({ origin: 'https://wildfile.app', pathname: '/', search: '', hash: '#/more' }), 'https://wildfile.app/');
 
@@ -75,11 +75,11 @@ test('redirect_to is always origin + pathname: no query, no hash (GitHub Pages s
   const sent = call.url.match(/[?&]redirect_to=([^&]*)/);
   assert.ok(sent, 'sendCode must send redirect_to');
   const back = decodeURIComponent(sent[1]);
-  assert.equal(back, 'https://tcjabc.github.io/wildlifexplorer/');
+  assert.equal(back, 'https://wildfile.app/');
   assert.ok(!back.includes('?') && !back.includes('#'));
   // What the email template builds from it is a valid URL with the token in the query.
   const link = new URL(`${back}?token_hash=abc&type=email`);
-  assert.equal(link.pathname, '/wildlifexplorer/');
+  assert.equal(link.pathname, '/');
   assert.equal(link.searchParams.get('token_hash'), 'abc');
   assert.deepEqual(call.body, { email: 'parent@example.test', create_user: true });
   assert.equal(call.headers.apikey, 'sb_publishable_test');

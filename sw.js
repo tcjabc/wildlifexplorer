@@ -3,7 +3,7 @@
 //  - Images: cache first (their file names change when the picture changes).
 //  - Globe map layers: cache first, only once a layer is first shown (own LAYERS_VERSION).
 // Bump VERSION to throw away the app and image caches.
-const VERSION = 'v18';
+const VERSION = 'v19';
 const SHELL_CACHE = `shell-${VERSION}`;
 const IMAGE_CACHE = `images-${VERSION}`;
 // Globe map layers (assets/layers/): big, so only cached once a layer is first shown, and
