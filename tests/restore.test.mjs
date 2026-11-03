@@ -22,7 +22,7 @@ test('a version 3 backup restored into an empty app shows every explorer what th
   // Not counting deleted records: Ada 2 packs, Ben 3, Cat 1; Ben's two mammals badges are one.
   assert.deepEqual(n, { profiles: 3, packs: 6, cards: 9, badges: 3 });
   const s = await readAll();
-  assert.equal(s.version, 4);
+  assert.equal(s.version, db.VERSION);
   assert.deepEqual(visibleV4(s), visibleV3(records));
   assert.deepEqual(s.notes, []);  // Field Notes come back from their own backup
   assert.deepEqual(s.meta, []);   // device values aren't restored

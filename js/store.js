@@ -140,6 +140,7 @@ export async function createProfile(fields) {
     rate: s.rate === 'slow' ? 'slow' : 'normal',
     parent: { ...parentTemplate(), preview: Boolean(s.preview) },
     timeline: { epoch: 1, startAt: now },
+    settingsAt: now,
   }, now);
   await db.put('profiles', p);
   if (!state.profiles.length) await moveLegacy(p);
@@ -172,9 +173,16 @@ async function moveLegacy(p) {
 }
 
 // patch: Welcome-form fields, settings (zhuyin, rate) and/or parent: { … } (merged).
+// The settings the family account keeps (cloud/sync.js). settingsAt changes only when one
+// of them does, so on the server a newer height (device-only) can't beat an older avatar.
+const SYNCED_SETTINGS = p => [p.name, p.lang, p.avatar, p.zhuyin, p.rate,
+  p.parent.dropDay, p.parent.dropTime, p.parent.length, p.parent.temp];
+const sameSettings = (a, b) => SYNCED_SETTINGS(a).every((v, i) => v === SYNCED_SETTINGS(b)[i]);
+
 export async function updateProfile(id, patch) {
   const prev = state.profiles.find(p => p.id === id);
   if (!prev) return;
+  const now = nowIso();
   const next = stamp({
     ...prev,
     ...pickFields(patch, prev),
@@ -185,7 +193,8 @@ export async function updateProfile(id, patch) {
     // Set once, the first time a pen draws: the switch to pen-only happens only then.
     ...('notesPenSeen' in patch && { notesPenSeen: Boolean(patch.notesPenSeen) }),
     parent: { ...prev.parent, ...patch.parent },
-  });
+  }, now);
+  if (!sameSettings(prev, next)) next.settingsAt = now;
   await db.put('profiles', next);
   state.profiles = state.profiles.map(p => (p.id === id ? next : p));
   emit('profiles');

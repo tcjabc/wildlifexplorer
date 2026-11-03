@@ -7,6 +7,7 @@ import assert from 'node:assert/strict';
 import 'fake-indexeddb/auto';
 import { IDBFactory } from 'fake-indexeddb';
 import { toV4 } from '../js/db-upgrade.js';
+import { VERSION } from '../js/db.js';
 import { records, buildV3, readAll, visibleV3, visibleV4, ADA, BEN, CAT, DAN, TIMES } from './fixtures/v3.mjs';
 
 let n = 0;
@@ -59,7 +60,7 @@ test('opening the version 3 database upgrades it in place', async () => {
   const db = await loadDb();
   assert.deepEqual(await db.get('profiles', ADA), records.profiles[0]);
   const s = await readAll();
-  assert.equal(s.version, 4);
+  assert.equal(s.version, VERSION);
   assert.deepEqual(visibleV4(s), visibleV3(records));
   // Untouched stores are exactly as they were.
   for (const name of ['meta', 'profiles', 'packs', 'quiz', 'notes', 'notefiles']) {
@@ -74,6 +75,7 @@ test('opening the version 3 database upgrades it in place', async () => {
     for (const r of records[store]) assert.deepEqual(backup[`${store}/${r.id}`], { id: `${store}/${r.id}`, store, value: r });
   }
   assert.equal(s.v3backup.length, records.collection.length + records.badges.length);
+  assert.deepEqual(s.outbox, []); // version 5: an empty outbox (the first sync fills it)
 });
 
 // Makes one IndexedDB call fail, only inside the upgrade.
@@ -106,7 +108,7 @@ for (const [what, method, store] of [
     undo(); undo = null;
     const next = await loadDb();
     assert.equal((await next.all('collection', BEN)).length, 5);
-    assert.equal((await readAll()).version, 4);
+    assert.equal((await readAll()).version, VERSION);
   });
 }
 
@@ -114,6 +116,6 @@ test('an empty or brand-new database upgrades too', async () => {
   const db = await loadDb();
   assert.deepEqual(await db.all('collection'), []);
   const s = await readAll();
-  assert.equal(s.version, 4);
+  assert.equal(s.version, VERSION);
   assert.deepEqual(s.v3backup, []);
 });

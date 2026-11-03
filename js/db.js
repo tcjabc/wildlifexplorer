@@ -10,6 +10,7 @@
 //   notes       { id, profileId, pageId, cardIds, … }  Field Notes pages (their content is in OPFS)
 //   notefiles   { id, profileId, blob }      page files, where OPFS isn't available (notes-store.js)
 //   v3backup    { id, store, value }         collection and badges as version 3 kept them
+//   outbox      { id, store, key, rev }      records to send to the family account (cloud/sync.js)
 // Falls back to memory only if there is no IndexedDB at all (some private-browsing modes),
 // so the app still runs; nothing is kept after the page closes then. Any other failure is
 // an error: the saved progress is still on disk, and carrying on in memory would hide it.
@@ -17,9 +18,13 @@
 import { toV4 } from './db-upgrade.js';
 
 export const DB_NAME = 'wildlife-explorer';
-export const VERSION = 4;
+export const VERSION = 5;
 const BY_PROFILE = ['packs', 'collection', 'badges', 'quiz', 'notes', 'notefiles'];
-const STORES = ['meta', 'profiles', ...BY_PROFILE];
+const OUTBOX = 'outbox';
+const STORES = ['meta', 'profiles', ...BY_PROFILE, OUTBOX];
+// What the family account keeps (cloud/sync.js). Every write to one of these also puts an
+// outbox entry, in the same transaction, so no change can be missed.
+export const SYNCED = ['profiles', 'packs', 'collection', 'badges'];
 const LEGACY = 'kv'; // version 1: one key-value store for a single child
 // Version 4 keeps the version 3 collection and badges records here, untouched, as a safety
 // net. Remove it in a later version once sync has been stable for a while.
@@ -34,6 +39,8 @@ let outdated = false; // a newer copy of the app has the database now
 //                it): this copy can't use it any more, only a reload carries on
 //   'blocked'    this copy is waiting to upgrade until other WildFile windows close
 //   'unblocked'  they closed, and the upgrade went ahead
+// and for cloud/sync.js:
+//   'queued'     a synced record changed (after its transaction committed)
 export const events = new EventTarget();
 const emit = type => events.dispatchEvent(new Event(type));
 const markOutdated = () => {
@@ -60,6 +67,7 @@ function open() {
         db.createObjectStore(BACKUP, { keyPath: 'id' });
         rekeyProgress(req.transaction);
       }
+      if (e.oldVersion < 5) add([OUTBOX]);
     };
     // An older copy in another window didn't close for the upgrade.
     req.onblocked = () => { blocked = true; emit('blocked'); };
@@ -154,8 +162,32 @@ function memoryAccess() {
   };
 }
 
-// Run fn(access) in one transaction over the named stores. Inside fn, await only the
-// access calls (anything else would let the transaction close early).
+// Writes to synced stores also put their outbox entry. The entry holds only the key (sync
+// sends the record as it is then) and a new rev, so sync can tell a change that came in
+// while it was sending.
+function withOutbox(access, queued) {
+  const note = async (name, value) => {
+    await access.put(OUTBOX, { id: `${name}:${value.id}`, store: name, key: value.id, rev: newId() });
+    queued.yes = true;
+  };
+  return {
+    ...access,
+    put: async (name, value) => {
+      const r = await access.put(name, value);
+      if (SYNCED.includes(name)) await note(name, value);
+      return r;
+    },
+    add: async (name, value) => {
+      const added = await access.add(name, value);
+      if (added && SYNCED.includes(name)) await note(name, value);
+      return added;
+    },
+  };
+}
+
+// Run fn(access) in one transaction over the named stores (plus the outbox, when it writes
+// to a synced store). Inside fn, await only the access calls (anything else would let the
+// transaction close early).
 export async function tx(stores, mode, fn) {
   let db;
   if (!memory) {
@@ -164,13 +196,17 @@ export async function tx(stores, mode, fn) {
       // memory from now on
     }
   }
-  if (!db) return fn(memoryAccess());
+  const writes = mode === 'readwrite' && stores.some(s => SYNCED.includes(s));
+  const queued = { yes: false };
+  const access = a => (writes ? withOutbox(a, queued) : a);
+  const after = r => { if (queued.yes) emit('queued'); return r; };
+  if (!db) return after(await fn(access(memoryAccess())));
   return new Promise((resolve, reject) => {
-    const t = db.transaction(stores, mode);
+    const t = db.transaction(writes ? [...new Set([...stores, OUTBOX])] : stores, mode);
     let result;
-    t.oncomplete = () => resolve(result);
+    t.oncomplete = () => resolve(after(result));
     t.onabort = () => reject(t.error ?? new Error('Transaction aborted'));
-    Promise.resolve(fn(idbAccess(t))).then(r => { result = r; }, err => {
+    Promise.resolve(fn(access(idbAccess(t)))).then(r => { result = r; }, err => {
       try { t.abort(); } catch { /* already finished */ }
       reject(err);
     });

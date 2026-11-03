@@ -66,3 +66,19 @@ test('a pack in the new epoch collects cards under new keys', async () => {
   // Badges earned now are in epoch 4 too.
   assert.equal(s.badges.filter(b => b.profileId === ADA && b.epoch === 4).length, Object.keys(store.state.badges).length);
 });
+
+test('settingsAt changes with a setting the family account keeps, not with height or preview', async () => {
+  const ben = () => store.state.profiles.find(p => p.id === BEN);
+  const first = ben().settingsAt; // the fixture is from before settingsAt
+  await store.updateProfile(BEN, { heightCm: 131 });
+  await store.updateProfile(BEN, { parent: { preview: true } });
+  assert.equal(ben().settingsAt, first);
+  await store.updateProfile(BEN, { name: 'Benny' });
+  const named = ben().settingsAt;
+  assert.equal(named, ben().updatedAt);
+  await new Promise(r => setTimeout(r, 5));
+  await store.updateProfile(BEN, { parent: { dropDay: 3 } });
+  assert.ok(ben().settingsAt > named);
+  // Each of those writes queued the profile for the family account.
+  assert.ok((await readAll()).outbox.some(e => e.id === `profiles:${BEN}`));
+});
