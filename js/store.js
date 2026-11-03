@@ -47,7 +47,7 @@ export async function init() {
   state.badgeCfg = { regions, badges, secrets };
   state.lookalikes = lookalikes;
 
-  state.profiles = (await db.all('profiles')).filter(p => !p.deletedAt).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  await loadProfiles();
   if (!(await db.getMeta('migratedV1', false))) state.legacy = await db.readLegacy();
 
   // First run: ask the browser not to clear this data when the device runs low on space.
@@ -61,8 +61,29 @@ const nowIso = () => new Date().toISOString();
 // Every record carries createdAt / updatedAt / deletedAt, for syncing later.
 const stamp = (rec, now = nowIso()) => ({ ...rec, createdAt: rec.createdAt ?? now, updatedAt: now, deletedAt: rec.deletedAt ?? null });
 const live = list => list.filter(r => !r.deletedAt);
+// Packs, cards and badges belong to one timeline epoch of a profile, and their ids say so
+// (the same ids as the server's keys). Only the current epoch is shown.
+const progressId = (profileId, epoch, key) => `${profileId}:${epoch}:${key}`;
+const current = (list, p) => live(list).filter(r => r.epoch === p.timeline.epoch);
 
 // ---------- Profiles ----------
+
+async function loadProfiles() {
+  state.profiles = live(await db.all('profiles')).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+}
+
+// After a restore (backup.js): read the profiles, and the active one's progress, again.
+export async function reload() {
+  await loadProfiles();
+  const p = state.profile && state.profiles.find(x => x.id === state.profile.id);
+  state.profile = p ?? null;
+  emit('profiles');
+  if (!p) return;
+  await loadProgress();
+  emit('profile');
+  emit('packs');
+  await grantDue();
+}
 
 const AVATARS = 8; // colours, see [data-avatar] in app.css
 // Units follow the device's region until a parent changes them.
@@ -127,17 +148,19 @@ export async function createProfile(fields) {
   return p;
 }
 
-// Progress saved before profiles goes into the first profile, once.
+// Progress saved before profiles goes into the first profile (epoch 1), once.
 async function moveLegacy(p) {
   const old = state.legacy;
   if (old) {
     const at = d => new Date(`${d}T12:00:00`).toISOString(); // version 1 kept local days
+    const epoch = p.timeline.epoch;
     await db.tx(['collection', 'badges', 'quiz'], 'readwrite', async a => {
       for (const [cardId, d] of Object.entries(old.collected ?? {})) {
-        await a.put('collection', stamp({ id: `${p.id}:${cardId}`, profileId: p.id, cardId, collectedAt: at(d), packId: null }));
+        await a.put('collection', stamp({ id: progressId(p.id, epoch, cardId), profileId: p.id, epoch, cardId, collectedAt: at(d), packId: null, dropId: null }));
       }
       for (const [groupId, d] of Object.entries(old.badges ?? {})) {
-        await a.put('badges', stamp({ id: `${p.id}:group:${groupId}`, profileId: p.id, badgeId: `group:${groupId}`, earnedAt: at(d) }));
+        const badgeId = `group:${groupId}`;
+        await a.put('badges', stamp({ id: progressId(p.id, epoch, badgeId), profileId: p.id, epoch, badgeId, earnedAt: at(d) }));
       }
       for (const [kind, best] of Object.entries(old.quiz?.best ?? {})) {
         await a.put('quiz', stamp({ id: `${p.id}:${kind}`, profileId: p.id, kind, best }));
@@ -196,32 +219,28 @@ export async function selectProfile(id) {
 export const lastProfileId = () => db.getMeta('activeProfile', null);
 
 async function loadProgress() {
-  const pid = state.profile.id;
-  const [col, bad, quiz] = await Promise.all(['collection', 'badges', 'quiz'].map(s => db.all(s, pid).then(live)));
-  state.collected = Object.fromEntries(col.map(r => [r.cardId, r.collectedAt]));
-  // Records from before Phase 2 have only groupId (a group badge).
-  state.badges = Object.fromEntries(bad.map(r => [r.badgeId ?? `group:${r.groupId}`, r.earnedAt]));
-  state.quiz = { best: Object.fromEntries(quiz.map(r => [r.kind, r.best])) };
+  const p = state.profile;
+  const [col, bad, quiz] = await Promise.all(['collection', 'badges', 'quiz'].map(s => db.all(s, p.id)));
+  state.collected = Object.fromEntries(current(col, p).map(r => [r.cardId, r.collectedAt]));
+  state.badges = Object.fromEntries(current(bad, p).map(r => [r.badgeId, r.earnedAt]));
+  state.quiz = { best: Object.fromEntries(live(quiz).map(r => [r.kind, r.best])) };
   await loadPacks();
 }
 
 async function loadPacks() {
   const p = state.profile;
-  state.packs = live(await db.all('packs', p.id))
-    .filter(r => r.epoch === p.timeline.epoch)
-    .sort((a, b) => a.seq - b.seq);
+  state.packs = current(await db.all('packs', p.id), p).sort((a, b) => a.seq - b.seq);
 }
 
-// Start a profile over from Series 1, Week 1. Old records are marked deleted and the
-// timeline gets a new epoch, so the new packs have new ids.
+// Start a profile over from Series 1, Week 1: the timeline gets a new epoch, so the old
+// packs, cards and badges stay as they are (in the old epoch) and new ones get new ids.
+// Quiz scores stay on the device and aren't per epoch, so they are marked deleted.
 export async function resetProfile(id) {
   const prev = state.profiles.find(p => p.id === id);
   if (!prev) return;
   const now = nowIso();
-  await db.tx(['packs', 'collection', 'badges', 'quiz'], 'readwrite', async a => {
-    for (const store of ['packs', 'collection', 'badges', 'quiz']) {
-      for (const r of live(await a.all(store, id))) await a.put(store, stamp({ ...r, deletedAt: now }, now));
-    }
+  await db.tx(['quiz'], 'readwrite', async a => {
+    for (const r of live(await a.all('quiz', id))) await a.put('quiz', stamp({ ...r, deletedAt: now }, now));
   });
   const next = stamp({ ...prev, timeline: { epoch: prev.timeline.epoch + 1, startAt: now } }, now);
   await db.put('profiles', next);
@@ -262,7 +281,7 @@ async function grant() {
   const at = now.toISOString();
   const epoch = p.timeline.epoch;
   const fresh = await db.tx(['packs'], 'readwrite', async a => {
-    const packs = live(await a.all('packs', p.id)).filter(r => r.epoch === epoch).sort((x, y) => x.seq - y.seq);
+    const packs = current(await a.all('packs', p.id), p).sort((x, y) => x.seq - y.seq);
     let prev = packs.at(-1) ?? null;
     const added = [];
     for (let n = prev ? prev.seq + 1 : 0; n < state.drops.length; n++) {
@@ -271,7 +290,7 @@ async function grant() {
       if (due > now || !dropReady(drop)) break;
       const cardIds = drop.cards.map(c => c.id);
       const rec = stamp({
-        id: `${p.id}:${epoch}:${drop.id}`, profileId: p.id, epoch, seq: n, dropId: drop.id, cardIds,
+        id: progressId(p.id, epoch, drop.id), profileId: p.id, epoch, seq: n, dropId: drop.id, cardIds,
         dueAt: due.toISOString(), grantedAt: at, notifiedAt: null, openedAt: null,
       }, at);
       // Nothing new inside (cards brought over from before profiles): file it as opened.
@@ -324,11 +343,12 @@ export async function openPack(id) {
     if (!pack || pack.profileId !== p.id || pack.deletedAt || pack.openedAt) return null;
     await a.put('packs', stamp({ ...pack, openedAt: at, notifiedAt: pack.notifiedAt ?? at }, at));
     const added = [];
+    const { epoch, dropId } = pack;
     for (const cardId of pack.cardIds) {
-      const key = `${p.id}:${cardId}`;
+      const key = progressId(p.id, epoch, cardId);
       const had = await a.get('collection', key);
       if (had && !had.deletedAt) continue;
-      await a.put('collection', stamp({ id: key, profileId: p.id, cardId, collectedAt: at, packId: id, createdAt: had?.createdAt }, at));
+      await a.put('collection', stamp({ id: key, profileId: p.id, epoch, cardId, collectedAt: at, packId: id, dropId, createdAt: had?.createdAt }, at));
       added.push(cardId);
     }
     return added;
@@ -356,8 +376,9 @@ export async function awardBadges() {
   const fresh = badgeList().filter(b => !state.badges[b.id] && isEarned(b, ctx));
   if (!fresh.length) return [];
   const at = nowIso();
+  const epoch = p.timeline.epoch;
   await db.tx(['badges'], 'readwrite', async a => {
-    for (const b of fresh) await a.put('badges', stamp({ id: `${p.id}:${b.id}`, profileId: p.id, badgeId: b.id, earnedAt: at }, at));
+    for (const b of fresh) await a.put('badges', stamp({ id: progressId(p.id, epoch, b.id), profileId: p.id, epoch, badgeId: b.id, earnedAt: at }, at));
   });
   state.badges = { ...state.badges, ...Object.fromEntries(fresh.map(b => [b.id, at])) };
   emit('badges');

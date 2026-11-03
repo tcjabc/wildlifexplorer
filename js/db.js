@@ -2,21 +2,28 @@
 // keyed by its "id", so the same records can be synced to a server later.
 //   meta        { id, value }                 device-level values (active profile, …)
 //   profiles    { id, name, lang, … }         one per explorer (a person or a family)
-//   packs       { id, profileId, dropId, … }  every pack ever granted, opened or not
-//   collection  { id, profileId, cardId, … }  cards a profile has collected
-//   badges      { id, profileId, groupId, … }
+//   packs       { id, profileId, epoch, dropId, … }  every pack ever granted, opened or not
+//   collection  { id, profileId, epoch, cardId, … }  cards a profile has collected
+//   badges      { id, profileId, epoch, badgeId, … }
+//               (progress is kept per timeline epoch: "Start over" begins a new one)
 //   quiz        { id, profileId, kind, best }
 //   notes       { id, profileId, pageId, cardIds, … }  Field Notes pages (their content is in OPFS)
 //   notefiles   { id, profileId, blob }      page files, where OPFS isn't available (notes-store.js)
+//   v3backup    { id, store, value }         collection and badges as version 3 kept them
 // Falls back to memory only if there is no IndexedDB at all (some private-browsing modes),
 // so the app still runs; nothing is kept after the page closes then. Any other failure is
 // an error: the saved progress is still on disk, and carrying on in memory would hide it.
 
+import { toV4 } from './db-upgrade.js';
+
 export const DB_NAME = 'wildlife-explorer';
-export const VERSION = 3;
+export const VERSION = 4;
 const BY_PROFILE = ['packs', 'collection', 'badges', 'quiz', 'notes', 'notefiles'];
 const STORES = ['meta', 'profiles', ...BY_PROFILE];
 const LEGACY = 'kv'; // version 1: one key-value store for a single child
+// Version 4 keeps the version 3 collection and badges records here, untouched, as a safety
+// net. Remove it in a later version once sync has been stable for a while.
+const BACKUP = 'v3backup';
 
 let dbPromise;
 let memory = null; // Map per store, once IndexedDB has failed
@@ -49,6 +56,10 @@ function open() {
       });
       if (e.oldVersion < 2) add(['meta', 'profiles', 'packs', 'collection', 'badges', 'quiz']);
       if (e.oldVersion < 3) add(['notes', 'notefiles']);
+      if (e.oldVersion < 4) {
+        db.createObjectStore(BACKUP, { keyPath: 'id' });
+        rekeyProgress(req.transaction);
+      }
     };
     // An older copy in another window didn't close for the upgrade.
     req.onblocked = () => { blocked = true; emit('blocked'); };
@@ -72,6 +83,32 @@ function open() {
 
 // No IndexedDB to use at all, as opposed to one that failed.
 const noIndexedDB = err => typeof indexedDB === 'undefined' || ['SecurityError', 'InvalidStateError'].includes(err?.name);
+
+// Version 4: collection and badges keyed per epoch (db-upgrade.js). This runs inside the
+// upgrade transaction: if anything fails, or the app is closed half-way, the whole upgrade
+// is undone and the database stays at version 3, untouched. Plain request callbacks, no
+// promises, so the transaction stays open in every browser.
+function rekeyProgress(t) {
+  const names = ['profiles', 'packs', 'collection', 'badges'];
+  const got = {};
+  for (const name of names) {
+    t.objectStore(name).getAll().onsuccess = e => {
+      got[name] = e.target.result;
+      if (Object.keys(got).length < names.length) return;
+      try {
+        const { remove, put } = toV4(got);
+        for (const store of ['collection', 'badges']) {
+          for (const value of got[store]) t.objectStore(BACKUP).put({ id: `${store}/${value.id}`, store, value });
+          for (const id of remove[store]) t.objectStore(store).delete(id);
+          for (const value of put[store]) t.objectStore(store).put(value);
+        }
+      } catch (err) {
+        console.error(err);
+        t.abort();
+      }
+    };
+  }
+}
 
 const done = r => new Promise((resolve, reject) => {
   r.onsuccess = () => resolve(r.result);

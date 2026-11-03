@@ -41,16 +41,19 @@ test('a newer version in another window: this one closes, says "updated" and sto
 });
 
 test('a database newer than this copy: "updated", and no memory fallback', async () => {
-  (await rawOpen(4)).close();
   const db = await loadDb();
+  (await rawOpen(db.VERSION + 1)).close();
   const updated = once(db.events, 'updated');
   await assert.rejects(db.all('profiles'), { name: 'VersionError' });
   await updated;
 });
 
 test('an upgrade blocked by an older window says so, then goes ahead once it closes', async () => {
-  // An old copy at version 2 that doesn't close when asked.
-  const old = await rawOpen(2, d => ['meta', 'profiles'].forEach(s => d.createObjectStore(s, { keyPath: 'id' })));
+  // An old copy at version 2 (its stores as they were then) that doesn't close when asked.
+  const old = await rawOpen(2, d => ['meta', 'profiles', 'packs', 'collection', 'badges', 'quiz'].forEach(name => {
+    const store = d.createObjectStore(name, { keyPath: 'id' });
+    if (!['meta', 'profiles'].includes(name)) store.createIndex('profileId', 'profileId');
+  }));
   const db = await loadDb();
   const blocked = once(db.events, 'blocked');
   const unblocked = once(db.events, 'unblocked');

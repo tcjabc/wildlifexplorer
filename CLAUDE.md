@@ -42,6 +42,10 @@
 - Relative paths everywhere: manifest `start_url` and `scope` are `"./"`; the service worker is registered at `./sw.js`.
 - The service worker cache is versioned (`VERSION` in `sw.js`); bump it on every release. New files under `js/` must be added to its `SHELL` list.
 
+## LOCAL DATABASE
+- IndexedDB schema and upgrades live in `js/db.js` (`VERSION`). An upgrade runs entirely inside the upgrade transaction, so an interrupted one leaves the old version untouched. Test every upgrade on realistic old data (see `tests/fixtures/v3.mjs`).
+- Version 4 added the `v3backup` store: the version 3 `collection` and `badges` records, kept verbatim as a safety net. Remove it in a later DB version, once sync has been stable for a while.
+
 ## SUPABASE
 - Project ref `yrgrihgmydzlxjzuoljq` (Seoul, Free plan). The GitHub integration is not connected: schema changes go through `supabase/migrations/` and `npx supabase db push`.
 - Show every migration to the owner before `db push`. Never edit a migration that has been pushed; add a new one.
