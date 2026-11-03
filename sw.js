@@ -3,7 +3,7 @@
 //  - Images: cache first (their file names change when the picture changes).
 //  - Globe map layers: cache first, only once a layer is first shown (own LAYERS_VERSION).
 // Bump VERSION to throw away the app and image caches.
-const VERSION = 'v16';
+const VERSION = 'v17';
 const SHELL_CACHE = `shell-${VERSION}`;
 const IMAGE_CACHE = `images-${VERSION}`;
 // Globe map layers (assets/layers/): big, so only cached once a layer is first shown, and
@@ -12,9 +12,10 @@ const LAYERS_VERSION = 'l1';
 const LAYER_CACHE = `layers-${LAYERS_VERSION}`;
 const NETWORK_TIMEOUT_MS = 3000;
 
+// The page is cached as './' only: hosts may answer 'index.html' with a redirect to './'
+// (Cloudflare does), and a redirected response can't be used for a page load.
 const SHELL = [
   './',
-  'index.html',
   'manifest.webmanifest',
   'css/tokens.css',
   'css/app.css',
@@ -149,7 +150,7 @@ async function networkFirst(request) {
   } catch {
     // Look in every cache: range files are stored with the images.
     const cached = await caches.match(request, { ignoreSearch: true })
-      ?? (request.mode === 'navigate' ? await cache.match('index.html') : undefined);
+      ?? (request.mode === 'navigate' ? await cache.match('./') : undefined);
     if (cached) return cached;
     throw new Error('offline and not cached');
   }
