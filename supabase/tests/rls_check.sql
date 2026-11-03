@@ -36,6 +36,15 @@ insert into public.profiles (id, family_id, name, lang, avatar, length_unit, tem
 values (current_setting('rls.prof_b')::uuid, current_setting('rls.fam_b')::uuid, 'Explorer B', 'both', 2,
         'metric', 'C', 6, '09:00', 1, '2026-01-01T09:00:00Z', '2026-01-01T09:00:00Z');
 
+-- …and some progress.
+insert into public.packs (profile_id, family_id, epoch, drop_id, seq, card_ids, due_at, granted_at)
+values (current_setting('rls.prof_b')::uuid, current_setting('rls.fam_b')::uuid, 1, 's1-w01', 0,
+        array['card-b1', 'card-b2', 'card-b3'], '2026-01-01T09:00:00Z', '2026-01-01T09:00:00Z');
+insert into public.collection (profile_id, family_id, epoch, card_id, collected_at, drop_id)
+values (current_setting('rls.prof_b')::uuid, current_setting('rls.fam_b')::uuid, 1, 'card-b1', '2026-01-01T10:00:00Z', 's1-w01');
+insert into public.badges (profile_id, family_id, epoch, badge_id, earned_at)
+values (current_setting('rls.prof_b')::uuid, current_setting('rls.fam_b')::uuid, 1, 'group:test', '2026-01-01T10:00:00Z');
+
 -- ---------- As parent A ----------
 
 set local role authenticated;
@@ -172,6 +181,137 @@ begin
   end if;
 end $$;
 
+-- packs, collection, badges: only family A's, and the merge rules.
+do $$
+declare
+  n int;
+  k record;
+  pk public.packs;
+begin
+  -- Granting a pack, then the same drop again from another device.
+  insert into public.packs (profile_id, family_id, epoch, drop_id, seq, card_ids, due_at, granted_at, updated_at)
+  values (current_setting('rls.prof_a')::uuid, current_setting('rls.fam_a')::uuid, 2, 's1-w01', 0,
+          array['card-a1', 'card-a2', 'card-a3'], '2026-02-01T09:00:00Z', '2026-02-01T09:00:00Z', '2000-01-01T00:00:00Z');
+  if (select updated_at from public.packs where profile_id = current_setting('rls.prof_a')::uuid) <> now() then
+    raise exception 'FAIL: packs.updated_at was not set by the server';
+  end if;
+  insert into public.packs (profile_id, family_id, epoch, drop_id, seq, card_ids, due_at, granted_at, opened_at)
+  values (current_setting('rls.prof_a')::uuid, current_setting('rls.fam_a')::uuid, 2, 's1-w01', 0,
+          array['other-1'], '2026-02-02T09:00:00Z', '2026-02-02T09:00:00Z', '2026-02-03T00:00:00Z')
+  on conflict (profile_id, epoch, drop_id) do update set
+    card_ids = excluded.card_ids, due_at = excluded.due_at, granted_at = excluded.granted_at, opened_at = excluded.opened_at;
+  select * into pk from public.packs where profile_id = current_setting('rls.prof_a')::uuid and drop_id = 's1-w01';
+  if (select count(*) from public.packs where profile_id = current_setting('rls.prof_a')::uuid) <> 1 then
+    raise exception 'FAIL: the same drop was granted twice';
+  end if;
+  if pk.card_ids <> array['card-a1', 'card-a2', 'card-a3'] or pk.due_at <> '2026-02-01T09:00:00Z' then
+    raise exception 'FAIL: a second grant changed the pack''s cards or due time';
+  end if;
+  if pk.opened_at is distinct from '2026-02-03T00:00:00Z' then
+    raise exception 'FAIL: opening the pack was not saved';
+  end if;
+
+  update public.packs set opened_at = null where profile_id = current_setting('rls.prof_a')::uuid;
+  update public.packs set opened_at = '2026-02-05T00:00:00Z' where profile_id = current_setting('rls.prof_a')::uuid;
+  if (select opened_at from public.packs where profile_id = current_setting('rls.prof_a')::uuid) <> '2026-02-03T00:00:00Z' then
+    raise exception 'FAIL: an opened pack became unopened, or lost its first opening time';
+  end if;
+
+  begin
+    insert into public.packs (profile_id, family_id, epoch, drop_id, seq, card_ids, due_at, granted_at)
+    values (current_setting('rls.prof_a')::uuid, current_setting('rls.fam_a')::uuid, 2, 's1-w02', 0,
+            array['card-a4'], now(), now());
+    raise exception 'FAIL: a second drop was granted in the same slot';
+  exception when unique_violation then null;
+  end;
+
+  -- Rows for family B's profile: not under family B (RLS), not under family A (foreign key).
+  begin
+    insert into public.packs (profile_id, family_id, epoch, drop_id, seq, card_ids, due_at, granted_at)
+    values (current_setting('rls.prof_b')::uuid, current_setting('rls.fam_b')::uuid, 1, 's1-w09', 8, array['x'], now(), now());
+    raise exception 'FAIL: parent A could add a pack to family B';
+  exception when insufficient_privilege then null;
+  end;
+  begin
+    insert into public.collection (profile_id, family_id, epoch, card_id, collected_at)
+    values (current_setting('rls.prof_b')::uuid, current_setting('rls.fam_a')::uuid, 1, 'card-x', now());
+    raise exception 'FAIL: parent A could add a card to family B''s profile';
+  exception when foreign_key_violation then null;
+  end;
+  begin
+    insert into public.packs (profile_id, family_id, epoch, drop_id, seq, card_ids, due_at, granted_at, opened_at)
+    values (current_setting('rls.prof_b')::uuid, current_setting('rls.fam_a')::uuid, 1, 's1-w01', 0, array['x'], now(), now(), now())
+    on conflict (profile_id, epoch, drop_id) do update set opened_at = excluded.opened_at;
+    raise exception 'FAIL: parent A could upsert over family B''s pack';
+  exception when insufficient_privilege or foreign_key_violation then null;
+  end;
+
+  update public.packs set opened_at = now() where profile_id = current_setting('rls.prof_b')::uuid;
+  get diagnostics n = row_count;
+  if n <> 0 then raise exception 'FAIL: parent A could open family B''s pack'; end if;
+  update public.collection set collected_at = now() where profile_id = current_setting('rls.prof_b')::uuid;
+  get diagnostics n = row_count;
+  if n <> 0 then raise exception 'FAIL: parent A could change family B''s collection'; end if;
+  update public.badges set earned_at = now() where profile_id = current_setting('rls.prof_b')::uuid;
+  get diagnostics n = row_count;
+  if n <> 0 then raise exception 'FAIL: parent A could change family B''s badges'; end if;
+
+  -- Collected cards and badges: the earliest time wins.
+  insert into public.collection (profile_id, family_id, epoch, card_id, collected_at, drop_id)
+  values (current_setting('rls.prof_a')::uuid, current_setting('rls.fam_a')::uuid, 2, 'card-a1', '2026-02-03T00:00:00Z', 's1-w01');
+  insert into public.collection (profile_id, family_id, epoch, card_id, collected_at, drop_id)
+  values (current_setting('rls.prof_a')::uuid, current_setting('rls.fam_a')::uuid, 2, 'card-a1', '2026-02-04T00:00:00Z', 's1-w02')
+  on conflict (profile_id, epoch, card_id) do update set collected_at = excluded.collected_at, drop_id = excluded.drop_id;
+  select collected_at, drop_id into k from public.collection where profile_id = current_setting('rls.prof_a')::uuid;
+  if k.collected_at <> '2026-02-03T00:00:00Z' or k.drop_id <> 's1-w01' then
+    raise exception 'FAIL: a later collection replaced the first one';
+  end if;
+  update public.collection set collected_at = '2026-02-02T00:00:00Z', drop_id = null
+    where profile_id = current_setting('rls.prof_a')::uuid;
+  select collected_at, drop_id into k from public.collection where profile_id = current_setting('rls.prof_a')::uuid;
+  if k.collected_at <> '2026-02-02T00:00:00Z' or k.drop_id is not null then
+    raise exception 'FAIL: an earlier collection did not win';
+  end if;
+
+  insert into public.badges (profile_id, family_id, epoch, badge_id, earned_at)
+  values (current_setting('rls.prof_a')::uuid, current_setting('rls.fam_a')::uuid, 2, 'continent:asia:gold', '2026-02-03T00:00:00Z');
+  update public.badges set earned_at = '2026-02-09T00:00:00Z' where profile_id = current_setting('rls.prof_a')::uuid;
+  if (select earned_at from public.badges where profile_id = current_setting('rls.prof_a')::uuid) <> '2026-02-03T00:00:00Z' then
+    raise exception 'FAIL: a later badge time replaced the first one';
+  end if;
+
+  -- A sees only family A's progress.
+  if (select count(*) from public.packs) <> 1 or (select count(*) from public.collection) <> 1
+     or (select count(*) from public.badges) <> 1
+     or exists (select 1 from public.packs where profile_id = current_setting('rls.prof_b')::uuid)
+     or exists (select 1 from public.collection where profile_id = current_setting('rls.prof_b')::uuid)
+     or exists (select 1 from public.badges where profile_id = current_setting('rls.prof_b')::uuid) then
+    raise exception 'FAIL: parent A should see only family A''s progress';
+  end if;
+
+  begin
+    update public.packs set family_id = current_setting('rls.fam_b')::uuid where profile_id = current_setting('rls.prof_a')::uuid;
+    raise exception 'FAIL: parent A could move a pack to family B';
+  exception when insufficient_privilege or check_violation or foreign_key_violation then null;
+  end;
+
+  begin
+    delete from public.packs;
+    raise exception 'FAIL: parent A could delete packs';
+  exception when insufficient_privilege then null;
+  end;
+  begin
+    delete from public.collection;
+    raise exception 'FAIL: parent A could delete collected cards';
+  exception when insufficient_privilege then null;
+  end;
+  begin
+    delete from public.badges;
+    raise exception 'FAIL: parent A could delete badges';
+  exception when insufficient_privilege then null;
+  end;
+end $$;
+
 -- ---------- As parent B ----------
 
 select set_config('request.jwt.claims',
@@ -186,6 +326,11 @@ begin
   if (select count(*) from public.profiles) <> 1
      or exists (select 1 from public.profiles where id = current_setting('rls.prof_a')::uuid) then
     raise exception 'FAIL: parent B should see only family B''s profile';
+  end if;
+  if (select count(*) from public.packs) <> 1 or (select count(*) from public.collection) <> 1
+     or (select count(*) from public.badges) <> 1
+     or exists (select 1 from public.packs where profile_id = current_setting('rls.prof_a')::uuid) then
+    raise exception 'FAIL: parent B should see only family B''s progress';
   end if;
 end $$;
 
@@ -217,6 +362,21 @@ begin
     raise exception 'FAIL: anon can read profiles';
   exception when insufficient_privilege then null;
   end;
+  begin
+    perform 1 from public.packs;
+    raise exception 'FAIL: anon can read packs';
+  exception when insufficient_privilege then null;
+  end;
+  begin
+    perform 1 from public.collection;
+    raise exception 'FAIL: anon can read collection';
+  exception when insufficient_privilege then null;
+  end;
+  begin
+    perform 1 from public.badges;
+    raise exception 'FAIL: anon can read badges';
+  exception when insufficient_privilege then null;
+  end;
 end $$;
 
 -- ---------- Done ----------
@@ -228,6 +388,11 @@ do $$
 begin
   if (select name from public.profiles where id = current_setting('rls.prof_b')::uuid) <> 'Explorer B' then
     raise exception 'FAIL: family B''s profile was changed by parent A';
+  end if;
+  if (select opened_at from public.packs where profile_id = current_setting('rls.prof_b')::uuid) is not null
+     or (select collected_at from public.collection where profile_id = current_setting('rls.prof_b')::uuid) <> '2026-01-01T10:00:00Z'
+     or (select earned_at from public.badges where profile_id = current_setting('rls.prof_b')::uuid) <> '2026-01-01T10:00:00Z' then
+    raise exception 'FAIL: family B''s progress was changed by parent A';
   end if;
 end $$;
 
