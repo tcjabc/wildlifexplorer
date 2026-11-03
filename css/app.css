@@ -684,6 +684,7 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
 .field-row { display: flex; flex-wrap: wrap; gap: var(--s-4); }
 .form__error { color: var(--c-bad); font-weight: var(--fw-bold); }
 .input--wide { width: 100%; text-align: left; font-size: var(--fs-md); }
+.input--code { width: 10em; letter-spacing: 0.2em; font-variant-numeric: tabular-nums; }
 .input[aria-invalid="true"] { border-color: var(--c-bad); }
 .sheet--form { max-height: calc(100dvh - var(--s-6)); overflow-y: auto; }
 

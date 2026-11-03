@@ -3,7 +3,7 @@
 //  - Images: cache first (their file names change when the picture changes).
 //  - Globe map layers: cache first, only once a layer is first shown (own LAYERS_VERSION).
 // Bump VERSION to throw away the app and image caches.
-const VERSION = 'v13';
+const VERSION = 'v14';
 const SHELL_CACHE = `shell-${VERSION}`;
 const IMAGE_CACHE = `images-${VERSION}`;
 // Globe map layers (assets/layers/): big, so only cached once a layer is first shown, and
@@ -65,6 +65,9 @@ const SHELL = [
   'js/notes-io.js',
   'js/notebook.js',
   'js/zip.js',
+  'js/config.js',
+  'js/cloud/auth.js',
+  'js/account.js',
   'lang/en.json',
   'lang/zh-TW.json',
   'data/animals.json',

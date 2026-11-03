@@ -6,6 +6,7 @@ import { bi, tx, label, plain, dateText } from '../i18n.js';
 import { state, updateProfile, createProfile, deleteProfile, resetProfile } from '../store.js';
 import { avatar, profileForm } from '../profiles.js';
 import { nextDropText, checkDrops } from '../packs.js';
+import { accountPanel } from '../account.js';
 
 let gateOpen = false;
 let selectedId = null;
@@ -137,6 +138,7 @@ function draw(main) {
 
   mount(main, h('section', { class: 'page parents' },
     title(),
+    accountPanel(),
     h('div', { class: 'panel' }, h('h2', { class: 'panel__title' }, tx('parents.who')), who),
     SECTIONS.map(s => h('div', { class: 'panel', 'data-section': s.id },
       h('h2', { class: 'panel__title' }, h('span', { 'aria-hidden': 'true' }, `${s.icon} `), tx(s.title, { name: p.name })),

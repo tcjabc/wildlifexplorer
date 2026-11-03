@@ -17,6 +17,7 @@ import { showPicker, profileForm } from './profiles.js';
 import { initPacks, checkDrops, updateBadge, hideArrival } from './packs.js';
 import { revealing } from './reveal.js';
 import { celebrate } from './celebrate.js';
+import { handleSignInLink } from './account.js';
 
 import * as binder from './views/binder.js';
 import * as packs from './views/packs.js';
@@ -180,6 +181,7 @@ async function boot() {
   setInterval(onWake, 60 * 1000);
 
   registerOffline();
+  await handleSignInLink(); // opened from the sign-in email's link
   await chooseProfile();
 }
 

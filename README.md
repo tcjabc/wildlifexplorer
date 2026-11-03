@@ -479,7 +479,15 @@ truth; it syncs with Supabase when online.
 - **Synced:** profile nickname, language, avatar colour, zhuyin, read-aloud speed, units, pack day
   and time, packs (and whether they're opened), collected cards and badges.
 - **Never leaves the device:** height, weight, age, home country, quiz scores and Field Notes.
-- **Sign-in email** is sent through Resend (custom SMTP, from noreply@wildfile.app).
+- **Signing in:** For grown-ups → ☁️ Family account. A grown-up types their email, then the code
+  from the email (or opens the email's link on this device, which asks before signing in). Signing
+  out keeps the explorers on the device. Nothing syncs yet. The code is in `js/cloud/auth.js`
+  (plain `fetch`, tests in `tests/`, run `npm test`).
+- **Sign-in email** is sent through Resend (custom SMTP, from noreply@wildfile.app). In the
+  dashboard (Authentication → Emails), both *Confirm sign up* (a new address gets this one) and
+  *Magic link* contain the code `{{ .Token }}` and the link
+  `{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=email`. The code's length is the project's
+  *Email OTP Length*; `CODE_LENGTH` in `js/config.js` must match it.
 - **Privacy notice:** needed before any family other than ours uses accounts.
 
 The schema lives in `supabase/migrations/` and is applied with the Supabase CLI (a dev
