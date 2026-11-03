@@ -173,6 +173,7 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
 .brand__icon { width: var(--size-brand); height: var(--size-brand); border-radius: var(--r-sm); flex: none; }
 .brand__name { font-weight: var(--fw-bold); line-height: 1.1; }
 .bi--brand > .t-en, .bi--brand > .t-zh { font-size: var(--fs-md); white-space: nowrap; }
+.brand__sub { display: block; font-size: var(--fs-xs); font-weight: var(--fw-semi); color: var(--c-ink-soft); white-space: nowrap; }
 .header .seg--lang { flex: none; margin-left: auto; }
 .lang-cycle { display: none; flex: none; margin-left: auto; }
 
@@ -829,7 +830,7 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
 /* Short landscape phones: keep the header compact. */
 @media (max-height: 500px) and (orientation: landscape) {
   :root { --header-h: var(--header-h-compact); }
-  .bi--brand > .t-zh { display: none; }
+  .bi--brand > .t-zh, .brand__sub { display: none; }
 }
 
 @media (max-width: 520px) {

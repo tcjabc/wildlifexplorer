@@ -1,6 +1,6 @@
 {
-  "name": "Wildlife Explorer 野生動物探險家",
-  "short_name": "Wildlife 探險家",
+  "name": "WildFile",
+  "short_name": "WildFile",
   "description": "A bilingual wildlife card collection for kids. 給孩子的雙語野生動物卡片收藏。",
   "lang": "en",
   "start_url": "./",

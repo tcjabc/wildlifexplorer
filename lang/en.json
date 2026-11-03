@@ -1,5 +1,6 @@
 {
-  "app.title": "Wildlife Explorer",
+  "app.title": "WildFile",
+  "app.subtitle": "",
   "nav.binder": "Binder",
   "nav.globe": "Globe",
   "nav.quiz": "Quiz",
@@ -136,7 +137,7 @@
   "pack.cut": "Swipe across the top to open the pack",
   "pack.flick": "Flick the card up into your binder",
   "credits.silhouette": "Silhouette",
-  "credits.map": "World map: Natural Earth (public domain). Child silhouette: drawn for Wildlife Explorer (CC0).",
+  "credits.map": "World map: Natural Earth (public domain). Child silhouette: drawn for WildFile (CC0).",
   "compare.tapHint": "Tap a row to compare it with you",
   "compare.weightHeavy": "You × {n} = {name}",
   "compare.weightLight": "{name} × {n} = You",

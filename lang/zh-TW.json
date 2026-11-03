@@ -1,5 +1,6 @@
 {
-  "app.title": "野生動物探險家",
+  "app.title": "WildFile",
+  "app.subtitle": "動物圖鑑",
   "nav.binder": "收藏冊",
   "nav.globe": "地球儀",
   "nav.quiz": "問答",

@@ -1,4 +1,4 @@
-// Wildlife Explorer / 野生動物探險家 — app start-up and hash router.
+// WildFile — app start-up and hash router.
 // Every launch starts at the profile picker (or the Welcome form on the very first run).
 // <main> shows one view (binder, quiz, …). A card opens in the viewer layer on top of
 // the binder, so the binder can zoom and blur behind it and is still there on close.

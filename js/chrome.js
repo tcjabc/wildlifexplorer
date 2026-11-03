@@ -1,6 +1,6 @@
 // The header around every view: logo, the main nav, the language switch and who is exploring.
 import { h, mount } from './dom.js';
-import { tx, label, getMode } from './i18n.js';
+import { t, tx, label, getMode } from './i18n.js';
 import { state } from './store.js';
 import { avatar } from './profiles.js';
 
@@ -44,7 +44,9 @@ export function renderHeader(el, active) {
   mount(el,
     h('a', { class: 'brand', href: '#/binder', 'aria-label': label('app.title') },
       h('img', { class: 'brand__icon', src: 'icons/icon-192.png', alt: '', width: 44, height: 44 }),
-      h('span', { class: 'brand__name' }, tx('app.title', {}, 'bi--brand'))),
+      h('span', { class: 'brand__name' }, tx('app.title', {}, 'bi--brand'),
+        // The name is the same in both languages; Chinese adds a subtitle.
+        t('app.subtitle').zh && h('span', { class: 'brand__sub t-zh', lang: 'zh-Hant-TW' }, t('app.subtitle').zh))),
     h('nav', { class: 'nav', 'aria-label': label('nav.main') },
       NAV.map(n => h('a', {
         class: ['nav__item', n.view === active && 'is-active'],

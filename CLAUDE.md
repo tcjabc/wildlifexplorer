@@ -1,7 +1,8 @@
-# CLAUDE.md — standing rules for Wildlife Explorer
+# CLAUDE.md — standing rules for WildFile
 
 ## PROJECT
-- Wildlife Explorer / 野生動物探險家: a bilingual (English + Traditional Chinese, zh-TW) collectible wildlife card PWA for the owner's kids, inspired by the 1990s Wildlife Explorer card series.
+- WildFile (the same name in both languages; Chinese subtitle "WildFile 動物圖鑑", still to be confirmed): a bilingual (English + Traditional Chinese, zh-TW) collectible wildlife card PWA for the owner's kids, inspired by the 1990s Wildlife Explorer card series.
+- The name lives in `lang/*.json` (`app.title`, `app.subtitle`), plus the copies that can't read it: `manifest.webmanifest` (`name`, `short_name`), `index.html` (`<title>`, `apple-mobile-web-app-title`) and the Supabase email templates. Change them together.
 - Vanilla JS. No framework, no analytics, no tracking, no third-party scripts or CDNs at runtime.
 - Optional family accounts on Supabase (see SUPABASE). Parents sign in; kids never have accounts. The app must keep working fully without signing in.
 - Master card list: `data/card-list.csv` (12 groups, defined in `data/groups.json`). Generated data: `data/animals.json`. Images: `/img` (thumbnails in `/img/thumbs`).

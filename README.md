@@ -1,4 +1,6 @@
-# Wildlife Explorer · 野生動物探險家
+# WildFile
+
+Chinese subtitle: WildFile 動物圖鑑 (to be confirmed). The app was called Wildlife Explorer / 野生動物探險家 before.
 
 A bilingual (English / 繁體中文) wildlife card-collecting app for kids. It's a plain
 HTML/CSS/JavaScript Progressive Web App: no framework, no analytics, no tracking.
@@ -509,6 +511,14 @@ URL and publishable key are in `js/config.js`; the secret key is never used by t
 
 To install on a tablet: open the site, then Share → *Add to Home Screen* (iPad) or the ⋮ menu →
 *Install app* (Android Chrome).
+
+## Changing the name
+
+The name shown in the app is `app.title` (and the Chinese-only `app.subtitle`) in `lang/en.json`
+and `lang/zh-TW.json`. A few places can't read those and keep their own copy: `name` and
+`short_name` in `manifest.webmanifest` (the home-screen name), `<title>` and
+`apple-mobile-web-app-title` in `index.html`, and the sign-in email templates in the Supabase
+dashboard. The IndexedDB database keeps its old name (`wildlife-explorer`) so nobody loses progress.
 
 ## Changing the look
 

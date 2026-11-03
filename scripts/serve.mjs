@@ -26,4 +26,4 @@ createServer(async (req, res) => {
     res.writeHead(404, { 'Content-Type': 'text/plain' });
     res.end('Not found');
   }
-}).listen(PORT, () => console.log(`Wildlife Explorer on http://localhost:${PORT}`));
+}).listen(PORT, () => console.log(`WildFile on http://localhost:${PORT}`));
