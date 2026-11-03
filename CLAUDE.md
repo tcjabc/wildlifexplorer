@@ -13,6 +13,7 @@
 - The remote is already set up (SSH alias `github.com-second`, personal account `tcjabc`). Never change the remote, git config or SSH settings.
 - Commit in small, logical steps with clear messages.
 - Always ask before any `git push` (also enforced in `.claude/settings.json`).
+- Before every push, run `git fetch` and list `git log origin/main..HEAD` in the push report: every commit that would go out. Push only commits the owner has approved. If the list holds any other commit (for example one made in another session), stop and ask; never push it along.
 - Never force-push, rewrite history or delete branches.
 
 ## SECURITY (this repo is public)
