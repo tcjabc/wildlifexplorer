@@ -4,6 +4,7 @@ import { h, mount } from './dom.js';
 import { tx, label, getMode, setMode } from './i18n.js';
 import { state, parentTemplate, currentAge } from './store.js';
 import { countryOptions } from './countries.js';
+import { restoreError } from './backup.js';
 import { cmFromFtIn, ftInFromCm, kgFromLb, lbFromKg } from './units.js';
 
 export function initial(name) {
@@ -47,9 +48,10 @@ const LANGS = [['en', 'lang.en', 'lang.enName'], ['zh', 'lang.zh', 'lang.zhName'
 const RANGES = { age: [0, 120], heightCm: [40, 250], weightKg: [3, 300] };
 
 // The Welcome form. profile: the one to edit, or null for a new one. prefill: starting
-// values for a new one. Resolves with the fields ({ name, lang, age, heightCm, weightKg,
-// homeCountry }, metric) or null if cancelled.
-export function profileForm({ profile = null, prefill = null, cancellable = true } = {}) {
+// values for a new one. onRestore(file): offered on the very first run, for grown-ups who
+// have a backup (backup.js). Resolves with the fields ({ name, lang, age, heightCm,
+// weightKg, homeCountry }, metric), { restored: true }, or null if cancelled.
+export function profileForm({ profile = null, prefill = null, cancellable = true, onRestore = null } = {}) {
   const start = profile ?? { lang: getMode(), ...prefill };
   const units = profile?.parent ?? parentTemplate();
   const imperial = units.length === 'imperial';
@@ -82,6 +84,21 @@ export function profileForm({ profile = null, prefill = null, cancellable = true
     h('option', { value: '' }, label('profile.noCountry')),
     countryOptions().map(o => h('option', { value: o.code, selected: o.code === start.homeCountry }, o.text)));
   const error = h('p', { class: 'form__error', role: 'alert', hidden: true });
+  const restoreFile = onRestore && h('input', {
+    type: 'file', accept: '.json,application/json', hidden: true,
+    onchange: async e => {
+      const file = e.target.files?.[0];
+      restoreFile.value = '';
+      if (!file) return;
+      try {
+        await onRestore(file);
+        finish({ restored: true });
+      } catch (err) {
+        mount(error, restoreError(err));
+        error.hidden = false;
+      }
+    },
+  });
 
   const field = (forId, key, ...control) => h('div', { class: 'field' },
     h('label', { class: 'field__label', for: forId }, tx(key)), h('div', { class: 'field__control' }, control));
@@ -103,6 +120,9 @@ export function profileForm({ profile = null, prefill = null, cancellable = true
     error,
     h('div', { class: 'sheet__actions' },
       cancellable && h('button', { class: 'btn btn--soft', type: 'button', value: 'cancel', onclick: () => finish(null) }, tx('profile.cancel')),
+      restoreFile && h('button', { class: 'btn btn--soft', type: 'button', onclick: () => restoreFile.click() },
+        h('span', { 'aria-hidden': 'true' }, '📥'), tx('profile.restore')),
+      restoreFile,
       h('button', { class: 'btn btn--primary btn--big', type: 'submit' }, tx(profile ? 'profile.save' : 'profile.start'))));
   dialog.append(form);
 

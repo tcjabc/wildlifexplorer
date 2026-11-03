@@ -19,6 +19,7 @@ import { initPacks, checkDrops, updateBadge, hideArrival } from './packs.js';
 import { revealing } from './reveal.js';
 import { celebrate } from './celebrate.js';
 import { handleSignInLink } from './account.js';
+import { restoreProgress } from './backup.js';
 
 import * as binder from './views/binder.js';
 import * as packs from './views/packs.js';
@@ -134,7 +135,8 @@ async function chooseProfile() {
   try {
     for (;;) {
       if (!store.state.profiles.length) {
-        const fields = await profileForm({ prefill: store.legacyPrefill(), cancellable: false });
+        const fields = await profileForm({ prefill: store.legacyPrefill(), cancellable: false, onRestore: restoreFile });
+        if (fields.restored) continue; // the picker shows the explorers that came back
         await enterProfile((await store.createProfile(fields)).id);
         return;
       }
@@ -167,6 +169,12 @@ async function dbNotice(kind) {
   el.showModal();
 }
 for (const kind of ['updated', 'blocked', 'unblocked']) dbEvents.addEventListener(kind, () => dbNotice(kind));
+
+// First run on a new device: bring back a backup instead of starting from scratch.
+async function restoreFile(file) {
+  await restoreProgress(await file.text());
+  await store.reload();
+}
 
 async function boot() {
   stringsReady = loadStrings();

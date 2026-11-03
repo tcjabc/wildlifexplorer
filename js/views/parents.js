@@ -1,13 +1,13 @@
 // For grown-ups: settings behind a simple sum. Settings are per profile; pick whose at
 // the top. Each panel is one entry in SECTIONS, so adding a setting means adding a section:
 //   { id, icon, title: string key, render: (profile, redraw) => node }
-import { h, mount } from '../dom.js';
+import { $, h, mount } from '../dom.js';
 import { bi, tx, label, plain, dateText } from '../i18n.js';
-import { state, updateProfile, createProfile, deleteProfile, resetProfile } from '../store.js';
+import { state, updateProfile, createProfile, deleteProfile, resetProfile, reload } from '../store.js';
 import { avatar, profileForm } from '../profiles.js';
 import { nextDropText, checkDrops } from '../packs.js';
 import { accountPanel } from '../account.js';
-import { backupProgress } from '../backup.js';
+import { backupProgress, restoreProgress, restoreText, restoreError } from '../backup.js';
 
 let gateOpen = false;
 let selectedId = null;
@@ -99,8 +99,24 @@ const SECTIONS = [
 ];
 
 // Everything on this device, every explorer: a panel of its own, not a section.
-function backupPanel() {
+function backupPanel(redraw) {
   const msg = h('p', { class: 'muted', role: 'status' });
+  const file = h('input', {
+    type: 'file', accept: '.json,application/json', hidden: true,
+    onchange: async e => {
+      const f = e.target.files?.[0];
+      file.value = '';
+      if (!f) return;
+      try {
+        const n = await restoreProgress(await f.text());
+        await reload();
+        redraw();
+        mount($('[data-section="backup"] [role="status"]') ?? msg, restoreText(n));
+      } catch (err) {
+        mount(msg, restoreError(err));
+      }
+    },
+  });
   const btn = h('button', {
     class: 'btn btn--soft', type: 'button',
     onclick: async () => {
@@ -120,7 +136,11 @@ function backupPanel() {
   return h('div', { class: 'panel', 'data-section': 'backup' },
     h('h2', { class: 'panel__title' }, h('span', { 'aria-hidden': 'true' }, '💾 '), tx('parents.backup')),
     h('p', { class: 'muted' }, tx('parents.backupNote')),
-    h('div', { class: 'row-actions' }, btn),
+    h('p', { class: 'muted' }, tx('parents.restoreNote')),
+    h('div', { class: 'row-actions' }, btn,
+      h('button', { class: 'btn btn--soft', type: 'button', onclick: () => file.click() },
+        h('span', { 'aria-hidden': 'true' }, '📥'), tx('parents.restore')),
+      file),
     msg);
 }
 
@@ -170,7 +190,7 @@ function draw(main) {
     SECTIONS.map(s => h('div', { class: 'panel', 'data-section': s.id },
       h('h2', { class: 'panel__title' }, h('span', { 'aria-hidden': 'true' }, `${s.icon} `), tx(s.title, { name: p.name })),
       s.render(p, redraw))),
-    backupPanel()));
+    backupPanel(redraw)));
 }
 
 export function render(main) {
