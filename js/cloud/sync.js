@@ -133,6 +133,17 @@ export function createSync({ db = defaultDb, auth = defaultAuth, locks = globalT
     return row.family_id;
   }
 
+  // Queue an explorer with everything of theirs that is sent (inside a transaction a).
+  async function queueExplorer(a, pid) {
+    for (const store of ORDER) {
+      const list = store === 'profiles' ? [await a.get('profiles', pid)].filter(Boolean) : await a.all(store, pid);
+      for (const r of list) {
+        if (store !== 'profiles' && r.deletedAt) continue; // old reset history stays here
+        await a.put('outbox', { id: `${store}:${r.id}`, store, key: r.id, rev: db.newId() });
+      }
+    }
+  }
+
   // The parent's choice, the first time: the ticked explorers are queued with all their
   // progress; the rest, and explorers already deleted, stay on this device only.
   async function setUp(chosenIds) {
@@ -145,16 +156,24 @@ export function createSync({ db = defaultDb, auth = defaultAuth, locks = globalT
       if (await a.get('meta', 'sync')) return; // another window chose first
       const profiles = await a.all('profiles');
       const localOnly = profiles.filter(p => p.deletedAt || !picked.has(p.id)).map(p => p.id);
-      const sent = new Set(profiles.map(p => p.id).filter(id => !localOnly.includes(id)));
       for (const e of await a.all('outbox')) await a.remove('outbox', e.id); // from before: not needed
-      for (const store of ORDER) {
-        for (const r of await a.all(store)) {
-          const pid = store === 'profiles' ? r.id : r.profileId;
-          if (!sent.has(pid) || (store !== 'profiles' && r.deletedAt)) continue;
-          await a.put('outbox', { id: `${store}:${r.id}`, store, key: r.id, rev: db.newId() });
-        }
-      }
+      for (const p of profiles) if (!localOnly.includes(p.id)) await queueExplorer(a, p.id);
       await a.put('meta', { id: 'sync', value: { userId: st.userId, email: st.email, familyId, setUpAt: new Date().toISOString(), localOnly } });
+    });
+    changed();
+    await push();
+  }
+
+  // An explorer left on this device only, added later: from now on like the others, and
+  // everything they already have goes up now.
+  async function addToFamily(pid) {
+    if (await stage() !== 'on') return;
+    await db.tx(['meta', 'outbox', ...ORDER], 'readwrite', async a => {
+      const cfg = (await a.get('meta', 'sync'))?.value;
+      const p = await a.get('profiles', pid);
+      if (!cfg?.localOnly.includes(pid) || !p || p.deletedAt) return;
+      await a.put('meta', { id: 'sync', value: { ...cfg, localOnly: cfg.localOnly.filter(id => id !== pid) } });
+      await queueExplorer(a, pid);
     });
     changed();
     await push();
@@ -279,7 +298,7 @@ export function createSync({ db = defaultDb, auth = defaultAuth, locks = globalT
     push();
   }
 
-  return { stage, candidates, setUp, push, status, start, onChange: fn => events.addEventListener('change', fn) };
+  return { stage, candidates, setUp, addToFamily, push, status, start, onChange: fn => events.addEventListener('change', fn) };
 }
 
 export const sync = createSync();

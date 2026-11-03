@@ -314,6 +314,7 @@
   "sync.retry": "The family account couldn’t be reached. Trying again soon.",
   "sync.held": "Some changes couldn’t be saved. They stay on this device.",
   "sync.localOnly": "Only on this device:",
+  "sync.addLabel": "Add {name} to your family account",
   "sync.otherAccount": "This device’s explorers belong to another family account ({email}). Sign in with that account to keep saving them.",
   "link.title": "Sign in on this device?",
   "link.text": "This link signs a grown-up in to the family account on this device.",

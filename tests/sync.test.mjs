@@ -236,6 +236,50 @@ test('signed out: nothing is sent and changes wait', async () => {
   user = { signedIn: true, userId: 'user-1', email: 'parent@example.test', needsSignIn: false };
 });
 
+test('an explorer unticked at first sign-in can be added later: everything they have goes up once', async () => {
+  // Dan was unticked. While only on this device he got a pack, its card and a badge (and
+  // earlier, in the "stays on this device" test, a card with no pack).
+  const at = new Date().toISOString();
+  await db.tx(['packs', 'collection', 'badges'], 'readwrite', async a => {
+    await a.put('packs', { id: `${DAN}:2:s1-w01`, profileId: DAN, epoch: 2, seq: 0, dropId: 's1-w01', cardIds: ['barn-owl'], dueAt: at, grantedAt: at, notifiedAt: at, openedAt: at });
+    await a.put('collection', { id: `${DAN}:2:barn-owl`, profileId: DAN, epoch: 2, cardId: 'barn-owl', collectedAt: at, packId: `${DAN}:2:s1-w01`, dropId: 's1-w01' });
+    await a.put('badges', { id: `${DAN}:2:continent:asia:bronze`, profileId: DAN, epoch: 2, badgeId: 'continent:asia:bronze', earnedAt: at });
+  });
+  await sync.push();
+  reset();
+  assert.deepEqual((await sync.status()).localOnly.map(p => p.id), [DAN]);
+
+  await sync.addToFamily(DAN);
+  const sent = server.calls.filter(c => c.method === 'POST').flatMap(c => c.body.map(r => `${c.table}:${keyOf(c.table, r)}`));
+  assert.deepEqual(sent.sort(), [
+    `profiles:${DAN}`,
+    `packs:${DAN}:2:s1-w01`,
+    `collection:${DAN}:2:barn-owl`, `collection:${DAN}:2:red-fox`, // not panda: deleted at a version 3 reset
+    `badges:${DAN}:2:continent:asia:bronze`,
+  ].sort());
+  assert.deepEqual(server.calls.filter(c => c.method === 'POST').map(c => c.table), ['profiles', 'packs', 'collection', 'badges']);
+  assert.equal(server.rows.profiles.get(DAN).name, 'Danny');
+  assert.deepEqual((await db.getMeta('sync')).localOnly, [CAT]);
+  assert.deepEqual((await sync.status()).localOnly, []);
+  assert.deepEqual(await outbox(), []);
+
+  reset();
+  await sync.push(); // once: nothing left to send
+  await sync.addToFamily(DAN); // already added: nothing happens
+  assert.deepEqual(server.calls, []);
+  const dan = await db.get('profiles', DAN);
+  await db.put('profiles', { ...dan, name: 'Dan', settingsAt: new Date().toISOString() });
+  await sync.push(); // and from now on like everyone else
+  assert.equal(server.rows.profiles.get(DAN).name, 'Dan');
+});
+
+test('an explorer deleted before the first sync can\'t be added later', async () => {
+  reset();
+  await sync.addToFamily(CAT);
+  assert.deepEqual(server.calls, []);
+  assert.deepEqual((await db.getMeta('sync')).localOnly, [CAT]);
+});
+
 test('toRow: settingsAt decides the settings\' time, and device-only fields never appear', () => {
   const p = {
     id: ADA, name: 'Ada', lang: 'both', avatar: 1, zhuyin: true, rate: 'slow', age: 7, heightCm: 120, weightKg: 22,

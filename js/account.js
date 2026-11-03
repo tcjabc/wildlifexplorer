@@ -134,8 +134,20 @@ function statusLines(s) {
     h('p', { role: 'status' }, tx(key)),
     s.held > 0 && h('p', { class: 'form__error' }, tx('sync.held')),
     s.localOnly.length > 0 && [h('p', { class: 'muted' }, tx('sync.localOnly')),
-      h('div', { class: 'who' }, s.localOnly.map(p => h('span', { class: 'who__btn' }, avatar(p), h('span', { class: 'who__name' }, p.name))))],
+      s.localOnly.map(localExplorer)],
   ];
+}
+
+// One explorer kept on this device only, with a button to add them to the family account.
+function localExplorer(p) {
+  const add = h('button', {
+    class: 'btn btn--soft', type: 'button', 'aria-label': label('sync.addLabel', { name: p.name }),
+    onclick: async () => {
+      add.disabled = true;
+      await sync.addToFamily(p.id).catch(err => console.error(err)); // the status shows how it went
+    },
+  }, tx('sync.chooseGo'));
+  return h('div', { class: 'row-actions' }, avatar(p), h('span', null, p.name), add);
 }
 
 // The status keeps itself up to date while it is on screen.

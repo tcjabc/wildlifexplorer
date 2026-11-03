@@ -314,6 +314,7 @@
   "sync.retry": "暫時無法連上家庭帳號，稍後會再試一次。",
   "sync.held": "有些變更無法儲存，仍保留在這台裝置上。",
   "sync.localOnly": "只在這台裝置上：",
+  "sync.addLabel": "把 {name} 加入家庭帳號",
   "sync.otherAccount": "這台裝置的探險家屬於另一個家庭帳號（{email}）。請用那個帳號登入，才能繼續儲存。",
   "link.title": "要在這台裝置上登入嗎？",
   "link.text": "這個連結會讓大人在這台裝置上登入家庭帳號。",

@@ -65,6 +65,29 @@ test('an upgrade blocked by an older window says so, then goes ahead once it clo
   await db.put('notes', { id: 'n1', profileId: 'p1' }); // added by the version 3 upgrade
 });
 
+test('only the synced stores write to the outbox: every other store, now or later, is device-only', async () => {
+  const db = await loadDb();
+  await db.all('profiles'); // opens the database
+  const conn = await rawOpen(db.VERSION);
+  const names = [...conn.objectStoreNames];
+  conn.close();
+  const deviceOnly = names.filter(n => !db.SYNCED.includes(n) && n !== 'outbox');
+  // Whatever stores exist, only the allow-list syncs; a new store lands in deviceOnly.
+  assert.deepEqual([...db.SYNCED].sort(), ['badges', 'collection', 'packs', 'profiles']);
+  assert.ok(['meta', 'quiz', 'notes', 'notefiles', 'v3backup'].every(n => deviceOnly.includes(n)));
+  for (const name of deviceOnly) {
+    await db.put(name, { id: `${name}-1`, profileId: 'p1', value: 1 });
+    await db.tx([name], 'readwrite', async a => { await a.add(name, { id: `${name}-2`, profileId: 'p1' }); });
+  }
+  assert.deepEqual(await db.all('outbox'), []);
+  // A transaction over both kinds queues only the synced record.
+  await db.tx(['notes', 'collection'], 'readwrite', async a => {
+    await a.put('notes', { id: 'n9', profileId: 'p1' });
+    await a.put('collection', { id: 'p1:1:emu', profileId: 'p1', epoch: 1, cardId: 'emu' });
+  });
+  assert.deepEqual((await db.all('outbox')).map(e => e.id), ['collection:p1:1:emu']);
+});
+
 test('no IndexedDB at all: carries on in memory', async () => {
   globalThis.indexedDB = undefined;
   const db = await loadDb();

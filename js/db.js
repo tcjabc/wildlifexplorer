@@ -22,8 +22,9 @@ export const VERSION = 5;
 const BY_PROFILE = ['packs', 'collection', 'badges', 'quiz', 'notes', 'notefiles'];
 const OUTBOX = 'outbox';
 const STORES = ['meta', 'profiles', ...BY_PROFILE, OUTBOX];
-// What the family account keeps (cloud/sync.js). Every write to one of these also puts an
-// outbox entry, in the same transaction, so no change can be missed.
+// What the family account keeps (cloud/sync.js): an allow-list. Every write to one of these
+// also puts an outbox entry, in the same transaction, so no change can be missed. Every
+// other store, including any new one, is device-only and never touches the outbox.
 export const SYNCED = ['profiles', 'packs', 'collection', 'badges'];
 const LEGACY = 'kv'; // version 1: one key-value store for a single child
 // Version 4 keeps the version 3 collection and badges records here, untouched, as a safety
