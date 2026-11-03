@@ -28,6 +28,14 @@ begin
   end if;
 end $$;
 
+-- Family B has a profile (written as postgres, bypassing RLS).
+select set_config('rls.prof_a', '00000000-0000-4000-8000-0000000000a2', true),
+       set_config('rls.prof_b', '00000000-0000-4000-8000-0000000000b2', true);
+insert into public.profiles (id, family_id, name, lang, avatar, length_unit, temp_unit, drop_day, drop_time,
+                             timeline_epoch, timeline_start_at, client_updated_at)
+values (current_setting('rls.prof_b')::uuid, current_setting('rls.fam_b')::uuid, 'Explorer B', 'both', 2,
+        'metric', 'C', 6, '09:00', 1, '2026-01-01T09:00:00Z', '2026-01-01T09:00:00Z');
+
 -- ---------- As parent A ----------
 
 set local role authenticated;
@@ -72,6 +80,98 @@ begin
   end;
 end $$;
 
+-- profiles: A can add, read and update only family A's profiles.
+do $$
+declare
+  n int;
+  p public.profiles;
+begin
+  -- The device's own updated_at is ignored: the server sets it.
+  insert into public.profiles (id, family_id, name, lang, avatar, length_unit, temp_unit, drop_day, drop_time,
+                               timeline_epoch, timeline_start_at, client_updated_at, created_at, updated_at)
+  values (current_setting('rls.prof_a')::uuid, current_setting('rls.fam_a')::uuid, 'Explorer A', 'en', 1,
+          'metric', 'C', 6, '09:00', 1, '2026-01-01T09:00:00Z', '2026-01-02T00:00:00Z',
+          '2026-01-01T09:00:00Z', '2000-01-01T00:00:00Z');
+  select * into p from public.profiles where id = current_setting('rls.prof_a')::uuid;
+  if p.updated_at <> now() then raise exception 'FAIL: profiles.updated_at was not set by the server'; end if;
+
+  if (select count(*) from public.profiles) <> 1
+     or exists (select 1 from public.profiles where id = current_setting('rls.prof_b')::uuid) then
+    raise exception 'FAIL: parent A should see only family A''s profile';
+  end if;
+
+  begin
+    insert into public.profiles (id, family_id, name, lang, avatar, length_unit, temp_unit, drop_day, drop_time,
+                                 timeline_epoch, timeline_start_at, client_updated_at)
+    values (gen_random_uuid(), current_setting('rls.fam_b')::uuid, 'Intruder', 'en', 1,
+            'metric', 'C', 6, '09:00', 1, now(), now());
+    raise exception 'FAIL: parent A could add a profile to family B';
+  exception when insufficient_privilege then null;
+  end;
+
+  update public.profiles set name = 'Changed by A' where id = current_setting('rls.prof_b')::uuid;
+  get diagnostics n = row_count;
+  if n <> 0 then raise exception 'FAIL: parent A could update family B''s profile'; end if;
+
+  -- An upsert with B's profile id must not take B's row over.
+  begin
+    insert into public.profiles (id, family_id, name, lang, avatar, length_unit, temp_unit, drop_day, drop_time,
+                                 timeline_epoch, timeline_start_at, client_updated_at)
+    values (current_setting('rls.prof_b')::uuid, current_setting('rls.fam_a')::uuid, 'Taken by A', 'en', 1,
+            'metric', 'C', 6, '09:00', 1, now(), '2030-01-01T00:00:00Z')
+    on conflict (id) do update set name = excluded.name, client_updated_at = excluded.client_updated_at;
+    raise exception 'FAIL: parent A could upsert over family B''s profile';
+  exception when insufficient_privilege then null;
+  end;
+
+  begin
+    update public.profiles set family_id = current_setting('rls.fam_b')::uuid where id = current_setting('rls.prof_a')::uuid;
+    raise exception 'FAIL: parent A could move a profile to family B';
+  exception when insufficient_privilege or check_violation then null;
+  end;
+
+  begin
+    delete from public.profiles where id = current_setting('rls.prof_a')::uuid;
+    raise exception 'FAIL: parent A could hard-delete a profile';
+  exception when insufficient_privilege then null;
+  end;
+
+  -- Merge rules (the same ones the app uses).
+  insert into public.profiles (id, family_id, name, lang, avatar, length_unit, temp_unit, drop_day, drop_time,
+                               timeline_epoch, timeline_start_at, client_updated_at)
+  values (current_setting('rls.prof_a')::uuid, current_setting('rls.fam_a')::uuid, 'Older', 'zh', 3,
+          'imperial', 'F', 1, '18:30', 1, '2026-01-01T09:00:00Z', '2026-01-01T00:00:00Z')
+  on conflict (id) do update set name = excluded.name, lang = excluded.lang, drop_day = excluded.drop_day,
+    client_updated_at = excluded.client_updated_at;
+  select * into p from public.profiles where id = current_setting('rls.prof_a')::uuid;
+  if p.name <> 'Explorer A' or p.lang <> 'en' or p.drop_day <> 6 then
+    raise exception 'FAIL: older settings overwrote newer ones';
+  end if;
+
+  update public.profiles set name = 'Newer', client_updated_at = '2026-01-03T00:00:00Z'
+    where id = current_setting('rls.prof_a')::uuid;
+  if (select name from public.profiles where id = current_setting('rls.prof_a')::uuid) <> 'Newer' then
+    raise exception 'FAIL: newer settings were not saved';
+  end if;
+
+  update public.profiles set timeline_epoch = 2, timeline_start_at = '2026-02-01T00:00:00Z'
+    where id = current_setting('rls.prof_a')::uuid;
+  update public.profiles set timeline_epoch = 1, timeline_start_at = '2026-03-01T00:00:00Z'
+    where id = current_setting('rls.prof_a')::uuid;
+  update public.profiles set timeline_start_at = '2026-04-01T00:00:00Z'
+    where id = current_setting('rls.prof_a')::uuid;
+  select * into p from public.profiles where id = current_setting('rls.prof_a')::uuid;
+  if p.timeline_epoch <> 2 or p.timeline_start_at <> '2026-02-01T00:00:00Z' then
+    raise exception 'FAIL: timeline went back to an older epoch or its start moved';
+  end if;
+
+  update public.profiles set deleted_at = '2026-05-01T00:00:00Z' where id = current_setting('rls.prof_a')::uuid;
+  update public.profiles set deleted_at = null where id = current_setting('rls.prof_a')::uuid;
+  if (select deleted_at from public.profiles where id = current_setting('rls.prof_a')::uuid) is null then
+    raise exception 'FAIL: a deleted profile came back';
+  end if;
+end $$;
+
 -- ---------- As parent B ----------
 
 select set_config('request.jwt.claims',
@@ -82,6 +182,10 @@ begin
   if (select count(*) from public.families) <> 1
      or exists (select 1 from public.families where id = current_setting('rls.fam_a')::uuid) then
     raise exception 'FAIL: parent B should see only their own family';
+  end if;
+  if (select count(*) from public.profiles) <> 1
+     or exists (select 1 from public.profiles where id = current_setting('rls.prof_a')::uuid) then
+    raise exception 'FAIL: parent B should see only family B''s profile';
   end if;
 end $$;
 
@@ -108,10 +212,24 @@ begin
     raise exception 'FAIL: anon can call private.my_family_ids()';
   exception when insufficient_privilege then null;
   end;
+  begin
+    perform 1 from public.profiles;
+    raise exception 'FAIL: anon can read profiles';
+  exception when insufficient_privilege then null;
+  end;
 end $$;
 
 -- ---------- Done ----------
 
 reset role;
+
+-- Nothing A tried changed family B's profile.
+do $$
+begin
+  if (select name from public.profiles where id = current_setting('rls.prof_b')::uuid) <> 'Explorer B' then
+    raise exception 'FAIL: family B''s profile was changed by parent A';
+  end if;
+end $$;
+
 select 'RLS check passed' as result;
 rollback;
