@@ -31,6 +31,12 @@ function headersFile(csp) {
 
 /sw.js
   Cache-Control: no-cache
+
+# The page only: no-transform stops Cloudflare injecting anything into it (on the Free plan
+# its RUM / Web Analytics beacon is on by default). It also skips compression, which the
+# small page doesn't need; everything else stays compressed.
+/
+  Cache-Control: public, max-age=0, must-revalidate, no-transform
 `;
 }
 

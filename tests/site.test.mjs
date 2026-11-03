@@ -32,13 +32,15 @@ test('every file the service worker caches is published, and the page is cached 
   assert.equal(shell.includes('index.html'), false); // Cloudflare redirects it to ./
 });
 
-test('headers: the page\'s CSP plus frame-ancestors, and sw.js always revalidated', async () => {
+test('headers: the page\'s CSP plus frame-ancestors, sw.js always revalidated, nothing injected into the page', async () => {
   const headers = await readFile(path.join(out, '_headers'), 'utf8');
   const csp = cspOf(await read('index.html'));
   assert.ok(headers.includes(`Content-Security-Policy: ${csp}; frame-ancestors 'none'\n`));
   assert.match(headers, /X-Content-Type-Options: nosniff/);
   assert.match(headers, /Referrer-Policy: no-referrer/);
   assert.match(headers, /\/sw\.js\n {2}Cache-Control: no-cache/);
+  // Cloudflare injects nothing (its analytics beacon) into a no-transform page.
+  assert.match(headers, /\n\/\n {2}Cache-Control: public, max-age=0, must-revalidate, no-transform\n/);
   assert.ok(headers.split('\n').every(line => line.length <= 2000)); // Cloudflare's limit
 });
 
