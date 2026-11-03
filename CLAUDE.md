@@ -45,8 +45,8 @@
 - Project ref `yrgrihgmydzlxjzuoljq` (Seoul, Free plan). The GitHub integration is not connected: schema changes go through `supabase/migrations/` and `npx supabase db push`.
 - Show every migration to the owner before `db push`. Never edit a migration that has been pushed; add a new one.
 - "Automatically expose new tables" is off: every migration that adds a table has explicit GRANTs (nothing to `anon`) and RLS enabled with policies limited to the caller's family.
-- Re-run the RLS check in `supabase/tests/` after every migration.
-- Email: Supabase's built-in email (test with the owner's address only) until custom SMTP (Resend, noreply@wildfile.app) is set up.
+- Re-run the RLS check after every migration: `npx supabase db query --remote -f supabase/tests/rls_check.sql`. CLI 3 targets a local stack by default; always pass `--remote`.
+- Auth email goes out through custom SMTP (Resend, from noreply@wildfile.app). Until accounts are opened to other families, test sign-in with the owner's address only.
 
 ## WORKING STYLE
 - Ask before adding dependencies. Prefer none at runtime; build-script dev dependencies are fine.

@@ -477,6 +477,7 @@ truth; it syncs with Supabase when online.
 - **Synced:** profile nickname, language, avatar colour, zhuyin, read-aloud speed, units, pack day
   and time, packs (and whether they're opened), collected cards and badges.
 - **Never leaves the device:** height, weight, age, home country, quiz scores and Field Notes.
+- **Sign-in email** is sent through Resend (custom SMTP, from noreply@wildfile.app).
 - **Privacy notice:** needed before any family other than ours uses accounts.
 
 The schema lives in `supabase/migrations/` and is applied with the Supabase CLI (a dev
@@ -491,11 +492,11 @@ npx supabase link --project-ref yrgrihgmydzlxjzuoljq
 Neither goes in the repo (see `.env.example`). After adding a migration:
 
 ```
-npx supabase db push --dry-run
-npx supabase db push
+npx supabase db push --remote --dry-run
+npx supabase db push --remote
 ```
 
-then re-run the RLS check in `supabase/tests/` in the dashboard's SQL editor. The public project
+then re-run the RLS check (`npx supabase db query --remote -f supabase/tests/rls_check.sql`, or paste it into the SQL editor). The public project
 URL and publishable key are in `js/config.js`; the secret key is never used by the app.
 
 ## Publishing on GitHub Pages
