@@ -312,6 +312,7 @@
   "sync.waiting": "Some changes are waiting to be saved.",
   "sync.offline": "No internet connection: changes will be saved when it’s back.",
   "sync.retry": "The family account couldn’t be reached. Trying again soon.",
+  "sync.tryAgain": "Try again",
   "sync.held": "Some changes couldn’t be saved. They stay on this device.",
   "sync.localOnly": "Only on this device:",
   "sync.addLabel": "Add {name} to your family account",

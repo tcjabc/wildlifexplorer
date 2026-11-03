@@ -92,6 +92,20 @@ export function toRow(store, r, familyId) {
   throw new Error(`Not a synced store: ${store}`);
 }
 
+// What the Family account panel says about it, from status(): a string key, or null when
+// there is nothing to say yet (not set up on this device, signed out). "Saved" only once
+// a push has gone through, with nothing waiting, nothing held back and nothing wrong.
+export function statusKey(s) {
+  if (s.stage === 'other-account') return 'sync.otherAccount';
+  if (s.stage !== 'on') return null;
+  if (s.busy || (!s.savedAt && !s.problem)) return 'sync.saving';
+  if (s.problem === 'offline') return 'sync.offline';
+  if (s.problem === 'server') return 'sync.retry';
+  if (s.waiting) return 'sync.waiting';
+  if (s.held) return 'sync.held';
+  return 'sync.saved';
+}
+
 // ---------- Sync ----------
 
 class Retry extends Error {}

@@ -6,7 +6,7 @@ import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
 import 'fake-indexeddb/auto';
 import * as db from '../js/db.js';
-import { createSync, toRow } from '../js/cloud/sync.js';
+import { createSync, toRow, statusKey } from '../js/cloud/sync.js';
 import { AuthError } from '../js/cloud/auth.js';
 import { buildV3, ADA, BEN, CAT, DAN } from './fixtures/v3.mjs';
 
@@ -292,4 +292,42 @@ test('toRow: settingsAt decides the settings\' time, and device-only fields neve
   assert.deepEqual(Object.keys(row).sort(), [...COLUMNS.profiles].sort());
   assert.equal(toRow('profiles', { ...p, settingsAt: undefined }, FAMILY).client_updated_at, p.updatedAt);
   assert.equal(toRow('collection', { profileId: ADA, epoch: 1, cardId: 'emu', collectedAt: p.createdAt, deletedAt: p.updatedAt }, FAMILY), null);
+});
+
+test('statusKey: "saved" only once set up and a push went through, with nothing waiting, held or wrong', () => {
+  const on = { stage: 'on', busy: false, savedAt: '2026-11-03T17:00:00.000Z', problem: null, waiting: 0, held: 0 };
+  assert.equal(statusKey(on), 'sync.saved');
+  assert.equal(statusKey({ ...on, savedAt: null }), 'sync.saving'); // no push yet in this window
+  assert.equal(statusKey({ ...on, busy: true }), 'sync.saving');
+  assert.equal(statusKey({ ...on, problem: 'offline' }), 'sync.offline');
+  assert.equal(statusKey({ ...on, savedAt: null, problem: 'offline' }), 'sync.offline');
+  assert.equal(statusKey({ ...on, problem: 'server' }), 'sync.retry');
+  assert.equal(statusKey({ ...on, waiting: 2 }), 'sync.waiting');
+  assert.equal(statusKey({ ...on, held: 1 }), 'sync.held');
+  for (const stage of ['choose', 'signed-out', 'needs-sign-in']) assert.equal(statusKey({ ...on, stage }), null, stage);
+  assert.equal(statusKey({ ...on, stage: 'other-account' }), 'sync.otherAccount');
+});
+
+test('status: set up but not pushed yet in this window is not "saved"; after a push it is', async () => {
+  const fresh = newSync(); // a new window: nothing pushed yet
+  assert.equal(statusKey(await fresh.status()), 'sync.saving');
+  await fresh.push();
+  assert.equal(statusKey(await fresh.status()), 'sync.saved');
+});
+
+test('setUp fails without a family lookup: nothing is saved, and the stage stays "choose"', async () => {
+  const lonely = createSync({
+    db, locks: undefined, timers: noTimers,
+    auth: { ...auth, state: async () => ({ signedIn: true, userId: 'user-9', email: 'x@example.test' }), authFetch: async () => { throw new AuthError('offline'); } },
+  });
+  const cfg = await db.getMeta('sync');
+  await db.remove('meta', 'sync');
+  try {
+    assert.equal(await lonely.stage(), 'choose');
+    await assert.rejects(lonely.setUp([]), { code: 'offline' });
+    assert.equal(await lonely.stage(), 'choose');
+    assert.equal(statusKey(await lonely.status()), null);
+  } finally {
+    await db.setMeta('sync', cfg);
+  }
 });

@@ -5,7 +5,7 @@
 import { h, mount } from './dom.js';
 import { tx, label } from './i18n.js';
 import { auth, AuthError } from './cloud/auth.js';
-import { sync } from './cloud/sync.js';
+import { sync, statusKey } from './cloud/sync.js';
 import { avatar } from './profiles.js';
 import { CODE_LENGTH } from './config.js';
 
@@ -125,14 +125,12 @@ function chooseStep(el, list, error) {
 
 // One line on whether everything is saved, and which explorers stay on this device only.
 function statusLines(s) {
-  if (s.stage === 'other-account') return h('p', { class: 'form__error' }, tx('sync.otherAccount', { email: s.email }));
-  const key = s.busy ? 'sync.saving'
-    : s.problem === 'offline' ? 'sync.offline'
-      : s.problem === 'server' ? 'sync.retry'
-        : s.waiting ? 'sync.waiting' : 'sync.saved';
+  const key = statusKey(s);
+  if (key === 'sync.otherAccount') return h('p', { class: 'form__error' }, tx(key, { email: s.email }));
+  if (!key) return null;
   return [
-    h('p', { role: 'status' }, tx(key)),
-    s.held > 0 && h('p', { class: 'form__error' }, tx('sync.held')),
+    h('p', { role: 'status', class: key === 'sync.held' ? 'form__error' : null }, tx(key)),
+    s.held > 0 && key !== 'sync.held' && h('p', { class: 'form__error' }, tx('sync.held')),
     s.localOnly.length > 0 && [h('p', { class: 'muted' }, tx('sync.localOnly')),
       s.localOnly.map(localExplorer)],
   ];
@@ -170,9 +168,21 @@ async function signedInStep(el, state, error) {
   if (await sync.stage() === 'choose') {
     const list = await sync.candidates();
     if (list.length) return [who, chooseStep(el, list, error), actions];
-    await sync.setUp([]).catch(err => console.error(err)); // nothing to choose: new explorers just go up
+    // Nothing to choose: set up straight away (new explorers just go up). If that fails,
+    // say why, with a way to try again.
+    try {
+      await sync.setUp([]);
+    } catch (err) {
+      if (!(err instanceof AuthError)) console.error(err);
+      mount(error, tx(errorKey(err)));
+      error.hidden = false;
+      const again = h('button', { class: 'btn btn--soft', type: 'button', onclick: () => render(el) }, tx('sync.tryAgain'));
+      return [who, error, h('div', { class: 'sheet__actions' }, again, out)];
+    }
   }
-  const box = h('div', null, statusLines(await sync.status()));
+  const s = await sync.status();
+  if (s.stage === 'on' && !s.savedAt) sync.push(); // no push yet in this window: start one (the line follows it)
+  const box = h('div', null, statusLines(s));
   statusBoxes.add(box);
   return [who, box, error, actions];
 }
