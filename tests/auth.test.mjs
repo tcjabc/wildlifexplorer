@@ -95,7 +95,7 @@ test('1. verifying a code saves the session with an expiry from expires_in', asy
   assert.equal(rec.refreshToken, 'refresh-1');
   assert.equal(rec.email, 'parent@example.test');
   assert.equal(rec.expiresAt, Date.UTC(2026, 10, 3, 12) + HOUR * 1000);
-  assert.deepEqual(await s.auth.state(), { email: 'parent@example.test', signedIn: true, needsSignIn: false });
+  assert.deepEqual(await s.auth.state(), { email: 'parent@example.test', userId: 'user-1', signedIn: true, needsSignIn: false });
 
   // The link's token_hash takes the same route.
   const l = setup({ routes: { '/auth/v1/verify': verifyOk } });
@@ -157,7 +157,7 @@ test('5. a rejected refresh token means "sign in again": tokens cleared, email k
     s.tick(HOUR * 1000);
     assert.equal(await s.auth.accessToken(), null);
     assert.deepEqual(s.stored(), { email: 'parent@example.test', needsSignIn: true });
-    assert.deepEqual(await s.auth.state(), { email: 'parent@example.test', signedIn: false, needsSignIn: true });
+    assert.deepEqual(await s.auth.state(), { email: 'parent@example.test', userId: null, signedIn: false, needsSignIn: true });
     await assert.rejects(s.auth.authFetch('/rest/v1/profiles'), e => e.code === 'needs-sign-in');
   }
 });
@@ -200,7 +200,7 @@ test('7. a 401 refreshes once and retries; a second 401 means "sign in again"', 
   const t = await signedIn({ routes: { '/auth/v1/token': refreshOk, '/rest/v1/profiles': () => [401, {}] } });
   await assert.rejects(t.auth.authFetch('/rest/v1/profiles'), e => e.code === 'needs-sign-in');
   assert.equal(t.count('/auth/v1/token'), 1);
-  assert.deepEqual(await t.auth.state(), { email: 'parent@example.test', signedIn: false, needsSignIn: true });
+  assert.deepEqual(await t.auth.state(), { email: 'parent@example.test', userId: null, signedIn: false, needsSignIn: true });
 });
 
 test('8. a device clock hours away from the server\'s still refreshes on time', async () => {
@@ -235,6 +235,6 @@ test('9. signing out tells the server when it can, and forgets the session even 
   const o = await signedIn({ routes: { '/auth/v1/logout': offline } });
   await o.auth.signOut();
   assert.equal(o.stored(), null);
-  assert.deepEqual(await o.auth.state(), { email: null, signedIn: false, needsSignIn: false });
+  assert.deepEqual(await o.auth.state(), { email: null, userId: null, signedIn: false, needsSignIn: false });
   assert.equal(await o.auth.accessToken(), null);
 });

@@ -19,6 +19,7 @@ import { initPacks, checkDrops, updateBadge, hideArrival } from './packs.js';
 import { revealing } from './reveal.js';
 import { celebrate } from './celebrate.js';
 import { handleSignInLink } from './account.js';
+import { sync } from './cloud/sync.js';
 import { restoreProgress } from './backup.js';
 
 import * as binder from './views/binder.js';
@@ -211,6 +212,7 @@ async function boot() {
   setInterval(onWake, 60 * 1000);
 
   registerOffline();
+  sync.start(); // only does anything once a parent has signed in and chosen explorers
   await handleSignInLink(); // opened from the sign-in email's link
   await chooseProfile();
 }

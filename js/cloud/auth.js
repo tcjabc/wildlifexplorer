@@ -141,10 +141,13 @@ export function createAuth({
   return {
     onChange: fn => events.addEventListener('change', fn),
 
-    // For the screens: { email, signedIn, needsSignIn }. No network.
+    // For the screens and sync: { email, userId, signedIn, needsSignIn }. No network.
     async state() {
       const rec = await store.get();
-      return { email: rec?.email ?? null, signedIn: Boolean(rec?.accessToken), needsSignIn: Boolean(rec?.needsSignIn) };
+      return {
+        email: rec?.email ?? null, userId: rec?.userId ?? null,
+        signedIn: Boolean(rec?.accessToken), needsSignIn: Boolean(rec?.needsSignIn),
+      };
     },
 
     // Email a sign-in code (and link). A new address gets an account (and a family).

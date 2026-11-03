@@ -481,8 +481,16 @@ truth; it syncs with Supabase when online.
 - **Never leaves the device:** height, weight, age, home country, quiz scores and Field Notes.
 - **Signing in:** For grown-ups → ☁️ Family account. A grown-up types their email, then the code
   from the email (or opens the email's link on this device, which asks before signing in). Signing
-  out keeps the explorers on the device. Nothing syncs yet. The code is in `js/cloud/auth.js`
-  (plain `fetch`, tests in `tests/`, run `npm test`).
+  out keeps the explorers on the device. The code is in `js/cloud/auth.js` (plain `fetch`, tests
+  in `tests/`, run `npm test`).
+- **Saving to the family account** (`js/cloud/sync.js`): the first time a parent signs in on a
+  device, they tick which explorers to add (an unticked explorer stays on that device only, and
+  so does one deleted before then); the choice is remembered. After that every change is sent:
+  each write to a synced store also puts an entry in the `outbox` store, in the same
+  transaction, and sync upserts the records (profiles first) and clears their entries. Offline
+  or a busy server just means trying again later; a record the server refuses is held back with
+  its error and shown in the panel. A different account signing in on that device sends
+  nothing. Other devices don't receive the changes yet (next step).
 - **Sign-in email** is sent through Resend (custom SMTP, from noreply@wildfile.app). In the
   dashboard (Authentication → Emails), both *Confirm sign up* (a new address gets this one) and
   *Magic link* contain the code `{{ .Token }}` and the link

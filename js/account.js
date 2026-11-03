@@ -1,9 +1,12 @@
 // The family account, for grown-ups: the "Family account" panel in the Parents area (email
-// a code, type it in, sign out) and the sheet that asks before an email link signs this
-// device in. Signing in is optional; nothing syncs yet (see README, Family accounts).
+// a code, type it in, choose which explorers to add the first time, see whether everything
+// is saved, sign out) and the sheet that asks before an email link signs this device in.
+// Signing in is optional (see README, Family accounts).
 import { h, mount } from './dom.js';
 import { tx, label } from './i18n.js';
 import { auth, AuthError } from './cloud/auth.js';
+import { sync } from './cloud/sync.js';
+import { avatar } from './profiles.js';
 import { CODE_LENGTH } from './config.js';
 
 const RESEND_MS = 60 * 1000; // the project lets a code be emailed once a minute
@@ -98,21 +101,75 @@ function codeStep(el, error) {
   return form;
 }
 
-function signedInStep(el, state, error) {
+// The first time a parent signs in on this device: which explorers to add. All ticked;
+// unticked ones stay on this device only. Asked once per device.
+function chooseStep(el, list, error) {
+  const boxes = list.map(p => h('input', { type: 'checkbox', checked: true, value: p.id }));
+  const go = h('button', { class: 'btn btn--primary', type: 'submit' }, tx('sync.chooseGo'));
+  const form = h('form', { class: 'form', novalidate: true },
+    h('h3', { class: 'panel__title' }, tx('sync.chooseTitle')),
+    list.map((p, i) => h('label', { class: 'switch' }, boxes[i], h('span', { class: 'switch__track', 'aria-hidden': 'true' }),
+      avatar(p), h('span', null, p.name))),
+    h('p', { class: 'muted' }, tx('sync.chooseNote')),
+    error,
+    h('div', { class: 'sheet__actions' }, go));
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    busy(go, error, async () => {
+      await sync.setUp(boxes.filter(b => b.checked).map(b => b.value));
+      render(el);
+    });
+  });
+  return form;
+}
+
+// One line on whether everything is saved, and which explorers stay on this device only.
+function statusLines(s) {
+  if (s.stage === 'other-account') return h('p', { class: 'form__error' }, tx('sync.otherAccount', { email: s.email }));
+  const key = s.busy ? 'sync.saving'
+    : s.problem === 'offline' ? 'sync.offline'
+      : s.problem === 'server' ? 'sync.retry'
+        : s.waiting ? 'sync.waiting' : 'sync.saved';
+  return [
+    h('p', { role: 'status' }, tx(key)),
+    s.held > 0 && h('p', { class: 'form__error' }, tx('sync.held')),
+    s.localOnly.length > 0 && [h('p', { class: 'muted' }, tx('sync.localOnly')),
+      h('div', { class: 'who' }, s.localOnly.map(p => h('span', { class: 'who__btn' }, avatar(p), h('span', { class: 'who__name' }, p.name))))],
+  ];
+}
+
+// The status keeps itself up to date while it is on screen.
+const statusBoxes = new Set();
+sync.onChange(async () => {
+  for (const box of statusBoxes) {
+    if (!box.isConnected) { statusBoxes.delete(box); continue; }
+    mount(box, statusLines(await sync.status()));
+  }
+});
+
+async function signedInStep(el, state, error) {
   const out = h('button', { class: 'btn btn--soft', type: 'button' }, tx('account.signOut'));
   out.addEventListener('click', () => {
     if (!window.confirm(label('account.signOutConfirm'))) return;
     busy(out, error, async () => { await auth.signOut(); render(el); });
   });
-  return [h('p', { role: 'status' }, tx('account.signedInAs', { email: state.email })), error,
-    h('div', { class: 'sheet__actions' }, out)];
+  const who = h('p', { role: 'status' }, tx('account.signedInAs', { email: state.email }));
+  const actions = h('div', { class: 'sheet__actions' }, out);
+  if (await sync.stage() === 'choose') {
+    const list = await sync.candidates();
+    if (list.length) return [who, chooseStep(el, list, error), actions];
+    await sync.setUp([]).catch(err => console.error(err)); // nothing to choose: new explorers just go up
+  }
+  const box = h('div', null, statusLines(await sync.status()));
+  statusBoxes.add(box);
+  return [who, box, error, actions];
 }
 
 async function render(el) {
   const state = await auth.state();
   const error = h('p', { class: 'form__error', role: 'alert', hidden: true });
   const body = state.signedIn
-    ? signedInStep(el, state, error)
+    ? await signedInStep(el, state, error)
     : [
       state.needsSignIn && h('p', { class: 'form__error' }, tx('account.needsSignIn', { email: state.email })),
       pending ? codeStep(el, error) : emailStep(el, state, error),
