@@ -1,8 +1,9 @@
 # Wildlife Explorer · 野生動物探險家
 
 A bilingual (English / 繁體中文) wildlife card-collecting app for kids. It's a plain
-HTML/CSS/JavaScript Progressive Web App: no framework, no backend, no accounts, no analytics.
-It runs on GitHub Pages and works fully offline once it has been opened.
+HTML/CSS/JavaScript Progressive Web App: no framework, no analytics, no tracking.
+It runs on GitHub Pages and works fully offline once it has been opened. Family accounts
+(Supabase) are optional and being added; see [Family accounts](#family-accounts-supabase).
 
 - **Binder**: 11 coloured group tabs. Cards you haven't collected yet show as silhouettes.
 - **Profiles**: a picker on every launch ("Who's exploring today?"). A profile is one person or a
@@ -21,7 +22,7 @@ It runs on GitHub Pages and works fully offline once it has been opened.
 - **Read aloud** (Web Speech API): English in an en-GB voice, Chinese in a zh-TW voice.
 - **Language**: EN / 中 / Both, per profile.
 - **For grown-ups** (behind a sum): pack day and time, units, preview, start over, delete.
-- Progress is kept in IndexedDB on each device. Nothing leaves the device.
+- Progress is kept in IndexedDB on each device. Without signing in, nothing leaves the device.
 
 ## Folders
 
@@ -49,6 +50,7 @@ assets/             world map (Natural Earth) and child silhouette for the card 
 assets/layers/      Globe map layers (made by scripts/make-layers.mjs; see CREDITS.md)
 data-raw/           big downloaded datasets for the layers (git-ignored)
 scripts/            the build script and helpers (run on your computer only)
+supabase/           family accounts: CLI config, migrations/ (the schema), tests/ (RLS check)
 ```
 
 ## Setup (once)
@@ -369,7 +371,7 @@ section to `SECTIONS` in `js/views/parents.js`.
 
 **Stored on the device** (IndexedDB, see `js/db.js`): `profiles`, `packs`, `collection`,
 `badges`, `quiz` and `notes` (the Field Notes index), each record with an id and `createdAt` /
-`updatedAt` / `deletedAt`, ready to sync to a server later. Field Notes pages and photos are files
+`updatedAt` / `deletedAt`, so they can be synced (see [Family accounts](#family-accounts-supabase)). Field Notes pages and photos are files
 in the browser's private storage (OPFS), with IndexedDB (`notefiles`) as the fallback. Height and weight are stored in cm and kg whatever the units. Progress
 from the version before profiles moves into the first profile.
 
@@ -465,6 +467,36 @@ offline); images are served from the cache first, because their file names chang
 After you push an update, an open app picks it up on its next launch. If something looks stuck,
 bump `VERSION` in `sw.js`; that clears the old caches (except the Globe map layers, which have their own `LAYERS_VERSION`). If you add or rename a file under `js/`,
 add it to the `SHELL` list in `sw.js` too.
+
+## Family accounts (Supabase)
+
+Work in progress. Signing in is optional and only for parents: the family account owns the
+profiles, and kids never have accounts. The device keeps working offline and stays the source of
+truth; it syncs with Supabase when online.
+
+- **Synced:** profile nickname, language, avatar colour, zhuyin, read-aloud speed, units, pack day
+  and time, packs (and whether they're opened), collected cards and badges.
+- **Never leaves the device:** height, weight, age, home country, quiz scores and Field Notes.
+- **Privacy notice:** needed before any family other than ours uses accounts.
+
+The schema lives in `supabase/migrations/` and is applied with the Supabase CLI (a dev
+dependency). Once per machine:
+
+```
+npx supabase login
+npx supabase link --project-ref yrgrihgmydzlxjzuoljq
+```
+
+`login` keeps the access token in the CLI's own store, and `link` asks for the database password.
+Neither goes in the repo (see `.env.example`). After adding a migration:
+
+```
+npx supabase db push --dry-run
+npx supabase db push
+```
+
+then re-run the RLS check in `supabase/tests/` in the dashboard's SQL editor. The public project
+URL and publishable key are in `js/config.js`; the secret key is never used by the app.
 
 ## Publishing on GitHub Pages
 
