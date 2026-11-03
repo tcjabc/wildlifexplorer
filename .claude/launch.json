@@ -4,8 +4,26 @@
     {
       "name": "wildlife-explorer",
       "runtimeExecutable": "node",
-      "runtimeArgs": ["scripts/serve.mjs", "8080"],
+      "runtimeArgs": [
+        "scripts/serve.mjs",
+        "8080"
+      ],
       "port": 8080
+    },
+    {
+      "name": "wildfile-cloudflare",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "--yes",
+        "wrangler@4.151.3",
+        "dev",
+        "--port",
+        "8787"
+      ],
+      "env": {
+        "WRANGLER_SEND_METRICS": "false"
+      },
+      "port": 8787
     }
   ]
 }

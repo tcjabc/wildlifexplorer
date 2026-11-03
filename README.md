@@ -4,7 +4,7 @@ Chinese subtitle: WildFile 動物圖鑑 (to be confirmed). The app was called Wi
 
 A bilingual (English / 繁體中文) wildlife card-collecting app for kids. It's a plain
 HTML/CSS/JavaScript Progressive Web App: no framework, no analytics, no tracking.
-It runs on GitHub Pages and works fully offline once it has been opened. Family accounts
+It runs at https://wildfile.app/ (Cloudflare) and works fully offline once it has been opened. Family accounts
 (Supabase) are optional and being added; see [Family accounts](#family-accounts-supabase).
 
 - **Binder**: 11 coloured group tabs. Cards you haven't collected yet show as silhouettes.
@@ -509,13 +509,27 @@ npx supabase db push --remote
 then re-run the RLS check (`npx supabase db query --remote -f supabase/tests/rls_check.sql`, or paste it into the SQL editor). The public project
 URL and publishable key are in `js/config.js`; the secret key is never used by the app.
 
-## Publishing on GitHub Pages
+## Publishing (Cloudflare, wildfile.app)
 
-1. Commit everything (including `img/`, `data/animals.json` and `data/build-state.json`) and push.
-2. In the repo on GitHub: Settings → Pages → Build and deployment → Source: *Deploy from a branch*,
-   Branch: `main`, folder `/ (root)`.
-3. The app will be at `https://<user>.github.io/<repo>/`. All paths are relative, so any repo name works.
-   The `.nojekyll` file tells GitHub Pages to serve the files as they are.
+The app is served at https://wildfile.app/ by a Cloudflare Worker with static assets only (no
+Worker code), configured in `wrangler.jsonc`. Workers Builds is connected to this repo and deploys
+every push to `main`.
+
+- **What's published** is `dist/`, built by `npm run site` (`scripts/build-site.mjs`) from an
+  allow-list of the app's own files, so `.env`, `node_modules`, scripts, tests and build notes can
+  never go out. The build also writes `dist/_headers` (the CSP from `index.html` plus
+  `frame-ancestors 'none'`, `nosniff`, no referrer, no camera/microphone/location, `sw.js`
+  always revalidated) and fails if `sw.js`'s `SHELL` list and the published files disagree.
+  `npm test` checks all of this.
+- **Workers Builds settings** (Cloudflare dashboard → Workers & Pages → wildfile → Settings → Build):
+  build command `npm run site`, deploy command `npx --yes wrangler@4.151.3 deploy`, build variable
+  `SKIP_DEPENDENCY_INSTALL=1` (the site build needs no packages, so the heavy dev dependencies
+  aren't installed). Update the pinned wrangler version now and then, to one at least two weeks old.
+- **Only wildfile.app:** `workers_dev` and preview URLs are off. Every address keeps its own saved
+  progress, so there is one address to install from.
+- **Try it the Cloudflare way locally:** `npm run site`, then `npx --yes wrangler@4.151.3 dev`
+  (http://localhost:8787, same headers and redirects as the real site). `npm run serve` is the
+  everyday preview.
 
 To install on a tablet: open the site, then Share → *Add to Home Screen* (iPad) or the ⋮ menu →
 *Install app* (Android Chrome).

@@ -1,0 +1,14 @@
+// wildfile.app on Cloudflare Workers: static assets only, no Worker code. The files are
+// dist/, built from an allow-list by `npm run site` (scripts/build-site.mjs). Workers
+// Builds deploys on every push to main (see README, "Publishing").
+{
+  "name": "wildfile",
+  "compatibility_date": "2026-10-15",
+  "send_metrics": false,
+  "assets": { "directory": "./dist" },
+  "routes": [{ "pattern": "wildfile.app", "custom_domain": true }],
+  // Only wildfile.app serves the app: every address keeps its own saved progress, so a
+  // second one (workers.dev, preview URLs) is somewhere a child could install by mistake.
+  "workers_dev": false,
+  "preview_urls": false
+}

@@ -22,7 +22,7 @@
 - No personal data about the family in the repo (names, photos, locations).
 - Progress data stays on the device (IndexedDB). It is sent only to the family's own Supabase project, and only after a parent signs in. Height, weight, age, home country, quiz scores and Field Notes stay on the device.
 - Before any family other than ours uses accounts, the app needs a privacy notice (what is stored, where, for how long, how to delete it).
-- `index.html` has a Content Security Policy meta tag allowing only same-origin resources, plus `connect-src` to the Supabase project URL (nothing else).
+- `index.html` has a Content Security Policy meta tag allowing only same-origin resources, plus `connect-src` to the Supabase project URL (nothing else). The same CSP is sent as an HTTP header on wildfile.app (see DEPLOYMENT).
 - Escape or sanitise any text inserted into the DOM. Never use `innerHTML` with data from JSON or external sources.
 
 ## CONTENT & LICENSING
@@ -38,9 +38,11 @@
 - Flag any missing or uncertain Chinese names so the owner's wife can check them.
 
 ## DEPLOYMENT
-- GitHub Pages at https://tcjabc.github.io/wildlifexplorer/ (a subpath).
-- Relative paths everywhere: manifest `start_url` and `scope` are `"./"`; the service worker is registered at `./sw.js`.
-- The service worker cache is versioned (`VERSION` in `sw.js`); bump it on every release. New files under `js/` must be added to its `SHELL` list.
+- https://wildfile.app/ on Cloudflare Workers (static assets only, `wrangler.jsonc`). Workers Builds deploys every push to `main`, so a push is a release. `workers_dev` and preview URLs stay off: wildfile.app is the only address. (GitHub Pages at tcjabc.github.io/wildlifexplorer/ until the cutover, then turned off.)
+- What's published is `dist/`, built by `npm run site` (`scripts/build-site.mjs`) from an allow-list. A new top-level file or folder the app loads must be added to `ALLOW` there. Never publish the repo root.
+- HTTP headers come from `dist/_headers`, written by the build script; its CSP is the one in `index.html` plus `frame-ancestors 'none'`. Change the CSP in `index.html` only.
+- Relative paths everywhere: manifest `start_url` and `scope` are `"./"`; the service worker is registered at `./sw.js`. The page is cached as `./`, never `index.html` (Cloudflare redirects `/index.html` to `/`).
+- The service worker cache is versioned (`VERSION` in `sw.js`); bump it on every release. New files under `js/` must be added to its `SHELL` list (the site build fails otherwise).
 
 ## LOCAL DATABASE
 - IndexedDB schema and upgrades live in `js/db.js` (`VERSION`). An upgrade runs entirely inside the upgrade transaction, so an interrupted one leaves the old version untouched. Test every upgrade on realistic old data (see `tests/fixtures/v3.mjs`).
