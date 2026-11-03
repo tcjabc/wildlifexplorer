@@ -7,6 +7,7 @@ import { state, updateProfile, createProfile, deleteProfile, resetProfile } from
 import { avatar, profileForm } from '../profiles.js';
 import { nextDropText, checkDrops } from '../packs.js';
 import { accountPanel } from '../account.js';
+import { backupProgress } from '../backup.js';
 
 let gateOpen = false;
 let selectedId = null;
@@ -97,6 +98,32 @@ const SECTIONS = [
   { id: 'profile', icon: '🧒', title: 'parents.profile', render: profileSection },
 ];
 
+// Everything on this device, every explorer: a panel of its own, not a section.
+function backupPanel() {
+  const msg = h('p', { class: 'muted', role: 'status' });
+  const btn = h('button', {
+    class: 'btn btn--soft', type: 'button',
+    onclick: async () => {
+      btn.disabled = true;
+      mount(msg);
+      try {
+        const how = await backupProgress();
+        if (how !== 'cancelled') mount(msg, tx(how === 'shared' ? 'parents.backupDone' : 'parents.backupDownloaded'));
+      } catch (err) {
+        console.error(err);
+        mount(msg, tx('parents.backupFailed'));
+      } finally {
+        btn.disabled = false;
+      }
+    },
+  }, h('span', { 'aria-hidden': 'true' }, '💾'), tx('parents.backupSave'));
+  return h('div', { class: 'panel', 'data-section': 'backup' },
+    h('h2', { class: 'panel__title' }, h('span', { 'aria-hidden': 'true' }, '💾 '), tx('parents.backup')),
+    h('p', { class: 'muted' }, tx('parents.backupNote')),
+    h('div', { class: 'row-actions' }, btn),
+    msg);
+}
+
 // ---------- Page ----------
 
 function renderGate(main) {
@@ -142,7 +169,8 @@ function draw(main) {
     h('div', { class: 'panel' }, h('h2', { class: 'panel__title' }, tx('parents.who')), who),
     SECTIONS.map(s => h('div', { class: 'panel', 'data-section': s.id },
       h('h2', { class: 'panel__title' }, h('span', { 'aria-hidden': 'true' }, `${s.icon} `), tx(s.title, { name: p.name })),
-      s.render(p, redraw)))));
+      s.render(p, redraw))),
+    backupPanel()));
 }
 
 export function render(main) {

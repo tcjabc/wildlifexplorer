@@ -7,31 +7,12 @@ import * as notes from './notes-store.js';
 import { PAGE_W, PAGE_H } from './notes-store.js';
 import { renderPage } from './notes-render.js';
 import { makeZip, readZip } from './zip.js';
+import { shareFile } from './dom.js';
 
 const FORMAT = 'wildlife-explorer-field-notes';
 const today = () => new Date().toISOString().slice(0, 10);
 const safeName = s => (s ?? '').replace(/[^\p{L}\p{N}_-]+/gu, '-').replace(/^-|-$/g, '').slice(0, 40) || 'explorer';
 const ID = /^[A-Za-z0-9-]{1,64}$/; // page and photo ids become file names
-
-async function share(file) {
-  if (navigator.canShare?.({ files: [file] })) {
-    try {
-      await navigator.share({ files: [file], title: file.name });
-      return 'shared';
-    } catch (e) {
-      if (e.name === 'AbortError') return 'cancelled';
-    }
-  }
-  const url = URL.createObjectURL(file);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = file.name;
-  document.body.append(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 10000);
-  return 'downloaded';
-}
 
 export async function exportPageImage(page, { assets, headerText }) {
   const k = 1.5;
@@ -42,7 +23,7 @@ export async function exportPageImage(page, { assets, headerText }) {
   ctx.setTransform(k, 0, 0, k, 0, 0);
   renderPage(ctx, page, { assets, headerText });
   const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
-  return share(new File([blob], `field-notes-${today()}.png`, { type: 'image/png' }));
+  return shareFile(new File([blob], `field-notes-${today()}.png`, { type: 'image/png' }));
 }
 
 async function backupFile() {
@@ -66,7 +47,7 @@ async function backupFile() {
   return new File([await makeZip(files)], `field-notes-${safeName(state.profile.name)}-${today()}.zip`, { type: 'application/zip' });
 }
 
-export async function exportAll() { return share(await backupFile()); }
+export async function exportAll() { return shareFile(await backupFile()); }
 
 export const folderSupported = () => typeof window.showDirectoryPicker === 'function';
 
