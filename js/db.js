@@ -8,21 +8,38 @@
 //   quiz        { id, profileId, kind, best }
 //   notes       { id, profileId, pageId, cardIds, … }  Field Notes pages (their content is in OPFS)
 //   notefiles   { id, profileId, blob }      page files, where OPFS isn't available (notes-store.js)
-// Falls back to memory if IndexedDB is unavailable (some private-browsing modes), so the
-// app still runs; nothing is kept after the page closes then.
+// Falls back to memory only if there is no IndexedDB at all (some private-browsing modes),
+// so the app still runs; nothing is kept after the page closes then. Any other failure is
+// an error: the saved progress is still on disk, and carrying on in memory would hide it.
 
-const DB_NAME = 'wildlife-explorer';
-const VERSION = 3;
+export const DB_NAME = 'wildlife-explorer';
+export const VERSION = 3;
 const BY_PROFILE = ['packs', 'collection', 'badges', 'quiz', 'notes', 'notefiles'];
 const STORES = ['meta', 'profiles', ...BY_PROFILE];
 const LEGACY = 'kv'; // version 1: one key-value store for a single child
 
 let dbPromise;
 let memory = null; // Map per store, once IndexedDB has failed
+let outdated = false; // a newer copy of the app has the database now
+
+// What app.js shows a full-screen message for:
+//   'updated'    a newer copy of the app upgraded the database (or this copy is older than
+//                it): this copy can't use it any more, only a reload carries on
+//   'blocked'    this copy is waiting to upgrade until other WildFile windows close
+//   'unblocked'  they closed, and the upgrade went ahead
+export const events = new EventTarget();
+const emit = type => events.dispatchEvent(new Event(type));
+const markOutdated = () => {
+  outdated = true;
+  dbPromise = null;
+  emit('updated');
+};
 
 function open() {
+  if (outdated) return Promise.reject(new DOMException('A newer WildFile has the database', 'VersionError'));
   dbPromise ??= new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, VERSION);
+    let blocked = false;
     req.onupgradeneeded = e => {
       const db = req.result;
       // Each version adds the stores it introduced.
@@ -33,18 +50,28 @@ function open() {
       if (e.oldVersion < 2) add(['meta', 'profiles', 'packs', 'collection', 'badges', 'quiz']);
       if (e.oldVersion < 3) add(['notes', 'notefiles']);
     };
+    // An older copy in another window didn't close for the upgrade.
+    req.onblocked = () => { blocked = true; emit('blocked'); };
     req.onsuccess = () => {
       const db = req.result;
-      // Let a newer version in another tab upgrade (or delete) the database; the next
-      // call opens it again instead of failing on the closed connection.
-      db.onversionchange = () => { db.close(); dbPromise = null; };
+      if (blocked) emit('unblocked');
+      // Let a newer version in another window upgrade (or delete) the database. This copy's
+      // code doesn't know the new version, so it stops using the database altogether.
+      db.onversionchange = () => { db.close(); markOutdated(); };
       db.onclose = () => { dbPromise = null; };
       resolve(db);
     };
-    req.onerror = () => reject(req.error);
+    req.onerror = () => {
+      dbPromise = null;
+      if (req.error?.name === 'VersionError') markOutdated();
+      reject(req.error);
+    };
   });
   return dbPromise;
 }
+
+// No IndexedDB to use at all, as opposed to one that failed.
+const noIndexedDB = err => typeof indexedDB === 'undefined' || ['SecurityError', 'InvalidStateError'].includes(err?.name);
 
 const done = r => new Promise((resolve, reject) => {
   r.onsuccess = () => resolve(r.result);
@@ -95,7 +122,10 @@ function memoryAccess() {
 export async function tx(stores, mode, fn) {
   let db;
   if (!memory) {
-    try { db = await open(); } catch { /* memory from now on */ }
+    try { db = await open(); } catch (err) {
+      if (!noIndexedDB(err)) throw err;
+      // memory from now on
+    }
   }
   if (!db) return fn(memoryAccess());
   return new Promise((resolve, reject) => {

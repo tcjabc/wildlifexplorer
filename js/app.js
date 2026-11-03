@@ -7,6 +7,7 @@
 import { $, h, on, mount } from './dom.js';
 import { loadStrings, setMode, getMode, stringsLoaded, tx } from './i18n.js';
 import * as store from './store.js';
+import { events as dbEvents } from './db.js';
 import { renderHeader } from './chrome.js';
 import { handleImageErrors } from './components.js';
 import { registerOffline } from './offline.js';
@@ -147,8 +148,29 @@ async function chooseProfile() {
   }
 }
 
+// The saved progress can't be used from this window for now (db.js events). 'updated': a
+// newer WildFile upgraded it, so only a reload carries on. 'blocked': this window's update
+// waits for older WildFile windows to close. Covers everything, above any open dialog.
+let stringsReady = null;
+async function dbNotice(kind) {
+  await Promise.resolve(stringsReady).catch(() => {});
+  $('.picker--db')?.remove();
+  if (kind === 'unblocked') return;
+  const updated = kind === 'updated';
+  const el = h('dialog', { class: 'picker picker--db is-open', 'aria-labelledby': 'db-notice' },
+    h('img', { class: 'picker__logo', src: 'icons/icon-192.png', alt: '', width: 96, height: 96 }),
+    h('h1', { class: 'picker__title', id: 'db-notice' }, stringsLoaded() && tx(updated ? 'db.updated' : 'db.blocked')),
+    updated && h('button', { class: 'btn btn--primary btn--big', type: 'button', onclick: () => location.reload() },
+      h('span', { 'aria-hidden': 'true' }, '↻'), stringsLoaded() && tx('db.reload')));
+  el.addEventListener('cancel', e => e.preventDefault()); // Escape doesn't close it
+  document.body.append(el);
+  el.showModal();
+}
+for (const kind of ['updated', 'blocked', 'unblocked']) dbEvents.addEventListener(kind, () => dbNotice(kind));
+
 async function boot() {
-  await Promise.all([loadStrings(), store.init()]);
+  stringsReady = loadStrings();
+  await Promise.all([stringsReady, store.init()]);
   const lastId = await store.lastProfileId();
   setMode(store.state.profiles.find(p => p.id === lastId)?.lang ?? store.legacyPrefill()?.lang ?? 'both');
   document.body.classList.remove('is-loading');

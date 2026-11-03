@@ -743,6 +743,10 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
 .picker__item:active { transform: scale(0.94); }
 .picker__name { font-size: var(--fs-md); font-weight: var(--fw-bold); text-align: center; overflow-wrap: anywhere; line-height: 1.2; }
 .picker__name .bi { align-items: center; }
+/* The same full screen as a modal <dialog>, above every other dialog: "WildFile has
+   updated" and "close other windows" (app.js). */
+dialog.picker { width: 100%; height: 100%; max-width: none; max-height: none; margin: 0; border: 0; color: var(--c-ink); }
+dialog.picker::backdrop { background: var(--c-bg); }
 
 /* ---------- Packs ---------- */
 /* Unopened packs: a count on the Packs icon. */
