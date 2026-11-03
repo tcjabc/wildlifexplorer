@@ -164,8 +164,10 @@
   --tap-sm: 48px;       /* secondary controls (credit line) */
   --tap-xs: 44px;       /* badges and squeezed controls on phones */
   --legend-sw: 14px;    /* colour squares in the Globe legend */
-  --header-h: 68px;
+  --header-h-base: 68px;
+  --header-h-stacked: 84px; /* tablets: nav labels under their icons (app.css) */
   --header-h-compact: 56px;
+  --header-h: var(--header-h-base);
   --nav-h: 64px;        /* the bottom tab bar on phones */
   --size-brand: 44px;
   --size-brand-sm: 38px;

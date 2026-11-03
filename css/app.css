@@ -177,7 +177,12 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
 .header .seg--lang { flex: none; margin-left: auto; }
 .lang-cycle { display: none; flex: none; margin-left: auto; }
 
-.nav { flex: 1; min-width: 0; display: flex; justify-content: center; gap: var(--s-1); }
+/* "safe" keeps the first tab reachable if the nav ever gets too wide; it then scrolls. */
+.nav {
+  flex: 1; min-width: 0; display: flex; justify-content: center; justify-content: safe center; gap: var(--s-1);
+  overflow-x: auto; scrollbar-width: none;
+}
+.nav::-webkit-scrollbar { display: none; }
 .is-loading .nav { visibility: hidden; }
 .nav__item {
   display: flex; align-items: center; justify-content: center; gap: var(--s-2);
@@ -205,18 +210,24 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
 .empty .bi { align-items: center; }
 .loading-icon { display: block; margin: var(--s-7) auto; width: var(--size-medal); height: var(--size-medal); border-radius: var(--r-lg); animation: pulse 1.2s ease-in-out infinite; }
 
+/* Tablets: each label goes under its icon, like a tab bar, so all seven tabs fit. */
+@media (max-width: 1279px) {
+  :root { --header-h: var(--header-h-stacked); }
+  .nav__item { flex-direction: column; gap: 0; padding: var(--s-1) var(--s-2); }
+  .nav__label .bi { align-items: center; text-align: center; }
+}
 @media (max-width: 1100px) {
   .brand__name { display: none; }
 }
 @media (max-width: 900px) {
-  .nav__item { padding: var(--s-1) var(--s-2); gap: var(--s-1); }
   .header { gap: var(--s-2); }
-}
-@media (max-width: 700px) {
-  .nav__label { display: none; }
-  .nav__item { padding: var(--s-1); }
   .header .seg--lang { display: none; }
   .lang-cycle { display: inline-flex; }
+}
+@media (max-width: 700px) {
+  :root { --header-h: var(--header-h-base); }
+  .nav__label { display: none; }
+  .nav__item { padding: var(--s-1); }
 }
 
 .page { display: flex; flex-direction: column; gap: var(--s-4); }
@@ -832,6 +843,8 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
 @media (max-height: 500px) and (orientation: landscape) {
   :root { --header-h: var(--header-h-compact); }
   .bi--brand > .t-zh, .brand__sub { display: none; }
+  .nav__label { display: none; }
+  .nav__item { padding: var(--s-1); }
 }
 
 @media (max-width: 520px) {
