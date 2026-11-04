@@ -3,7 +3,7 @@
 //   { id, icon, title: string key, render: (profile, redraw) => node }
 import { $, h, mount } from '../dom.js';
 import { bi, tx, label, plain, dateText } from '../i18n.js';
-import { state, updateProfile, createProfile, deleteProfile, resetProfile, reload } from '../store.js';
+import { state, updateProfile, createProfile, deleteProfile, resetProfile, reload, onChange } from '../store.js';
 import { avatar, profileForm } from '../profiles.js';
 import { nextDropText, checkDrops } from '../packs.js';
 import { accountPanel } from '../account.js';
@@ -155,38 +155,56 @@ function renderGate(main) {
 
 const title = () => h('h1', { class: 'page__title' }, h('span', { 'aria-hidden': 'true' }, '🔒'), tx('parents.title'));
 
-function draw(main) {
-  const p = state.profiles.find(x => x.id === selectedId) ?? state.profile ?? state.profiles[0];
-  if (!p) return;
-  selectedId = p.id;
-  const redraw = () => draw(main);
-
+// The "Settings for" choice: every explorer, and one more.
+function whoChoice(p, redraw) {
   const addProfile = async () => {
     const fields = await profileForm();
     if (!fields) return;
     selectedId = (await createProfile(fields)).id;
     redraw();
   };
-  const who = h('div', { class: 'who', role: 'radiogroup', 'aria-label': label('parents.who') },
+  return h('div', { class: 'who', role: 'radiogroup', 'aria-label': label('parents.who') },
     state.profiles.map(x => h('button', {
       type: 'button', role: 'radio', class: 'who__btn', 'aria-checked': String(x.id === p.id),
       onclick: () => { selectedId = x.id; redraw(); },
     }, avatar(x), h('span', { class: 'who__name' }, x.name))),
     h('button', { type: 'button', class: 'who__btn', onclick: addProfile },
       h('span', { class: 'avatar avatar--add', 'aria-hidden': 'true' }, '+'), h('span', { class: 'who__name' }, tx('profile.add'))));
+}
+
+let drawn = null; // { who: the "Settings for" panel, as: the selected explorer as drawn }
+
+function draw(main) {
+  const p = state.profiles.find(x => x.id === selectedId) ?? state.profile ?? state.profiles[0];
+  if (!p) return;
+  selectedId = p.id;
+  const redraw = () => draw(main);
+  const who = h('div', { class: 'panel' }, h('h2', { class: 'panel__title' }, tx('parents.who')), whoChoice(p, redraw));
+  drawn = { who, as: JSON.stringify(p) };
 
   mount(main, h('section', { class: 'page parents' },
     title(),
     accountPanel(),
-    h('div', { class: 'panel' }, h('h2', { class: 'panel__title' }, tx('parents.who')), who),
+    who,
     SECTIONS.map(s => h('div', { class: 'panel', 'data-section': s.id },
       h('h2', { class: 'panel__title' }, h('span', { 'aria-hidden': 'true' }, `${s.icon} `), tx(s.title, { name: p.name })),
       s.render(p, redraw))),
     backupPanel(redraw)));
 }
 
+// The explorers changed (here, or pulled from the family account). Only the selected
+// explorer changing (or going) draws the whole page again; otherwise just "Settings for",
+// so whatever a grown-up is typing elsewhere on the page stays.
+function explorersChanged(main) {
+  if (!gateOpen || !drawn?.who.isConnected) return;
+  const p = state.profiles.find(x => x.id === selectedId);
+  if (!p || JSON.stringify(p) !== drawn.as) { draw(main); return; }
+  mount(drawn.who, h('h2', { class: 'panel__title' }, tx('parents.who')), whoChoice(p, () => draw(main)));
+}
+
 export function render(main) {
   selectedId = state.profile?.id ?? null;
   if (gateOpen) draw(main); else renderGate(main);
-  return () => { gateOpen = false; };
+  const stop = onChange('profiles', () => explorersChanged(main));
+  return () => { gateOpen = false; stop(); };
 }

@@ -16,11 +16,11 @@ const noTimers = { setTimeout: () => 0, clearTimeout: () => {} };
 
 // A device: its own copy of db.js on its own (fake) IndexedDB, signed in to a server.
 let n = 0;
-async function device(deviceAuth = auth) {
+async function device(deviceAuth = auth, win = globalThis) {
   const db = await import(`../js/db.js?device=${++n}`);
   globalThis.indexedDB = new IDBFactory();
   await db.all('profiles'); // opens it: this copy keeps that database from now on
-  const sync = createSync({ db, auth: deviceAuth, locks: undefined, timers: noTimers });
+  const sync = createSync({ db, auth: deviceAuth, locks: undefined, timers: noTimers, win });
   const pulled = [];
   sync.onPulled(ids => pulled.push(ids));
   return { db, sync, pulled };
@@ -309,4 +309,28 @@ test('run asked while a run is going: another run follows it', async () => {
   await second;
   assert.equal(server.rows.profiles.get(MIA).avatar, 1);
   assert.deepEqual(await A.db.all('outbox'), []);
+});
+
+test('a window focused (side by side) or shown again pulls, once for both', async () => {
+  const win = new EventTarget();
+  win.document = Object.assign(new EventTarget(), { visibilityState: 'visible' });
+  const W = await device(auth, win);
+  await W.sync.join();
+  const ran = () => new Promise(resolve => W.sync.onChange(resolve)); // after each run
+  W.sync.start();
+  await ran();
+  const mia = await A.db.get('profiles', MIA);
+  await A.db.put('profiles', { ...mia, name: 'Mia F', settingsAt: iso(Date.now() + 864e5) });
+  await A.sync.run();
+  const pulls = () => server.pulls.length;
+  const before = pulls();
+  const done = ran();
+  win.dispatchEvent(new Event('focus'));
+  await done;
+  assert.equal((await W.db.get('profiles', MIA)).name, 'Mia F');
+  assert.ok(pulls() > before);
+  const after = pulls();
+  win.document.dispatchEvent(new Event('visibilitychange')); // the same switch: no second run
+  await new Promise(r => setTimeout(r, 50));
+  assert.equal(pulls(), after);
 });

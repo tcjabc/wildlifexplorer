@@ -46,6 +46,7 @@ const PAGE = 1000;
 // twice changes nothing.
 const OVERLAP_MS = 60e3;
 const PULL_EVERY_MS = 5 * 60e3;
+const SHOWN_GAP_MS = 5e3; // shown or focused again within this: no new run
 // Bump to pull everything again (when what is pulled, or how it is merged, changes).
 const PULL_VERSION = 1;
 
@@ -132,7 +133,7 @@ export function statusKey(s) {
 class Retry extends Error {}
 const retryable = status => status === 408 || status === 425 || status === 429 || status >= 500;
 
-export function createSync({ db = defaultDb, auth = defaultAuth, locks = globalThis.navigator?.locks, timers = globalThis } = {}) {
+export function createSync({ db = defaultDb, auth = defaultAuth, locks = globalThis.navigator?.locks, timers = globalThis, win = globalThis } = {}) {
   const events = new EventTarget();
   const changed = () => events.dispatchEvent(new Event('change'));
   let running = null;
@@ -426,13 +427,22 @@ export function createSync({ db = defaultDb, auth = defaultAuth, locks = globalT
   }
 
   // Run after changes (once they settle), on sign-in, when the device comes back online,
-  // when the app is shown again, and every few minutes while it is shown.
+  // when the app is shown again or its window is focused (two windows side by side never
+  // hide), and every few minutes while it is shown. Shown and focused together (switching
+  // tabs) count once.
   function start() {
-    const shown = () => globalThis.document?.visibilityState !== 'hidden';
+    const shown = () => win.document?.visibilityState !== 'hidden';
+    let lastShown = 0;
+    const onShown = () => {
+      if (!shown() || Date.now() - lastShown < SHOWN_GAP_MS) return;
+      lastShown = Date.now();
+      run();
+    };
     db.events.addEventListener('queued', () => schedule(DEBOUNCE_MS));
     auth.onChange?.(() => { changed(); run(); });
-    globalThis.addEventListener?.('online', () => run());
-    globalThis.document?.addEventListener('visibilitychange', () => { if (shown()) run(); });
+    win.addEventListener?.('online', () => run());
+    win.addEventListener?.('focus', onShown);
+    win.document?.addEventListener('visibilitychange', onShown);
     timers.setInterval?.(() => { if (shown()) run(); }, PULL_EVERY_MS);
     run();
   }

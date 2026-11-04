@@ -504,8 +504,10 @@ truth; it syncs with Supabase when online.
   Deleted explorers stay deleted. Device-only fields are never touched, explorers kept on one
   device only are never pulled into, and a "Start over" from another device also clears this
   device's quiz scores. A pulled pack that isn't opened yet shows "New pack arrived" once on
-  each device. Runs on start, sign-in, coming back online, showing the app, after changes, and
-  every 5 minutes while the app is shown (no Realtime). Tests: `tests/pull.test.mjs`, with two
+  each device. Runs on start, sign-in, coming back online, showing the app or focusing its window
+  (two windows side by side never hide), after changes, and every 5 minutes while the app is shown
+  (no Realtime). The picker, the header, the Parents page's explorers and the More page redraw
+  with what came down. Tests: `tests/pull.test.mjs`, with two
   devices and a fake server that merges like the triggers (`tests/fixtures/server.mjs`).
 - **Clocks:** which settings win is decided by the devices' clocks (`client_updated_at`), so a
   device whose clock is badly wrong can win over newer changes. Acceptable for now.

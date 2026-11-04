@@ -230,8 +230,15 @@ async function boot() {
 
   registerOffline();
   // Changes from the family account's other devices: show them, and say if a pack arrived.
+  // (The header, picker and Parents page follow the store's events themselves; the More page
+  // shows the active explorer's name and avatar.)
   sync.onPulled(ids => store.applyPulled(ids)
-    .then(() => { if (store.state.profile && !choosing) return checkDrops(); })
+    .then(() => {
+      const p = store.state.profile;
+      if (!p || choosing) return undefined;
+      if (shown.name === 'more' && ids.includes(p.id) && !viewer.isOpen()) refresh();
+      return checkDrops();
+    })
     .catch(err => console.error(err)));
   sync.start(); // only does anything once a parent has signed in and chosen explorers
   await chooseProfile({ join: await handleSignInLink() }); // opened from the sign-in email's link?
