@@ -1,0 +1,61 @@
+{
+  "note": "Terms used in card text as [[id]] or [[id|shown text]]. Each has the term and a kid-friendly definition in English and Traditional Chinese. tests/glossary.test.mjs fails if card text uses an id that isn't here; the build report lists missing and unused terms.",
+  "terms": {
+    "altitude": {
+      "term": { "en": "altitude", "zh": "海拔" },
+      "def": { "en": "How high a place is above the sea.", "zh": "一個地方比海平面高多少。" }
+    },
+    "broadleaf-forest": {
+      "term": { "en": "broadleaf forest", "zh": "闊葉林" },
+      "def": { "en": "A forest of trees with wide, flat leaves instead of needles.", "zh": "由葉子寬大扁平（不是針狀）的樹組成的森林。" }
+    },
+    "carnivora": {
+      "term": { "en": "Carnivora", "zh": "食肉目" },
+      "def": { "en": "The group of mammals that includes cats, dogs, bears and civets. Many of them eat meat, but not all.", "zh": "包括貓、狗、熊和果子狸等的哺乳動物類群，很多會吃肉，但不是全部。" }
+    },
+    "delayed-implantation": {
+      "term": { "en": "delayed implantation", "zh": "延遲著床" },
+      "def": { "en": "When a fertilised egg waits for a while before it starts growing into a baby.", "zh": "受精卵先等一段時間，才開始長成寶寶。" }
+    },
+    "den": {
+      "term": { "en": "den", "zh": "巢穴" },
+      "def": { "en": "A sheltered hiding place where an animal rests or has its babies.", "zh": "動物休息或生寶寶的隱蔽地方。" }
+    },
+    "endangered": {
+      "term": { "en": "endangered", "zh": "瀕臨絕種" },
+      "def": { "en": "At risk of disappearing forever.", "zh": "有可能永遠消失的危險。" }
+    },
+    "gestation": {
+      "term": { "en": "gestation", "zh": "懷孕期" },
+      "def": { "en": "The time a baby animal grows inside its mother before it is born.", "zh": "動物寶寶出生前，在媽媽肚子裡長大的時間。" }
+    },
+    "hibernate": {
+      "term": { "en": "hibernate", "zh": "冬眠" },
+      "def": { "en": "To go into a long, deep sleep through the winter to save energy.", "zh": "在冬天長時間沉睡，節省體力。" }
+    },
+    "home-range": {
+      "term": { "en": "home range", "zh": "活動範圍" },
+      "def": { "en": "The whole area an animal moves around in to find food and shelter.", "zh": "動物平常找食物、休息時會走動的整片區域。" }
+    },
+    "incubation": {
+      "term": { "en": "incubation", "zh": "孵化期" },
+      "def": { "en": "The time an egg is kept warm until the baby inside hatches.", "zh": "蛋被保持溫暖，直到裡面的寶寶孵出來的時間。" }
+    },
+    "leghold-trap": {
+      "term": { "en": "leg-hold trap", "zh": "獸鋏" },
+      "def": { "en": "A metal trap that snaps shut on an animal's leg or paw.", "zh": "會夾住動物腳的金屬陷阱。" }
+    },
+    "omnivore": {
+      "term": { "en": "omnivore", "zh": "雜食性動物" },
+      "def": { "en": "An animal that eats both plants and other animals.", "zh": "植物和動物都吃的動物。" }
+    },
+    "poaching": {
+      "term": { "en": "poaching", "zh": "盜獵" },
+      "def": { "en": "Hunting or catching wild animals when the law says you mustn't.", "zh": "違反法律去打獵或捕捉野生動物。" }
+    },
+    "solitary": {
+      "term": { "en": "solitary", "zh": "獨居" },
+      "def": { "en": "Living alone instead of in a group.", "zh": "自己生活，不和同伴成群。" }
+    }
+  }
+}

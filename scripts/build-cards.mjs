@@ -33,7 +33,7 @@ import { mergeCard, canUpdate } from './lib/merge.mjs';
 import { planDrops, dropOrder, DropPlanError } from './lib/drops.mjs';
 import { isReady, stillNeeds } from '../js/ready.js';
 import { renderBadgeSections } from './lib/badges-report.mjs';
-import { migrateCard, orderKeys, factFileTodo, statsTodo } from './lib/card-schema.mjs';
+import { migrateCard, orderKeys, factFileTodo, statsTodo, todosOf, termsOf } from './lib/card-schema.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const P = {
@@ -49,6 +49,7 @@ const P = {
   badges: path.join(ROOT, 'data/badges.json'),
   secrets: path.join(ROOT, 'data/secret-badges.json'),
   lookalikes: path.join(ROOT, 'data/lookalikes.json'),
+  glossary: path.join(ROOT, 'data/glossary.json'),
   config: path.join(ROOT, 'scripts/build.config.json'),
 };
 
@@ -283,6 +284,7 @@ async function main() {
     badges: await readJson(P.badges, { tiers: [] }),
     secrets: await readJson(P.secrets, { badges: [] }),
     lookalikes: await readJson(P.lookalikes, { entries: {}, groups: [] }),
+    glossary: await readJson(P.glossary, { terms: {} }),
   };
   // Standalone lookalikes carry pictures too; check and thumbnail them like cards.
   const entryCards = Object.entries(extra.lookalikes.entries ?? {}).map(([id, e]) => ({ ...e, id: `entry:${id}` }));
@@ -544,6 +546,32 @@ function renderReport({ rows, cards, orphans, report, imageProblems, unused, sel
     const noRelated = cards.filter(c => Array.isArray(c.related) && !c.related.length);
     if (noRelated.length) L.push(`Cards with no related species yet: ${noRelated.length} of ${cards.filter(c => c.scientificName).length} species cards.`, '');
   }
+
+  // Text marked "todo": not checked yet, so only grown-ups see it (parent preview).
+  const todos = cards.flatMap(c => todosOf(c).map(t => ({ c, ...t })));
+  if (todos.length) {
+    L.push('## To check (todo)', '');
+    L.push('Only shown in grown-up preview until checked. Delete the `todo` key once a fact is confirmed (or fix the text).', '');
+    for (const t of todos) L.push(`- ${t.c.name.en} (\`${t.c.id}\`, ${t.where}): ${t.note}`);
+    L.push('');
+  }
+
+  // Glossary: terms used in card text, and data/glossary.json.
+  const glossary = extra.glossary?.terms ?? {};
+  const used = new Map();
+  for (const c of cards) for (const id of termsOf(c)) used.set(id, [...(used.get(id) ?? []), c.id]);
+  const missing = [...used].filter(([id]) => !glossary[id]);
+  const unusedTerms = Object.keys(glossary).filter(id => !used.has(id));
+  L.push('## Glossary', '');
+  L.push(`- Terms in data/glossary.json: ${Object.keys(glossary).length}; used on cards: ${used.size}`);
+  if (missing.length) {
+    L.push('- **Missing** (shown as plain text until added):');
+    for (const [id, ids] of missing) L.push(`  - \`${id}\` (${ids.join(', ')})`);
+  } else L.push('- Missing: none');
+  L.push(`- Not used on any card: ${unusedTerms.length ? unusedTerms.map(id => `\`${id}\``).join(', ') : 'none'}`, '');
+
+  const sourced = cards.filter(c => c._sources?.length);
+  L.push(`Cards with a sources list (\`_sources\`): ${sourced.length} of ${cards.filter(c => c.scientificName).length} species cards.`, '');
 
   const drafts = cards.filter(c => c._draft?.length);
   if (drafts.length) {

@@ -382,6 +382,27 @@ a.related__item { border-color: var(--g, var(--c-paper-line)); }
 }
 .ff__dyk-title { display: flex; align-items: center; gap: var(--s-1); margin-bottom: var(--s-1); font-weight: var(--fw-bold); }
 .ff__dyk-title .bi { flex-direction: row; gap: 0.4em; }
+.ff__dyk .ff__text + .ff__text { margin-top: var(--s-2); }
+/* Not checked yet (todo): only grown-ups in preview see it, marked so they know. */
+.ff__text.is-todo { padding-left: var(--s-2); border-left: var(--bw-mid) dashed var(--c-callout); }
+
+/* Glossary terms in card text, and the popover a tap opens (js/glossary.js). */
+.gloss {
+  display: inline; padding: 0; border: 0; background: none; cursor: pointer;
+  font: inherit; color: inherit; text-align: inherit;
+  text-decoration: underline dotted var(--g-edge, var(--c-ink-soft)); text-decoration-thickness: var(--bw-thin);
+  text-underline-offset: 0.2em;
+}
+.gloss[aria-expanded="true"] { background: var(--c-callout-soft); border-radius: var(--s-hair); }
+.gloss-pop {
+  position: absolute; z-index: 3; width: var(--gloss-pop-w); max-width: 100%;
+  padding: var(--s-2) var(--s-3); border-radius: var(--r-sm);
+  background: var(--c-surface); color: var(--c-ink); box-shadow: var(--shadow-2);
+  border: var(--bw-thin) solid var(--g, var(--c-line));
+  font-size: var(--card-fs-sm); text-align: left;
+}
+.gloss-pop__term { display: flex; align-items: center; gap: var(--s-1); margin-bottom: var(--s-1); font-weight: var(--fw-bold); }
+.gloss-pop__term .bi { flex-direction: row; flex-wrap: wrap; column-gap: 0.4em; }
 /* No Fact File text yet: a friendly line instead of an empty page. */
 .ff__soon {
   display: flex; flex-direction: column; align-items: center; gap: var(--s-2);

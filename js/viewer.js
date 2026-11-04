@@ -32,6 +32,7 @@ import { track, spring, tween, clamp, lerp, haptic } from './gesture.js';
 import { speak, stop, isSpeaking, speechSupported } from './speech.js';
 import { notebook } from './notebook.js';
 import { notesCount } from './notes-store.js';
+import { closePopover } from './glossary.js';
 
 const cssNum = name => parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
 const DONE = 0.999;
@@ -257,7 +258,7 @@ function wireGestures() {
 
   track(v.stage, {
     start: ({ x, y, target }) => {
-      if (v.closing || target.closest?.('[data-swipe]') || !inReach(x, y)) return false;
+      if (v.closing || target.closest?.('[data-swipe], .gloss-pop') || !inReach(x, y)) return false;
       const peeking = interruptPeek();
       if (!peeking) stopMotion();
       scroller = target.closest?.('[data-scroll]') ?? null;
@@ -395,6 +396,7 @@ function notesButton(card) {
 }
 
 function setCard(card) {
+  closePopover();
   v.card = card;
   v.built = buildBook(card, openCredits);
   mount(v.zoomer, v.built.pos);
@@ -461,6 +463,7 @@ export function show(card) {
 
 function teardown() {
   if (!v) return;
+  closePopover();
   v.split?.book.destroy();
   stopMotion();
   stopZoom();

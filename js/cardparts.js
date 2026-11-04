@@ -13,6 +13,7 @@ import { comparePanel, modesFor } from './compare.js';
 import { lookalikesOf, lookalikePanel } from './lookalikes.js';
 import { magnifier, featureOf } from './magnifier.js';
 import { nameBi } from './zhuyin.js';
+import { glossBi, plainPair } from './glossary.js';
 import { lengthText, weightText, imperial } from './units.js';
 
 /**
@@ -20,9 +21,11 @@ import { lengthText, weightText, imperial } from './units.js';
  * The build moves older cards to this shape: scripts/lib/card-schema.mjs.
  * @typedef {{ en: string, zh: string }} Pair
  * @typedef {{ min: number, max?: number }} Range
- * @typedef {{ habitat: Pair[], breeding: Pair[], behaviour: Pair[], food: Pair[],
- *   conservation: Pair[], didYouKnow: Pair }} FactFile
- * @typedef {{ kind: 'gestation' | 'incubation', days?: Range, en?: string, zh?: string }} Development
+ * @typedef {{ en: string, zh: string, todo?: string }} Paragraph  todo: not checked yet, grown-up preview only
+ * @typedef {{ habitat: Paragraph[], breeding: Paragraph[], behaviour: Paragraph[],
+ *   foodAndHunting: Paragraph[], conservation: Paragraph[], didYouKnow: Paragraph[] }} FactFile
+ *   Text may mark glossary terms: [[id]] or [[id|shown text]] (js/glossary.js).
+ * @typedef {{ kind: 'gestation' | 'incubation', days?: Range, en?: string, zh?: string, todo?: string }} Development
  * @typedef {{ x: number, y: number, r?: number, en: string, zh: string, detail?: Pair }} Callout
  * @typedef {string | { scientificName?: string, name: Pair }} Related  card id, or an animal with no card
  * @typedef {{ id: string, group: string, number: number, scientificName: string | null, name: Pair,
@@ -36,9 +39,12 @@ const filled = p => p && (p.en || p.zh);
 export const factsOf = card => (card.facts ?? []).filter(filled);
 
 // The Fact File, in the order it is shown.
-export const FACT_SECTIONS = [['habitat', '🌏'], ['breeding', '👪'], ['behaviour', '🐾'], ['food', '🍽️'], ['conservation', '🛡️']];
-export const factParas = (card, key) => (card.factFile?.[key] ?? []).filter(filled);
-const didYouKnow = card => (filled(card.factFile?.didYouKnow) ? card.factFile.didYouKnow : null);
+export const FACT_SECTIONS = [['habitat', '🌏'], ['breeding', '👪'], ['behaviour', '🐾'], ['foodAndHunting', '🍽️'], ['conservation', '🛡️']];
+// Text marked "todo" hasn't been checked yet: only grown-ups see it (parent preview).
+const preview = () => Boolean(state.profile?.parent.preview);
+const shown = p => filled(p) && (!p.todo || preview());
+export const factParas = (card, key) => (card.factFile?.[key] ?? []).filter(shown);
+const didYouKnow = card => (card.factFile?.didYouKnow ?? []).filter(shown);
 
 const hasMap = c => Boolean(c.map?.areas?.length || c.range || c.mapBounds);
 export const relatedOf = c => (c.related ?? []).map(r => (typeof r === 'string'
@@ -49,7 +55,7 @@ export const hasProfile = c => Boolean(c.profile?.callouts?.length && c[c.profil
 export const hasStats = c => Boolean(c.stats && Object.keys(c.stats).length);
 export const hasCompare = c => Object.values(modesFor(c)).some(Boolean) || lookalikesOf(c).length > 0;
 export const hasInside = c => hasProfile(c) || hasStats(c) || hasCompare(c) || relatedOf(c).length > 0;
-const hasFactText = c => FACT_SECTIONS.some(([k]) => factParas(c, k).length > 0) || Boolean(didYouKnow(c));
+const hasFactText = c => FACT_SECTIONS.some(([k]) => factParas(c, k).length > 0) || didYouKnow(c).length > 0;
 // Every card with a Fact File turns over (until it has text, it says more is coming);
 // topic cards only when they have something to show.
 export const hasBack = c => Boolean(c.factFile || hasFactText(c) || hasMap(c));
@@ -64,9 +70,10 @@ const smallTitle = key => h('h2', { class: 'cpage__label' }, tx(key));
 // An empty page still looks like card paper, with the group emoji as a watermark.
 const blank = card => h('div', { class: 'cpage__blank', 'aria-hidden': 'true' }, groupById(card.group)?.emoji);
 
-// Glossary hook: every Fact File text goes through here. Today it is the plain pair; the
-// glossary will mark its terms inside [data-glossary] paragraphs.
-export const glossed = pair => h('p', { class: 'ff__text', 'data-glossary': '' }, bi(pair));
+// Every Fact File text goes through here: glossary terms become buttons (js/glossary.js);
+// a paragraph still to check is marked for the grown-up who sees it.
+export const glossed = pair => h('p', { class: ['ff__text', pair.todo && 'is-todo'], 'data-glossary': '', title: pair.todo || null },
+  glossBi(pair));
 
 // The series the card arrives in (data/drops.json), or null.
 export const seriesOf = card => state.drops.find(d => d.cards.some(c => c.id === card.id))?.series ?? null;
@@ -182,10 +189,13 @@ function statText(stat, nums, unit) {
 const DEV = { gestation: ['card.gestation', '🍼'], incubation: ['card.incubation', '🥚'] };
 function devRow(s) {
   const d = s.development;
-  if (!DEV[d?.kind]) return null;
+  if (!DEV[d?.kind] || (d.todo && !preview())) return null;
   const text = filled(d) ? { en: d.en ?? '', zh: d.zh ?? '' } : statText(null, d.days, 'days');
   return text && { mode: 'development', icon: DEV[d.kind][1], key: DEV[d.kind][0], text };
 }
+
+// "Gestation" / "Incubation" as a glossary term when the glossary has it.
+const glossLabel = (key, id) => { const l = t(key); return state.glossary?.[id] ? { en: `[[${id}|${l.en}]]`, zh: `[[${id}|${l.zh}]]` } : l; };
 
 const STAT_ROWS = [
   ['length', '📏', 'card.length', 'lengthCm', 'cm'],
@@ -199,7 +209,7 @@ function statRows(s) {
     const text = mode === 'diet' ? (filled(s.diet) ? s.diet : null) : statText(s[mode], s[numKey], unit);
     return text && { mode, icon, key, text, note: s[mode]?.note };
   });
-  const young = statText(s.young, s.youngCount, null);
+  const young = s.youngCount?.todo && !preview() ? null : statText(s.young, s.youngCount, null);
   return [...rows, devRow(s), young && { mode: 'young', icon: '🐣', key: 'card.young', text: young }].filter(Boolean);
 }
 
@@ -237,7 +247,7 @@ export function insidePage(card) {
   const rows = statRows(s).map(({ mode, icon, key, text, note }) => {
     const content = [
       h('span', { class: 'stat__icon', 'aria-hidden': 'true' }, icon),
-      h('span', { class: 'stat__label' }, tx(key)),
+      h('span', { class: 'stat__label' }, mode === 'development' ? glossBi(glossLabel(key, s.development.kind)) : tx(key)),
       h('span', { class: 'stat__value' }, bi(text), note && h('span', { class: 'stat__note' }, bi(note))),
     ];
     if (!modes[mode]) return h('div', { class: 'stat' }, content);
@@ -315,9 +325,9 @@ export function backPage(card) {
     h('div', { class: 'cpage__scroll ff__body', 'data-scroll': '', tabindex: '0', 'aria-label': label('card.factFile') },
       sections,
       soon,
-      dyk && h('aside', { class: 'ff__dyk' },
+      dyk.length > 0 && h('aside', { class: 'ff__dyk' },
         h('p', { class: 'ff__dyk-title' }, h('span', { 'aria-hidden': 'true' }, '💡'), tx('ff.didYouKnow')),
-        glossed(dyk))));
+        dyk.map(glossed))));
 }
 
 // What read-aloud says on each view ('front', 'open', 'back'), in reading order.
@@ -328,10 +338,10 @@ export function readOrder(card, view) {
     const out = [];
     for (const [key] of FACT_SECTIONS) {
       const paras = factParas(card, key);
-      if (paras.length) out.push(t(`ff.${key}`), ...paras);
+      if (paras.length) out.push(t(`ff.${key}`), ...paras.map(plainPair));
     }
     const dyk = didYouKnow(card);
-    if (dyk) out.push(t('ff.didYouKnow'), dyk);
+    if (dyk.length) out.push(t('ff.didYouKnow'), ...dyk.map(plainPair));
     return out;
   }
   if (view === 'open') {

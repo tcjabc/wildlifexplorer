@@ -1,6 +1,6 @@
 # Build report
 
-Generated 2026-11-04 11:59 UTC. Re-written on every build.
+Generated 2026-11-04 12:55 UTC. Re-written on every build.
 
 ## Summary
 
@@ -321,38 +321,46 @@ These have no scientific name, so the build only creates the slots. Add facts, a
 
 Empty slots in `factFile` (habitat, breeding, behaviour, food, conservation, didYouKnow) are not shown on the card. The statistics rows (`stats.development`, `stats.youngCount`) are hidden until filled. Related species (`related`) are listed separately.
 
-- Formosan Black Bear · 臺灣黑熊 (`formosan-black-bear`): behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
-- Formosan Rock Macaque · 臺灣獼猴 (`formosan-rock-macaque`): behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
-- Chinese Pangolin · 穿山甲 (`chinese-pangolin`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
-- Taiwan Serow · 臺灣長鬃山羊 (`taiwan-serow`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
-- Formosan Sambar Deer · 水鹿 (`formosan-sambar-deer`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
-- Formosan Muntjac · 山羌 (`formosan-muntjac`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
-- Formosan Flying Fox · 臺灣狐蝠 (`formosan-flying-fox`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
-- Leopard Cat · 石虎 (`leopard-cat`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
-- Masked Palm Civet · 白鼻心 (`masked-palm-civet`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
-- Red and White Giant Flying Squirrel · 大赤鼯鼠 (`red-and-white-giant-flying-squirrel`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
-- Eurasian Otter · 歐亞水獺 (`eurasian-otter`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
-- Bengal Tiger · 孟加拉虎 (`bengal-tiger`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
-- Lion · 獅子 (`lion`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
-- Cheetah · 獵豹 (`cheetah`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
-- African Elephant · 非洲象 (`african-elephant`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
-- Giraffe · 長頸鹿 (`giraffe`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
-- Plains Zebra · 平原斑馬 (`plains-zebra`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
-- Hippopotamus · 河馬 (`hippopotamus`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
-- Black Rhinoceros · 黑犀牛 (`black-rhinoceros`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
-- Western Lowland Gorilla · 西部低地大猩猩 (`western-lowland-gorilla`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
-- Taiwan Blue Magpie · 臺灣藍鵲 (`taiwan-blue-magpie`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
-- Swinhoe's Pheasant · 藍腹鷴 (`swinhoe-s-pheasant`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
-- Mikado Pheasant · 帝雉 (`mikado-pheasant`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
-- Taiwan Barbet · 五色鳥 (`taiwan-barbet`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
-- Brown-spotted Pit Viper · 龜殼花 (`brown-spotted-pit-viper`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
-- Formosan Landlocked Salmon · 櫻花鉤吻鮭 (`formosan-landlocked-salmon`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
-- Atlas Moth · 皇蛾 (`atlas-moth`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
-- Tyrannosaurus rex · 暴龍 (`tyrannosaurus-rex`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
-- Tardigrade (Water Bear) · 水熊蟲 (`tardigrade-water-bear`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
-- Taiwan Cherry · 山櫻花 (`taiwan-cherry`): habitat, breeding, behaviour, food, conservation, didYouKnow
+- Formosan Black Bear · 臺灣黑熊 (`formosan-black-bear`): behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
+- Formosan Rock Macaque · 臺灣獼猴 (`formosan-rock-macaque`): behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
+- Chinese Pangolin · 穿山甲 (`chinese-pangolin`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
+- Taiwan Serow · 臺灣長鬃山羊 (`taiwan-serow`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
+- Formosan Sambar Deer · 水鹿 (`formosan-sambar-deer`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
+- Formosan Muntjac · 山羌 (`formosan-muntjac`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
+- Formosan Flying Fox · 臺灣狐蝠 (`formosan-flying-fox`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
+- Leopard Cat · 石虎 (`leopard-cat`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
+- Masked Palm Civet · 白鼻心 (`masked-palm-civet`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
+- Red and White Giant Flying Squirrel · 大赤鼯鼠 (`red-and-white-giant-flying-squirrel`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
+- Eurasian Otter · 歐亞水獺 (`eurasian-otter`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
+- Bengal Tiger · 孟加拉虎 (`bengal-tiger`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
+- Lion · 獅子 (`lion`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
+- Cheetah · 獵豹 (`cheetah`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
+- African Elephant · 非洲象 (`african-elephant`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
+- Giraffe · 長頸鹿 (`giraffe`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
+- Plains Zebra · 平原斑馬 (`plains-zebra`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
+- Hippopotamus · 河馬 (`hippopotamus`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
+- Black Rhinoceros · 黑犀牛 (`black-rhinoceros`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
+- Western Lowland Gorilla · 西部低地大猩猩 (`western-lowland-gorilla`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
+- Taiwan Blue Magpie · 臺灣藍鵲 (`taiwan-blue-magpie`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
+- Swinhoe's Pheasant · 藍腹鷴 (`swinhoe-s-pheasant`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
+- Mikado Pheasant · 帝雉 (`mikado-pheasant`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
+- Taiwan Barbet · 五色鳥 (`taiwan-barbet`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
+- Brown-spotted Pit Viper · 龜殼花 (`brown-spotted-pit-viper`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
+- Formosan Landlocked Salmon · 櫻花鉤吻鮭 (`formosan-landlocked-salmon`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
+- Atlas Moth · 皇蛾 (`atlas-moth`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
+- Tyrannosaurus rex · 暴龍 (`tyrannosaurus-rex`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
+- Tardigrade (Water Bear) · 水熊蟲 (`tardigrade-water-bear`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
+- Taiwan Cherry · 山櫻花 (`taiwan-cherry`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow
 
 Cards with no related species yet: 30 of 30 species cards.
+
+## Glossary
+
+- Terms in data/glossary.json: 14; used on cards: 0
+- Missing: none
+- Not used on any card: `altitude`, `broadleaf-forest`, `carnivora`, `delayed-implantation`, `den`, `endangered`, `gestation`, `hibernate`, `home-range`, `incubation`, `leghold-trap`, `omnivore`, `poaching`, `solitary`
+
+Cards with a sources list (`_sources`): 0 of 30 species cards.
 
 ## Draft text to check
 

@@ -48,9 +48,9 @@ export const onChange = (type, fn) => {
 const emit = type => bus.dispatchEvent(new Event(type));
 
 export async function init() {
-  const [cards, groups, plan, regions, badges, secrets, lookalikes] = await Promise.all(
+  const [cards, groups, plan, regions, badges, secrets, lookalikes, glossary] = await Promise.all(
     ['data/animals.json', 'data/groups.json', 'data/drops.json', 'data/regions.json', 'data/badges.json',
-      'data/secret-badges.json', 'data/lookalikes.json'].map(u => fetch(u).then(r => r.json())),
+      'data/secret-badges.json', 'data/lookalikes.json', 'data/glossary.json'].map(u => fetch(u).then(r => r.json())),
   );
   const known = new Set(groups.map(g => g.id));
   state.cards = cards.filter(c => known.has(c.group));
@@ -62,6 +62,7 @@ export async function init() {
   state.regions = regions;
   state.badgeCfg = { regions, badges, secrets };
   state.lookalikes = lookalikes;
+  state.glossary = glossary.terms ?? {}; // terms used in card text (js/glossary.js)
 
   state.role = await db.getRole();
   await loadProfiles();

@@ -210,6 +210,7 @@
   --profile-pic-max-h: 380px; /* the Profile picture, leaving room for its detail box */
   --profile-detail-min-h: 72px;
   --related-pic: 56px;  /* pictures in Related Species */
+  --gloss-pop-w: 260px; /* the glossary popover on a card page */
   --map-slot: 28px;     /* corner of the front map kept free for its expand button */
   --map-marker: 8px;    /* range marker on the little world map */
   --gpin: 52px;         /* photo pins on the Globe */

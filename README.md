@@ -180,9 +180,9 @@ Each card looks like this:
     "habitat": [{ "en": "Mountain forests all over Taiwan.", "zh": "臺灣各地的山區森林。" }],
     "breeding": [{ "en": "", "zh": "" }],
     "behaviour": [{ "en": "", "zh": "" }],
-    "food": [{ "en": "", "zh": "" }],
+    "foodAndHunting": [{ "en": "", "zh": "" }],
     "conservation": [{ "en": "", "zh": "" }],
-    "didYouKnow": { "en": "", "zh": "" }
+    "didYouKnow": [{ "en": "", "zh": "" }]
   },
   "status": "VU",
   "taiwan": true,
@@ -195,10 +195,20 @@ Each card looks like this:
 
 - **facts**: three `{ en, zh }` pairs. Empty facts are simply not shown. Short sentences
   read aloud best. For topic cards the facts appear under "About this topic 認識這個主題".
-- **factFile**: the Fact File on the back of the card. Each section (`habitat`, `breeding`,
-  `behaviour`, `food` = Food & Hunting, `conservation`) is a list of paragraphs, each one
-  `{ en, zh }` pair; `didYouKnow` is one pair, shown in a callout. Empty slots are not shown, and the
-  build report lists them under "Still to write". Topic cards have no Fact File.
+- **factFile**: the Fact File on the back of the card, written for older kids (pre-teen) with real
+  vocabulary. Each section (`habitat`, `breeding`, `behaviour`, `foodAndHunting`, `conservation`)
+  is a list of short paragraphs, each one `{ en, zh }` pair; `didYouKnow` is a list of 1–2 pairs,
+  shown in a callout. Empty slots are not shown, and the build report lists them under "Still to
+  write". Topic cards have no Fact File.
+  - **todo**: a paragraph (or `stats.development` / `stats.youngCount`) with `"todo": "what to
+    check, and the source tried"` has not been confirmed. Only grown-ups in preview see it, marked
+    with a dashed line; the build report lists every todo. Delete the key once it is checked.
+  - **Glossary terms**: mark a term inline as `[[omnivore]]` (shown as written) or
+    `[[omnivore|omnivores]]` (the entry, shown as other words); Chinese always gives the words:
+    `[[omnivore|雜食性動物]]`. Entries live in `data/glossary.json` (term and kid-friendly definition,
+    in both languages). Tapping a term opens a small popover; an id that isn't there is plain text.
+    `npm test` fails on missing entries, and the build report lists missing and unused ones.
+- **_sources**: where the Fact File's facts come from (`[{ "title", "url" }]`), next to `_draft`.
 - **status**: an IUCN code — `EX` `EW` `CR` `EN` `VU` `NT` `LC` `DD` `NE` — or `null`.
 - **photo / illustration**: to use your own picture, put it in `img/`, then fill in all five
   fields (`file`, `author`, `license`, `licenseUrl`, `sourceUrl`). The next build makes its thumbnail

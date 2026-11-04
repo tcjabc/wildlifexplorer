@@ -53,7 +53,7 @@
           "zh": ""
         }
       ],
-      "food": [
+      "foodAndHunting": [
         {
           "en": "",
           "zh": ""
@@ -65,10 +65,12 @@
           "zh": ""
         }
       ],
-      "didYouKnow": {
-        "en": "",
-        "zh": ""
-      }
+      "didYouKnow": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ]
     },
     "status": "VU",
     "taiwan": true,
@@ -295,7 +297,7 @@
           "zh": ""
         }
       ],
-      "food": [
+      "foodAndHunting": [
         {
           "en": "",
           "zh": ""
@@ -307,10 +309,12 @@
           "zh": ""
         }
       ],
-      "didYouKnow": {
-        "en": "",
-        "zh": ""
-      }
+      "didYouKnow": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ]
     },
     "status": "LC",
     "taiwan": true,
@@ -523,7 +527,7 @@
           "zh": ""
         }
       ],
-      "food": [
+      "foodAndHunting": [
         {
           "en": "",
           "zh": ""
@@ -535,10 +539,12 @@
           "zh": ""
         }
       ],
-      "didYouKnow": {
-        "en": "",
-        "zh": ""
-      }
+      "didYouKnow": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ]
     },
     "status": "CR",
     "taiwan": true,
@@ -669,7 +675,7 @@
           "zh": ""
         }
       ],
-      "food": [
+      "foodAndHunting": [
         {
           "en": "",
           "zh": ""
@@ -681,10 +687,12 @@
           "zh": ""
         }
       ],
-      "didYouKnow": {
-        "en": "",
-        "zh": ""
-      }
+      "didYouKnow": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ]
     },
     "status": "LC",
     "taiwan": true,
@@ -811,7 +819,7 @@
           "zh": ""
         }
       ],
-      "food": [
+      "foodAndHunting": [
         {
           "en": "",
           "zh": ""
@@ -823,10 +831,12 @@
           "zh": ""
         }
       ],
-      "didYouKnow": {
-        "en": "",
-        "zh": ""
-      }
+      "didYouKnow": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ]
     },
     "status": "VU",
     "taiwan": true,
@@ -954,7 +964,7 @@
           "zh": ""
         }
       ],
-      "food": [
+      "foodAndHunting": [
         {
           "en": "",
           "zh": ""
@@ -966,10 +976,12 @@
           "zh": ""
         }
       ],
-      "didYouKnow": {
-        "en": "",
-        "zh": ""
-      }
+      "didYouKnow": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ]
     },
     "status": "LC",
     "taiwan": true,
@@ -1087,7 +1099,7 @@
           "zh": ""
         }
       ],
-      "food": [
+      "foodAndHunting": [
         {
           "en": "",
           "zh": ""
@@ -1099,10 +1111,12 @@
           "zh": ""
         }
       ],
-      "didYouKnow": {
-        "en": "",
-        "zh": ""
-      }
+      "didYouKnow": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ]
     },
     "status": "VU",
     "taiwan": true,
@@ -1232,7 +1246,7 @@
           "zh": ""
         }
       ],
-      "food": [
+      "foodAndHunting": [
         {
           "en": "",
           "zh": ""
@@ -1244,10 +1258,12 @@
           "zh": ""
         }
       ],
-      "didYouKnow": {
-        "en": "",
-        "zh": ""
-      }
+      "didYouKnow": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ]
     },
     "status": "LC",
     "taiwan": true,
@@ -1358,7 +1374,7 @@
           "zh": ""
         }
       ],
-      "food": [
+      "foodAndHunting": [
         {
           "en": "",
           "zh": ""
@@ -1370,10 +1386,12 @@
           "zh": ""
         }
       ],
-      "didYouKnow": {
-        "en": "",
-        "zh": ""
-      }
+      "didYouKnow": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ]
     },
     "status": "LC",
     "taiwan": true,
@@ -1477,7 +1495,7 @@
           "zh": ""
         }
       ],
-      "food": [
+      "foodAndHunting": [
         {
           "en": "",
           "zh": ""
@@ -1489,10 +1507,12 @@
           "zh": ""
         }
       ],
-      "didYouKnow": {
-        "en": "",
-        "zh": ""
-      }
+      "didYouKnow": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ]
     },
     "status": "LC",
     "taiwan": true,
@@ -1616,7 +1636,7 @@
           "zh": ""
         }
       ],
-      "food": [
+      "foodAndHunting": [
         {
           "en": "",
           "zh": ""
@@ -1628,10 +1648,12 @@
           "zh": ""
         }
       ],
-      "didYouKnow": {
-        "en": "",
-        "zh": ""
-      }
+      "didYouKnow": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ]
     },
     "status": "NT",
     "taiwan": true,
@@ -1737,7 +1759,7 @@
           "zh": ""
         }
       ],
-      "food": [
+      "foodAndHunting": [
         {
           "en": "",
           "zh": ""
@@ -1749,10 +1771,12 @@
           "zh": ""
         }
       ],
-      "didYouKnow": {
-        "en": "",
-        "zh": ""
-      }
+      "didYouKnow": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ]
     },
     "status": "EN",
     "taiwan": false,
@@ -1857,7 +1881,7 @@
           "zh": ""
         }
       ],
-      "food": [
+      "foodAndHunting": [
         {
           "en": "",
           "zh": ""
@@ -1869,10 +1893,12 @@
           "zh": ""
         }
       ],
-      "didYouKnow": {
-        "en": "",
-        "zh": ""
-      }
+      "didYouKnow": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ]
     },
     "status": "VU",
     "taiwan": false,
@@ -1971,7 +1997,7 @@
           "zh": ""
         }
       ],
-      "food": [
+      "foodAndHunting": [
         {
           "en": "",
           "zh": ""
@@ -1983,10 +2009,12 @@
           "zh": ""
         }
       ],
-      "didYouKnow": {
-        "en": "",
-        "zh": ""
-      }
+      "didYouKnow": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ]
     },
     "status": "VU",
     "taiwan": false,
@@ -2106,7 +2134,7 @@
           "zh": ""
         }
       ],
-      "food": [
+      "foodAndHunting": [
         {
           "en": "",
           "zh": ""
@@ -2118,10 +2146,12 @@
           "zh": ""
         }
       ],
-      "didYouKnow": {
-        "en": "",
-        "zh": ""
-      }
+      "didYouKnow": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ]
     },
     "status": "EN",
     "taiwan": false,
@@ -2243,7 +2273,7 @@
           "zh": ""
         }
       ],
-      "food": [
+      "foodAndHunting": [
         {
           "en": "",
           "zh": ""
@@ -2255,10 +2285,12 @@
           "zh": ""
         }
       ],
-      "didYouKnow": {
-        "en": "",
-        "zh": ""
-      }
+      "didYouKnow": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ]
     },
     "status": "VU",
     "taiwan": false,
@@ -2362,7 +2394,7 @@
           "zh": ""
         }
       ],
-      "food": [
+      "foodAndHunting": [
         {
           "en": "",
           "zh": ""
@@ -2374,10 +2406,12 @@
           "zh": ""
         }
       ],
-      "didYouKnow": {
-        "en": "",
-        "zh": ""
-      }
+      "didYouKnow": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ]
     },
     "status": "NT",
     "taiwan": false,
@@ -2481,7 +2515,7 @@
           "zh": ""
         }
       ],
-      "food": [
+      "foodAndHunting": [
         {
           "en": "",
           "zh": ""
@@ -2493,10 +2527,12 @@
           "zh": ""
         }
       ],
-      "didYouKnow": {
-        "en": "",
-        "zh": ""
-      }
+      "didYouKnow": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ]
     },
     "status": "VU",
     "taiwan": false,
@@ -2595,7 +2631,7 @@
           "zh": ""
         }
       ],
-      "food": [
+      "foodAndHunting": [
         {
           "en": "",
           "zh": ""
@@ -2607,10 +2643,12 @@
           "zh": ""
         }
       ],
-      "didYouKnow": {
-        "en": "",
-        "zh": ""
-      }
+      "didYouKnow": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ]
     },
     "status": "CR",
     "taiwan": false,
@@ -2732,7 +2770,7 @@
           "zh": ""
         }
       ],
-      "food": [
+      "foodAndHunting": [
         {
           "en": "",
           "zh": ""
@@ -2744,10 +2782,12 @@
           "zh": ""
         }
       ],
-      "didYouKnow": {
-        "en": "",
-        "zh": ""
-      }
+      "didYouKnow": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ]
     },
     "status": "CR",
     "taiwan": false,
@@ -2869,7 +2909,7 @@
           "zh": ""
         }
       ],
-      "food": [
+      "foodAndHunting": [
         {
           "en": "",
           "zh": ""
@@ -2881,10 +2921,12 @@
           "zh": ""
         }
       ],
-      "didYouKnow": {
-        "en": "",
-        "zh": ""
-      }
+      "didYouKnow": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ]
     },
     "status": "LC",
     "taiwan": true,
@@ -2998,7 +3040,7 @@
           "zh": ""
         }
       ],
-      "food": [
+      "foodAndHunting": [
         {
           "en": "",
           "zh": ""
@@ -3010,10 +3052,12 @@
           "zh": ""
         }
       ],
-      "didYouKnow": {
-        "en": "",
-        "zh": ""
-      }
+      "didYouKnow": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ]
     },
     "status": "NT",
     "taiwan": true,
@@ -3136,7 +3180,7 @@
           "zh": ""
         }
       ],
-      "food": [
+      "foodAndHunting": [
         {
           "en": "",
           "zh": ""
@@ -3148,10 +3192,12 @@
           "zh": ""
         }
       ],
-      "didYouKnow": {
-        "en": "",
-        "zh": ""
-      }
+      "didYouKnow": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ]
     },
     "status": "LC",
     "taiwan": true,
@@ -3283,7 +3329,7 @@
           "zh": ""
         }
       ],
-      "food": [
+      "foodAndHunting": [
         {
           "en": "",
           "zh": ""
@@ -3295,10 +3341,12 @@
           "zh": ""
         }
       ],
-      "didYouKnow": {
-        "en": "",
-        "zh": ""
-      }
+      "didYouKnow": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ]
     },
     "status": "LC",
     "taiwan": true,
@@ -3412,7 +3460,7 @@
           "zh": ""
         }
       ],
-      "food": [
+      "foodAndHunting": [
         {
           "en": "",
           "zh": ""
@@ -3424,10 +3472,12 @@
           "zh": ""
         }
       ],
-      "didYouKnow": {
-        "en": "",
-        "zh": ""
-      }
+      "didYouKnow": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ]
     },
     "status": "LC",
     "taiwan": true,
@@ -3549,7 +3599,7 @@
           "zh": ""
         }
       ],
-      "food": [
+      "foodAndHunting": [
         {
           "en": "",
           "zh": ""
@@ -3561,10 +3611,12 @@
           "zh": ""
         }
       ],
-      "didYouKnow": {
-        "en": "",
-        "zh": ""
-      }
+      "didYouKnow": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ]
     },
     "status": null,
     "taiwan": true,
@@ -3688,7 +3740,7 @@
           "zh": ""
         }
       ],
-      "food": [
+      "foodAndHunting": [
         {
           "en": "",
           "zh": ""
@@ -3700,10 +3752,12 @@
           "zh": ""
         }
       ],
-      "didYouKnow": {
-        "en": "",
-        "zh": ""
-      }
+      "didYouKnow": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ]
     },
     "status": null,
     "taiwan": true,
@@ -4022,7 +4076,7 @@
           "zh": ""
         }
       ],
-      "food": [
+      "foodAndHunting": [
         {
           "en": "",
           "zh": ""
@@ -4034,10 +4088,12 @@
           "zh": ""
         }
       ],
-      "didYouKnow": {
-        "en": "",
-        "zh": ""
-      }
+      "didYouKnow": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ]
     },
     "status": null,
     "taiwan": false,
@@ -4153,7 +4209,7 @@
           "zh": ""
         }
       ],
-      "food": [
+      "foodAndHunting": [
         {
           "en": "",
           "zh": ""
@@ -4165,10 +4221,12 @@
           "zh": ""
         }
       ],
-      "didYouKnow": {
-        "en": "",
-        "zh": ""
-      }
+      "didYouKnow": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ]
     },
     "status": null,
     "taiwan": false,
@@ -4276,7 +4334,7 @@
           "zh": ""
         }
       ],
-      "food": [
+      "foodAndHunting": [
         {
           "en": "",
           "zh": ""
@@ -4288,10 +4346,12 @@
           "zh": ""
         }
       ],
-      "didYouKnow": {
-        "en": "",
-        "zh": ""
-      }
+      "didYouKnow": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ]
     },
     "status": null,
     "taiwan": true,

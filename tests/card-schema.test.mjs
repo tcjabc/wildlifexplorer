@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { migrateCard, factFileTodo, statsTodo, KEY_ORDER } from '../scripts/lib/card-schema.mjs';
+import { migrateCard, factFileTodo, statsTodo, todosOf, termsOf, KEY_ORDER } from '../scripts/lib/card-schema.mjs';
 
 const pair = (en, zh) => ({ en, zh });
 const blank = pair('', '');
@@ -22,8 +22,8 @@ test('habitat and life cycle move into the Fact File word for word; the rest are
   assert.equal('lifeCycle' in c, false);
   assert.deepEqual(c.factFile.habitat, [pair('Mountain forests.', '山區森林。')]);
   assert.deepEqual(c.factFile.breeding, old().lifeCycle);
-  for (const k of ['behaviour', 'food', 'conservation']) assert.deepEqual(c.factFile[k], [blank]);
-  assert.deepEqual(c.factFile.didYouKnow, blank);
+  for (const k of ['behaviour', 'foodAndHunting', 'conservation']) assert.deepEqual(c.factFile[k], [blank]);
+  assert.deepEqual(c.factFile.didYouKnow, [blank]);
   assert.deepEqual(c._draft, ['facts', 'factFile.habitat', 'factFile.breeding']);
   assert.deepEqual(c.related, []);
   assert.deepEqual(c.profile.callouts[0].detail, blank);
@@ -62,9 +62,26 @@ test('topic cards get no Fact File or related list unless there is something to 
 
 test('the report lists what is still empty', () => {
   const c = migrateCard(old());
-  assert.deepEqual(factFileTodo(c), ['behaviour', 'food', 'conservation', 'didYouKnow']);
+  assert.deepEqual(factFileTodo(c), ['behaviour', 'foodAndHunting', 'conservation', 'didYouKnow']);
   assert.deepEqual(statsTodo(c), ['number of young']);
   assert.deepEqual(statsTodo({ ...c, group: 'plants' }), []);
+});
+
+test('version 3: food becomes foodAndHunting, didYouKnow a list; todo notes and glossary terms are found', () => {
+  const v2 = migrateCard(old());
+  v2.factFile.food = [pair('Eats [[omnivore|plants and animals]].', '什麼都吃。')];
+  delete v2.factFile.foodAndHunting;
+  v2.factFile.didYouKnow = pair('A [[den]] fact.', '[[den|巢穴]]的事。');
+  v2.factFile.behaviour = [{ ...pair('Maybe.', '也許。'), todo: 'Check this (tried: source X).' }];
+  v2._draft.push('factFile.food');
+  const c = migrateCard(v2);
+  assert.equal('food' in c.factFile, false);
+  assert.deepEqual(c.factFile.foodAndHunting, [pair('Eats [[omnivore|plants and animals]].', '什麼都吃。')]);
+  assert.deepEqual(c.factFile.didYouKnow, [pair('A [[den]] fact.', '[[den|巢穴]]的事。')]);
+  assert.ok(c._draft.includes('factFile.foodAndHunting'));
+  assert.deepEqual(todosOf(c), [{ where: 'factFile.behaviour', note: 'Check this (tried: source X).', en: 'Maybe.' }]);
+  assert.deepEqual([...termsOf(c)].sort(), ['den', 'omnivore']);
+  assert.deepEqual(migrateCard(c), c);
 });
 
 test('data/animals.json is already in the current shape', () => {

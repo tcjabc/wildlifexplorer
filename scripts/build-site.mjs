@@ -15,7 +15,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const ALLOW = {
   files: ['index.html', 'manifest.webmanifest', 'sw.js',
     'data/animals.json', 'data/groups.json', 'data/drops.json', 'data/regions.json',
-    'data/badges.json', 'data/secret-badges.json', 'data/lookalikes.json'],
+    'data/badges.json', 'data/secret-badges.json', 'data/lookalikes.json', 'data/glossary.json'],
   dirs: ['css', 'js', 'lang', 'icons', 'img', 'assets', 'data/ranges'],
 };
 
