@@ -6,7 +6,7 @@
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
 import { IDBFactory } from 'fake-indexeddb';
-import { createSync } from '../js/cloud/sync.js';
+import { createSync, statusKey } from '../js/cloud/sync.js';
 import { createServer, FAMILY, us } from './fixtures/server.mjs';
 
 const server = createServer();
@@ -459,4 +459,48 @@ test('"Sign out and remove the family": only the family\'s explorers go, with ev
   assert.ok(postsDuringRemove <= 1); // at most the profile changed back, before removing
   assert.ok(server.rows.profiles.has(MIA) && !server.rows.profiles.get(MIA).deleted_at); // the family keeps everything
   assert.ok(server.rows.packs.size > 0);
+});
+
+// ---------- No longer in the family (removed by the owner, or left) ----------
+
+test('a grown-up no longer in the family: nothing goes up or comes down, back in the family it carries on, and removing the family drops what waited', async () => {
+  const OTHER = '22222222-2222-4222-8222-222222222222'; // the new family of their own
+  const me = ownAuth();
+  const D = await device(me.auth);
+  assert.equal(await D.sync.join({ role: 'explorers' }), 'on');
+  const mia = await D.db.get('profiles', MIA);
+  await D.db.put('profiles', { ...mia, avatar: 6, settingsAt: iso(Date.now() + 4 * 864e5) });
+
+  server.familyOf = () => OTHER;
+  try {
+    me.posts = 0;
+    const pulls = server.pulls.length;
+    await D.sync.run();
+    assert.equal(await D.sync.stage(), 'removed');
+    assert.equal(statusKey(await D.sync.status()), 'sync.removed');
+    assert.equal(me.posts, 0);
+    assert.equal(server.pulls.length, pulls);
+    assert.equal((await D.db.all('outbox')).length, 1); // still waiting
+    assert.equal(await D.sync.setRole('watch'), 'not-set-up');
+  } finally { server.familyOf = () => FAMILY; }
+
+  await D.sync.run(); // back in the family (invited again)
+  assert.equal(await D.sync.stage(), 'on');
+  assert.equal((await D.db.getMeta('sync')).leftAt, undefined);
+  assert.equal(server.rows.profiles.get(MIA).avatar, 6);
+  assert.deepEqual(await D.db.all('outbox'), []);
+
+  // Removed again, with a change waiting: the device notices on removing, and drops it.
+  await D.db.put('profiles', { ...(await D.db.get('profiles', MIA)), avatar: 7, settingsAt: iso(Date.now() + 5 * 864e5) });
+  server.familyOf = () => OTHER;
+  try {
+    me.posts = 0;
+    assert.equal(await D.sync.removeFamily(), null);
+    assert.equal(me.posts, 0);
+    assert.deepEqual(await D.db.all('profiles'), []);
+    assert.deepEqual(await D.db.all('outbox'), []);
+    assert.equal(await D.db.getMeta('sync', null), null);
+    assert.equal(me.signedOut, true);
+    assert.equal(server.rows.profiles.get(MIA).avatar, 6); // the family keeps what it had
+  } finally { server.familyOf = () => FAMILY; }
 });

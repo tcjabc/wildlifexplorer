@@ -24,9 +24,12 @@
 // them), and progress of explorers this device doesn't have or has deleted. "Start over"
 // done on another device also clears this device's quiz scores, as it does here.
 //
-// meta 'sync': { userId, email, familyId, setUpAt, localOnly: [profile ids] }, written when
-// the parent first chooses. A different account signing in on this device later sends
-// and pulls nothing: these explorers belong to the first account's family.
+// meta 'sync': { userId, email, familyId, setUpAt, localOnly: [profile ids], leftAt? }, written
+// when the parent first chooses. A different account signing in on this device later sends
+// and pulls nothing: these explorers belong to the first account's family. Each run first
+// asks which family the parent is in now: when it isn't this device's any more (the owner
+// removed them, or they left), leftAt is set and nothing is sent or pulled until this
+// device removes the family (or the parent is back in it).
 // meta 'syncPull': { version, familyId, at: { table: updated_at of the last row pulled } }.
 import * as defaultDb from '../db.js';
 import { auth as defaultAuth, AuthError } from './auth.js';
@@ -119,6 +122,7 @@ export function toRow(store, r, familyId) {
 // a push has gone through, with nothing waiting, nothing held back and nothing wrong.
 export function statusKey(s) {
   if (s.stage === 'other-account') return 'sync.otherAccount';
+  if (s.stage === 'removed') return 'sync.removed';
   if (s.stage !== 'on') return null;
   if (s.busy || (!s.savedAt && !s.problem)) return 'sync.saving';
   if (s.problem === 'offline') return 'sync.offline';
@@ -147,13 +151,15 @@ export function createSync({ db = defaultDb, auth = defaultAuth, locks = globalT
 
   // Where this device stands with whoever is signed in.
   //   'signed-out' · 'needs-sign-in' · 'choose' (first sign-in here: pick explorers) ·
-  //   'other-account' (this device's explorers belong to another account) · 'on'
+  //   'other-account' (this device's explorers belong to another account) · 'removed' (the
+  //   parent is no longer in this device's family) · 'on'
   async function stage() {
     const st = await auth.state();
     if (!st.signedIn) return st.needsSignIn ? 'needs-sign-in' : 'signed-out';
     const cfg = await config();
     if (!cfg) return 'choose';
-    return cfg.userId === st.userId ? 'on' : 'other-account';
+    if (cfg.userId !== st.userId) return 'other-account';
+    return cfg.leftAt ? 'removed' : 'on';
   }
 
   // The explorers to offer the first time: everyone not deleted, oldest first.
@@ -162,12 +168,32 @@ export function createSync({ db = defaultDb, auth = defaultAuth, locks = globalT
     return list.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
   }
 
+  // The parent's family (each grown-up is in exactly one: migration 5).
   async function familyOf(userId) {
-    const res = await auth.authFetch(`/rest/v1/family_members?select=family_id,role&user_id=eq.${encodeURIComponent(userId)}&order=role.asc&limit=1`);
+    const res = await auth.authFetch(`/rest/v1/family_members?select=family_id,role&user_id=eq.${encodeURIComponent(userId)}&limit=1`);
     if (res.status !== 200) throw new AuthError(retryable(res.status) ? 'offline' : 'unknown', `family ${res.status}`);
     const [row] = await res.json();
     if (!row?.family_id) throw new AuthError('unknown', 'no family');
     return row.family_id;
+  }
+
+  // Is the parent still in this device's family? Notes it in meta 'sync' (leftAt) when not,
+  // and clears it when they are back. Resolves true when this device may sync.
+  async function stillInFamily() {
+    const st = await auth.state();
+    const familyId = await familyOf(st.userId);
+    const cfg = await config();
+    const inIt = familyId === cfg.familyId;
+    if (inIt === !cfg.leftAt) return inIt;
+    await db.tx(['meta'], 'readwrite', async a => {
+      const now = (await a.get('meta', 'sync'))?.value;
+      if (!now || now.userId !== st.userId) return;
+      const rest = { ...now };
+      delete rest.leftAt;
+      await a.put('meta', { id: 'sync', value: inIt ? rest : { ...rest, leftAt: new Date().toISOString() } });
+    });
+    changed();
+    return inIt;
   }
 
   // Queue an explorer with everything of theirs that is sent (inside a transaction a).
@@ -268,16 +294,24 @@ export function createSync({ db = defaultDb, auth = defaultAuth, locks = globalT
   // setRole), then this device forgets the family's explorers, with their packs, cards,
   // badges, quiz scores and Field Notes (removeFiles(ids) for the page files), and signs
   // out. Explorers kept on this device only stay. Deleting here sends nothing: the family
-  // account keeps everything. Resolves with null, or why not (as setRole).
+  // account keeps everything. Resolves with null, or why not (as setRole). No longer in the
+  // family ('removed'): nothing can be saved any more, so nothing waits for it; whatever
+  // hadn't gone up is dropped with the rest.
   async function removeFamily(removeFiles = async () => {}) {
-    if (await stage() !== 'on') return 'not-set-up';
-    await run();
-    if (last.problem) return last.problem === 'offline' ? 'offline' : 'server';
+    let where = await stage();
+    if (where === 'on') {
+      await run();
+      where = await stage();
+      if (where === 'on' && last.problem) return last.problem === 'offline' ? 'offline' : 'server';
+    }
+    if (where !== 'on' && where !== 'removed') return 'not-set-up';
+    const gone = where === 'removed';
     const owned = ['packs', 'collection', 'badges', 'quiz', 'notes', 'notefiles'];
     const removed = await withLock(() => db.tx(['meta', 'outbox', 'profiles', ...owned], 'readwrite', async a => {
       const outbox = await a.all('outbox');
-      if (outbox.some(e => e.error)) return 'held';
-      if (outbox.length) return 'waiting';
+      if (gone) for (const e of outbox) await a.remove('outbox', e.id);
+      else if (outbox.some(e => e.error)) return 'held';
+      else if (outbox.length) return 'waiting';
       const cfg = (await a.get('meta', 'sync')).value;
       const ids = (await a.all('profiles')).map(p => p.id).filter(id => !cfg.localOnly.includes(id));
       for (const id of ids) {
@@ -442,8 +476,10 @@ export function createSync({ db = defaultDb, auth = defaultAuth, locks = globalT
 
   // ---------- Running ----------
 
-  // false when there was nothing it may do (not signed in, not set up, other account).
+  // false when there was nothing it may do (not signed in, not set up, other account, no
+  // longer in the family).
   const runOnce = async () => {
+    if (!['on', 'removed'].includes(await stage()) || !(await stillInFamily())) return false;
     if (!(await pushOnce())) return false;
     await pullOnce();
     return true;

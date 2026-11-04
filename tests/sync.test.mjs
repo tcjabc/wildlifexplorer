@@ -48,10 +48,10 @@ test('before the first choice nothing is sent, and the explorers on offer are th
 
 test('first sign-in: the ticked explorers go up with their progress, profiles first, allow-listed columns only', async () => {
   await sync.setUp([ADA, BEN]); // Dan unticked
-  assert.equal(server.calls[0].table, 'family_members');
-  const tables = server.calls.slice(1).map(c => c.table);
+  assert.ok(server.lookups.length >= 1 && server.lookups.every(l => l.userId === 'user-1'));
+  const tables = server.calls.map(c => c.table);
   assert.deepEqual(tables, ['profiles', 'packs', 'collection', 'badges']);
-  for (const c of server.calls.slice(1)) {
+  for (const c of server.calls) {
     assert.equal(c.search, `?on_conflict=${{ profiles: 'id', packs: 'profile_id,epoch,drop_id', collection: 'profile_id,epoch,card_id', badges: 'profile_id,epoch,badge_id' }[c.table]}`);
     assert.equal(c.prefer, 'resolution=merge-duplicates,return=minimal');
     for (const row of c.body) assert.deepEqual(Object.keys(row).sort(), [...COLUMNS[c.table]].sort(), c.table);

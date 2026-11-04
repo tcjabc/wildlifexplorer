@@ -54,8 +54,10 @@ const reply = (status, body) => ({ status, json: async () => body, text: async (
 
 export function createServer() {
   const server = {
-    calls: [], // upserts and the family lookup
+    calls: [], // upserts
     pulls: [], // GETs of the synced tables
+    lookups: [], // family lookups (one per run, and one when setting up)
+    familyOf: () => FAMILY, // the family a user is in now (tests change it: removed, left)
     rows: { profiles: new Map(), packs: new Map(), collection: new Map(), badges: new Map() },
     offline: false, refuse: () => false, during: null, failPull: null,
     clock: us('2026-11-04T08:00:00.000Z'),
@@ -95,8 +97,9 @@ export function createServer() {
     const u = new URL(path, 'https://example.supabase.co');
     const table = u.pathname.split('/').pop();
     if (table === 'family_members') {
-      server.calls.push({ table, method: 'GET', search: u.search });
-      return reply(200, [{ family_id: FAMILY, role: 'owner' }]);
+      const userId = u.searchParams.get('user_id')?.replace(/^eq\./, '');
+      server.lookups.push({ userId, search: u.search });
+      return reply(200, [{ family_id: server.familyOf(userId), role: 'owner' }]);
     }
     if ((init.method ?? 'GET') === 'GET') {
       server.pulls.push({ table, search: u.search });
