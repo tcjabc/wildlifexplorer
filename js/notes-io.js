@@ -2,10 +2,13 @@
 // (shared with the Web Share API where the device can, otherwise downloaded), restoring a
 // backup (merged: pages already in the notebook are left alone), and, where the browser
 // can pick a folder (Chrome, Edge, Android; not iPad Safari), "also save to a folder".
+// Manifest version 2 lists each page's animal tags; version 1 backups (from before tags)
+// still restore, their pages tagged with what they were linked to (js/notes-model.js).
 import { state } from './store.js';
 import * as notes from './notes-store.js';
 import { PAGE_W, PAGE_H } from './notes-store.js';
 import { renderPage } from './notes-render.js';
+import { normalisePage } from './notes-model.js';
 import { makeZip, readZip } from './zip.js';
 import { shareFile } from './dom.js';
 
@@ -32,7 +35,7 @@ async function backupFile() {
   for (const rec of state.notes) {
     const page = await notes.loadPage(rec.pageId);
     if (!page) continue;
-    pages.push({ id: page.id, createdAt: rec.createdAt, cardIds: rec.cardIds });
+    pages.push({ id: page.id, createdAt: rec.createdAt, editedAt: rec.editedAt, tags: rec.tags });
     files.push({ name: `pages/${page.id}.json`, data: JSON.stringify(page) });
     for (const it of page.items) {
       if (it.t !== 'p' || photos.has(it.id)) continue;
@@ -42,7 +45,7 @@ async function backupFile() {
   }
   files.unshift({
     name: 'manifest.json',
-    data: JSON.stringify({ format: FORMAT, version: 1, exportedAt: new Date().toISOString(), profile: state.profile.name, pages }, null, 2),
+    data: JSON.stringify({ format: FORMAT, version: 2, exportedAt: new Date().toISOString(), profile: state.profile.name, pages }, null, 2),
   });
   return new File([await makeZip(files)], `field-notes-${safeName(state.profile.name)}-${today()}.zip`, { type: 'application/zip' });
 }
@@ -59,11 +62,15 @@ export async function saveToFolder() {
   await w.close();
 }
 
-// A page from a backup, checked before it is kept: known item types only.
-function cleanPage(page) {
+// A page from a backup, checked before it is kept: known item types only, and tags (from the
+// page, the manifest, or for a version 1 backup what the page was linked to).
+const strings = v => (Array.isArray(v) ? v.filter(s => typeof s === 'string' && s.length <= 64) : undefined);
+export function cleanPage(page, entry = {}) {
   if (!page || !ID.test(page.id) || !Array.isArray(page.items)) return null;
   const items = page.items.filter(it => ['s', 'x', 'm', 'f', 'p'].includes(it?.t) && (it.t !== 'p' || ID.test(it.id)));
-  return { ...page, items, links: Array.isArray(page.links) ? page.links : [] };
+  const links = strings(page.links) ?? [];
+  return normalisePage({ ...page, items, links, tags: strings(page.tags) },
+    { tags: strings(entry.tags), cardIds: strings(entry.cardIds), editedAt: entry.editedAt });
 }
 
 // Returns how many pages were added.
@@ -77,7 +84,7 @@ export async function importBackup(file) {
   let added = 0;
   for (const p of manifest.pages) {
     if (!ID.test(p?.id ?? '') || have.has(p.id)) continue; // merge: pages already here stay as they are
-    const page = cleanPage(JSON.parse(text(`pages/${p.id}.json`) ?? 'null'));
+    const page = cleanPage(JSON.parse(text(`pages/${p.id}.json`) ?? 'null'), p);
     if (!page) continue;
     for (const it of page.items) {
       if (it.t !== 'p' || await notes.hasPhoto(it.id)) continue;

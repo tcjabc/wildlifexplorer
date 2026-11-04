@@ -491,8 +491,9 @@ a photo is a derivative of it: give it the photo's author and licence, add
 ## Field Notes
 
 One notebook per profile (📓 in the nav, or beside every card). Code: `js/notebook.js` (the UI),
-`js/notes-render.js` (drawing a page), `js/notes-store.js` (storage), `js/notes-io.js` (backup),
-`js/zip.js`, styles in `css/notes.css`.
+`js/notes-render.js` (drawing a page), `js/notes-model.js` (tags, contents, migration; pure, tested in
+`tests/notes-model.test.mjs`), `js/notes-store.js` (storage), `js/notes-io.js` (backup), `js/zip.js`,
+styles in `css/notes.css`.
 
 - **Beside a card**: the notebook is always there, in one of two states. Collapsed, it is a kraft
   spine with an elastic band in the 60 px strip at the right (on phones, a 📓 tab at the bottom
@@ -508,9 +509,19 @@ One notebook per profile (📓 in the nav, or beside every card). Code: `js/note
   down when it is taller: with the wheel, two fingers, one finger on the kraft margin, or one
   finger on the page in *Pen only*. A slim indicator on its right edge shows there is more, and
   the first time each page opens it dips down a little and back (not with reduced motion).
-- **Links**: a page made or drawn on beside a card links to that card; a stamp links its animal.
-  The badge on the card's binder tile shows how many pages link to it. New pages get
-  the date, the animal's name and an "Observed" stamp in the profile's language.
+- **Animal tags**: a page has zero or more animals, shown as chips under its OBSERVED stamp
+  (✕ removes one, "＋" adds an animal this explorer has collected). Placing a stamp adds its animal;
+  erasing the stamp leaves the tag. The header's title is the first animal's name ("+ N more" when
+  there are several); a page with no animals is a free page (隨手記). Tag changes are undoable.
+  The badge on a card's binder tile counts that animal's pages.
+- **Opening**: with a card open, the notebook steps through that animal's pages (oldest first),
+  starting on the one edited last; "＋" adds a page tagged with it. An animal with no pages gets a
+  new page tagged with it, saved only once something goes on it (flicking through cards never makes
+  empty pages, or duplicates). The Field Notes page in the menu, and "All pages", show the
+  **contents**: binder groups with the animals that have pages (page count, a thumbnail of the
+  latest), each page under every animal it is tagged with ("also in" the others), then the free
+  pages and "＋ New free page". Pages never move; the contents is a view of their tags. From a card's
+  notebook, "‹ <animal>" goes back to it.
 - **Tools**: pencil in 8 colours and two sizes, eraser (whole marks), text, stamps (collected
   cards' silhouettes, or the group emoji), footprint roller (cat paw, hoof, bird, bear), move
   (drag, the corner handles or a two-finger pinch to resize and turn; ✕ to remove), photos, undo
@@ -526,9 +537,14 @@ One notebook per profile (📓 in the nav, or beside every card). Code: `js/note
   `photos/*.jpg`) and shares or downloads it; *Restore from a backup* adds pages that aren't there
   yet and never overwrites; *Save this page as a picture* makes a PNG. Where the browser supports
   it (not Safari), *Also save to a folder* writes the same files into a folder you pick.
-- **Page file** (`version: 1`): `paper` (`dots`/`grid`), `header` (`date`, `cardId`), `links`, and
+- **Page file** (`version: 2`): `paper` (`dots`/`grid`), `header` (`date`), `tags` (card ids, in
+  order), `createdAt`, `editedAt` (content or tags last changed), and
   `items` in page units (1000 × 1400): `s` pencil (`p` = x, y, pressure…), `x` text, `m` stamp,
-  `f` footprints, `p` photo (`id` of a file in `photos/`).
+  `f` footprints, `p` photo (`id` of a file in `photos/`). Version 1 pages (`header.cardId`, `links`, no
+  tags) are tagged with what they were linked to (header card, cards drawn next to, stamped animals)
+  when they load; their index records the same way, once. Backups list each page's `tags`
+  (manifest `version: 2`); version 1 backups still restore. Field Notes never sync: `notes` and
+  `notefiles` are not in `SYNCED` (`tests/notes-store.test.mjs` checks the outbox stays empty).
 
 ## Language and read-aloud
 

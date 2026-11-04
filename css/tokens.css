@@ -231,6 +231,12 @@
   --nb-panel-share: 0.5; /* the expanded notebook's share of the stage width (PANEL_SHARE) */
   --nb-page-margin: 16px; /* kraft around the page in the panel (a finger there scrolls it) */
   --nb-scroll-w: 4px;   /* the page's scroll indicator */
+  --nb-thumb-w: 72px;   /* a page in the contents (the latest page of an animal) */
+  --nb-thumb-w-sm: 40px; /* a page row in the contents */
+  /* The animal tags on a page, under the OBSERVED stamp (in page units: 1000 × 1400). */
+  --nb-tags-top: 12.6%;  /* just below the header line (y 165 of 1400) */
+  --nb-tags-side: 6%;    /* the header's margin (60 of 1000) */
+  --nb-tags-w: 56%;
   --map-marker: 8px;    /* range marker on the little world map */
   --gpin: 52px;         /* photo pins on the Globe */
   --gsheet-pic: min(38dvh, 320px); /* photo in the Globe card sheet */

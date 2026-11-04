@@ -2,11 +2,15 @@
 //   OPFS (the browser's private file system): notes/<profile>/pages/<page>.json and
 //   notes/<profile>/photos/<photo>.jpg. Where OPFS can't write files (older Safari, some
 //   private modes) the same files go into IndexedDB ("notefiles") instead.
-//   IndexedDB "notes": one small index record per page (which cards it is linked to,
-//   timestamps), so the binder can show a card's notes without opening every page.
-// Index records carry createdAt / updatedAt / deletedAt like every other record, for sync.
+//   IndexedDB "notes": one small index record per page (its animal tags, timestamps), so the
+//   binder, a card's notebook and the contents never open every page. Device-only: "notes"
+//   and "notefiles" are not in db.js SYNCED, so nothing here ever reaches the outbox.
+// Index records: { id, profileId, pageId, tags, createdAt, editedAt, updatedAt, deletedAt }.
+// editedAt changes when the page's content or tags change; updatedAt whenever it is written.
+// Pages and records from before tags are migrated as they load (js/notes-model.js).
 import * as db from './db.js';
 import { state } from './store.js';
+import { normalisePage, migrateRecord, pagesOf, PAGE_VERSION } from './notes-model.js';
 
 const nowIso = () => new Date().toISOString();
 export const PAGE_W = 1000;
@@ -75,29 +79,32 @@ export async function removeFiles(pids) {
 
 // ---------- the index ----------
 
-// The active profile's pages, oldest first (the notebook's order).
+// The active profile's pages, oldest first. Records from before tags get theirs here (what
+// the page was linked to: its header card, cards it was drawn next to, stamped animals) and
+// are written back once; a migrated record is left alone, so an interrupted pass just
+// carries on next time.
 export async function loadIndex() {
   const pid = state.profile?.id;
   if (!pid) { state.notes = []; return []; }
-  state.notes = (await db.all('notes', pid)).filter(r => !r.deletedAt).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  const recs = await db.all('notes', pid);
+  for (let i = 0; i < recs.length; i++) {
+    const next = migrateRecord(recs[i]);
+    if (next) { await db.put('notes', next); recs[i] = next; }
+  }
+  state.notes = recs.filter(r => !r.deletedAt).sort((a, b) => a.createdAt.localeCompare(b.createdAt));
   return state.notes;
 }
 
-export const pagesFor = cardId => state.notes.filter(r => r.cardIds.includes(cardId));
+export const pagesFor = cardId => pagesOf(state.notes, cardId);
 export const notesCount = cardId => pagesFor(cardId).length;
-
-// The cards a page is linked to: the one in its header, ones it was opened next to, and
-// every animal stamped on it.
-export function cardIdsOf(page) {
-  return [...new Set([page.header?.cardId, ...(page.links ?? []), ...page.items.filter(i => i.t === 'm').map(i => i.card)].filter(Boolean))];
-}
 
 async function writeIndex(page, existing) {
   const pid = state.profile.id;
   const at = nowIso();
   const rec = {
-    id: `${pid}:${page.id}`, profileId: pid, pageId: page.id, cardIds: cardIdsOf(page),
-    createdAt: existing?.createdAt ?? page.createdAt ?? at, updatedAt: at, deletedAt: null,
+    id: `${pid}:${page.id}`, profileId: pid, pageId: page.id, tags: [...(page.tags ?? [])],
+    createdAt: existing?.createdAt ?? page.createdAt ?? at, editedAt: page.editedAt ?? existing?.editedAt ?? at,
+    updatedAt: at, deletedAt: null,
   };
   await db.put('notes', rec);
   state.notes = [...state.notes.filter(r => r.pageId !== page.id), rec].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
@@ -106,24 +113,31 @@ async function writeIndex(page, existing) {
 
 // ---------- pages ----------
 
-// A new page, auto-stamped: today's date, the animal it is about (if any), "Observed".
-export async function createPage({ cardId = null } = {}) {
+// A new page, not saved yet: today's date, its animal tags (none: a free page), "Observed".
+export function blankPage({ tags = [] } = {}) {
   const at = nowIso();
-  const page = {
-    id: db.newId(), version: 1, w: PAGE_W, h: PAGE_H, paper: 'dots',
-    header: { date: at, cardId }, links: [], items: [], createdAt: at,
+  return {
+    id: db.newId(), version: PAGE_VERSION, w: PAGE_W, h: PAGE_H, paper: 'dots',
+    header: { date: at }, tags: [...tags], items: [], createdAt: at, editedAt: at,
   };
+}
+
+// A new page, saved.
+export async function createPage({ tags = [] } = {}) {
+  const page = blankPage({ tags });
   await savePage(page);
   return page;
 }
 
 export async function loadPage(pageId) {
   const blob = await getFile(state.profile.id, `pages/${pageId}.json`);
-  return blob ? JSON.parse(await blob.text()) : null;
+  return blob ? normalisePage(JSON.parse(await blob.text()), state.notes.find(r => r.pageId === pageId)) : null;
 }
 
-export async function savePage(page) {
+// edited: the content or tags changed (the default), so editedAt moves on.
+export async function savePage(page, { edited = true } = {}) {
   const pid = state.profile.id;
+  if (edited) page.editedAt = nowIso();
   await putFile(pid, `pages/${page.id}.json`, new Blob([JSON.stringify(page)], { type: 'application/json' }));
   return writeIndex(page, state.notes.find(r => r.pageId === page.id));
 }

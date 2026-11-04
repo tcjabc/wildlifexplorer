@@ -8,10 +8,16 @@
 // (palm rejection); the toggle in the toolbar switches back at any time. Remembered per
 // profile. While a pen is touching the page, other touches never draw.
 //
-// notebook({ cardId, beside, onMaximise, onClose }):
-//   cardId: show only that animal's pages (with "All pages" one tap away)
-//   beside: the notebook is open next to that card, so pages drawn on link to it. The page
-//           then fills the panel's width and scrolls up and down when it is taller
+// Pages carry animal tags (js/notes-model.js): chips under the OBSERVED stamp, "＋" to add a
+// collected animal, ✕ to remove one; a stamp adds its animal's tag. A page with no tags is a
+// free page (隨手記).
+//
+// notebook({ cardId, beside, lead, onMaximise, onClose }):
+//   cardId: open on that animal's pages (its most recently edited one; a draft page tagged
+//           with it when it has none, saved at its first mark). "All pages" shows the
+//           contents, and from there "‹ <animal>" comes back. Without a card: the contents.
+//   beside: the notebook is open next to a card. The page then fills the panel's width and
+//           scrolls up and down when it is taller
 //   lead: an element for the start of the bar in place of the "Field Notes" title (beside a
 //         card: the panel's "Collapse ›", so the panel has one bar)
 import { h, mount, reducedMotion } from './dom.js';
@@ -19,6 +25,7 @@ import { bi, t, tx, label, plain, getMode, dateText } from './i18n.js';
 import { state, updateProfile, isCollected, groupById } from './store.js';
 import * as notes from './notes-store.js';
 import { PAGE_W, PAGE_H } from './notes-store.js';
+import { titleOf, withTag, withoutTag, tagsAfterStamp, freePages, openFor, contents as contentsOf } from './notes-model.js';
 import { renderPage, renderItem, drawStroke, hitItem, boundsOf, PENCILS, pencilColour } from './notes-render.js';
 import { exportPageImage, exportAll, importBackup, saveToFolder, folderSupported } from './notes-io.js';
 import { haptic, clamp } from './gesture.js';
@@ -40,8 +47,11 @@ const inLang = pair => {
 };
 
 export function notebook({ cardId = null, beside = false, lead = null, onMaximise = null, onClose = null } = {}) {
+  // view: 'pages' (one page at a time) or 'contents'. scope: whose pages the arrows step
+  // through: { kind: 'animal', id } or { kind: 'free' }. draft: the page isn't saved yet.
   const nb = {
-    filter: cardId, showAll: !cardId, ids: [], pos: 0, page: null,
+    home: cardId, view: cardId ? 'pages' : 'contents', scope: cardId ? { kind: 'animal', id: cardId } : null, draft: false,
+    ids: [], pos: 0, page: null,
     tool: 'pencil', colour: 'graphite', size: 'thin', foot: 'paw', stampCard: null,
     undo: [], redo: [], selected: -1, saveTimer: 0,
     assets: { photos: new Map(), stamps: new Map() },
@@ -51,20 +61,22 @@ export function notebook({ cardId = null, beside = false, lead = null, onMaximis
   // ---------- DOM ----------
   const base = h('canvas', { class: 'nb__base' });
   const live = h('canvas', { class: 'nb__live' });
-  const overlay = h('div', { class: 'nb__overlay' });
+  // The page's animal tags, under the OBSERVED stamp (positioned in page units, css/notes.css).
+  const tagsBox = h('div', { class: 'nb__tags', role: 'group', 'aria-label': label('notes.tags') });
+  // The selection handles and the text box being typed go on a layer of their own.
+  const selLayer = h('div', { class: 'nb__sel-layer' });
+  const overlay = h('div', { class: 'nb__overlay' }, selLayer, tagsBox);
   const sheet = h('div', { class: 'nb__sheet' }, base, live, overlay);
-  const emptyText = h('p');
-  const empty = h('div', { class: 'nb__empty', hidden: true },
-    emptyText,
-    h('button', { class: 'btn btn--accent btn--big', type: 'button', onclick: () => newPage() }, h('span', { 'aria-hidden': 'true' }, '＋ '), tx('notes.newPage')));
-  const desk = h('div', { class: 'nb__desk', 'data-scroll': '' }, sheet, empty);
+  const desk = h('div', { class: 'nb__desk', 'data-scroll': '' }, sheet);
+  const contentsBox = h('div', { class: 'nb__contents', 'data-scroll': '', hidden: true });
   // Beside a card the page can be taller than the panel: a slim indicator on its right edge
   // shows how much more there is, and where.
   const thumb = h('span', { class: 'nb__thumb' });
   const scrollbar = h('div', { class: 'nb__scrollbar', 'aria-hidden': 'true', hidden: true }, thumb);
   const deskWrap = h('div', { class: 'nb__deskwrap' }, desk, scrollbar);
   const counter = h('span', { class: 'nb__count' });
-  const filterChip = h('button', { class: 'nb__filter', type: 'button', onclick: () => toggleFilter() });
+  // "All pages" (to the contents), or in the contents of a card's notebook "‹ <animal>".
+  const filterChip = h('button', { class: 'nb__filter', type: 'button', onclick: () => (nb.view === 'pages' ? openContents() : openHome()) });
   const prev = h('button', { class: 'btn btn--icon nb__nav', type: 'button', 'aria-label': label('notes.prev'), onclick: () => turn(-1) }, '‹');
   const next = h('button', { class: 'btn btn--icon nb__nav', type: 'button', 'aria-label': label('notes.next'), onclick: () => turn(1) }, '›');
   const fileInput = h('input', { type: 'file', accept: 'image/*', hidden: true, onchange: e => addPhoto(e.target.files?.[0]) });
@@ -83,7 +95,7 @@ export function notebook({ cardId = null, beside = false, lead = null, onMaximis
     h('span', { class: 'nb__chipwrap' }, filterChip),
     h('span', { class: 'nb__pages' },
       prev, counter, next,
-      h('button', { class: 'btn btn--icon', type: 'button', 'aria-label': label('notes.newPage'), onclick: () => newPage() }, '＋'),
+      h('button', { class: 'btn btn--icon nb__new', type: 'button', 'aria-label': label('notes.newPage'), onclick: () => newPage() }, '＋'),
       h('button', { class: 'btn btn--icon', type: 'button', 'aria-label': label('notes.menu'), onclick: () => openMenu() }, '⋯'),
       onMaximise && h('button', { class: 'btn btn--icon nb__max', type: 'button', 'aria-label': label('notes.maximise'), onclick: () => onMaximise('toggle') }, '⤢'),
       onClose && h('button', { class: 'btn btn--icon', type: 'button', 'aria-label': label('notes.close'), onclick: () => onClose() }, '✕')));
@@ -120,7 +132,7 @@ export function notebook({ cardId = null, beside = false, lead = null, onMaximis
     h('span', { class: 'nb__sep' }), undoBtn, redoBtn, h('span', { class: 'spacer' }), inputBtn);
 
   const el = h('section', { class: ['nb', beside && 'nb--beside'], 'aria-label': label('notes.title') },
-    bar, tools, colourPick.box, footPick.box, deskWrap, fileInput, importInput, menuSheet, pickSheet);
+    bar, tools, colourPick.box, footPick.box, deskWrap, contentsBox, fileInput, importInput, menuSheet, pickSheet);
 
   // ---------- toolbar layout ----------
   // One row if all of it fits (measured at its widest, with the roller's footprint button),
@@ -225,9 +237,13 @@ export function notebook({ cardId = null, beside = false, lead = null, onMaximis
     nudge = requestAnimationFrame(step);
   }
   const ctxOf = c => { const x = c.getContext('2d'); x.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0); return x; };
+  // The title: the first tag's name, "+ N more" when there are several; none on a free page.
   function headerText(page) {
-    const card = state.byId.get(page.header.cardId);
-    return { date: inLang(dateText(page.header.date, { year: 'numeric', month: 'long', day: 'numeric' })), name: inLang(card?.name), stamp: inLang(t('notes.observed')) };
+    const title = titleOf(page.tags ?? [], known);
+    const card = title && state.byId.get(title.first);
+    const more = title?.more ? t('notes.moreTags', { n: title.more }) : null;
+    const name = card && (more ? { en: `${card.name.en} ${more.en}`, zh: `${card.name.zh || card.name.en} ${more.zh}` } : card.name);
+    return { date: inLang(dateText(page.header.date, { year: 'numeric', month: 'long', day: 'numeric' })), name: inLang(name), stamp: inLang(t('notes.observed')) };
   }
   function redraw() {
     if (!nb.page) return;
@@ -260,29 +276,42 @@ export function notebook({ cardId = null, beside = false, lead = null, onMaximis
   }
 
   // ---------- pages ----------
+  const known = id => state.byId.has(id);
+  // The pages the arrows step through: one animal's (oldest first), or the free pages.
   function listIds() {
-    const recs = nb.showAll || !nb.filter ? state.notes : notes.pagesFor(nb.filter);
+    if (!nb.scope) return [];
+    const recs = nb.scope.kind === 'animal' ? notes.pagesFor(nb.scope.id) : freePages(state.notes, known);
     return recs.map(r => r.pageId);
+  }
+  function setView(view) {
+    nb.view = view;
+    el.dataset.view = view;
+    contentsBox.hidden = view !== 'contents';
+    if (view === 'contents') closePicker();
   }
   async function show(pos, dir = 0) {
     await flushSave();
     nb.ids = listIds();
-    empty.hidden = nb.ids.length > 0;
-    sheet.hidden = !nb.ids.length;
+    if (!nb.ids.length && nb.scope?.kind !== 'animal') { await openContents(); return; }
+    setView('pages');
     if (!nb.ids.length) {
-      const card = !nb.showAll && state.byId.get(nb.filter);
-      mount(emptyText, card ? tx('notes.emptyCard', { name: card.name }) : tx('notes.empty'));
-      nb.page = null; drawBar(); return;
-    }
-    nb.pos = Math.max(0, Math.min(pos, nb.ids.length - 1));
-    const id = nb.ids[nb.pos];
-    nb.page = await notes.loadPage(id);
-    if (!nb.page) {
-      // The file is missing (e.g. storage was cleared): show a blank page in its place.
-      const rec = state.notes.find(r => r.pageId === id);
-      nb.page = { id, version: 1, w: PAGE_W, h: PAGE_H, paper: 'dots', header: { date: rec?.createdAt ?? new Date().toISOString(), cardId: rec?.cardIds[0] ?? null }, links: [], items: [], createdAt: rec?.createdAt };
+      // This animal has no pages: a new one tagged with it, saved at its first mark.
+      nb.pos = 0;
+      nb.draft = true;
+      nb.page = notes.blankPage({ tags: [nb.scope.id] });
+    } else {
+      nb.draft = false;
+      nb.pos = Math.max(0, Math.min(pos, nb.ids.length - 1));
+      const id = nb.ids[nb.pos];
+      nb.page = await notes.loadPage(id);
+      if (!nb.page) {
+        // The file is missing (e.g. storage was cleared): show a blank page in its place.
+        const rec = state.notes.find(r => r.pageId === id);
+        nb.page = { ...notes.blankPage({ tags: rec?.tags ?? [] }), id, createdAt: rec?.createdAt, header: { date: rec?.createdAt ?? new Date().toISOString() } };
+      }
     }
     nb.undo = []; nb.redo = []; nb.selected = -1;
+    drawTags();
     loadAssets(nb.page);
     drawBar();
     redraw();
@@ -294,21 +323,37 @@ export function notebook({ cardId = null, beside = false, lead = null, onMaximis
       sheet.animate([{ transform: `translateX(${dir * 40}px)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 220, easing: 'ease-out' });
     }
   }
-  const turn = d => { if (nb.pos + d >= 0 && nb.pos + d < nb.ids.length) { haptic(8); show(nb.pos + d, d); } };
-  async function newPage() {
-    const page = await notes.createPage({ cardId: nb.filter });
+  const turn = d => { if (!nb.draft && nb.pos + d >= 0 && nb.pos + d < nb.ids.length) { haptic(8); show(nb.pos + d, d); } };
+  // ＋: a new page tagged with the animal whose pages these are (on the free pages: a free page).
+  async function newPage(scope = nb.scope) {
+    await flushSave();
+    if (nb.draft && scope === nb.scope) return; // the empty new page is already showing
+    nb.scope = scope ?? { kind: 'free' };
+    const page = await notes.createPage({ tags: nb.scope.kind === 'animal' ? [nb.scope.id] : [] });
     nb.ids = listIds();
     await show(nb.ids.indexOf(page.id), 1);
   }
-  function toggleFilter() { nb.showAll = !nb.showAll; show(nb.showAll ? Math.max(0, state.notes.findIndex(r => r.pageId === nb.page?.id)) : 0); }
+  // A card's notebook: its animal's most recently edited page (or the draft).
+  async function openHome() {
+    nb.scope = { kind: 'animal', id: nb.home };
+    await show(openFor(state.notes, nb.home).pos);
+  }
+  // A page from the contents: the arrows then step through the list it was under.
+  async function openPage(scope, pageId) {
+    await flushSave();
+    nb.scope = scope;
+    nb.ids = listIds();
+    await show(Math.max(0, nb.ids.indexOf(pageId)));
+  }
 
   function drawBar() {
-    counter.textContent = nb.ids.length ? `${nb.pos + 1} / ${nb.ids.length}` : '';
-    prev.disabled = nb.pos <= 0;
-    next.disabled = nb.pos >= nb.ids.length - 1;
-    const card = state.byId.get(nb.filter);
-    filterChip.hidden = !card;
-    if (card) mount(filterChip, nb.showAll ? tx('notes.onlyCard', { name: card.name }) : tx('notes.allPages'));
+    const pages = nb.view === 'pages';
+    counter.textContent = !pages ? '' : nb.draft ? '1 / 1' : nb.ids.length ? `${nb.pos + 1} / ${nb.ids.length}` : '';
+    prev.disabled = !pages || nb.draft || nb.pos <= 0;
+    next.disabled = !pages || nb.draft || nb.pos >= nb.ids.length - 1;
+    const home = nb.home && state.byId.get(nb.home);
+    filterChip.hidden = !pages && !home;
+    mount(filterChip, pages ? tx('notes.allPages') : home ? tx('notes.backTo', { name: home.name }) : null);
   }
   function drawTools() {
     toolBtns.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tool === nb.tool)));
@@ -339,7 +384,8 @@ export function notebook({ cardId = null, beside = false, lead = null, onMaximis
   }
 
   // ---------- history ----------
-  // Ops: add { index, item }, remove { entries: [{ index, item }] }, change { index, before, after }.
+  // Ops: add { index, item }, remove { entries: [{ index, item }] }, change { index, before, after },
+  // tags (only the tags). Any op may also carry tags: { before, after } (a stamp adds its animal).
   function apply(op, back) {
     const items = nb.page.items;
     if (op.kind === 'add') { if (back) items.splice(op.index, 1); else items.splice(op.index, 0, op.item); }
@@ -347,6 +393,7 @@ export function notebook({ cardId = null, beside = false, lead = null, onMaximis
       if (back) [...op.entries].sort((a, b) => a.index - b.index).forEach(e => items.splice(e.index, 0, e.item));
       else [...op.entries].sort((a, b) => b.index - a.index).forEach(e => items.splice(e.index, 1));
     } else if (op.kind === 'change') items[op.index] = structuredClone(back ? op.before : op.after);
+    if (op.tags) { nb.page.tags = [...(back ? op.tags.before : op.tags.after)]; nb.tagsChanged = true; }
   }
   function commit(op) {
     apply(op, false);
@@ -356,16 +403,15 @@ export function notebook({ cardId = null, beside = false, lead = null, onMaximis
   }
   function undo() { const op = nb.undo.pop(); if (!op) return; apply(op, true); nb.redo.push(op); touched(); }
   function redo() { const op = nb.redo.pop(); if (!op) return; apply(op, false); nb.undo.push(op); touched(); }
-  // After any change: link the page to the card it is open next to, redraw, save soon.
+  // After any change: redraw and save soon (a draft page is saved for the first time). A tag
+  // change is saved straight away, since it moves the page in or out of the list in view.
   function touched() {
-    if (beside && cardId && !(nb.page.links ?? []).includes(cardId) && nb.page.header.cardId !== cardId) {
-      nb.page.links = [...(nb.page.links ?? []), cardId];
-    }
     if (nb.selected >= nb.page.items.length) nb.selected = -1;
     nb.dirty = true;
     redraw();
     drawTools();
     clearTimeout(nb.saveTimer);
+    if (nb.tagsChanged) { nb.tagsChanged = false; drawTags(); afterTags(); return; }
     nb.saveTimer = setTimeout(() => flushSave(), 400);
   }
   async function flushSave() {
@@ -374,7 +420,39 @@ export function notebook({ cardId = null, beside = false, lead = null, onMaximis
     if (nb.page && nb.dirty) {
       nb.dirty = false;
       await notes.savePage(nb.page);
+      if (nb.draft) { nb.draft = false; nb.ids = listIds(); nb.pos = Math.max(0, nb.ids.indexOf(nb.page.id)); drawBar(); }
     }
+  }
+  // The page left the list in view (its animal's tag removed, a free page tagged): the arrows
+  // now step through the list it is in, its first animal's or the free pages.
+  async function afterTags() {
+    await flushSave();
+    const tags = (nb.page.tags ?? []).filter(known);
+    const inScope = nb.scope?.kind === 'animal' ? tags.includes(nb.scope.id) : !tags.length;
+    if (!inScope) nb.scope = tags.length ? { kind: 'animal', id: tags[0] } : { kind: 'free' };
+    nb.ids = listIds();
+    nb.pos = Math.max(0, nb.ids.indexOf(nb.page.id));
+    drawBar();
+  }
+  function setTags(after) {
+    const before = [...(nb.page.tags ?? [])];
+    if (after.length === before.length && after.every((id, i) => id === before[i])) return;
+    commit({ kind: 'tags', tags: { before, after } });
+  }
+
+  // ---------- tag chips ----------
+  // One chip per animal (its name and ✕), and "＋" for another collected animal.
+  function drawTags() {
+    if (!nb.page) { mount(tagsBox); return; }
+    const chips = (nb.page.tags ?? []).filter(known).map(id => {
+      const card = state.byId.get(id);
+      return h('span', { class: 'nb-tag' },
+        h('span', { class: 'nb-tag__name' }, bi(card.name)),
+        h('button', { class: 'nb-tag__x', type: 'button', 'aria-label': label('notes.removeTag', { name: card.name }), onclick: () => setTags(withoutTag(nb.page.tags, id)) },
+          h('span', { 'aria-hidden': 'true' }, '✕')));
+    });
+    mount(tagsBox, chips, h('button', { class: 'nb-tag nb-tag--add', type: 'button', 'aria-label': label('notes.addTag'), onclick: () => openTagPicker() },
+      h('span', { 'aria-hidden': 'true' }, '＋')));
   }
 
   // ---------- pointers ----------
@@ -572,7 +650,7 @@ export function notebook({ cardId = null, beside = false, lead = null, onMaximis
   }
   // The selection box, with a handle to resize, one to turn and a delete button.
   function drawSelection() {
-    overlay.replaceChildren();
+    selLayer.replaceChildren();
     if (nb.tool !== 'move' || nb.selected < 0 || !nb.page?.items[nb.selected]) return;
     const b = boundsOf(ctxOf(base), nb.page.items[nb.selected]);
     const box = h('div', { class: 'nb-sel' });
@@ -598,7 +676,7 @@ export function notebook({ cardId = null, beside = false, lead = null, onMaximis
       onclick: () => { const i = nb.selected; nb.selected = -1; commit({ kind: 'remove', entries: [{ index: i, item: nb.page.items[i] }] }); },
     }, '✕');
     box.append(handle('resize', 'nb-sel__resize', '⤡', 'notes.resize'), handle('rotate', 'nb-sel__rotate', '⟳', 'notes.rotate'), del);
-    overlay.append(box);
+    selLayer.append(box);
   }
 
   // ---------- text ----------
@@ -631,31 +709,128 @@ export function notebook({ cardId = null, beside = false, lead = null, onMaximis
       else if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); finish(true); }
     });
     area.addEventListener('blur', () => finish(true));
-    overlay.append(area);
+    selLayer.append(area);
     area.focus();
   }
 
-  // ---------- stamps ----------
-  function openStampPicker() {
-    const cards = state.cards.filter(isCollected);
+  // ---------- stamps and tags: picking a collected animal ----------
+  function pickAnimal({ icon, titleKey, emptyKey, cards, onPick }) {
     mount(pickSheet,
-      h('h2', { class: 'sheet__title' }, h('span', { 'aria-hidden': 'true' }, '🐾'), tx('notes.pickStamp')),
+      h('h2', { class: 'sheet__title' }, h('span', { 'aria-hidden': 'true' }, icon), tx(titleKey)),
       cards.length
         ? h('div', { class: 'nb-pick__grid' }, cards.map(card => h('button', {
           type: 'button', class: 'nb-pick__item', 'data-group': card.group,
-          onclick: () => { nb.stampCard = card.id; nb.tool = 'stamp'; drawTools(); pickSheet.close(); },
+          onclick: () => { pickSheet.close(); onPick(card); },
         },
         card.silhouette?.file ? h('img', { src: card.silhouette.file, alt: '' }) : h('span', { class: 'nb-pick__emoji', 'aria-hidden': 'true' }, groupById(card.group)?.emoji),
         bi(card.name))))
-        : h('p', { class: 'muted' }, tx('notes.noStamps')),
+        : h('p', { class: 'muted' }, tx(emptyKey)),
       h('div', { class: 'sheet__actions' }, h('button', { class: 'btn btn--soft', type: 'button', onclick: () => pickSheet.close() }, tx('card.close'))));
     pickSheet.showModal();
   }
+  function openStampPicker() {
+    pickAnimal({ icon: '🐾', titleKey: 'notes.pickStamp', emptyKey: 'notes.noStamps', cards: state.cards.filter(isCollected),
+      onPick: card => { nb.stampCard = card.id; nb.tool = 'stamp'; drawTools(); } });
+  }
+  // Only animals this explorer has collected, and not already on the page.
+  function openTagPicker() {
+    const tags = nb.page?.tags ?? [];
+    pickAnimal({ icon: '🏷️', titleKey: 'notes.pickTag', emptyKey: 'notes.noTags', cards: state.cards.filter(c => isCollected(c) && !tags.includes(c.id)),
+      onPick: card => setTags(withTag(nb.page.tags ?? [], card.id)) });
+  }
+  // A stamp also tags the page with its animal (once); erasing the stamp leaves the tag.
   function placeStamp(x, y) {
     if (!nb.stampCard) { openStampPicker(); return; }
     stampAsset(nb.stampCard);
     haptic(12);
-    commit({ kind: 'add', index: nb.page.items.length, item: { t: 'm', c: pencilColour(nb.colour), card: nb.stampCard, x, y, s: STAMP_SIZE, r: 0 } });
+    const before = [...(nb.page.tags ?? [])], after = tagsAfterStamp(before, nb.stampCard);
+    commit({
+      kind: 'add', index: nb.page.items.length, item: { t: 'm', c: pencilColour(nb.colour), card: nb.stampCard, x, y, s: STAMP_SIZE, r: 0 },
+      ...(after.length !== before.length && { tags: { before, after } }),
+    });
+  }
+
+  // ---------- contents ----------
+  // Binder groups with the animals that have pages (count, latest page), each page listed
+  // under every animal it is tagged with ("also in" the others); then the free pages.
+  async function openContents() {
+    await flushSave();
+    setView('contents');
+    nb.page = null;
+    nb.draft = false; // an untouched new page is simply dropped
+    mount(tagsBox);
+    drawBar();
+    drawContents();
+  }
+  const pages = n => tx(n === 1 ? 'notes.pageCount.one' : 'notes.pageCount.many', { n });
+  const shortDate = iso => bi(dateText(iso, { year: 'numeric', month: 'short', day: 'numeric' }));
+  const names = ids => {
+    const cards = ids.map(id => state.byId.get(id)).filter(Boolean);
+    return { en: cards.map(c => c.name.en).join(', '), zh: cards.map(c => c.name.zh || c.name.en).join('、') };
+  };
+  function drawContents() {
+    const toc = contentsOf(state.notes, id => state.byId.get(id) ?? null, state.groups);
+    const free = { kind: 'free' };
+    const pageRow = (rec, scope, alsoIn = []) => h('li', {},
+      h('button', { class: 'nb-toc__page', type: 'button', onclick: () => openPage(scope, rec.pageId) },
+        thumbFor(rec.pageId, 'nb-toc__thumb--small'),
+        h('span', { class: 'nb-toc__info' },
+          h('span', { class: 'nb-toc__date' }, shortDate(rec.createdAt)),
+          alsoIn.length ? h('span', { class: 'nb-toc__also' }, tx('notes.alsoIn', { names: names(alsoIn) })) : null)));
+    mount(contentsBox,
+      h('h2', { class: 'nb-toc__title' }, tx('notes.contents')),
+      !state.notes.length && h('p', { class: 'nb-toc__empty' }, tx('notes.empty')),
+      toc.groups.map(({ group, animals }) => h('section', { class: 'nb-toc__group', 'data-group': group.id },
+        h('h3', { class: 'nb-toc__heading' }, h('span', { 'aria-hidden': 'true' }, group.emoji), bi(group.name)),
+        animals.map(a => {
+          const scope = { kind: 'animal', id: a.cardId };
+          return h('div', { class: 'nb-toc__animal' },
+            h('button', { class: 'nb-toc__head', type: 'button', onclick: () => openPage(scope, a.latest.pageId) },
+              thumbFor(a.latest.pageId),
+              h('span', { class: 'nb-toc__name' }, bi(a.card.name)),
+              h('span', { class: 'nb-toc__count' }, pages(a.count))),
+            h('ul', { class: 'nb-toc__pages' }, a.pages.map(p => pageRow(p.rec, scope, p.alsoIn))));
+        }))),
+      h('section', { class: 'nb-toc__group nb-toc__group--free' },
+        h('h3', { class: 'nb-toc__heading' }, h('span', { 'aria-hidden': 'true' }, '📝'), tx('notes.freePages'),
+          toc.free.length ? h('span', { class: 'nb-toc__count' }, pages(toc.free.length)) : null),
+        toc.free.length ? h('ul', { class: 'nb-toc__pages' }, toc.free.map(r => pageRow(r, free))) : null,
+        h('button', { class: 'btn btn--accent nb-toc__new', type: 'button', onclick: () => newPage(free) },
+          h('span', { 'aria-hidden': 'true' }, '＋ '), tx('notes.newFreePage'))));
+    contentsBox.scrollTop = 0;
+  }
+
+  // Small pictures of pages, drawn from their data a few at a time and kept for this visit.
+  const thumbs = new Map(); // pageId -> Promise<HTMLCanvasElement | null>
+  let thumbQueue = Promise.resolve();
+  function thumbFor(pageId, cls = '') {
+    const canvas = h('canvas', { class: ['nb-toc__thumb', cls], 'aria-hidden': 'true' });
+    if (!thumbs.has(pageId)) thumbs.set(pageId, (thumbQueue = thumbQueue.then(() => drawThumb(pageId)).catch(() => null)));
+    thumbs.get(pageId).then(src => {
+      if (!src || !canvas.isConnected) return;
+      const r = canvas.getBoundingClientRect(), k = Math.min(2, window.devicePixelRatio || 1);
+      canvas.width = Math.max(1, Math.round(r.width * k)); canvas.height = Math.max(1, Math.round(r.height * k));
+      canvas.getContext('2d').drawImage(src, 0, 0, canvas.width, canvas.height);
+    });
+    return canvas;
+  }
+  async function drawThumb(pageId) {
+    const page = await notes.loadPage(pageId);
+    if (!page) return null;
+    for (const it of page.items) {
+      if (it.t === 'p' && !nb.assets.photos.get(it.id)) {
+        const blob = await notes.loadPhotoBlob(it.id).catch(() => null);
+        if (blob) nb.assets.photos.set(it.id, await createImageBitmap(blob).catch(() => null));
+      }
+      if (it.t === 'm') { const a = stampAsset(it.card); if (a.img && !a.img.complete) await a.img.decode().catch(() => {}); }
+    }
+    const k = 0.24; // 240 × 336: sharp enough for the largest thumbnail on a 2x screen
+    const c = document.createElement('canvas');
+    c.width = PAGE_W * k; c.height = PAGE_H * k;
+    const ctx = c.getContext('2d');
+    ctx.setTransform(k, 0, 0, k, 0, 0);
+    renderPage(ctx, page, { assets: nb.assets, headerText: headerText(page) });
+    return c;
   }
 
   // ---------- photos ----------
@@ -679,19 +854,20 @@ export function notebook({ cardId = null, beside = false, lead = null, onMaximis
 
   // ---------- menu: paper, export, import, delete ----------
   function openMenu() {
+    const onPage = nb.view === 'pages' && nb.page;
     const item = (icon, key, fn, cls = 'btn--soft') => h('button', { class: ['btn', cls], type: 'button', onclick: async () => { menuSheet.close(); await fn(); } },
       h('span', { 'aria-hidden': 'true' }, icon), tx(key));
     mount(menuSheet,
       h('h2', { class: 'sheet__title' }, h('span', { 'aria-hidden': 'true' }, '📓'), tx('notes.title')),
       h('div', { class: 'nb-menu__list' },
-        nb.page && item(nb.page.paper === 'grid' ? '⠿' : '▦', nb.page.paper === 'grid' ? 'notes.paperDots' : 'notes.paperGrid', async () => {
-          nb.page.paper = nb.page.paper === 'grid' ? 'dots' : 'grid'; await notes.savePage(nb.page); redraw();
+        onPage && item(nb.page.paper === 'grid' ? '⠿' : '▦', nb.page.paper === 'grid' ? 'notes.paperDots' : 'notes.paperGrid', async () => {
+          nb.page.paper = nb.page.paper === 'grid' ? 'dots' : 'grid'; nb.dirty = true; await flushSave(); redraw();
         }),
-        nb.page && item('🖼️', 'notes.exportPage', () => exportPageImage(nb.page, { assets: nb.assets, headerText: headerText(nb.page) }).catch(() => toast(tx('notes.exportFailed')))),
+        onPage && item('🖼️', 'notes.exportPage', () => exportPageImage(nb.page, { assets: nb.assets, headerText: headerText(nb.page) }).catch(() => toast(tx('notes.exportFailed')))),
         item('📦', 'notes.exportAll', async () => { await flushSave(); await exportAll().catch(() => toast(tx('notes.exportFailed'))); }),
         folderSupported() && item('📁', 'notes.toFolder', async () => { await flushSave(); await saveToFolder().catch(() => {}); }),
         item('📥', 'notes.import', () => importInput.click()),
-        nb.page && item('🗑️', 'notes.deletePage', async () => {
+        onPage && !nb.draft && item('🗑️', 'notes.deletePage', async () => {
           if (!window.confirm(label('notes.deleteConfirm'))) return;
           await notes.deletePage(nb.page.id);
           nb.page = null;
@@ -707,7 +883,7 @@ export function notebook({ cardId = null, beside = false, lead = null, onMaximis
     try {
       const n = await importBackup(file);
       toast(tx(n === 1 ? 'notes.imported.one' : 'notes.imported.many', { n }));
-      await show(nb.pos);
+      if (nb.view === 'contents') await openContents(); else await show(nb.pos);
     } catch (err) {
       console.error(err);
       toast(tx('notes.importFailed'));
@@ -767,8 +943,7 @@ export function notebook({ cardId = null, beside = false, lead = null, onMaximis
   queueMicrotask(async () => {
     await notes.loadIndex();
     // All pages: the newest. One animal's pages: the first (or "start a page" if none).
-    const start = nb.showAll ? Math.max(0, state.notes.length - 1) : 0;
-    await show(start);
+    if (nb.home) await openHome(); else await openContents();
     fit();
   });
 

@@ -7,7 +7,7 @@
 //   badges      { id, profileId, epoch, badgeId, … }
 //               (progress is kept per timeline epoch: "Start over" begins a new one)
 //   quiz        { id, profileId, kind, best }
-//   notes       { id, profileId, pageId, cardIds, … }  Field Notes pages (their content is in OPFS)
+//   notes       { id, profileId, pageId, tags, … }  Field Notes pages (their content is in OPFS)
 //   notefiles   { id, profileId, blob }      page files, where OPFS isn't available (notes-store.js)
 //   v3backup    { id, store, value }         collection and badges as version 3 kept them
 //   outbox      { id, store, key, rev }      records to send to the family account (cloud/sync.js)
