@@ -366,8 +366,11 @@ right page will appear) also opens it with a sideways drag, and the open spread 
 an 80 px margin around it. All of this stays below the top bar and out of the rightmost 60 px of
 the screen (the notebook spine); on narrow screens the zones shrink to fit. A drag that starts at
 an in-between angle waits a few more pixels before deciding its direction. Grown-ups in preview can
-see these areas: add `?debug=gestures` to the address (`?debug=off` to stop). Swipe sideways to open the card or close the open spread; swipe up to turn it over, and
-down to put it back in the binder (on the back, either way turns it back). A quarter of the way or
+see these areas: add `?debug=gestures` to the address (`?debug=off` to stop). On the front: sideways opens the card, up turns it over, down puts it back in the binder. On the
+back: down from the top of the Fact File turns it back to the front (otherwise a vertical drag
+scrolls). On the open spread: sideways closes it (vertical drags scroll the pages). Every gesture
+ends settled: it commits, springs back or dismisses, also when the pointer is cancelled, the
+capture is lost or the window loses focus. A quarter of the way or
 a quick flick is enough; less springs back, and a touch that hardly moves is a tap. On pages that
 scroll (the Fact File, Vital Statistics), a vertical drag scrolls first and only turns the card from
 the scroll's edge. The first time a closed card settles, its cover peeks open a little, once per card

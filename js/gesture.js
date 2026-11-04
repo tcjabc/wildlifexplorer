@@ -164,16 +164,31 @@ export function track(el, handlers, { slop = 8 } = {}) {
       return;
     }
     if (e.pointerId === start?.id) {
+      // A cancelled pointer (the browser took it over) springs back instead of committing.
+      if (e.type === 'pointercancel') { abandon(); return; }
       if (mode === 'pending') handlers.tap?.({ x: start.x, y: start.y });
       finishDrag();
     }
     if (pointers.size === 0 && mode === 'done-pinch') mode = null;
   };
 
+  // The gesture ends without a pointerup: the capture was lost, or the window lost focus
+  // (alt-tab, a dialog). handlers.cancel() must leave everything settled.
+  const abandon = () => {
+    if (mode === 'drag') handlers.cancel?.();
+    mode = null;
+    start = null;
+    pointers.clear();
+  };
+  const lost = e => { if (mode === 'drag' && e.pointerId === start?.id) abandon(); };
+  const blur = () => { if (mode === 'drag' || mode === 'pending') abandon(); };
+
   el.addEventListener('pointerdown', down);
   el.addEventListener('pointermove', move);
   el.addEventListener('pointerup', up);
   el.addEventListener('pointercancel', up);
+  el.addEventListener('lostpointercapture', lost);
+  window.addEventListener('blur', blur);
   // Stop the click that follows a real drag from also counting as a tap.
   el.addEventListener('click', e => { if (samples.length > 2 && dragged()) { e.stopPropagation(); e.preventDefault(); } }, true);
   const dragged = () => {
@@ -185,5 +200,7 @@ export function track(el, handlers, { slop = 8 } = {}) {
     el.removeEventListener('pointermove', move);
     el.removeEventListener('pointerup', up);
     el.removeEventListener('pointercancel', up);
+    el.removeEventListener('lostpointercapture', lost);
+    window.removeEventListener('blur', blur);
   };
 }

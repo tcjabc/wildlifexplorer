@@ -298,7 +298,7 @@ function wireGestures() {
     || (dy > 0 ? el.scrollTop <= 0 : el.scrollTop + el.clientHeight >= el.scrollHeight - 1);
   const travel = () => ({ x: v.L.P * v.L.s0, y: v.L.H * v.L.s0 * 0.7 }); // finger travel for a full turn
 
-  track(v.stage, {
+  v.untrack = track(v.stage, {
     start: ({ x, y, target }) => {
       if (v.closing || target.closest?.('[data-swipe], .gloss-pop')) return false;
       zone = where(x, y);
@@ -327,8 +327,11 @@ function wireGestures() {
       } else if (closed) {
         if (dy < 0 && hasBack(v.card)) mode = 'flip';
         else if (dy > 0) { mode = 'dismiss'; stopZoom(); }
-      } else if (v.f > DONE) mode = atEdge(scroller, dy) ? 'unflip' : 'scroll';
-      else if (v.p > DONE && !atEdge(scroller, dy)) mode = 'scroll';
+      } else if (v.f > DONE) {
+        // The back: down from the top of the Fact File turns it back; otherwise it scrolls.
+        if (dy > 0 && atEdge(scroller, dy)) mode = 'unflip';
+        else if (!atEdge(scroller, dy)) mode = 'scroll';
+      } else if (v.p > DONE && !atEdge(scroller, dy)) mode = 'scroll'; // the open spread: pages scroll
       if (zone === 'open' && mode !== 'open') mode = null;
       // Anything but opening closes a cover left ajar by the peek.
       if (mode !== 'open' && v.p > 0 && v.p <= PEEK + 0.01) { v.p = 0; draw(); }
@@ -351,9 +354,37 @@ function wireGestures() {
       if (mode === 'scroll') { scroller.scrollTop = base.top - dy / v.zoom; return; }
       draw();
     },
-    end: ({ dx, dy, vx, vy }) => {
+    end: info => {
+      // Whatever happens, the gesture ends settled: committed, sprung back or dismissed.
+      const m = mode;
+      mode = null;
       v.dragging = false;
+      try { release(m, info); } catch (err) { springBack(); throw err; }
+    },
+    // No pointerup (capture lost, window lost focus, a second finger): spring back.
+    cancel: () => { mode = null; v.dragging = false; springBack(); },
+    // With the notebook open, pinching the card fills the screen with it (or brings it back).
+    pinchStart: () => { if (mode) springBack(); mode = null; v.dragging = false; },
+    pinchMove: () => {},
+    pinchEnd: ({ scale }) => {
+      if (!v.split) return;
+      if (scale > 1.25) maximise('card');
+      else if (scale < 0.8) maximise(null);
+    },
+  }, { slop: SLOP });
+
+  // Back to where the gesture started.
+  function springBack() {
+    if (!v || !base) return;
+    if (!at(v.p, base.p)) settle('p', base.p);
+    else if (!at(v.f, base.f)) settle('f', base.f);
+    if (!at(v.z, 1)) settle('z', 1);
+    draw();
+  }
+
+  function release(mode, { dy, vx, vy }) {
       const T = travel();
+      const L = v.L;
       // Progress towards the goal (0–1) and its speed; commit past a quarter, or on a flick.
       const decide = (q, speed) => (speed > FLICK ? true : speed < -FLICK ? false : q > COMMIT);
       if (mode === 'open' || mode === 'close') {
@@ -373,20 +404,12 @@ function wireGestures() {
         const el = scroller, from = el.scrollTop, to = from - (vy / v.zoom) * 0.3;
         if (Math.abs(vy) > 200) v.glide = tween({ from, to, duration: 500, onUpdate: x => { el.scrollTop = x; } });
       } else if (mode === 'dismiss') {
-        if (dy > L.Hs * 0.18 || vy > 700) { haptic(8); dismiss(); } else settle('z', 1, -vy / (L.Hs * 0.6));
-      }
-      mode = null;
-    },
-    cancel: () => { mode = null; v.dragging = false; draw(); },
-    // With the notebook open, pinching the card fills the screen with it (or brings it back).
-    pinchStart: () => { stopMotion(); mode = null; v.dragging = false; },
-    pinchMove: () => {},
-    pinchEnd: ({ scale }) => {
-      if (!v.split) return;
-      if (scale > 1.25) maximise('card');
-      else if (scale < 0.8) maximise(null);
-    },
-  }, { slop: SLOP });
+        // Down far enough, or a flick down: back to the binder. A flick up (or too little)
+        // springs back to full size.
+        const commit = vy < -700 ? false : vy > 700 || dy > L.Hs * 0.18;
+        if (commit) { haptic(8); dismiss(); } else settle('z', 1, -vy / (L.Hs * 0.6));
+      } else springBack();
+  }
 }
 
 // ---------- read aloud, credits, chrome ----------
@@ -517,6 +540,7 @@ export function show(card) {
 function teardown() {
   if (!v) return;
   closePopover();
+  v.untrack?.(); // also removes its window listeners
   v.split?.book.destroy();
   stopMotion();
   stopZoom();
