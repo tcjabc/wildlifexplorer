@@ -48,6 +48,16 @@ export function rangeFit(polys, { cap = FIT_K_MAX } = {}) {
   return { lon: Math.atan2(y, x) / DEG, lat: Math.asin(clamp(z, -1, 1)) / DEG, k };
 }
 
+// The globe in the room left by the side panel, the chips and a sheet: its size (fit, a share
+// of its full size) and how far its middle moves (dx, dy px). It is as big as the free space
+// allows (never bigger than its full size, never under 55%) and in the middle of that space,
+// so on a wide screen it sits in the spare width beside the panel instead of leaving margins.
+export function roomFit({ w, h, top = 0, bottom = 0, left = 0 }) {
+  if (w < 2 || h < 2) return { fit: 1, dx: 0, dy: 0 };
+  const freeW = Math.max(1, w - left), freeH = Math.max(1, h - top - bottom);
+  return { fit: clamp(Math.min(freeW, freeH) / Math.min(w, h), 0.55, 1), dx: left / 2, dy: (top - bottom) / 2 };
+}
+
 // Where an outline may not be rounded off (edges: true, for shapes drawn with curves): the
 // edges of the data's map (the antimeridian and the poles, where Natural Earth cuts its
 // shapes) and the points where two outlines meet (TopoJSON arc ends, ring.joins).
@@ -300,7 +310,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
   const getHome = () => loadHome().then(p => { home = p; dirty = true; }).catch(() => {});
   getHome();
 
-  const view = { lon: saved.lon, lat: saved.lat, k: saved.k, dy: 0 };
+  const view = { lon: saved.lon, lat: saved.lat, k: saved.k, dx: 0, dy: 0 };
   let size = { w: 1, h: 1, dpr: 1, r: 1 };
   let polys = null;
   let range = null;          // { polys, colour }
@@ -310,14 +320,15 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
   let glide = null;          // { vx, vy } in px per ms
   let flight = null;         // cancel function of a running tween
   let offset = 0;            // where view.dy is heading (room for the card sheet)
-  let fit = 1, fitTo = 1;    // globe size while a legend takes room (setRoom)
-  let room = null;           // { top, bottom } px
+  let fit = 1, fitTo = 1;    // globe size while the info panel takes room (setRoom)
+  let room = null;           // { top, bottom, left } px
   let held = false;          // the card sheet has set the offset
+  let offsetX = 0;           // where view.dx is heading (room for the side panel)
   function applyRoom() {
-    if (!room || size.h < 2) { fitTo = 1; if (!held) offset = 0; return; }
-    const free = size.h - room.top - room.bottom;
-    fitTo = clamp(Math.min(size.w, free) / Math.min(size.w, size.h), 0.55, 1);
-    if (!held) offset = (room.top - room.bottom) / 2;
+    const r = roomFit({ w: size.w, h: size.h, ...room });
+    fitTo = r.fit;
+    offsetX = r.dx;
+    if (!held) offset = r.dy;
   }
   let paused = false;
   const reduced = reducedMotion();
@@ -332,7 +343,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
     const l = view.lon * DEG, p = view.lat * DEG;
     const cl = Math.cos(l), sl = Math.sin(l), cp = Math.cos(p), sp = Math.sin(p);
     const r = size.r * view.k * fit;
-    const cx = size.w / 2, cy = size.h / 2 + view.dy;
+    const cx = size.w / 2 + view.dx, cy = size.h / 2 + view.dy;
     // How far from the centre the screen reaches, as an angle on the globe.
     const reach = Math.hypot(Math.max(cx, size.w - cx), Math.max(cy, size.h - cy));
     B = {
@@ -506,6 +517,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
       dirty = true;
     }
     if (Math.abs(offset - view.dy) > 0.5) { view.dy += (offset - view.dy) * Math.min(1, dt / 90); dirty = true; }
+    if (Math.abs(offsetX - view.dx) > 0.5) { view.dx += (offsetX - view.dx) * Math.min(1, dt / 90); dirty = true; }
     if (Math.abs(fitTo - fit) > 0.002) { fit += (fitTo - fit) * Math.min(1, dt / 90); dirty = true; }
     if (dirty) {
       dirty = false;
@@ -650,9 +662,8 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
     pause(on) { paused = on; if (!on) lastTouch = performance.now(); },
     // Room at the bottom (px) for the card sheet: the globe slides up to stay in view.
     setOffset(px) { held = px > 0; offset = -px / 2; dirty = true; },
-    // Keep the globe in the space between top and bottom (px), e.g. under the layer chips
-    // and above a legend: it moves there and shrinks if it has to.
-    setRoom(top, bottom) { room = top || bottom ? { top, bottom } : null; applyRoom(); dirty = true; },
+    // Space the globe keeps clear: top (the chips), bottom (a sheet), left (the side panel), px.
+    setRoom(top, bottom, left = 0) { room = top || bottom || left ? { top, bottom, left } : null; applyRoom(); dirty = true; },
     // polys: GeoJSON-style [[ [lon, lat]… ]…] lists, or null to clear.
     setRange(list, group) { range = list ? { polys: prepare(list), colour: col.group(group) } : null; dirty = true; },
     // A map layer, or null for the plain globe:
@@ -691,7 +702,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
       if (reduced) { step(1); onDone?.(); return; }
       flight = tween({ from: 0, to: 1, duration, ease: t => (t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2), onUpdate: step, onDone: () => { flight = null; onDone?.(); } });
     },
-    zoomBy(f) { zoomTo(size.w / 2, size.h / 2 + view.dy, view.k * f, 260); },
+    zoomBy(f) { zoomTo(size.w / 2 + view.dx, size.h / 2 + view.dy, view.k * f, 260); },
     spinBy(dLon, dLat) { touched(); view.lon = wrap(view.lon + dLon); view.lat = clamp(view.lat + dLat, -MAX_LAT, MAX_LAT); dirty = true; },
     destroy() {
       gone = true;

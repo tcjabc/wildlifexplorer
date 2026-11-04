@@ -15,7 +15,9 @@
 // the card as it was (js/card-return.js). #/globe on its own is the Globe tab as always.
 import { h, mount, reducedMotion } from '../dom.js';
 import { bi, t, tx, label, plain } from '../i18n.js';
-import { state, isVisible, groupById, thumbOf, mainImage, debugOn } from '../store.js';
+import { state, isVisible, groupById, thumbOf, mainImage, debugOn, updateProfile } from '../store.js';
+import { INFO, panelMode } from '../globe-info.js';
+import { ART, animal, tree } from '../globe-art.js';
 import { picture, groupTitle, cardNo } from '../components.js';
 import { createGlobe, toVec, rangeFit } from '../globe.js';
 import { cameFromMap } from '../card-return.js';
@@ -36,6 +38,7 @@ let shownLayer = null;
 let shownFilter = null;   // { key: 'continents' | 'biomes', id }: only show pins with that tag
 let tempMonth = new Date().getMonth() + 1;
 let goBack = null;         // "Back to card", while the globe was opened from a card
+let closePanel = null;     // folds the info panel back when it is open over the globe
 
 // ---------- where pins go ----------
 
@@ -109,10 +112,15 @@ export function render(main, [cardId] = []) {
   const from = cardId && state.byId.get(cardId);
   const card = from && isVisible(from) ? from : null;
   const layer = h('div', { class: 'globe__pins' });
-  const hint = h('p', { class: 'globe__hint' }, tx('globe.hint'));
+  // Messages only (no cards yet, nothing in this filter): how to use the globe is in the panel.
+  const hint = h('p', { class: 'globe__hint', hidden: true });
+  const say = content => { hint.hidden = !content; mount(hint, content); };
   const stage = h('div', { class: 'globe__stage' }, layer);
   const bar = h('div', { class: 'glayers', role: 'toolbar', 'aria-label': label('globe.layers') });
-  const legend = h('div', { class: 'glegend', hidden: true });
+  // The info panel (js/globe-info.js): a key, "What am I looking at?", and more when open.
+  const panelBody = h('div', { class: 'gpanel__body', 'data-scroll': '' });
+  const panelToggle = h('button', { class: 'gpanel__toggle', type: 'button', onclick: () => setPanel(panel.dataset.state !== 'expanded') });
+  const panel = h('aside', { class: 'gpanel', 'aria-label': label('info.what') }, panelToggle, panelBody);
   const filterPanel = h('div', { class: 'gfilter', hidden: true });
   // Back to the card: in history when the globe was opened from it, else to its address.
   goBack = card ? () => { if (cameFromMap(card.id)) history.back(); else location.hash = `#/card/${encodeURIComponent(card.id)}`; } : null;
@@ -123,7 +131,7 @@ export function render(main, [cardId] = []) {
     h('p', null, h('span', { 'aria-hidden': 'true' }, '📡 '), tx('globe.offline')),
     h('button', { class: 'btn btn--soft', type: 'button', onclick: () => globe?.retry() }, tx('globe.retry')));
   const view = h('section', { class: ['globe', card && 'has-back'], 'aria-label': label('nav.globe') },
-    stage, back, bar, filterPanel, offline, h('div', { class: 'globe__foot' }, legend, hint));
+    stage, back, bar, panel, filterPanel, offline, h('div', { class: 'globe__foot' }, hint));
   mount(main, view);
 
   const pins = [];          // { card, lon, lat, v, el, x, y, z, stack }
@@ -199,7 +207,7 @@ export function render(main, [cardId] = []) {
       if (fan) { fan = null; globe.redraw(); }
       if (holding) { holding = false; globe.pause(false); } // touched: it may turn by itself again
     },
-    onTap: () => { fan = null; select(null); },
+    onTap: () => { fan = null; select(null); closePanel?.(); },
   });
 
   // Tapping a stack zooms in far enough to pull its pins apart (and fans them if needed).
@@ -318,7 +326,7 @@ export function render(main, [cardId] = []) {
     placed++;
     globe.redraw();
   })).then(() => {
-    if (!placed) hint.replaceChildren(tx('globe.empty'));
+    if (!placed) say(tx('globe.empty'));
     pins.sort((a, b) => a.card.number - b.card.number);
     // From a card: its pin is the selected one (its range is already lit).
     const own = card && pins.find(p => p.card === card);
@@ -378,7 +386,7 @@ export function render(main, [cardId] = []) {
     for (const p of pins) { p.off = !matchesFilter(p.card); if (!p.off) shown++; }
     fan = null;
     select(null);
-    hint.replaceChildren(pins.length && !shown ? tx('globe.filterNone') : tx('globe.hint'));
+    say(pins.length && !shown ? tx('globe.filterNone') : null);
     const r = regionOf(f);
     if (r?.center) globe.flyTo(r.center[0], r.center[1], globe.k, { duration: 650 });
     globe.redraw();
@@ -396,48 +404,111 @@ export function render(main, [cardId] = []) {
   }, h('span', { class: 'glayer__emoji', 'aria-hidden': 'true' }, L.emoji), tx(`layer.${L.id}`)));
   bar.append(...chips);
 
-  const swatch = token => h('span', { class: 'glegend__sw', style: { '--sw': `var(${token})` }, 'aria-hidden': 'true' });
-
-  function tempScale() {
+  // ---------- the info panel ----------
+  // Landscape: a column on the left, the globe beside it. Portrait tablet: a sheet under the
+  // globe that opens upwards. Phone: a strip that opens over the lower half. Collapsed it shows
+  // the key only; open, also "What am I looking at?" and more. Open or not is kept per explorer
+  // on this device (globePanel); on a phone it always starts as the strip.
+  let panelLayer = null, panelFailed = false, peek = 0;
+  const swatch = token => h('span', { class: 'gkey__sw', style: { '--sw': `var(${token})` }, 'aria-hidden': 'true' });
+  const keyIcon = icon => h('span', { class: `gkey__icon gkey__icon--${icon}`, 'aria-hidden': 'true' }, icon === 'stack' ? '3' : icon === 'filter' ? '🔎' : '');
+  function animalChip(a) {
+    const c = state.byId.get(a.card);
+    const inner = [h('span', { class: 'gzone__art', 'aria-hidden': 'true' }, animal(a.art)), h('span', { class: 'gzone__animal-name' }, tx(a.name))];
+    return c && isVisible(c)
+      ? h('a', { class: 'gzone__animal', href: `#/card/${encodeURIComponent(c.id)}` }, inner)
+      : h('span', { class: 'gzone__animal' }, inner);
+  }
+  const keyItem = (k, zone) => h('li', { class: 'gkey__item' },
+    k.icon ? keyIcon(k.icon)
+      : k.tree ? h('span', { class: 'gkey__tree', style: { '--sw': `var(${k.token})` }, 'aria-hidden': 'true' }, tree(k.tree))
+        : swatch(k.token),
+    k.short && h('span', { class: 'gkey__short', 'aria-hidden': 'true' }, k.short),
+    h('span', { class: 'gkey__label' }, tx(k.label), zone && h('span', { class: 'gkey__sci' }, tx(zone.sci))),
+    zone && animalChip(zone.animal));
+  // Temperature: hot at the top, cold at the bottom, and the month under it.
+  function tempKey() {
     const stops = tempStops(col);
     const lo = stops[0].v, hi = stops.at(-1).v;
     const grad = stops.map(s => `${s.colour} ${(((s.v - lo) / (hi - lo)) * 100).toFixed(1)}%`).join(', ');
+    const name = h('span', { class: 'gtemp__monthname' }, tx(`month.${tempMonth}`));
     const month = h('input', {
-      class: 'glegend__month', type: 'range', min: 1, max: 12, step: 1, value: tempMonth,
+      class: 'gtemp__slider', type: 'range', min: 1, max: 12, step: 1, value: tempMonth,
       'aria-label': label('layer.temp.month'),
       oninput: e => { tempMonth = Number(e.target.value); mount(name, tx(`month.${tempMonth}`)); show(LAYERS.find(l => l.id === 'temp')); },
     });
-    const name = h('span', { class: 'glegend__monthname' }, tx(`month.${tempMonth}`));
-    return [
-      h('div', { class: 'glegend__bar', style: { background: `linear-gradient(to right, ${grad})` }, 'aria-hidden': 'true' }),
-      h('div', { class: 'glegend__scale' },
-        h('span', null, '❄️ ', tempText(lo)), h('span', null, tempText(0)), h('span', null, `${tempText(hi)} `, '🔥')),
-      h('label', { class: 'glegend__months' }, name, month),
-    ];
+    return h('div', { class: 'gtemp' },
+      h('div', { class: 'gtemp__scale' },
+        h('div', { class: 'gtemp__bar', style: { '--gtemp-v': `linear-gradient(to top, ${grad})`, '--gtemp-h': `linear-gradient(to left, ${grad})` }, 'aria-hidden': 'true' }),
+        h('div', { class: 'gtemp__ticks' },
+          h('span', null, h('span', { 'aria-hidden': 'true' }, '🔥 '), tempText(hi)), h('span', null, tempText(0)),
+          h('span', null, h('span', { 'aria-hidden': 'true' }, '❄️ '), tempText(lo)))),
+      h('label', { class: 'gtemp__month' }, name, month));
   }
-
-  // While a legend shows, the globe moves into the space between the chips and the legend
-  // (and shrinks if it must) instead of hiding behind them.
+  // From a card: the animal and where it lives (its habitats), above the key.
+  function cardNote() {
+    if (!card) return null;
+    const places = (card.biomes ?? []).map(id => state.regions.biomes.find(r => r.id === id)).filter(Boolean);
+    return h('div', { class: 'gpanel__card' },
+      h('p', { class: 'gpanel__name' }, nameBi(card.name)),
+      places.length > 0 && h('p', { class: 'gpanel__habitat' },
+        h('span', { class: 'gpanel__habitat-label' }, tx('info.habitat')), ' ',
+        h('span', { 'aria-hidden': 'true' }, places.map(r => r.emoji).join(' ')), ' ',
+        bi({ en: places.map(r => r.name.en).join(', '), zh: places.map(r => r.name.zh || r.name.en).join('、') })));
+  }
+  function drawPanel(L = panelLayer, failed = panelFailed) {
+    panelLayer = L; panelFailed = failed;
+    const info = INFO[L?.id ?? 'everywhere'];
+    panel.dataset.layer = L?.id ?? 'everywhere';
+    mount(panelBody,
+      cardNote(),
+      h('h2', { class: 'gpanel__title' }, h('span', { class: 'gpanel__emoji', 'aria-hidden': 'true' }, L?.emoji ?? info.emoji),
+        h('span', { class: 'gpanel__titletext' }, tx(L ? `layer.${L.id}` : info.title))),
+      info.key === 'temp' ? tempKey() : h('ul', { class: 'gkey' }, info.key.map((k, i) => keyItem(k, info.zones?.[i]))),
+      h('section', { class: 'gpanel__what' },
+        h('h3', { class: 'gpanel__heading' }, tx('info.what')),
+        failed ? h('p', null, tx('layer.failed')) : info.what.map(k => h('p', null, tx(k))),
+        !failed && h('div', { class: 'gpanel__art' }, ART[info.art]?.())),
+      !failed && h('section', { class: 'gpanel__more' },
+        h('h3', { class: 'gpanel__heading' }, tx('info.more')),
+        info.more.map(k => h('p', null, tx(k, { year: 2024 })))));
+    layoutPanel();
+  }
+  function setPanel(open, { remember = true } = {}) {
+    panel.dataset.state = open ? 'expanded' : 'collapsed';
+    panelToggle.setAttribute('aria-expanded', String(open));
+    panelToggle.setAttribute('aria-label', label(open ? 'info.collapse' : 'info.expand'));
+    mount(panelToggle, h('span', { 'aria-hidden': 'true' }, open ? (panel.dataset.mode === 'side' ? '‹' : '⌄') : (panel.dataset.mode === 'side' ? '›' : '⌃')));
+    if (remember && panel.dataset.mode !== 'strip' && state.profile) updateProfile(state.profile.id, { globePanel: open ? 'expanded' : 'collapsed' }).catch(() => {});
+    closePanel = open && panel.dataset.mode !== 'side' ? () => setPanel(false) : null;
+    layoutPanel();
+  }
+  // Where the panel sits, and the room it leaves the globe.
+  function layoutPanel() {
+    const mode = panelMode(view.clientWidth, view.clientHeight);
+    if (panel.dataset.mode !== mode) {
+      panel.dataset.mode = mode;
+      // A phone starts with the strip; a tablet as this explorer left it.
+      setPanel(mode === 'strip' ? false : state.profile?.globePanel !== 'collapsed', { remember: false });
+      return;
+    }
+    fitGlobe();
+  }
+  // The globe moves into the space the chips and the panel leave (and shrinks if it must).
   function fitGlobe() {
     if (!globe || sheet) return;
-    if (legend.hidden) { globe.setRoom(0, 0); return; }
     const vb = view.getBoundingClientRect();
-    globe.setRoom(bar.getBoundingClientRect().bottom - vb.top, vb.bottom - legend.getBoundingClientRect().top);
-  }
-
-  function renderLegend(L, failed = false) {
-    legend.hidden = false;
-    queueMicrotask(fitGlobe);
-    mount(legend,
-      h('p', { class: 'glegend__title' }, h('span', { 'aria-hidden': 'true' }, `${L.emoji} `), tx(`layer.${L.id}`)),
-      failed
-        ? h('p', { class: 'glegend__note' }, tx('layer.failed'))
-        : [
-          L.legend === 'temp'
-            ? tempScale()
-            : h('ul', { class: 'glegend__items' }, L.legend.map(([token, key]) => h('li', null, swatch(token), tx(key)))),
-          L.note && h('p', { class: 'glegend__note' }, tx(L.note, { year: 2024 })),
-        ]);
+    const top = bar.getBoundingClientRect().bottom - vb.top;
+    view.style.setProperty('--gpanel-top', `${Math.round(top)}px`);
+    const css = n => parseFloat(getComputedStyle(view).getPropertyValue(n)) || 0;
+    if (panel.dataset.mode === 'side') {
+      const w = panel.dataset.state === 'expanded' ? css('--gpanel-w') : css('--gpanel-strip');
+      globe.setRoom(top, 0, w + 2 * css('--s-3'));
+      return;
+    }
+    // Sheet and strip: the globe keeps clear of the collapsed panel; open, it goes over it.
+    if (panel.dataset.state !== 'expanded') peek = vb.bottom - panel.getBoundingClientRect().top;
+    globe.setRoom(top, peek, 0);
   }
 
   // Load a layer's data and show it on the globe (also used when the month changes).
@@ -453,7 +524,7 @@ export function render(main, [cardId] = []) {
     } catch {
       if (wanted !== L || !globe) return;
       chip.classList.add('is-failed');
-      renderLegend(L, true);
+      drawPanel(L, true);
       globe.setLayer(null).catch(() => {});
     } finally {
       chip.classList.remove('is-loading');
@@ -467,15 +538,15 @@ export function render(main, [cardId] = []) {
     view.classList.toggle('has-layer', Boolean(id));
     chips.forEach(c => { c.setAttribute('aria-pressed', String(c.dataset.layer === id)); c.classList.remove('is-failed'); });
     const L = LAYERS.find(l => l.id === id);
-    if (!L) { wanted = null; legend.hidden = true; fitGlobe(); globe.setLayer(null).catch(() => {}); return; }
-    renderLegend(L);
+    if (!L) { wanted = null; drawPanel(null, false); globe.setLayer(null).catch(() => {}); return; }
+    drawPanel(L, false);
     show(L);
   }
-  if (shownLayer) choose(shownLayer);
+  if (shownLayer) choose(shownLayer); else drawPanel(null, false);
 
   // ?debug=fps: the globe on window too, to put it at an exact view for comparing pictures.
   if (debug) window.wfGlobe = globe;
-  const onResize = () => { measure(); fitGlobe(); };
+  const onResize = () => { measure(); layoutPanel(); };
   const onOnline = () => globe?.retry();
   window.addEventListener('resize', onResize);
   window.addEventListener('online', onOnline);
@@ -484,6 +555,7 @@ export function render(main, [cardId] = []) {
     window.removeEventListener('resize', onResize);
     window.removeEventListener('online', onOnline);
     goBack = null;
+    closePanel = null;
     closeSheet({ animate: false });
     globe.destroy();
     globe = null;
@@ -494,6 +566,7 @@ export function render(main, [cardId] = []) {
 export function onKey(e) {
   if (!globe) return;
   if (e.key === 'Escape' && sheet) { e.preventDefault(); sheet.el.querySelector('.gsheet__close')?.click(); return; }
+  if (e.key === 'Escape' && closePanel) { e.preventDefault(); closePanel(); return; }
   if (e.key === 'Escape' && goBack) { e.preventDefault(); goBack(); return; }
   if (sheet) return;
   const moves = { ArrowLeft: [-15, 0], ArrowRight: [15, 0], ArrowUp: [0, 10], ArrowDown: [0, -10] };

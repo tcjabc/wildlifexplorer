@@ -365,8 +365,22 @@ file have it (`opensGlobe` in `js/card-return.js`), and not in pack reveals.
 
 The chips along the top of the Globe switch on one map layer at a time: 🏔️ topography,
 🌳 forests, 🪸 coral reefs, 🌙 day & night (live, from the device clock), 🌡️ temperature
-(with a month slider) and 🌊 ocean depth. Each has a small legend. Taiwan's outline glows
-above every layer.
+(with a month slider) and 🌊 ocean depth. Taiwan's outline glows above every layer.
+
+- **The info panel** (`js/globe-info.js` says what it holds, `js/views/globe.js` draws it) has
+  the same three parts for every layer, and for Everywhere (pins and clusters, how to filter):
+  a vertical key (colour steps or symbols, short labels, never sentences), "What am I looking
+  at?" (one or two short lines and a drawing), and "Did you know?" for older children. Depth's
+  open key is the ocean guide: each zone's scientific name and an example animal (its card when
+  one is built, otherwise its name and a drawing). Opened from a card, the animal's name and
+  habitat sit above the key. The drawings (`js/globe-art.js`) are SVG drawn for WildFile,
+  coloured with tokens; there are no image files.
+- Where it goes (`panelMode`): in landscape a 300 px column on the left, the globe moved right
+  and sized to the space beside it (`roomFit` in `js/globe.js`); on a portrait tablet a short
+  sheet under the globe that opens upwards (to at most 60 % of the height); on a phone (under
+  600 px) a slim strip that opens over the globe. It never covers the chips or Back to card.
+  Collapsed it shows the key only (72 px wide in landscape). Open or collapsed is kept per
+  profile on the device (`globePanel`); a phone always starts collapsed.
 
 - Picture layers (topography, night lights, temperature) are drawn with WebGL 2 by
   `js/globegl.js`, on a canvas between the land and the pins. It is only created when such

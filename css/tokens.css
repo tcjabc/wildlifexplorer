@@ -57,7 +57,7 @@
 
   /* Globe map layers (js/layers.js). */
   --c-depth-1: #9fd0ec;   /* deeper than 200 m */
-  --c-depth-2: #5ea7d8;   /* 2,000 m */
+  --c-depth-2: #5ea7d8;   /* 1,000 m */
   --c-depth-3: #2f78bd;   /* 4,000 m */
   --c-depth-4: #1b4b8f;   /* 6,000 m and the deep trenches */
   --c-forest-tropical: #1e8f3e;
@@ -68,6 +68,8 @@
   --c-relief-dry: #d8c38f;
   --c-relief-high: #f4f1ea;
   --c-night: #0b1430;
+  --c-art-sky: #e3f2fa;    /* sky and pale fills in the Globe panel drawings */
+  --c-twilight: #5b5f97;   /* dawn and dusk on the globe's day & night layer */
   --c-city-lights: #ffd27a;
   /* Temperature: °C and colour. scripts/make-layers.mjs paints the pictures with it. */
   --c-temp-scale: -30 #3b2a8f, -15 #2f6fd6, 0 #9ad8f5, 10 #74c77f, 20 #f3df55, 30 #f5973a, 40 #dd3f2a, 50 #8e1b3a;
@@ -239,6 +241,10 @@
   --nb-tags-w: 56%;
   --map-marker: 8px;    /* range marker on the little world map */
   --gpin: 52px;         /* photo pins on the Globe */
+  --gpanel-w: 300px;    /* the Globe's info panel, open (landscape: a column on the left) */
+  --gpanel-strip: 72px; /* the same panel collapsed to its key */
+  --gpanel-art: 132px;  /* the drawings in the panel */
+  --gpanel-sheet: 60%;  /* the portrait sheet, open: at most this much of the globe's height */
   --gsheet-pic: min(38dvh, 320px); /* photo in the Globe card sheet */
   --cmp-icon: 44px;     /* figures on the weight balance */
   --cmp-icon-sm: 18px;  /* … when there are many */

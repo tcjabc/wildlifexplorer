@@ -535,7 +535,7 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
 
 /* Region filter: continents and habitats, opened from the first chip. */
 .gfilter {
-  position: absolute; z-index: 2; top: calc(var(--tap-sm) + var(--s-4)); left: var(--s-3); right: var(--s-3);
+  position: absolute; z-index: 2; top: calc(var(--gpanel-top, calc(var(--tap-sm) + var(--s-2))) + var(--s-2)); left: var(--s-3); right: var(--s-3);
   max-width: var(--sheet-w); max-height: 60%; overflow-y: auto;
   display: grid; gap: var(--s-2); padding: var(--s-3);
   border-radius: var(--r-md); background: var(--c-veil); box-shadow: var(--shadow-2);
@@ -545,27 +545,144 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
 .gfilter__row { display: flex; flex-wrap: wrap; gap: var(--s-2); }
 
 /* The legend for the layer that is on. */
-.glegend {
-  width: min(100%, var(--sheet-w)); padding: var(--s-2) var(--s-3);
-  border-radius: var(--r-md); background: var(--c-veil); box-shadow: var(--shadow-1);
-  font-size: var(--fs-xs); pointer-events: auto;
+/* The info panel (views/globe.js, js/globe-info.js): the key, "What am I looking at?" and more.
+   data-mode: side (a column on the left), sheet (under the globe, opening upwards), strip (a
+   phone: a strip that opens over the lower half). data-state: collapsed (the key only) or
+   expanded. It never covers the chips (it starts below them, at --gpanel-top) or Back to card. */
+.gpanel {
+  position: absolute; z-index: 1; display: flex; flex-direction: column;
+  border-radius: var(--r-md); background: var(--c-veil); box-shadow: var(--shadow-2);
+  color: var(--c-ink); font-size: var(--fs-xs);
 }
-.glegend[hidden] { display: none; }
-.glegend__title { margin: 0 0 var(--s-1); font-weight: var(--fw-bold); display: flex; align-items: center; gap: var(--s-1); }
-.glegend__title .bi { flex-direction: row; gap: 0.4em; }
-.glegend__items { display: flex; flex-wrap: wrap; gap: var(--s-1) var(--s-3); margin: 0; padding: 0; list-style: none; }
-.glegend__items li { display: flex; align-items: center; gap: var(--s-1); }
-.glegend__sw {
-  flex: none; width: var(--legend-sw); height: var(--legend-sw); border-radius: var(--r-sm);
+.gpanel__body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: var(--s-2) var(--s-3) var(--s-3); }
+.gpanel__toggle {
+  position: absolute; z-index: 1; display: grid; place-items: center;
+  width: var(--tap-xs); height: var(--tap-xs); padding: 0; border: 0; border-radius: 50%;
+  background: var(--c-surface); box-shadow: var(--shadow-1); color: var(--c-ink);
+  font: inherit; font-size: var(--fs-md); font-weight: var(--fw-bold); cursor: pointer;
+}
+.gpanel__title { display: flex; align-items: center; gap: var(--s-2); margin: 0 var(--tap-xs) var(--s-2) 0; font-size: var(--fs-sm); }
+.gpanel__title .bi { flex-direction: row; gap: 0.4em; }
+.gpanel__heading { margin: var(--s-3) 0 var(--s-1); font-size: var(--fs-xs); color: var(--c-ink-soft); }
+.gpanel__heading .bi { flex-direction: row; gap: 0.4em; }
+.gpanel__what p, .gpanel__more p { margin: 0 0 var(--s-1); }
+.gpanel__art { margin-top: var(--s-2); }
+.gpanel__art .art { display: block; width: 100%; max-width: var(--gpanel-art); height: auto; }
+.gpanel__card { margin: 0 var(--tap-xs) var(--s-2) 0; padding-bottom: var(--s-2); border-bottom: var(--bw-thin) solid var(--c-line); }
+.gpanel__name { margin: 0; font-size: var(--fs-sm); font-weight: var(--fw-bold); }
+.gpanel__habitat { margin: var(--s-1) 0 0; color: var(--c-ink-soft); }
+.gpanel__habitat-label { font-weight: var(--fw-bold); }
+
+/* The key: one step a row, top to bottom. */
+.gkey { display: grid; gap: var(--s-1); margin: 0; padding: 0; list-style: none; }
+.gkey__item { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: var(--s-2); }
+.gkey__sw {
+  width: var(--legend-sw); height: var(--legend-sw); border-radius: var(--r-sm);
   background: var(--sw); box-shadow: inset 0 0 0 var(--bw-thin) var(--c-shade-faint);
 }
-.glegend__bar { height: var(--legend-sw); border-radius: var(--r-pill); }
-.glegend__scale { display: flex; justify-content: space-between; margin-top: 2px; font-weight: var(--fw-semi); }
-.glegend__months { display: flex; align-items: center; gap: var(--s-2); margin-top: var(--s-1); font-weight: var(--fw-bold); }
-.glegend__monthname { flex: none; min-width: 6.5em; }
-.glegend__monthname .bi { flex-direction: row; gap: 0.4em; }
-.glegend__month { flex: 1; min-width: 0; height: var(--tap-sm); accent-color: var(--c-primary); }
-.glegend__note { margin: var(--s-1) 0 0; color: var(--c-ink-soft); }
+.gkey__tree { display: block; width: var(--legend-sw); height: var(--legend-sw); --art-fill: var(--sw); }
+.gkey__tree .art { display: block; width: 100%; height: 100%; }
+.gkey__icon {
+  display: grid; place-items: center; width: var(--legend-sw); height: var(--legend-sw); border-radius: 50%;
+  background: var(--c-surface); box-shadow: inset 0 0 0 var(--bw-mid) var(--c-primary); font-size: var(--fs-xs); font-weight: var(--fw-bold);
+}
+.gkey__icon--stack { background: var(--c-accent); color: var(--c-on-accent); box-shadow: none; }
+.gkey__icon--filter { box-shadow: inset 0 0 0 var(--bw-thin) var(--c-line); }
+.gkey__short { display: none; font-weight: var(--fw-bold); font-variant-numeric: tabular-nums; }
+.gkey__label { min-width: 0; font-weight: var(--fw-semi); }
+.gkey__label .bi { gap: 0; }
+.gkey__sci { display: none; font-weight: normal; font-style: italic; color: var(--c-ink-soft); }
+.gzone__animal { display: none; grid-column: 2; align-items: center; gap: var(--s-2); margin: 2px 0 var(--s-1); color: inherit; text-decoration: none; }
+a.gzone__animal { text-decoration: underline; }
+.gzone__art { flex: none; width: 44px; }
+.gzone__art .art { display: block; width: 100%; height: auto; }
+.gzone__animal-name .bi { flex-direction: row; gap: 0.4em; }
+
+/* Temperature: a vertical scale, hot at the top, and the month. */
+.gtemp__scale { display: flex; gap: var(--s-2); height: 132px; }
+.gtemp__bar { flex: none; width: var(--legend-sw); border-radius: var(--r-pill); background: var(--gtemp-v); }
+.gtemp__ticks { display: flex; flex-direction: column; justify-content: space-between; font-weight: var(--fw-semi); }
+.gtemp__month { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-1) var(--s-2); margin-top: var(--s-2); font-weight: var(--fw-bold); }
+.gtemp__monthname .bi { flex-direction: row; gap: 0.4em; }
+.gtemp__slider { flex: 1 1 140px; min-width: 0; height: var(--tap-sm); accent-color: var(--c-primary); }
+
+/* Open: the depth key becomes the depth guide (scientific names, an animal for each zone). */
+.gpanel[data-state="expanded"][data-layer="depth"] .gkey__sci,
+.gpanel[data-state="expanded"][data-layer="depth"] .gzone__animal { display: flex; }
+.gpanel[data-state="expanded"][data-layer="depth"] .gkey__label { display: grid; }
+
+/* Side: a column on the left, under the chips. */
+.gpanel[data-mode="side"] {
+  top: calc(var(--gpanel-top, var(--tap-sm)) + var(--s-2)); left: var(--s-3);
+  bottom: calc(var(--s-3) + env(safe-area-inset-bottom)); width: var(--gpanel-w);
+  transition: width 0.2s ease;
+}
+.gpanel[data-mode="side"] .gpanel__toggle { top: var(--s-1); right: var(--s-1); }
+.gpanel[data-mode="side"][data-state="collapsed"] { width: var(--gpanel-strip); }
+.gpanel[data-mode="side"][data-state="collapsed"] .gpanel__body { padding: calc(var(--tap-xs) + var(--s-2)) var(--s-2) var(--s-2); }
+
+/* Sheet: under the globe, as wide as the screen allows; open, it grows upwards over it. */
+.gpanel[data-mode="sheet"], .gpanel[data-mode="strip"] {
+  left: var(--s-3); right: var(--s-3); bottom: calc(var(--s-3) + env(safe-area-inset-bottom));
+  max-height: min(var(--gpanel-sheet), calc(100% - var(--gpanel-top, var(--tap-sm)) - var(--s-4)));
+}
+.gpanel[data-mode="sheet"] { margin: 0 auto; max-width: var(--sheet-w); }
+.gpanel[data-mode="sheet"] .gpanel__toggle, .gpanel[data-mode="strip"] .gpanel__toggle { top: var(--s-1); right: var(--s-1); }
+.gpanel[data-mode="sheet"][data-state="collapsed"] .gkey,
+.gpanel[data-mode="strip"][data-state="collapsed"] .gkey { display: flex; flex-wrap: wrap; gap: var(--s-1) var(--s-3); margin-right: var(--tap-xs); }
+.gpanel[data-mode="sheet"][data-state="collapsed"] .gkey__item,
+.gpanel[data-mode="strip"][data-state="collapsed"] .gkey__item { display: flex; gap: var(--s-1); }
+
+/* Collapsed: the key only. In the side column and on phones, just the colours and their
+   short marks; the sheet has room for the labels too. */
+.gpanel[data-state="collapsed"] :is(.gpanel__card, .gpanel__what, .gpanel__more, .gtemp__month) { display: none; }
+.gpanel[data-state="collapsed"]:is([data-mode="side"], [data-mode="strip"]) :is(.gkey__label, .gpanel__titletext) { display: none; }
+.gpanel[data-state="collapsed"]:is([data-mode="side"], [data-mode="strip"]) .gkey__short { display: inline; }
+.gpanel[data-state="collapsed"][data-mode="side"] .gkey__item { grid-template-columns: 1fr; justify-items: center; row-gap: 2px; }
+.gpanel[data-state="collapsed"][data-mode="side"] .gpanel__title { justify-content: center; margin-right: 0; }
+.gpanel[data-state="collapsed"] .gtemp__scale { height: 96px; }
+.gpanel[data-state="collapsed"][data-mode="strip"] .gtemp__scale { height: auto; }
+.gpanel[data-state="collapsed"][data-mode="strip"] .gtemp__scale { align-items: center; }
+.gpanel[data-state="collapsed"][data-mode="strip"] .gtemp__bar { width: 96px; height: var(--legend-sw); background: var(--gtemp-h); }
+.gpanel[data-state="collapsed"][data-mode="strip"] .gtemp__ticks { flex-direction: row; gap: var(--s-2); }
+.gpanel[data-state="collapsed"][data-mode="strip"] .gpanel__title { margin-bottom: var(--s-1); }
+
+/* The drawings (js/globe-art.js), coloured with tokens. */
+.art__sea, .art__shallow, .art__zone--0 { fill: var(--c-map-sea); }
+.art__land, .art__relief-low { fill: var(--c-relief-low); }
+.art__relief-dry { fill: var(--c-relief-dry); }
+.art__relief-high { fill: var(--c-relief-high); }
+.art__sky { fill: var(--c-art-sky); }
+.art__space { fill: var(--c-night); }
+.art__sun { fill: var(--c-city-lights); }
+.art__ray, .art__beam { stroke: var(--c-city-lights); stroke-width: 2; stroke-linecap: round; fill: none; opacity: 0.8; }
+.art__pin { fill: var(--c-primary); }
+.art__pinface { fill: var(--c-surface); }
+.art__count { fill: var(--c-accent); }
+.art__counttext { fill: var(--c-on-accent); font: var(--fw-bold) 10px var(--font); }
+.art__trunk { fill: var(--c-ink-soft); }
+.art__forest-tropical { fill: var(--art-fill, var(--c-forest-tropical)); }
+.art__forest-temperate { fill: var(--art-fill, var(--c-forest-temperate)); }
+.art__forest-boreal { fill: var(--art-fill, var(--c-forest-boreal)); }
+.art__sand, .art__seabed { fill: var(--c-relief-dry); }
+.art__coral { fill: var(--c-reef); }
+.art__coral-branch { stroke: var(--c-reef); stroke-width: 3; stroke-linecap: round; fill: none; }
+.art__earth-day { fill: var(--c-map-land); }
+.art__earth-night { fill: var(--c-twilight); }
+.art__light { fill: var(--c-city-lights); }
+.art__glass { fill: var(--c-surface); stroke: var(--c-line); stroke-width: 1.5; }
+.art__mercury { fill: var(--c-bad); }
+.art__snow { stroke: var(--c-depth-2); stroke-width: 2; stroke-linecap: round; }
+.art__zone--1 { fill: var(--c-depth-1); }
+.art__zone--2 { fill: var(--c-depth-2); }
+.art__zone--3 { fill: var(--c-depth-3); }
+.art__zone--4 { fill: var(--c-depth-4); }
+.art__animal { fill: var(--c-ink-soft); }
+.art__animal-pale { fill: var(--c-art-sky); stroke: var(--c-ink-soft); stroke-width: 1.2; }
+.art__shell { fill: var(--c-relief-low); opacity: 0.8; }
+.art__shellline, .art__limb, .art__fin, .art__teeth { stroke: var(--c-ink-soft); stroke-width: 2; stroke-linecap: round; fill: none; }
+.art__fin { fill: var(--c-art-sky); }
+.art__eye { fill: var(--c-surface); }
 
 /* Photo pins: placed by transform on every frame (views/globe.js). */
 .gpin {

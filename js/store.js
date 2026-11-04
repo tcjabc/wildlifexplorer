@@ -254,6 +254,8 @@ export async function updateProfile(id, patch) {
       ...('notesPenSeen' in patch && { notesPenSeen: Boolean(patch.notesPenSeen) }),
       // The notebook on the card screens: 'collapsed' (the default) or 'expanded'. Device-only.
       ...('notesPanel' in patch && { notesPanel: patch.notesPanel === 'expanded' ? 'expanded' : 'collapsed' }),
+      // The Globe's info panel: 'expanded' (the default) or 'collapsed' to its key. Device-only.
+      ...('globePanel' in patch && { globePanel: patch.globePanel === 'collapsed' ? 'collapsed' : 'expanded' }),
       parent: { ...prev.parent, ...patch.parent },
     }, now);
     if (!sameSettings(prev, rec)) rec.settingsAt = now;

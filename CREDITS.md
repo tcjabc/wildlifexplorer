@@ -33,6 +33,9 @@ shut down in September 2026, so the same MODIS data now comes from GIBS. The UNE
 reef data has its own licence (not CC), so Natural Earth's public domain reefs are used
 instead.
 
+The drawings in the Globe's info panel (`js/globe-art.js`) were drawn for WildFile: no
+outside images.
+
 ## Tools
 
 - [mapshaper](https://github.com/mbloch/mapshaper) (MPL 2.0) and [sharp](https://sharp.pixelplumbing.com/) (Apache 2.0): build-time only, nothing at runtime.

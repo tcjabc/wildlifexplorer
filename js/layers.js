@@ -1,6 +1,6 @@
-// The Globe's map layers: what each chip shows, where its files are and what its legend
-// says. Files live in assets/layers/ (made by scripts/make-layers.mjs) and are only
-// fetched when a layer is first switched on; the service worker keeps them after that.
+// The Globe's map layers: what each chip shows, and where its files are. Files live in
+// assets/layers/ (made by scripts/make-layers.mjs) and are only fetched when a layer is first
+// switched on; the service worker keeps them after that.
 //
 // layer.load({ col, month }) resolves to a spec for globe.setLayer() (see js/globe.js).
 import { prepare, toVec } from './globe.js';
@@ -115,27 +115,22 @@ export const LAYER_CREDITS = [
 export const DEPTHS = [200, 1000, 4000, 6000];
 const FORESTS = ['tropical', 'temperate', 'boreal'];
 
-// legend: [{ colour token, label key }] or a special kind the view knows how to draw.
+// What each layer's info panel says is in js/globe-info.js.
 export const LAYERS = [
   {
     id: 'relief', emoji: '🏔️',
-    legend: [['--c-relief-low', 'layer.relief.low'], ['--c-relief-dry', 'layer.relief.dry'], ['--c-relief-high', 'layer.relief.high']],
     async load() {
       return { raster: { mode: 'relief', tex: `${DIR}relief-${size()}.webp`, aux: `${DIR}height-2k.webp`, bump: 5 } };
     },
   },
   {
     id: 'forests', emoji: '🌳',
-    legend: FORESTS.map(k => [`--c-forest-${k}`, `layer.forests.${k}`]),
-    note: 'layer.forests.note',
     async load({ col }) {
       return { land: await shapesBy('forests', 'kind', FORESTS, k => col(`--c-forest-${k}`)) };
     },
   },
   {
     id: 'reefs', emoji: '🪸',
-    legend: [['--c-reef', 'layer.reefs.reef']],
-    note: 'layer.reefs.note',
     async load({ col }) {
       const d = await getJson(`${DIR}reefs.json`);
       const vecs = new Float32Array(d.points.length * 1.5);
@@ -145,8 +140,6 @@ export const LAYERS = [
   },
   {
     id: 'night', emoji: '🌙', live: true,
-    legend: [['--c-map-land', 'layer.night.day'], ['--c-night', 'layer.night.night'], ['--c-city-lights', 'layer.night.lights']],
-    note: 'layer.night.note',
     async load({ col }) {
       return { raster: { mode: 'night', tex: `${DIR}night-${size()}.webp`, sun: sunVector(), tint: rgb(col('--c-night')) } };
     },
@@ -154,15 +147,12 @@ export const LAYERS = [
   },
   {
     id: 'temp', emoji: '🌡️', months: true,
-    legend: 'temp',
-    note: 'layer.temp.note',
     async load({ month }) {
       return { raster: { mode: 'picture', tex: `${DIR}temp-${String(month).padStart(2, '0')}.webp` } };
     },
   },
   {
     id: 'depth', emoji: '🌊',
-    legend: [['--c-map-sea', 'layer.depth.0'], ...DEPTHS.map((_, i) => [`--c-depth-${i + 1}`, `layer.depth.${i + 1}`])],
     async load({ col }) {
       return { sea: await shapesBy('depth', 'depth', DEPTHS, (d, i) => col(`--c-depth-${i + 1}`), { curve: DEPTH_CURVE, nearK: DEPTH_NEAR_K }) };
     },
