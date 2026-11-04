@@ -59,7 +59,9 @@ export function cardTile(card) {
       h('span', { class: 'tile__no' }, cardNo(card.number)),
       h('span', { class: 'tile__pic' }, picture(card, { thumb: true })),
       h('span', { class: 'tile__name' }, bi(card.name)),
-      card.taiwan && h('span', { class: 'tile__tw', title: label('card.taiwan'), 'aria-hidden': 'true' }, '🇹🇼'),
+      // On the photo's corner: dark or light text from card.labelTone (set by the build; white
+      // with a dark halo until a card has one).
+      card.taiwan && h('span', { class: 'tile__tw', 'data-tone': card.labelTone ?? null, title: label('card.taiwan'), 'aria-hidden': 'true' }, '🇹🇼'),
       notesBadge(card));
   }
   const when = t(inUnopenedPack(card.id) ? 'binder.inPack' : 'binder.mystery');

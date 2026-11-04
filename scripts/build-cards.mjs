@@ -34,6 +34,7 @@ import { planDrops, dropOrder, DropPlanError } from './lib/drops.mjs';
 import { isReady, stillNeeds } from '../js/ready.js';
 import { renderBadgeSections } from './lib/badges-report.mjs';
 import { migrateCard, orderKeys, factFileTodo, statsTodo, todosOf, termsOf } from './lib/card-schema.mjs';
+import { labelToneOf, AA, BUSY } from './lib/label-tone.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const P = {
@@ -392,6 +393,21 @@ async function main() {
     }
   }
 
+  // The country label on a tile's photo: dark or light text, from the corner under it
+  // (scripts/lib/label-tone.mjs). Recomputed on every build, so a new picture gets a new tone;
+  // list "labelTone" in a card's locked to set it by hand.
+  const labelCorners = [];
+  for (const card of [...cards, ...orphans]) {
+    const img = card.photo ?? card.illustration;
+    if (!img?.file || (card.locked ?? []).includes('labelTone')) continue;
+    const thumb = path.join(ROOT, thumbPath(img.file));
+    if (!existsSync(thumb)) { delete card.labelTone; continue; }
+    const r = await labelToneOf(thumb);
+    card.labelTone = r.tone;
+    if (card.taiwan) labelCorners.push({ card, ...r });
+  }
+  extra.labelCorners = labelCorners;
+
   // Images on disk that no card uses any more (left in place; delete them if you like).
   const referenced = new Set([...cards, ...orphans, ...entryCards].flatMap(c => [c.photo?.file, c.illustration?.file]).filter(Boolean));
   const imgDir = path.join(ROOT, 'img');
@@ -545,6 +561,20 @@ function renderReport({ rows, cards, orphans, report, imageProblems, unused, sel
     L.push('');
     const noRelated = cards.filter(c => Array.isArray(c.related) && !c.related.length);
     if (noRelated.length) L.push(`Cards with no related species yet: ${noRelated.length} of ${cards.filter(c => c.scientificName).length} species cards.`, '');
+  }
+
+  // Country labels on tile photos: busy corners, where the halo alone may not be enough.
+  const corners = extra.labelCorners ?? [];
+  if (corners.length) {
+    const busy = corners.filter(c => c.busy);
+    L.push('## Country label on tile photos', '');
+    L.push(`Text colour from the photo corner under the 🇹🇼 / "TW" label (\`labelTone\`): ${corners.filter(c => c.tone === 'light').length} dark-on-light, ${corners.filter(c => c.tone === 'dark').length} white-on-dark. A corner is listed as busy when its average gives less than ${AA}:1, or more than ${Math.round(BUSY * 100)}% of its pixels give less than 3:1 with the chosen colour; those may need a small translucent pill instead of the halo.`, '');
+    if (!busy.length) L.push('Busy corners: none.', '');
+    else {
+      L.push('| Card | Tone | Average contrast | Pixels under 3:1 |', '|---|---|---|---|');
+      for (const c of busy) L.push(`| ${c.card.name.en} (\`${c.card.id}\`) | ${c.tone} | ${c.contrast.toFixed(1)}:1 | ${Math.round(c.poorShare * 100)}% |`);
+      L.push('');
+    }
   }
 
   // Text marked "todo": not checked yet, so only grown-ups see it (parent preview).

@@ -208,6 +208,11 @@ Each card looks like this:
     `[[omnivore|雜食性動物]]`. Entries live in `data/glossary.json` (term and kid-friendly definition,
     in both languages). Tapping a term opens a small popover; an id that isn't there is plain text.
     `npm test` fails on missing entries, and the build report lists missing and unused ones.
+- **labelTone**: written by the build, `"light"` or `"dark"`: the photo corner under a tile's
+  country label (🇹🇼, "TW" where there is no flag emoji) is light or dark, so the label is near-black
+  or white, always with an opposite halo. Recomputed on every build from the tile's thumbnail
+  (`scripts/lib/label-tone.mjs`); list it in `locked` to set it by hand. The build report lists
+  busy corners where the halo alone may not be enough.
 - **_sources**: where the Fact File's facts come from (`[{ "title", "url" }]`), next to `_draft`.
 - **status**: an IUCN code — `EX` `EW` `CR` `EN` `VU` `NT` `LC` `DD` `NE` — or `null`.
 - **photo / illustration**: to use your own picture, put it in `img/`, then fill in all five

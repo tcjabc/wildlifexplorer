@@ -108,6 +108,7 @@
       "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Ours_du_Tibet_(Ursus_thibetanus)-_Histoire_naturelle_des_mammif%C3%A8res_avec_des_figures_originales,_colori%C3%A9es,_dessin%C3%A9es_d%27apr%C3%A8s_des_animaux_vivans_-_tome_5_(1824)_(cropped).jpg"
     },
+    "labelTone": "dark",
     "mapBounds": {
       "west": 120.35,
       "south": 22.18,
@@ -388,6 +389,7 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Formosan_macaque.jpg"
     },
     "illustration": null,
+    "labelTone": "dark",
     "mapBounds": {
       "west": 119.67,
       "south": 21.52,
@@ -662,6 +664,7 @@
       "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:PSM_V21_D612_Manis_pentadactyla.jpg"
     },
+    "labelTone": "light",
     "mapBounds": {
       "west": 119.67,
       "south": 21.52,
@@ -850,6 +853,7 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Ta%C3%AFwan_Serow.jpg"
     },
     "illustration": null,
+    "labelTone": "light",
     "mapBounds": {
       "west": 120.4,
       "south": 22.96,
@@ -1037,6 +1041,7 @@
       "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:The_deer_of_all_lands_(1898)_Formosan_sambar_in_Woburn_Abbey.png"
     },
+    "labelTone": "light",
     "mapBounds": {
       "west": 120.39,
       "south": 22.81,
@@ -1217,6 +1222,7 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Muntiacus_reevesi_micrurus_230869896.jpg"
     },
     "illustration": null,
+    "labelTone": "light",
     "stats": {
       "heightCm": {
         "min": 40,
@@ -1395,6 +1401,7 @@
       "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Pteropus_formosus_by_J.G._Keulemans_(PZS_1873_PL_XXII).jpg"
     },
+    "labelTone": "light",
     "stats": {
       "lengthCm": {
         "min": 18,
@@ -1582,6 +1589,7 @@
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Prionailurus_bengalensis_-_CHANG,_Yun-Hsin.jpg"
     },
+    "labelTone": "dark",
     "stats": {
       "lengthCm": {
         "min": 45,
@@ -1757,6 +1765,7 @@
       "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Paguma_larvata_Hardwicke.jpg"
     },
+    "labelTone": "light",
     "stats": {
       "development": {
         "kind": "gestation",
@@ -1907,6 +1916,7 @@
       "sourceUrl": "https://www.inaturalist.org/photos/254810868"
     },
     "illustration": null,
+    "labelTone": "dark",
     "stats": {
       "lengthCm": {
         "min": 37,
@@ -2080,6 +2090,7 @@
       "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Otter_(Lutra_lutra)_Otter._Lutra._Loutre._(titel_op_object),_RP-T-BR-2017-1-1-65.jpg"
     },
+    "labelTone": "light",
     "related": [],
     "taxonomy": {
       "kingdom": {
@@ -2233,6 +2244,7 @@
       "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Civetkat_(Viverra),_alpenmarmot_(Marmota_marmota),_luipaard_(Panthera_pardus)_en_tijger_(Panthera_tigris),_RP-T-BR-2017-1-1-95.jpg"
     },
+    "labelTone": "dark",
     "stats": {
       "development": {
         "kind": "gestation",
@@ -2397,6 +2409,7 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:PZ_lion_pride.jpg"
     },
     "illustration": null,
+    "labelTone": "dark",
     "stats": {
       "development": {
         "kind": "gestation",
@@ -2559,6 +2572,7 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:TheCheethcat.jpg"
     },
     "illustration": null,
+    "labelTone": "light",
     "stats": {
       "lengthCm": {
         "min": 110,
@@ -2743,6 +2757,7 @@
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Loxodonta_africana2.jpg"
     },
+    "labelTone": "light",
     "stats": {
       "heightCm": {
         "min": 220,
@@ -2912,6 +2927,7 @@
       "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Giraffa_camelopardalis_(Giraf),_RP-T-1914-17-150.jpg"
     },
+    "labelTone": "light",
     "stats": {
       "development": {
         "kind": "gestation",
@@ -3066,6 +3082,7 @@
       "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Equus_quagga_quagga_lithograph.jpg"
     },
+    "labelTone": "light",
     "stats": {
       "development": {
         "kind": "gestation",
@@ -3219,6 +3236,7 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Portrait_Hippopotamus_in_the_water.jpg"
     },
     "illustration": null,
+    "labelTone": "dark",
     "stats": {
       "development": {
         "kind": "gestation",
@@ -3377,6 +3395,7 @@
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Diceros_bicornis_introduction.jpg"
     },
+    "labelTone": "light",
     "stats": {
       "heightCm": {
         "min": 140,
@@ -3548,6 +3567,7 @@
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Gorila_de_llanura_occidental._Gorilla_gorilla_-_Blanca_Mart%C3%AD_de_Ahumada.jpg"
     },
+    "labelTone": "dark",
     "stats": {
       "heightCm": {
         "min": 140,
@@ -3714,6 +3734,7 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Taiwan_blue_magpie_(Urocissa_caerulea)_Xindian.jpg"
     },
     "illustration": null,
+    "labelTone": "dark",
     "mapBounds": {
       "west": 119.67,
       "south": 21.52,
@@ -3892,6 +3913,7 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Swinhoe%27s_Pheasant_0673.jpg"
     },
     "illustration": null,
+    "labelTone": "light",
     "mapBounds": {
       "west": 119.67,
       "south": 21.52,
@@ -4070,6 +4092,7 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Syrmaticus_mikado_(illustration).jpg",
       "note": "Cropped to remove the printed caption."
     },
+    "labelTone": "light",
     "mapBounds": {
       "west": 120.3,
       "south": 22.48,
@@ -4251,6 +4274,7 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Psilopogon_nuchalis_-_Ben_Keen_-_252080992.png"
     },
     "illustration": null,
+    "labelTone": "light",
     "mapBounds": {
       "west": 119.67,
       "south": 21.52,
@@ -4426,6 +4450,7 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Protobothrops_mucrosquamatus_(10.3897-BDJ.8.e52779)_Figure_6.jpeg"
     },
     "illustration": null,
+    "labelTone": "dark",
     "mapBounds": {
       "west": 110.83,
       "south": 21.27,
@@ -4611,6 +4636,7 @@
       "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Oncorhynchus_masou_formosanus_001.jpg"
     },
+    "labelTone": "light",
     "mapBounds": {
       "west": 120.72,
       "south": 23.53,
@@ -4788,6 +4814,7 @@
       "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Attacus_atlas_ill.png"
     },
+    "labelTone": "light",
     "mapBounds": {
       "west": 67.34,
       "south": -13.43,
@@ -5142,6 +5169,7 @@
       "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Tyrannosaurus-rex-Profile-steveoc86_(coloured).png"
     },
+    "labelTone": "light",
     "fossilSite": {
       "lat": 47.6,
       "lng": -106.3,
@@ -5307,6 +5335,7 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:SEM_image_of_Milnesium_tardigradum_in_active_state_-_journal.pone.0045682.g001-2.png"
     },
     "illustration": null,
+    "labelTone": "light",
     "mapBounds": {
       "west": -126.61,
       "south": -91.13,
@@ -5454,6 +5483,7 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Prunus_campanulata_01.jpg"
     },
     "illustration": null,
+    "labelTone": "light",
     "mapBounds": {
       "west": -90.79,
       "south": -55.89,
