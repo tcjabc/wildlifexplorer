@@ -4545,38 +4545,46 @@
     "factFile": {
       "habitat": [
         {
-          "en": "",
-          "zh": ""
+          "en": "The Formosan landlocked salmon lives only in the upper streams of the Dajia River in Shei-Pa National Park, such as Qijiawan Creek. It is the most southern salmon in the world.",
+          "zh": "櫻花鉤吻鮭只住在雪霸國家公園裡大甲溪上游的溪流，例如七家灣溪。牠是全世界分布最南邊的鮭鱒魚。"
+        },
+        {
+          "en": "It needs cold water. The forests along the streams keep the water below 17°C all year, and in winter it is only about 10°C.",
+          "zh": "牠需要冰涼的溪水。溪流兩旁的森林讓水溫終年保持在攝氏17度以下，冬天只有大約10度。"
         }
       ],
       "breeding": [
         {
-          "en": "",
-          "zh": ""
+          "en": "The salmon lay their eggs in autumn, around October and November.",
+          "zh": "櫻花鉤吻鮭在秋天產卵，大約是10月到11月。"
         }
       ],
       "behaviour": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Most salmon swim out to the sea and come back to rivers to breed. This one is [[landlocked]]: it spends its whole life in the same mountain streams.",
+          "zh": "大多數鮭魚會游到大海，再回到河裡繁殖。櫻花鉤吻鮭卻是[[landlocked|陸封型]]的，一輩子都住在同一條山溪裡。"
         }
       ],
       "foodAndHunting": [
         {
-          "en": "",
-          "zh": ""
+          "en": "It eats mainly insects that live in the water. That is different from another stream fish, the Taiwan shovel-jaw carp, which eats mostly algae.",
+          "zh": "牠主要吃水裡的水生昆蟲，和同一條溪裡主要吃藻類的苦花不一樣。"
         }
       ],
       "conservation": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Taiwan's law protects the salmon as [[endangered]]. In 1992 only about 200 were left, all in Qijiawan Creek.",
+          "zh": "臺灣法律把櫻花鉤吻鮭列為[[endangered|瀕臨絕種]]的保育類野生動物。1992年時，只剩下大約200尾，全都在七家灣溪。"
+        },
+        {
+          "en": "After 30 years of work by Shei-Pa National Park, there are now more than 16,000, and young salmon raised by people have been released into more streams to start new groups.",
+          "zh": "經過雪霸國家公園30年的努力，現在已經超過16,000尾，人工培育的小魚也被放流到更多溪流，建立新的族群。"
         }
       ],
       "didYouKnow": [
         {
-          "en": "",
-          "zh": ""
+          "en": "It is called a \"national treasure fish\" because in 1984 Taiwan's government named it a rare and valuable animal under the Cultural Heritage Preservation Act.",
+          "zh": "牠被叫做「國寶魚」，是因為政府在1984年依照《文化資產保存法》，公告牠為珍貴稀有動物。"
         }
       ]
     },
@@ -4657,7 +4665,39 @@
     ],
     "_draft": [
       "facts",
-      "tags"
+      "tags",
+      "factFile.habitat",
+      "factFile.breeding",
+      "factFile.behaviour",
+      "factFile.foodAndHunting",
+      "factFile.conservation",
+      "factFile.didYouKnow"
+    ],
+    "_sources": [
+      {
+        "title": "FANCA: 櫻花鉤吻鮭 (Category I, 1992 about 200, 1984 cultural heritage listing, below 17°C)",
+        "url": "https://conservation.forest.gov.tw/File.aspx?fno=65417"
+      },
+      {
+        "title": "PTS: 櫻花鉤吻鮭 restoration (more than 10,000; satellite populations)",
+        "url": "https://news.pts.org.tw/article/556144"
+      },
+      {
+        "title": "FTV News (2026): salmon recovered to over 16,000 after 30 years, in seven streams",
+        "url": "https://english.ftvnews.com.tw/news/2026901W0BEA"
+      },
+      {
+        "title": "PTS: Shei-Pa official, salmon breed around November",
+        "url": "https://news.pts.org.tw/article/355654"
+      },
+      {
+        "title": "PTS: Shei-Pa, salmon eat mainly aquatic insects; 苦花 eat algae",
+        "url": "https://news.pts.org.tw/article/747607"
+      },
+      {
+        "title": "Cavac (Wikipedia mirror): Oncorhynchus masou formosanus (spawning second half of October)",
+        "url": "https://cavac.at/cavacopedia/Oncorhynchus%20masou%20formosanus"
+      }
     ]
   },
   {

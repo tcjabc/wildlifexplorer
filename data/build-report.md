@@ -10,7 +10,7 @@ Generated 2026-11-04 13:20 UTC. Re-written on every build.
 - Rows not built yet: 183 (run with `--all` or a bigger `--limit`)
 - Cards without a photo: 5
 - Cards with facts still to write: 15
-- Cards with Fact File sections still to write: 6
+- Cards with Fact File sections still to write: 5
 - Cards that open (profile or statistics): 25
 
 ## Drops
@@ -328,7 +328,7 @@ Empty slots in `factFile` (habitat, breeding, behaviour, food, conservation, did
 - Swinhoe's Pheasant · 藍腹鷴 (`swinhoe-s-pheasant`): number of young
 - Mikado Pheasant · 帝雉 (`mikado-pheasant`): number of young
 - Brown-spotted Pit Viper · 龜殼花 (`brown-spotted-pit-viper`): number of young
-- Formosan Landlocked Salmon · 櫻花鉤吻鮭 (`formosan-landlocked-salmon`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
+- Formosan Landlocked Salmon · 櫻花鉤吻鮭 (`formosan-landlocked-salmon`): development (gestation or incubation), number of young
 - Atlas Moth · 皇蛾 (`atlas-moth`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
 - Tyrannosaurus rex · 暴龍 (`tyrannosaurus-rex`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
 - Tardigrade (Water Bear) · 水熊蟲 (`tardigrade-water-bear`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
@@ -348,11 +348,11 @@ Only shown in grown-up preview until checked. Delete the `todo` key once a fact 
 
 ## Glossary
 
-- Terms in data/glossary.json: 52; used on cards: 50
+- Terms in data/glossary.json: 53; used on cards: 51
 - Missing: none
 - Not used on any card: `carnivora`, `incubation`
 
-Cards with a sources list (`_sources`): 25 of 30 species cards.
+Cards with a sources list (`_sources`): 26 of 30 species cards.
 
 ## Draft text to check
 
@@ -383,7 +383,7 @@ Written by Claude as a starting point. Check or rewrite it, then remove the fiel
 - Mikado Pheasant · 帝雉 (`mikado-pheasant`): facts, tags, stats, factFile.habitat, factFile.breeding, factFile.behaviour, factFile.foodAndHunting, factFile.conservation, factFile.didYouKnow
 - Taiwan Barbet · 五色鳥 (`taiwan-barbet`): facts, tags, factFile.habitat, factFile.breeding, factFile.behaviour, factFile.foodAndHunting, factFile.conservation, factFile.didYouKnow, stats
 - Brown-spotted Pit Viper · 龜殼花 (`brown-spotted-pit-viper`): facts, tags, stats, factFile.habitat, factFile.breeding, factFile.behaviour, factFile.foodAndHunting, factFile.conservation, factFile.didYouKnow
-- Formosan Landlocked Salmon · 櫻花鉤吻鮭 (`formosan-landlocked-salmon`): facts, tags
+- Formosan Landlocked Salmon · 櫻花鉤吻鮭 (`formosan-landlocked-salmon`): facts, tags, factFile.habitat, factFile.breeding, factFile.behaviour, factFile.foodAndHunting, factFile.conservation, factFile.didYouKnow
 - Atlas Moth · 皇蛾 (`atlas-moth`): facts, tags, stats
 - Migration · 遷徙 (`migration`): facts
 - Central Mountain Range · 中央山脈 (`central-mountain-range`): facts, tags

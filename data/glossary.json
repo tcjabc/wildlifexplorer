@@ -251,6 +251,16 @@
         "zh": "一種堅韌的材料，頭髮、指甲、角和鱗片都是由它組成的。"
       }
     },
+    "landlocked": {
+      "term": {
+        "en": "landlocked",
+        "zh": "陸封型"
+      },
+      "def": {
+        "en": "A fish that stays in fresh water all its life instead of going to the sea.",
+        "zh": "一輩子都待在淡水裡、不會游到大海的魚。"
+      }
+    },
     "least-concern": {
       "term": {
         "en": "Least Concern",
