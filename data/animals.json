@@ -4363,38 +4363,50 @@
     "factFile": {
       "habitat": [
         {
-          "en": "",
-          "zh": ""
+          "en": "The brown-spotted pit viper lives on hillsides, in bamboo thickets, shrubland and farmland, and often around old, empty houses.",
+          "zh": "龜殼花住在山坡、竹林、灌叢和農田，常常出現在廢棄的老房子附近。"
+        },
+        {
+          "en": "In north-east Taiwan, more and more people are meeting these snakes as towns and roads spread into their habitat.",
+          "zh": "在臺灣東北部，隨著城鎮和道路往牠們的棲地擴張，人和龜殼花碰面的機會越來越多。"
         }
       ],
       "breeding": [
         {
-          "en": "",
-          "zh": ""
+          "en": "It is [[oviparous]]: the female lays a [[clutch]] of eggs in summer. She stays with her eggs and guards them for one to two months until they hatch.",
+          "zh": "龜殼花是[[oviparous|卵生]]的，母蛇在夏天生下一[[clutch|窩蛋]]，牠會守在蛋旁邊一到兩個月，直到小蛇孵出來。"
         }
       ],
       "behaviour": [
         {
-          "en": "",
-          "zh": ""
+          "en": "It is mostly [[nocturnal]], but is sometimes seen by day. Two pits on its face sense the warmth of other animals, so it can find them in the dark.",
+          "zh": "龜殼花大多是[[nocturnal|夜行性]]的，但白天有時也看得到。牠臉上有兩個小窩，可以感覺其他動物的體溫，所以在黑暗中也找得到牠們。"
+        },
+        {
+          "en": "It is the boldest of Taiwan's common [[venom|venomous]] snakes and does not easily back away.",
+          "zh": "牠是臺灣常見的[[venom|毒蛇]]中最大膽的一種，不太會主動退開。"
         }
       ],
       "foodAndHunting": [
         {
-          "en": "",
-          "zh": ""
+          "en": "The pit viper is a [[predator]]. Its [[prey]] are small rodents, frogs, lizards, birds and bats.",
+          "zh": "龜殼花是[[predator|掠食者]]，牠的[[prey|獵物]]是小型鼠類、青蛙、蜥蜴、鳥和蝙蝠。"
         }
       ],
       "conservation": [
         {
-          "en": "",
-          "zh": ""
+          "en": "The brown-spotted pit viper is listed as [[least-concern|Least Concern]] on the [[red-list|IUCN Red List]], and in 2019 Taiwan took it off the list of [[protected-species|protected species]].",
+          "zh": "龜殼花在[[red-list|國際自然保護聯盟（IUCN）紅色名錄]]上被列為[[least-concern|無危]]，2019年臺灣也把牠從[[protected-species|保育類野生動物]]名單中移除。"
+        },
+        {
+          "en": "Its bite is very painful and can make a whole arm or leg swell up, so it always needs a doctor. If you see one, don't touch it: step back slowly and tell a grown-up.",
+          "zh": "被龜殼花咬到會非常痛，整隻手或腳都可能腫起來，一定要看醫生。如果看到牠，千萬不要碰：慢慢往後退，並告訴大人。"
         }
       ],
       "didYouKnow": [
         {
-          "en": "",
-          "zh": ""
+          "en": "A mother brown-spotted pit viper guards her eggs for up to two months until the babies hatch.",
+          "zh": "龜殼花媽媽會守著牠的蛋，最久可以守兩個月，直到小蛇孵出來。"
         }
       ]
     },
@@ -4425,6 +4437,13 @@
       "lengthCm": {
         "min": 60,
         "max": 110
+      },
+      "development": {
+        "kind": "incubation",
+        "days": {
+          "min": 30,
+          "max": 60
+        }
       }
     },
     "related": [],
@@ -4472,7 +4491,31 @@
     "_draft": [
       "facts",
       "tags",
-      "stats"
+      "stats",
+      "factFile.habitat",
+      "factFile.breeding",
+      "factFile.behaviour",
+      "factFile.foodAndHunting",
+      "factFile.conservation",
+      "factFile.didYouKnow"
+    ],
+    "_sources": [
+      {
+        "title": "HKU: Protobothrops mucrosquamatus (nocturnal, oviparous, clutch, female guards eggs 30–60 days, diet)",
+        "url": "https://biosch.hku.hk/ecology/hkreptiles/snake/Protobothrops_mucrosquamatus.html"
+      },
+      {
+        "title": "Snakes of Taiwan: Protobothrops mucrosquamatus (habitat, boldest venomous snake, bite effects)",
+        "url": "https://snakesoftaiwan.com/protobothrops-mucrosquamatus.html"
+      },
+      {
+        "title": "Frontiers in Amphibian and Reptile Science (2025): human–pit viper conflict in north-east Taiwan",
+        "url": "https://www.frontiersin.org/journals/amphibian-and-reptile-science/articles/10.3389/famrs.2025.1609575/full"
+      },
+      {
+        "title": "FANCA: amended terrestrial protected wildlife list, effective 2019-01-09 (龜殼花 removed)",
+        "url": "https://www.forest.gov.tw/news/0063328"
+      }
     ]
   },
   {

@@ -331,6 +331,16 @@
         "zh": "植物和動物都吃的動物。"
       }
     },
+    "oviparous": {
+      "term": {
+        "en": "oviparous",
+        "zh": "卵生"
+      },
+      "def": {
+        "en": "Laying eggs that hatch outside the mother's body.",
+        "zh": "生下蛋，讓寶寶在媽媽身體外面孵出來。"
+      }
+    },
     "poaching": {
       "term": {
         "en": "poaching",
@@ -489,6 +499,16 @@
       "def": {
         "en": "A group of monkeys that live together.",
         "zh": "一起生活的一群猴子。"
+      }
+    },
+    "venom": {
+      "term": {
+        "en": "venom",
+        "zh": "毒液"
+      },
+      "def": {
+        "en": "A poison some animals inject with a bite or sting.",
+        "zh": "有些動物咬人或叮人時注入的毒。"
       }
     },
     "vulnerable": {
