@@ -98,13 +98,19 @@ export function track(el, handlers, { slop = 8 } = {}) {
     mode = null;
   };
 
+  // Set once a sequence becomes a drag or a pinch: the click the browser may still send at the
+  // end (iPad Safari does, even after a drag or a cancelled one) must not count as a tap.
+  let moved = false;
+
   const down = e => {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
+    if (pointers.size === 0) moved = false;
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (pointers.size === 2 && handlers.pinchStart) {
       // A second finger turns any drag into a pinch.
       if (mode === 'drag') handlers.cancel?.();
       mode = 'pinch';
+      moved = true;
       pinch = { dist: distance(), samples: [{ t: performance.now(), d: distance() }] };
       for (const id of pointers.keys()) try { el.setPointerCapture(id); } catch { /* gone */ }
       handlers.pinchStart({ dist: pinch.dist });
@@ -141,6 +147,9 @@ export function track(el, handlers, { slop = 8 } = {}) {
       if (decided === false) { mode = null; return; }
       if (decided === null) return; // not sure yet: ask again on the next move
       mode = 'drag';
+      moved = true;
+      // Touch pointers are already captured by the element touched (implicit capture, in
+      // Safari and Chrome); taking it over fires lostpointercapture there, which lost() ignores.
       try { el.setPointerCapture(e.pointerId); } catch { /* gone */ }
     }
     if (mode !== 'drag') return;
@@ -180,27 +189,36 @@ export function track(el, handlers, { slop = 8 } = {}) {
     start = null;
     pointers.clear();
   };
-  const lost = e => { if (mode === 'drag' && e.pointerId === start?.id) abandon(); };
+  // Only our own capture counts: lostpointercapture also bubbles up from a child that held the
+  // pointer implicitly (the touched element) when el takes it over at the start of a drag.
+  // Before this check that handover ended every touch drag after one move (iPad: drags acted
+  // like taps).
+  const lost = e => { if (e.target === el && mode === 'drag' && e.pointerId === start?.id) abandon(); };
   const blur = () => { if (mode === 'drag' || mode === 'pending') abandon(); };
+  // While we own a drag or pinch the page must not scroll or zoom under it (Safari can start
+  // its own gesture and cancel the pointer when touch-action alone doesn't hold). Not
+  // passive, so preventDefault works; before a drag locks, touches are left alone (scrolling
+  // panels, buttons).
+  const touchmove = e => { if (mode === 'drag' || mode === 'pinch') e.preventDefault(); };
 
   el.addEventListener('pointerdown', down);
   el.addEventListener('pointermove', move);
   el.addEventListener('pointerup', up);
   el.addEventListener('pointercancel', up);
   el.addEventListener('lostpointercapture', lost);
+  el.addEventListener('touchmove', touchmove, { passive: false });
   window.addEventListener('blur', blur);
-  // Stop the click that follows a real drag from also counting as a tap.
-  el.addEventListener('click', e => { if (samples.length > 2 && dragged()) { e.stopPropagation(); e.preventDefault(); } }, true);
-  const dragged = () => {
-    const a = samples[0], b = samples.at(-1);
-    return a && b && Math.hypot(b.x - a.x, b.y - a.y) >= slop;
-  };
+  // Stop the click that follows a drag or pinch (finished or cancelled) from counting as a tap.
+  const click = e => { if (moved) { e.stopPropagation(); e.preventDefault(); } };
+  el.addEventListener('click', click, true);
   return () => {
     el.removeEventListener('pointerdown', down);
     el.removeEventListener('pointermove', move);
     el.removeEventListener('pointerup', up);
     el.removeEventListener('pointercancel', up);
     el.removeEventListener('lostpointercapture', lost);
+    el.removeEventListener('touchmove', touchmove);
+    el.removeEventListener('click', click, true);
     window.removeEventListener('blur', blur);
   };
 }

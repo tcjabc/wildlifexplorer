@@ -5,8 +5,10 @@
   display: flex; align-items: center; justify-content: center;
   padding: max(var(--s-4), env(safe-area-inset-top)) var(--s-4) max(var(--s-4), env(safe-area-inset-bottom));
   opacity: 0; transition: opacity var(--t-med);
-  overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none;
+  overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
 }
+/* Pictures never start the browser's own drag (it would cancel the gesture). */
+.reveal img { -webkit-user-drag: none; }
 .reveal.is-open { opacity: 1; }
 .reveal__scrim {
   position: absolute; inset: 0; background: var(--c-overlay);

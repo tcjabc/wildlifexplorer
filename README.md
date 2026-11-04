@@ -75,6 +75,17 @@ npm run serve
 Then open http://localhost:8080. (Opening `index.html` straight from disk won't work:
 service workers need `localhost` or `https`.)
 
+On a tablet on the same Wi-Fi, open http://<this computer's address>:8080 (Windows may ask to
+let Node through the firewall). It works without the service worker there (plain `http` on a
+network address isn't a secure context), so nothing is kept offline.
+
+**Touch tests.** `tests/touch.test.mjs` runs the gesture code (`js/gesture.js`) in WebKit with an
+iPad profile and in Chromium, using Playwright (a dev dependency, never part of the app). It
+needs the browsers once: `npx playwright install webkit chromium`; without them those tests are
+skipped. A touch pointer is captured by the element touched (implicit capture); when a drag takes
+it over, that element's `lostpointercapture` must not end the drag, and the click after any drag
+must not count as a tap (on iPad, drags used to act like taps).
+
 ## Adding cards
 
 1. Add a row to `data/card-list.csv`:

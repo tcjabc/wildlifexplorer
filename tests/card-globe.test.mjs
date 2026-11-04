@@ -98,7 +98,7 @@ test('the map is a tap target only: a drag that starts on it is still the card\'
   assert.match(src('js/cardparts.js'), /h\('button', \{ class: \['map-open', cls\], type: 'button'/);
   const start = src('js/viewer.js').match(/start: \(\{ x, y, target \}\) => \{[\s\S]*?\n {4}\},/)[0];
   assert.doesNotMatch(start, /map-open/, 'drags may start on the map');
-  assert.match(src('js/gesture.js'), /Stop the click that follows a real drag/);
+  assert.match(src('js/gesture.js'), /Stop the click that follows a drag or pinch/);
 });
 
 // ---------- the globe's data, first time offline ----------
