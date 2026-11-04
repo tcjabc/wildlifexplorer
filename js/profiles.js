@@ -2,7 +2,7 @@
 // and the Welcome form (new profile) that is also used to edit one later.
 import { h, mount } from './dom.js';
 import { tx, label, getMode, setMode } from './i18n.js';
-import { state, parentTemplate, currentAge, onChange } from './store.js';
+import { state, parentTemplate, currentAge, onChange, watching } from './store.js';
 import { countryOptions } from './countries.js';
 import { restoreError } from './backup.js';
 import { cmFromFtIn, ftInFromCm, kgFromLb, lbFromKg } from './units.js';
@@ -42,7 +42,7 @@ export function showPicker() {
     const stop = onChange('profiles', () => mount(list, items()));
     const el = h('div', { class: 'picker', role: 'dialog', 'aria-modal': 'true', 'aria-label': label('profile.who') },
       h('img', { class: 'picker__logo', src: 'icons/icon-192.png', alt: '', width: 96, height: 96 }),
-      h('h1', { class: 'picker__title' }, tx('profile.who')),
+      h('h1', { class: 'picker__title' }, tx(watching() ? 'profile.whoWatch' : 'profile.who')),
       list);
     document.body.append(el);
     requestAnimationFrame(() => el.classList.add('is-open'));

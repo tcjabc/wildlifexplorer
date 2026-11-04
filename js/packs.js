@@ -3,7 +3,7 @@
 // pack drawn for the Packs page.
 import { h } from './dom.js';
 import { tx, t, label, dateText } from './i18n.js';
-import { state, grantDue, unopenedPacks, markNotified, nextDrop, dropById } from './store.js';
+import { state, grantDue, unopenedPacks, markNotified, nextDrop, dropById, watching } from './store.js';
 import { openPacks, revealing } from './reveal.js';
 
 let afterOpen = () => {};
@@ -13,6 +13,7 @@ export function initPacks({ onClosed }) { afterOpen = onClosed; }
 
 // Open the oldest pack (and more, if the child asks), then let the app redraw.
 export function openNow() {
+  if (watching()) return; // packs are opened on the explorers' device
   hideArrival();
   openPacks(afterOpen);
 }
@@ -22,7 +23,7 @@ export async function checkDrops() {
   if (!state.profile) return;
   await grantDue();
   updateBadge();
-  if (revealing()) return;
+  if (revealing() || watching()) return;
   const unheard = unopenedPacks().filter(p => !p.notifiedAt);
   if (!unheard.length) return;
   await markNotified(unheard);

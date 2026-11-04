@@ -55,6 +55,8 @@ function setNav(active, force = false) {
 function parseHash() {
   const [name, ...args] = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
   if (name === 'card' && args[0]) return { name: 'card', args: [decodeURIComponent(args[0]), args[1]] };
+  // Field Notes and the quiz stay on each device: not on a grown-up's phone.
+  if (store.watching() && ['notes', 'quiz'].includes(name)) return { name: 'binder', args: [] };
   return VIEWS[name] ? { name, args: args.map(decodeURIComponent) } : { name: 'binder', args: [] };
 }
 
@@ -203,6 +205,15 @@ async function boot() {
   main.removeAttribute('aria-busy');
 
   store.onChange('profile', applyProfile);
+  // This device became a grown-up's phone, or the explorers' device again.
+  store.onChange('role', () => {
+    hideArrival();
+    setNav(activeNav, true);
+    if (!store.state.profile || choosing) return;
+    if (['notes', 'quiz'].includes(shown.name)) location.replace('#/binder');
+    else if (shown.name !== 'parents' && !viewer.isOpen()) refresh(); // Parents redraws itself, still open
+    checkDrops();
+  });
   // The active profile was deleted (Parents area): pick another.
   store.onChange('profiles', () => { if (!store.state.profile) chooseProfile(); });
   // Packs and the binder's "In a pack" tiles show what has arrived.

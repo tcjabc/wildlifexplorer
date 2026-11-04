@@ -14,7 +14,7 @@
 // and the cover / open spread / back is drawn flat, so text and photos stay crisp.
 import { h, mount, reducedMotion } from './dom.js';
 import { tx, t, label, getMode } from './i18n.js';
-import { cardsIn, isVisible, groupById, speechRate } from './store.js';
+import { cardsIn, isVisible, groupById, speechRate, watching } from './store.js';
 import {
   coverPage, profilePage, insidePage, backPage, cardCredits,
   hasInside, hasBack, factsOf,
@@ -304,6 +304,7 @@ function buildBar(card) {
 
 // 📓 with the number of pages linked to this card.
 function notesButton(card) {
+  if (watching()) return null; // Field Notes stay on the explorers' device
   const n = notesCount(card.id);
   return h('button', {
     class: ['btn btn--icon viewer__notes', v?.split && 'is-on'], type: 'button',
@@ -401,6 +402,7 @@ function fitSplit() {
 const relayout = () => requestAnimationFrame(() => { if (v) { measure(); draw(); } });
 
 export function openNotes() {
+  if (watching()) return;
   if (!v || v.split) return;
   const book = notebook({
     cardId: v.card.id, beside: true,

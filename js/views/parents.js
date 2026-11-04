@@ -3,7 +3,7 @@
 //   { id, icon, title: string key, render: (profile, redraw) => node }
 import { $, h, mount } from '../dom.js';
 import { bi, tx, label, plain, dateText } from '../i18n.js';
-import { state, updateProfile, createProfile, deleteProfile, resetProfile, reload, onChange } from '../store.js';
+import { state, updateProfile, createProfile, deleteProfile, resetProfile, reload, onChange, watching } from '../store.js';
 import { avatar, profileForm } from '../profiles.js';
 import { nextDropText, checkDrops } from '../packs.js';
 import { accountPanel } from '../account.js';
@@ -72,7 +72,9 @@ function profileSection(p, redraw) {
         if (fields) { await updateProfile(p.id, fields); redraw(); }
       },
     }, h('span', { 'aria-hidden': 'true' }, '✏️'), tx('profile.edit')),
-    h('button', {
+    // Start over and Delete: only on the explorers' device.
+    watching() && h('p', { class: 'muted' }, tx('watch.onlyExplorers')),
+    !watching() && h('button', {
       class: 'btn btn--danger', type: 'button',
       onclick: async () => {
         if (!window.confirm(label('parents.resetConfirm', { name: p.name }))) return;
@@ -80,7 +82,7 @@ function profileSection(p, redraw) {
         mount(msg, tx('parents.resetDone', { name: p.name }));
       },
     }, tx('parents.reset')),
-    h('button', {
+    !watching() && h('button', {
       class: 'btn btn--danger', type: 'button',
       onclick: async () => {
         if (!window.confirm(label('parents.deleteConfirm', { name: p.name }))) return;
@@ -137,9 +139,10 @@ function backupPanel(redraw) {
   return h('div', { class: 'panel', 'data-section': 'backup' },
     h('h2', { class: 'panel__title' }, h('span', { 'aria-hidden': 'true' }, '💾 '), tx('parents.backup')),
     h('p', { class: 'muted' }, tx('parents.backupNote')),
-    h('p', { class: 'muted' }, tx('parents.restoreNote')),
+    // Restoring brings progress back: only on the explorers' device.
+    !watching() && h('p', { class: 'muted' }, tx('parents.restoreNote')),
     h('div', { class: 'row-actions' }, btn,
-      h('button', { class: 'btn btn--soft', type: 'button', onclick: () => file.click() },
+      !watching() && h('button', { class: 'btn btn--soft', type: 'button', onclick: () => file.click() },
         h('span', { 'aria-hidden': 'true' }, '📥'), tx('parents.restore')),
       file),
     msg);
@@ -205,6 +208,6 @@ function explorersChanged(main) {
 export function render(main) {
   selectedId = state.profile?.id ?? null;
   if (gateOpen) draw(main); else renderGate(main);
-  const stop = onChange('profiles', () => explorersChanged(main));
-  return () => { gateOpen = false; stop(); };
+  const stops = [onChange('profiles', () => explorersChanged(main)), onChange('role', () => { if (gateOpen) draw(main); })];
+  return () => { gateOpen = false; stops.forEach(stop => stop()); };
 }

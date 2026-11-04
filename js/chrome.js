@@ -1,18 +1,19 @@
 // The header around every view: logo, the main nav, the language switch and who is exploring.
 import { h, mount } from './dom.js';
 import { t, tx, label, getMode } from './i18n.js';
-import { state } from './store.js';
+import { state, watching } from './store.js';
 import { avatar } from './profiles.js';
 
 const NAV = [
   { view: 'binder', icon: '📒', key: 'nav.binder' },
   { view: 'packs', icon: '🎁', key: 'nav.packs', badge: true },
   { view: 'globe', icon: '🌏', key: 'nav.globe' },
-  { view: 'notes', icon: '📓', key: 'nav.notes' },
-  { view: 'quiz', icon: '🎯', key: 'nav.quiz' },
+  { view: 'notes', icon: '📓', key: 'nav.notes', device: true },
+  { view: 'quiz', icon: '🎯', key: 'nav.quiz', device: true },
   { view: 'badges', icon: '🏅', key: 'nav.badges' },
   { view: 'more', icon: '⚙️', key: 'nav.more' },
 ];
+// device: kept on each device only (Field Notes, quiz scores), so not on a grown-up's phone.
 const MODES = [['en', 'lang.en', 'lang.enName'], ['zh', 'lang.zh', 'lang.zhName'], ['both', 'lang.bothFace', 'lang.both']];
 
 // Button faces (EN / 中 / EN+中) look the same in every mode so children can always find them.
@@ -48,7 +49,7 @@ export function renderHeader(el, active) {
         // The name is the same in both languages; Chinese adds a subtitle.
         t('app.subtitle').zh && h('span', { class: 'brand__sub t-zh', lang: 'zh-Hant-TW' }, t('app.subtitle').zh))),
     h('nav', { class: 'nav', 'aria-label': label('nav.main') },
-      NAV.map(n => h('a', {
+      NAV.filter(n => !(n.device && watching())).map(n => h('a', {
         class: ['nav__item', n.view === active && 'is-active'],
         href: `#/${n.view}`,
         'aria-current': n.view === active ? 'page' : null,
@@ -59,5 +60,7 @@ export function renderHeader(el, active) {
       h('span', { class: 'nav__label' }, tx(n.key))))),
     langSwitch(),
     langCycle(),
+    // A grown-up's phone, so it is clear why packs can't be opened here.
+    watching() && h('span', { class: 'watch-chip' }, h('span', { 'aria-hidden': 'true' }, '👀'), tx('watch.chip')),
     profileButton(state.profile));
 }
