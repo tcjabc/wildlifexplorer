@@ -105,7 +105,9 @@ test('the panel: the key, three boundary drawings with the school terms, the Rin
   assert.match(en['info.plates.what.2'], /fingernails grow/, 'USGS: about as fast as fingernails grow');
   assert.match(en['info.plates.more.ring'], /More than half/, 'USGS wording, not the unconfirmed 75 %');
   const note = p.taiwan.lines.map(k => en[k]).join(' ');
-  assert.match(note, /Philippine Sea Plate pushes into the Eurasian Plate, about 8 cm a year/);
+  // The 8 cm is how fast the two plates close on each other, not one plate's own speed (the arrow).
+  assert.match(note, /Philippine Sea Plate and the Eurasian Plate are squeezing together by about 8 cm a year/);
+  assert.match(zh['info.plates.taiwan.1'], /菲律賓海板塊和歐亞板塊每年大約互相靠近8公分/);
   assert.match(note, /mountains.*earthquakes/);
   assert.match(note, /Tatun Volcano Group: when it last erupted is uncertain/);
   assert.match(en[p.taiwan.more], /Yangtze and Sunda/);
