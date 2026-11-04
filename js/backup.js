@@ -74,6 +74,8 @@ export function readBackup(text) {
 // works the same into an empty app. Resolves with how many explorers, packs, cards and
 // badges (not deleted ones) were added.
 export async function restoreProgress(text) {
+  // A grown-up's phone has no progress of its own to bring back (db.js refuses it anyway).
+  if (await db.getRole() === 'watch') throw new db.WatchOnly("restore: only on the explorers' device");
   const stores = readBackup(text);
   const added = await db.tx(RESTORED, 'readwrite', async a => {
     const n = Object.fromEntries(RESTORED.map(name => [name, 0]));

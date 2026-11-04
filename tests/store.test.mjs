@@ -115,3 +115,47 @@ test('applyPulled: the active explorer\'s progress is read again; deleted elsewh
   assert.equal(store.state.profiles.some(p => p.id === ADA), false);
   assert.equal(events.at(-1), 'profiles');
 });
+
+test("watch mode (a grown-up's phone): no packs granted or opened, no badges; settings and new explorers still work", async () => {
+  const db = await import('../js/db.js');
+  const { restoreProgress } = await import('../js/backup.js');
+  await db.setMeta('device', { role: 'watch' });
+  await store.loadRole();
+  assert.equal(store.watching(), true);
+  try {
+    await store.selectProfile(BEN);
+    const ben = store.state.profile;
+    await store.updateProfile(BEN, { parent: { preview: true } }); // would grant every ready drop
+    assert.deepEqual(await store.grantDue(), []);
+    // A pack pulled from the explorers' device: it can't be opened here, or announced.
+    const epoch = ben.timeline.epoch;
+    const drop = store.state.drops[0];
+    const at = new Date().toISOString();
+    const id = `${BEN}:${epoch}:${drop.id}`;
+    const pulled = { id, profileId: BEN, epoch, seq: 0, dropId: drop.id, cardIds: drop.cards.map(c => c.id), dueAt: at, grantedAt: at,
+      notifiedAt: null, openedAt: null, createdAt: at, updatedAt: at, deletedAt: null };
+    await db.tx(['packs'], 'readwrite', a => a.putFromServer('packs', pulled));
+    await store.applyPulled([BEN]);
+    assert.equal(store.unopenedPacks()[0]?.id, id);
+    assert.equal(await store.openPack(id), null);
+    await store.markNotified([pulled]);
+    assert.deepEqual(await db.get('packs', id), pulled);
+    assert.deepEqual(await store.awardBadges(), []);
+    // Settings and a new explorer: yes.
+    await store.updateProfile(BEN, { name: 'Ben W' });
+    assert.equal((await db.get('profiles', BEN)).name, 'Ben W');
+    const kid = await store.createProfile({ name: 'Zoe', lang: 'en' });
+    assert.ok(await db.get('profiles', kid.id));
+    // Start over, Delete and Restore: only on the explorers' device.
+    await assert.rejects(store.resetProfile(BEN), db.WatchOnly);
+    await assert.rejects(store.deleteProfile(BEN), db.WatchOnly);
+    await assert.rejects(restoreProgress('{}'), db.WatchOnly);
+    assert.equal((await db.get('profiles', BEN)).deletedAt, null);
+    // Nothing of the progress kind waits to go up.
+    assert.equal((await db.all('outbox')).some(e => db.PROGRESS.includes(e.store) && e.key === id), false);
+  } finally {
+    await db.setMeta('device', { role: 'explorers' });
+    await store.loadRole();
+  }
+  assert.equal(store.watching(), false);
+});

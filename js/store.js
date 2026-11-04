@@ -23,10 +23,23 @@ export const state = {
   quiz: { best: {} },
   packs: [],        // this profile's packs on its current timeline, in drop order
   legacy: null,     // progress saved before there were profiles, until it moves into one
+  role: 'explorers', // this device (db.getRole): 'explorers', or 'watch' on a grown-up's phone
 };
 
+// A grown-up's phone watches: it shows what the family account brings down, and never
+// grants or opens a pack, collects a card or earns a badge (db.js refuses those writes
+// too). Its explorers' settings can still be changed, and new explorers added.
+export const watching = () => state.role === 'watch';
+// After this device's role changed (cloud/sync.js): read it again.
+export async function loadRole() {
+  state.role = await db.getRole();
+  emit('role');
+}
+const refuse = what => { throw new db.WatchOnly(`${what}: only on the explorers' device`); };
+
 // 'profile': the active profile or one of its settings changed. 'profiles': the list
-// changed. 'packs': a pack arrived or was opened. Returns a function that stops listening.
+// changed. 'packs': a pack arrived or was opened. 'role': this device's role changed.
+// Returns a function that stops listening.
 const bus = new EventTarget();
 export const onChange = (type, fn) => {
   bus.addEventListener(type, fn);
@@ -50,6 +63,7 @@ export async function init() {
   state.badgeCfg = { regions, badges, secrets };
   state.lookalikes = lookalikes;
 
+  state.role = await db.getRole();
   await loadProfiles();
   if (!(await db.getMeta('migratedV1', false))) state.legacy = await db.readLegacy();
 
@@ -165,7 +179,7 @@ export async function createProfile(fields) {
     settingsAt: now,
   }, now);
   await db.put('profiles', p);
-  if (!state.profiles.length) await moveLegacy(p);
+  if (!state.profiles.length && !watching()) await moveLegacy(p);
   state.profiles = [...state.profiles, p];
   emit('profiles');
   return p;
@@ -241,6 +255,7 @@ export async function updateProfile(id, patch) {
 
 // Kept as a deleted record (for syncing later); the profile's cards go with it.
 export async function deleteProfile(id) {
+  if (watching()) refuse('Delete');
   if (!state.profiles.some(p => p.id === id)) return;
   await changeProfile(id, prev => stamp({ ...prev, deletedAt: nowIso() }));
   state.profiles = state.profiles.filter(p => p.id !== id);
@@ -278,6 +293,7 @@ async function loadPacks() {
 // packs, cards and badges stay as they are (in the old epoch) and new ones get new ids.
 // Quiz scores stay on the device and aren't per epoch, so they are marked deleted.
 export async function resetProfile(id) {
+  if (watching()) refuse('Start over');
   if (!state.profiles.some(p => p.id === id)) return;
   const now = nowIso();
   const next = await db.tx(['quiz', 'profiles'], 'readwrite', async a => {
@@ -321,7 +337,7 @@ export function grantDue() {
 
 async function grant() {
   const p = state.profile;
-  if (!p) return [];
+  if (!p || watching()) return [];
   const now = new Date();
   const at = now.toISOString();
   const epoch = p.timeline.epoch;
@@ -366,6 +382,7 @@ export function nextDrop() {
 }
 
 export async function markNotified(packs) {
+  if (watching()) return; // nothing is announced on a grown-up's phone
   const at = nowIso();
   await db.tx(['packs'], 'readwrite', async a => {
     for (const { id } of packs) {
@@ -381,7 +398,7 @@ export async function markNotified(packs) {
 // or null if the pack can't be opened.
 export async function openPack(id) {
   const p = state.profile;
-  if (unopenedPacks()[0]?.id !== id) return null;
+  if (watching() || unopenedPacks()[0]?.id !== id) return null;
   const at = nowIso();
   const newly = await db.tx(['packs', 'collection'], 'readwrite', async a => {
     const pack = await a.get('packs', id);
@@ -416,7 +433,7 @@ const badgeCtx = () => ({ cards: state.cards, isCollected, byId: state.byId });
 // when the tier counts change). Returns the new ones, for the celebration.
 export async function awardBadges() {
   const p = state.profile;
-  if (!p || !state.badgeCfg) return [];
+  if (!p || !state.badgeCfg || watching()) return [];
   const ctx = badgeCtx();
   const fresh = badgeList().filter(b => !state.badges[b.id] && isEarned(b, ctx));
   if (!fresh.length) return [];
