@@ -67,9 +67,11 @@
   --c-reef: #ff6f91;
   --c-reef-fill: rgb(255 111 145 / 0.6); /* reefs on the globe: --c-reef, see-through */
   --c-reef-edge: #c2365e;               /* and their edge */
-  --c-relief-low: #9cc47e;
-  --c-relief-dry: #d8c38f;
-  --c-relief-high: #f4f1ea;
+  /* The topography picture's own colours (Natural Earth, sampled from relief-4k.webp: the
+     Amazon and Congo lowlands, the Sahara, the Tibetan plateau), for its key and drawings. */
+  --c-relief-low: #acc9ae;
+  --c-relief-dry: #efe5d0;
+  --c-relief-high: #d3d5d6;
   --c-night: #0b1430;
   --c-art-sky: #e3f2fa;    /* sky and pale fills in the Globe panel drawings */
   --c-twilight: #5b5f97;   /* dawn and dusk on the globe's day & night layer */
@@ -181,7 +183,7 @@
   --tap-lg: 72px;
   --tap-sm: 48px;       /* secondary controls (credit line) */
   --tap-xs: 44px;       /* badges and squeezed controls on phones */
-  --legend-sw: 14px;    /* colour squares in the Globe legend */
+  --legend-sw: 24px;    /* colour squares in the Globe's info panel key */
   --header-h-base: 68px;
   --header-h-stacked: 84px; /* tablets: nav labels under their icons (app.css) */
   --header-h-compact: 56px;
@@ -246,7 +248,9 @@
   --gpin: 52px;         /* photo pins on the Globe */
   --gpanel-w: 300px;    /* the Globe's info panel, open (landscape: a column on the left) */
   --gpanel-strip: 72px; /* the same panel collapsed to its key */
-  --gpanel-art: 132px;  /* the drawings in the panel */
+  --gpanel-art: 280px;  /* the drawings in the panel (at most; they fill its width) */
+  --gzone-art: 64px;    /* the example animal of each ocean zone */
+  --gpanel-scale: 180px; /* the temperature scale in the panel, open */
   --gpanel-sheet: 60%;  /* the portrait sheet, open: at most this much of the globe's height */
   --gsheet-pic: min(38dvh, 320px); /* photo in the Globe card sheet */
   --cmp-icon: 44px;     /* figures on the weight balance */

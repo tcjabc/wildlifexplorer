@@ -552,7 +552,7 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
 .gpanel {
   position: absolute; z-index: 1; display: flex; flex-direction: column;
   border-radius: var(--r-md); background: var(--c-veil); box-shadow: var(--shadow-2);
-  color: var(--c-ink); font-size: var(--fs-xs);
+  color: var(--c-ink); font-size: var(--fs-sm);
 }
 .gpanel__body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: var(--s-2) var(--s-3) var(--s-3); }
 .gpanel__toggle {
@@ -561,27 +561,34 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
   background: var(--c-surface); box-shadow: var(--shadow-1); color: var(--c-ink);
   font: inherit; font-size: var(--fs-md); font-weight: var(--fw-bold); cursor: pointer;
 }
-.gpanel__title { display: flex; align-items: center; gap: var(--s-2); margin: 0 var(--tap-xs) var(--s-2) 0; font-size: var(--fs-sm); }
-.gpanel__title .bi { flex-direction: row; gap: 0.4em; }
-.gpanel__heading { margin: var(--s-3) 0 var(--s-1); font-size: var(--fs-xs); color: var(--c-ink-soft); }
-.gpanel__heading .bi { flex-direction: row; gap: 0.4em; }
+.gpanel__title { display: flex; align-items: center; gap: var(--s-2); margin: 0 var(--tap-xs) var(--s-2) 0; font-size: var(--fs-md); }
+/* Each language keeps its words together; the Chinese moves under the English when short of room. */
+.gpanel__title .bi, .gpanel__heading .bi { flex-direction: row; flex-wrap: wrap; column-gap: 0.4em; }
+.gpanel__title .bi > *, .gpanel__heading .bi > * { white-space: nowrap; }
+.gpanel__heading { margin: var(--s-4) 0 var(--s-1); font-size: var(--fs-sm); color: var(--c-ink-soft); }
 .gpanel__what p, .gpanel__more p { margin: 0 0 var(--s-1); }
 .gpanel__art { margin-top: var(--s-2); }
-.gpanel__art .art { display: block; width: 100%; max-width: var(--gpanel-art); height: auto; }
+.gpanel__art .art { display: block; width: 100%; max-width: var(--gpanel-art); height: auto; margin: 0 auto; }
 .gpanel__card { margin: 0 var(--tap-xs) var(--s-2) 0; padding-bottom: var(--s-2); border-bottom: var(--bw-thin) solid var(--c-line); }
-.gpanel__name { margin: 0; font-size: var(--fs-sm); font-weight: var(--fw-bold); }
+.gpanel__name { margin: 0; font-size: var(--fs-md); font-weight: var(--fw-bold); }
 .gpanel__habitat { margin: var(--s-1) 0 0; color: var(--c-ink-soft); }
 .gpanel__habitat-label { font-weight: var(--fw-bold); }
 
 /* The key: one step a row, top to bottom. */
-.gkey { display: grid; gap: var(--s-1); margin: 0; padding: 0; list-style: none; }
+.gkey { display: grid; gap: var(--s-2); margin: 0; padding: 0; list-style: none; }
 .gkey__item { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: var(--s-2); }
+/* A swatch: the colour as the map shows it, its mark (or a tree) inside. */
 .gkey__sw {
+  display: grid; place-items: center; flex: none;
   width: var(--legend-sw); height: var(--legend-sw); border-radius: var(--r-sm);
   background: var(--sw); box-shadow: inset 0 0 0 var(--bw-thin) var(--c-shade-faint);
+  font-size: var(--fs-xs); line-height: 1;
 }
-.gkey__tree { display: block; width: var(--legend-sw); height: var(--legend-sw); --art-fill: var(--sw); }
-.gkey__tree .art { display: block; width: 100%; height: 100%; }
+.gkey__sw .art { display: block; width: 80%; height: 80%; --art-fill: var(--c-surface); }
+.gkey__sw .art__trunk { fill: var(--c-surface); }
+/* Reefs: the see-through fill on the sea, with its edge. Lights: a glow on the night side. */
+.gkey__sw--reef { background: linear-gradient(var(--sw), var(--sw)), var(--c-map-sea); box-shadow: inset 0 0 0 var(--bw-mid) var(--c-reef-edge); }
+.gkey__sw--lights { background: radial-gradient(circle, var(--c-surface) 0 8%, var(--c-city-lights) 22%, transparent 58%), var(--sw); }
 .gkey__icon {
   display: grid; place-items: center; width: var(--legend-sw); height: var(--legend-sw); border-radius: 50%;
   background: var(--c-surface); box-shadow: inset 0 0 0 var(--bw-mid) var(--c-primary); font-size: var(--fs-xs); font-weight: var(--fw-bold);
@@ -594,12 +601,12 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
 .gkey__sci { display: none; font-weight: normal; font-style: italic; color: var(--c-ink-soft); }
 .gzone__animal { display: none; grid-column: 2; align-items: center; gap: var(--s-2); margin: 2px 0 var(--s-1); color: inherit; text-decoration: none; }
 a.gzone__animal { text-decoration: underline; }
-.gzone__art { flex: none; width: 44px; }
+.gzone__art { flex: none; width: var(--gzone-art); }
 .gzone__art .art { display: block; width: 100%; height: auto; }
-.gzone__animal-name .bi { flex-direction: row; gap: 0.4em; }
+.gzone__animal-name .bi { flex-direction: column; gap: 0; }
 
 /* Temperature: a vertical scale, hot at the top, and the month. */
-.gtemp__scale { display: flex; gap: var(--s-2); height: 132px; }
+.gtemp__scale { display: flex; gap: var(--s-2); height: var(--gpanel-scale); }
 .gtemp__bar { flex: none; width: var(--legend-sw); border-radius: var(--r-pill); background: var(--gtemp-v); }
 .gtemp__ticks { display: flex; flex-direction: column; justify-content: space-between; font-weight: var(--fw-semi); }
 .gtemp__month { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-1) var(--s-2); margin-top: var(--s-2); font-weight: var(--fw-bold); }
@@ -618,7 +625,7 @@ a.gzone__animal { text-decoration: underline; }
   transition: width 0.2s ease;
 }
 .gpanel[data-mode="side"] .gpanel__toggle { top: var(--s-1); right: var(--s-1); }
-.gpanel[data-mode="side"][data-state="collapsed"] { width: var(--gpanel-strip); }
+.gpanel[data-mode="side"][data-state="collapsed"] { width: var(--gpanel-strip); font-size: var(--fs-xs); }
 .gpanel[data-mode="side"][data-state="collapsed"] .gpanel__body { padding: calc(var(--tap-xs) + var(--s-2)) var(--s-2) var(--s-2); }
 
 /* Sheet: under the globe, as wide as the screen allows; open, it grows upwards over it. */

@@ -53,10 +53,19 @@ export function rangeFit(polys, { cap = FIT_K_MAX } = {}) {
 // of its full size) and how far its middle moves (dx, dy px). It is as big as the free space
 // allows (never bigger than its full size, never under 55%) and in the middle of that space,
 // so on a wide screen it sits in the spare width beside the panel instead of leaving margins.
+// Beside the side panel, with width to spare, the globe grows past its usual size: up to
+// WIDE_SHARE of the free height as its radius (RADIUS normally), as the free space gets wider
+// than it is tall, never wider than the free width allows.
+export const WIDE_SHARE = 0.47;
 export function roomFit({ w, h, top = 0, bottom = 0, left = 0 }) {
   if (w < 2 || h < 2) return { fit: 1, dx: 0, dy: 0 };
   const freeW = Math.max(1, w - left), freeH = Math.max(1, h - top - bottom);
-  return { fit: clamp(Math.min(freeW, freeH) / Math.min(w, h), 0.55, 1), dx: left / 2, dy: (top - bottom) / 2 };
+  let r = RADIUS * Math.min(freeW, freeH);
+  if (left > 0 && freeW > freeH) {
+    const share = RADIUS + (WIDE_SHARE - RADIUS) * clamp((freeW / freeH - 1) / 0.25, 0, 1);
+    r = Math.min(share * freeH, 0.46 * freeW);
+  }
+  return { fit: clamp(r / (RADIUS * Math.min(w, h)), 0.55, WIDE_SHARE / RADIUS), dx: left / 2, dy: (top - bottom) / 2 };
 }
 
 // Day & night. sunDot: how high the sun is at a place (the sine of its height: 1 overhead, 0

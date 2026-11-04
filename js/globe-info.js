@@ -2,6 +2,10 @@
 // three parts everywhere.
 //   key:   the vertical key. Colour steps or symbols with short labels, top to bottom; never
 //          sentences (tests/globe-info.test.mjs checks). 'temp' is the temperature scale.
+//          Each swatch is the colour as it looks on the map: token, or paint for a mix
+//          (reef: the see-through fill on the sea; dusk, night: the land under the night
+//          overlay; lights: a glow on the night). mark: an emoji inside the swatch, tree: a
+//          tree drawn inside it; short: a mark beside it in the collapsed key (depths).
 //   what:  "What am I looking at?": one or two short lines for young children, and a drawing
 //          (art, js/globe-art.js).
 //   more:  extra lines for older children (a "Did you know?", scientific names), shown when the
@@ -32,9 +36,9 @@ export const INFO = {
   },
   relief: {
     key: [
-      { token: '--c-relief-high', label: 'info.relief.key.high', short: '⛰️' },
-      { token: '--c-relief-dry', label: 'info.relief.key.dry', short: '🏜️' },
-      { token: '--c-relief-low', label: 'info.relief.key.low', short: '🌿' },
+      { token: '--c-relief-high', label: 'info.relief.key.high', mark: '⛰️' },
+      { token: '--c-relief-dry', label: 'info.relief.key.dry', mark: '🏜️' },
+      { token: '--c-relief-low', label: 'info.relief.key.low', mark: '🌿' },
     ],
     what: ['info.relief.what.1'], art: 'mountain',
     more: ['info.relief.more.1'],
@@ -49,16 +53,16 @@ export const INFO = {
     more: ['info.forests.more.1'],
   },
   reefs: {
-    key: [{ token: '--c-reef', label: 'info.reefs.key.reef', short: '🪸' }],
+    key: [{ token: '--c-reef-fill', paint: 'reef', label: 'info.reefs.key.reef', mark: '🪸' }],
     what: ['info.reefs.what.1', 'info.reefs.what.2'], art: 'reef',
     more: ['info.reefs.more.1'],
   },
   night: {
     key: [
-      { token: '--c-map-land', label: 'info.night.key.day', short: '☀️' },
-      { token: '--c-twilight', label: 'info.night.key.twilight', short: '🌅' },
-      { token: '--c-night', label: 'info.night.key.night', short: '🌙' },
-      { token: '--c-city-lights', label: 'info.night.key.lights', short: '✨' },
+      { token: '--c-map-land', label: 'info.night.key.day', mark: '☀️' },
+      { token: '--c-twilight', paint: 'dusk', label: 'info.night.key.twilight', mark: '🌅' },
+      { token: '--c-night', paint: 'night', label: 'info.night.key.night', mark: '🌙' },
+      { token: '--c-city-lights', paint: 'lights', label: 'info.night.key.lights' },
     ],
     what: ['info.night.what.1', 'info.night.what.2'], art: 'sunEarth',
     more: ['info.night.more.1'],

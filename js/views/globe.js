@@ -19,7 +19,7 @@ import { state, isVisible, groupById, thumbOf, mainImage, debugOn, updateProfile
 import { INFO, panelMode } from '../globe-info.js';
 import { ART, animal, tree } from '../globe-art.js';
 import { picture, groupTitle, cardNo } from '../components.js';
-import { createGlobe, toVec, rangeFit } from '../globe.js';
+import { createGlobe, toVec, rangeFit, nightShade } from '../globe.js';
 import { cameFromMap } from '../card-return.js';
 import { loadRange, rangePolygons } from '../worldmap.js';
 import { track, haptic } from '../gesture.js';
@@ -410,7 +410,21 @@ export function render(main, [cardId] = []) {
   // the key only; open, also "What am I looking at?" and more. Open or not is kept per explorer
   // on this device (globePanel); on a phone it always starts as the strip.
   let panelLayer = null, panelFailed = false, peek = 0;
-  const swatch = token => h('span', { class: 'gkey__sw', style: { '--sw': `var(${token})` }, 'aria-hidden': 'true' });
+  // A key swatch in the colour the map shows (globe-info.js: token, paint), with its mark or
+  // tree inside.
+  const rgbOf = hex => (hex.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i)?.slice(1) ?? ['0', '0', '0']).map(x => parseInt(x, 16));
+  // The land under the night overlay with the sun at deg below the horizon (js/globe.js).
+  function landAtNight(deg) {
+    const { alpha, dark } = nightShade(Math.sin((-deg * Math.PI) / 180));
+    const land = rgbOf(col('--c-map-land')), tw = rgbOf(col('--c-twilight')), night = rgbOf(col('--c-night'));
+    const c = land.map((l, i) => Math.round(l + (tw[i] + (night[i] - tw[i]) * dark - l) * alpha));
+    return `rgb(${c.join(' ')})`;
+  }
+  const paints = { dusk: () => landAtNight(6), night: () => landAtNight(18), lights: () => landAtNight(18) };
+  const swatch = k => h('span', {
+    class: ['gkey__sw', k.paint && `gkey__sw--${k.paint}`],
+    style: { '--sw': paints[k.paint]?.() ?? `var(${k.token})` }, 'aria-hidden': 'true',
+  }, k.mark && h('span', { class: 'gkey__mark' }, k.mark), k.tree && tree(k.tree));
   const keyIcon = icon => h('span', { class: `gkey__icon gkey__icon--${icon}`, 'aria-hidden': 'true' }, icon === 'stack' ? '3' : icon === 'filter' ? '🔎' : '');
   function animalChip(a) {
     const c = state.byId.get(a.card);
@@ -420,12 +434,19 @@ export function render(main, [cardId] = []) {
       : h('span', { class: 'gzone__animal' }, inner);
   }
   const keyItem = (k, zone) => h('li', { class: 'gkey__item' },
-    k.icon ? keyIcon(k.icon)
-      : k.tree ? h('span', { class: 'gkey__tree', style: { '--sw': `var(${k.token})` }, 'aria-hidden': 'true' }, tree(k.tree))
-        : swatch(k.token),
+    k.icon ? keyIcon(k.icon) : swatch(k),
     k.short && h('span', { class: 'gkey__short', 'aria-hidden': 'true' }, k.short),
-    h('span', { class: 'gkey__label' }, tx(k.label), zone && h('span', { class: 'gkey__sci' }, tx(zone.sci))),
+    h('span', { class: 'gkey__label' }, tx(k.label), zone && h('span', { class: 'gkey__sci' }, sciName(k, zone))),
     zone && animalChip(zone.animal));
+  // A zone's scientific name, leaving out a language where it only repeats the kid name after
+  // the depth (4,000–6,000 公尺 · 深淵帶 and 深淵帶): there, nothing more is shown.
+  function sciName(k, zone) {
+    const kid = t(k.label), sci = t(zone.sci);
+    const same = lang => sci[lang] === kid[lang].split(' · ').pop();
+    if (!same('en') && !same('zh')) return tx(zone.sci);
+    return h('span', { class: 'bi' }, ['en', 'zh'].filter(l => !same(l)).map(l =>
+      h('span', { class: `t-${l}`, lang: l === 'en' ? 'en' : 'zh-Hant-TW' }, sci[l])));
+  }
   // Temperature: hot at the top, cold at the bottom, and the month under it.
   function tempKey() {
     const stops = tempStops(col);

@@ -8,7 +8,8 @@ import { readFileSync } from 'node:fs';
 import { INFO, panelMode, PHONE_MAX, infoKeys, keyLabels } from '../js/globe-info.js';
 import { ART } from '../js/globe-art.js';
 import { LAYERS, DEPTHS } from '../js/layers.js';
-import { roomFit } from '../js/globe.js';
+import { roomFit, WIDE_SHARE } from '../js/globe.js';
+const RADIUS_K = 0.42; // the globe's radius at zoom 1, a share of the smaller side (js/globe.js RADIUS)
 
 const src = path => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
 const en = JSON.parse(src('lang/en.json'));
@@ -95,7 +96,11 @@ test('roomFit: beside the side panel the globe moves right and fits the free spa
   // Tablet landscape: a 1180 × 736 view, chips taking 60 px, the panel and its gaps 324 px.
   const side = roomFit({ w: 1180, h: 736, top: 60, left: 324 });
   assert.equal(side.dx, 162, 'centred in the space right of the panel');
-  assert.ok(Math.abs(side.fit - (736 - 60) / 736) < 1e-9, 'as tall as the space under the chips');
+  // Wider than tall beside the panel: the globe grows to WIDE_SHARE of the free height.
+  assert.ok(Math.abs(side.fit * RADIUS_K * 736 - WIDE_SHARE * (736 - 60)) < 1e-6, 'grown into the spare width');
+  assert.ok(side.fit > (736 - 60) / 736, 'bigger than before the panel feedback');
+  assert.ok(2 * side.fit * RADIUS_K * 736 < 736 - 60, 'still under the chips and above the bottom');
+  assert.ok(2 * side.fit * RADIUS_K * 736 < 1180 - 324, 'and inside the width beside the panel');
   assert.equal(side.dy, 30);
   // A narrow window: the width left over decides, and the globe never shrinks below 55 %.
   const narrow = roomFit({ w: 700, h: 600, top: 60, left: 324 });
@@ -111,4 +116,39 @@ test('the panel never covers the chips, and the expanded sheet leaves part of th
   const view = src('js/views/globe.js');
   assert.match(view, /--gpanel-top/, 'the view sets the panel\'s top below the chips');
   assert.match(view, /globePanel/, 'the open / collapsed choice is remembered');
+});
+
+test('the key swatches are 24 px, in the map\'s own colours, with their marks inside', async () => {
+  assert.match(tokens, /--legend-sw: 24px;/);
+  for (const k of INFO.relief.key) assert.ok(k.mark, 'topography: a mark in each swatch');
+  for (const k of INFO.forests.key) assert.ok(k.tree, 'forests: a tree in each swatch');
+  assert.equal(INFO.reefs.key[0].paint, 'reef', 'reefs: the see-through fill on the sea');
+  assert.equal(INFO.reefs.key[0].token, '--c-reef-fill');
+  assert.deepEqual(INFO.night.key.map(k => k.paint ?? null), [null, 'dusk', 'night', 'lights'], 'night: the land under the overlay');
+  // The topography swatches are the picture's colours where those lands are.
+  const { createRequire } = await import('node:module');
+  const sharp = createRequire(import.meta.url)('sharp');
+  const { data, info } = await sharp(new URL('../assets/layers/relief-4k.webp', import.meta.url).pathname.replace(/^\/([A-Z]:)/, '$1')).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  const at = (lon, lat) => { const x = Math.floor(((lon + 180) / 360) * info.width), y = Math.floor(((90 - lat) / 180) * info.height), i = (y * info.width + x) * 3; return [data[i], data[i + 1], data[i + 2]]; };
+  const hex = name => tokens.match(new RegExp(`${name}: #([0-9a-f]{6})`))[1].match(/../g).map(x => parseInt(x, 16));
+  const near = (a, b) => Math.max(...a.map((v, i) => Math.abs(v - b[i]))) < 40;
+  assert.ok(near(at(-62, -4), hex('--c-relief-low')), 'the Amazon lowlands');
+  assert.ok(near(at(12, 24), hex('--c-relief-dry')), 'the Sahara');
+  assert.ok(near(at(88, 33), hex('--c-relief-high')), 'the Tibetan plateau');
+});
+
+test('the open depth guide shows a zone\'s name once when the kid name and the scientific name are the same', () => {
+  const same = INFO.depth.zones.map((z, i) => zh[z.sci] === zh[INFO.depth.key[i].label].split(' · ').pop());
+  assert.deepEqual(same, [false, false, false, true, false], '深淵帶 is both, for 4,000–6,000 m');
+  const view = src('js/views/globe.js');
+  assert.match(view, /function sciName\(k, zone\)/);
+  assert.match(view, /\['en', 'zh'\]\.filter\(l => !same\(l\)\)/, 'only the language that adds something');
+});
+
+test('the panel reads at about 16 px, with headings to match and bigger drawings', () => {
+  assert.match(css, /\.gpanel \{[^}]*font-size: var\(--fs-sm\);/);
+  assert.match(tokens, /--fs-sm: 1rem;/);
+  assert.match(css, /\.gpanel__title \{[^}]*font-size: var\(--fs-md\);/);
+  assert.match(css, /\.gpanel__heading \{[^}]*font-size: var\(--fs-sm\);/);
+  assert.match(tokens, /--gpanel-art: 280px;/, 'drawings over twice as big as before (132 px)');
 });
