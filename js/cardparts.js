@@ -50,7 +50,11 @@ export const hasProfile = c => Boolean(c.profile?.callouts?.length && c[c.profil
 export const hasStats = c => Boolean(c.stats && Object.keys(c.stats).length);
 export const hasCompare = c => Object.values(modesFor(c)).some(Boolean) || lookalikesOf(c).length > 0;
 export const hasInside = c => hasProfile(c) || hasStats(c) || hasCompare(c) || relatedOf(c).length > 0;
-export const hasBack = c => Boolean(FACT_SECTIONS.some(([k]) => factParas(c, k).length) || didYouKnow(c) || hasMap(c));
+const hasFactText = c => FACT_SECTIONS.some(([k]) => factParas(c, k).length > 0) || Boolean(didYouKnow(c));
+// Every card with a Fact File turns over (until it has text, it says more is coming);
+// topic cards only when they have something to show.
+export const hasBack = c => Boolean(c.factFile || hasFactText(c) || hasMap(c));
+const comingSoonKey = c => (c.group === 'plants' ? 'ff.comingSoonPlant' : 'ff.comingSoon');
 
 const groupChip = g => h('span', { class: 'chip chip--group', 'data-group': g.id },
   h('span', { 'aria-hidden': 'true' }, g.emoji), bi(g.name));
@@ -306,9 +310,12 @@ export function insidePage(card) {
   return { el, replay: () => { if (view) setView(view); } };
 }
 
-// The Fact File. Its body scrolls inside the card; the frame never grows.
+// The Fact File. Its body scrolls inside the card; the frame never grows. With no text yet:
+// the Habitat heading and the range map (if there is one), and a line saying more is coming.
 export function backPage(card) {
   if (!hasBack(card)) return h('div', { class: 'cpage cpage--back' }, blank(card));
+  const soon = !hasFactText(card) && h('p', { class: 'ff__soon' },
+    h('span', { class: 'ff__soon-icon', 'aria-hidden': 'true' }, groupById(card.group)?.emoji), tx(comingSoonKey(card)));
   const sections = FACT_SECTIONS.map(([key, icon]) => {
     const paras = factParas(card, key);
     const map = key === 'habitat' && hasMap(card);
@@ -323,6 +330,7 @@ export function backPage(card) {
     headerStrip(card, h('span', { class: 'ff__title' }, h('span', { 'aria-hidden': 'true' }, '📁'), tx('card.factFile'))),
     h('div', { class: 'cpage__scroll ff__body', 'data-scroll': '', tabindex: '0', 'aria-label': label('card.factFile') },
       sections,
+      soon,
       dyk && h('aside', { class: 'ff__dyk' },
         h('p', { class: 'ff__dyk-title' }, h('span', { 'aria-hidden': 'true' }, '💡'), tx('ff.didYouKnow')),
         glossed(dyk))));
@@ -331,6 +339,8 @@ export function backPage(card) {
 // What read-aloud says on each view ('front', 'open', 'back'), in reading order.
 export function readOrder(card, view) {
   if (view === 'back') {
+    if (!hasBack(card)) return [];
+    if (!hasFactText(card)) return [t(comingSoonKey(card))];
     const out = [];
     for (const [key] of FACT_SECTIONS) {
       const paras = factParas(card, key);

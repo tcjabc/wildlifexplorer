@@ -380,6 +380,14 @@ a.related__item { border-color: var(--g, var(--c-paper-line)); }
 }
 .ff__dyk-title { display: flex; align-items: center; gap: var(--s-1); margin-bottom: var(--s-1); font-weight: var(--fw-bold); }
 .ff__dyk-title .bi { flex-direction: row; gap: 0.4em; }
+/* No Fact File text yet: a friendly line instead of an empty page. */
+.ff__soon {
+  display: flex; flex-direction: column; align-items: center; gap: var(--s-2);
+  margin: auto 0; padding: var(--s-4) var(--s-3);
+  color: var(--c-ink-soft); font-weight: var(--fw-semi); text-align: center;
+}
+.ff__soon .bi { align-items: center; }
+.ff__soon-icon { font-size: var(--emoji-xl); line-height: 1; opacity: 0.35; }
 
 .card-credits { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-2); font-size: var(--fs-xs); }
 .card-credits a { word-break: break-word; }
