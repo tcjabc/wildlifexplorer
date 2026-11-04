@@ -885,3 +885,9 @@ dialog.picker::backdrop { background: var(--c-bg); }
 /* A tab (or the Binder button) bumps when a new card lands in it. */
 .tab.is-bumping, .nav__item.is-bumping { animation: bump 0.55s var(--ease-bounce); }
 @keyframes bump { 0% { transform: none; } 35% { transform: scale(1.25) translateY(-4px); } 100% { transform: none; } }
+
+/* "What is this device?" (account.js): two big choices, an icon and two lines each. */
+.role-btn { width: 100%; justify-content: flex-start; text-align: start; padding: var(--s-3) var(--s-4); }
+.role-btn > [aria-hidden] { font-size: var(--fs-lg); }
+.role-btn__text { display: grid; gap: var(--s-1); }
+.role-now { display: grid; gap: var(--s-2); margin-top: var(--s-4); }

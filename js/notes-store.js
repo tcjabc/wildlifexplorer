@@ -61,6 +61,18 @@ async function getFile(pid, path) {
   return (await db.get('notefiles', `${pid}/${path}`))?.blob ?? null;
 }
 
+// Every Field Notes file of these explorers in OPFS, when the family is removed from this
+// device (cloud/sync.js removeFamily, which removes their "notefiles" and index records).
+export async function removeFiles(pids) {
+  const root = await opfsRoot();
+  if (!root) return;
+  for (const pid of pids) {
+    try {
+      await (await root.getDirectoryHandle('notes')).removeEntry(pid, { recursive: true });
+    } catch { /* no files */ }
+  }
+}
+
 // ---------- the index ----------
 
 // The active profile's pages, oldest first (the notebook's order).

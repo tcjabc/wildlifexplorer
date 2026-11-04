@@ -9,10 +9,13 @@ import { auth, AuthError } from './cloud/auth.js';
 import { sync, statusKey } from './cloud/sync.js';
 import { avatar } from './profiles.js';
 import { sumGate } from './components.js';
+import { state as appState, loadRole } from './store.js';
+import { removeFiles } from './notes-store.js';
 import { CODE_LENGTH } from './config.js';
 
 const RESEND_MS = 60 * 1000; // the project lets a code be emailed once a minute
 let pending = null; // { email, sentAt } while waiting for the code
+let chosenRole = null; // at the first sign-in here: what the grown-up said this device is
 
 const errorKey = err => `account.err.${err instanceof AuthError ? err.code : 'unknown'}`;
 const field = (id, key, control, hint) => h('div', { class: 'field' },
@@ -118,12 +121,69 @@ function chooseStep(redraw, list, error) {
   form.addEventListener('submit', e => {
     e.preventDefault();
     busy(go, error, async () => {
-      await sync.setUp(boxes.filter(b => b.checked).map(b => b.value));
+      await sync.setUp(boxes.filter(b => b.checked).map(b => b.value), { role: 'explorers' });
       redraw();
     });
   });
   return form;
 }
+
+// ---------- This device's role ----------
+
+const ROLES = [['explorers', 'role.explorers', 'role.explorersNote', '🧒'], ['watch', 'role.watch', 'role.watchNote', '👀']];
+
+// "What is this device?", asked once, right after the first sign-in here. onPick(role).
+export function roleQuestion(onPick) {
+  return h('div', { class: 'form' },
+    h('h3', { class: 'panel__title' }, tx('role.question')),
+    ROLES.map(([role, name, note, icon]) => h('button', { class: 'btn btn--soft role-btn', type: 'button', onclick: () => onPick(role) },
+      h('span', { 'aria-hidden': 'true' }, icon),
+      h('span', { class: 'role-btn__text' }, h('strong', null, tx(name)), h('span', { class: 'muted' }, tx(note))))));
+}
+
+// A phone with explorers of its own: they all go up, or it is the explorers' device after all.
+function phoneExplorersStep(redraw, list, error) {
+  const add = h('button', { class: 'btn btn--primary', type: 'button' }, tx('role.addThem'));
+  add.addEventListener('click', () => busy(add, error, async () => {
+    await sync.setUp(list.map(p => p.id), { role: 'watch' });
+    await loadRole();
+    redraw();
+  }));
+  const instead = h('button', { class: 'btn btn--soft', type: 'button', onclick: () => { chosenRole = 'explorers'; redraw(); } }, tx('role.useAsExplorers'));
+  return h('div', { class: 'form' },
+    h('h3', { class: 'panel__title' }, tx('role.phoneExplorers')),
+    list.map(x => h('div', { class: 'row-actions' }, avatar(x), h('span', null, x.name))),
+    error,
+    h('div', { class: 'sheet__actions' }, add, instead));
+}
+
+// For grown-ups: what this device is, and a way to change it (cloud/sync.js setRole says
+// when it can't, and why).
+function rolePanel(redraw) {
+  const role = appState.role;
+  const error = h('p', { class: 'form__error', role: 'alert', hidden: true });
+  const other = role === 'watch' ? 'explorers' : 'watch';
+  const change = h('button', { class: 'btn btn--soft', type: 'button' }, tx(other === 'watch' ? 'role.toWatch' : 'role.toExplorers'));
+  change.addEventListener('click', () => busy(change, error, async () => {
+    const why = await sync.setRole(other);
+    if (why) {
+      const key = { offline: 'account.err.offline', server: 'sync.retry' }[why] ?? `role.err.${why}`;
+      mount(error, tx(key));
+      error.hidden = false;
+      return;
+    }
+    await loadRole();
+    redraw();
+  }));
+  const [, name, note, icon] = ROLES.find(([r]) => r === role);
+  return h('div', { class: 'role-now' },
+    h('p', null, h('span', { 'aria-hidden': 'true' }, `${icon} `), tx('role.now'), ' ', h('strong', null, tx(name))),
+    h('p', { class: 'muted' }, tx(note)),
+    error,
+    h('div', { class: 'sheet__actions' }, change));
+}
+
+// ---------- Status ----------
 
 // One line on whether everything is saved, and which explorers stay on this device only.
 function statusLines(s) {
@@ -159,34 +219,57 @@ sync.onChange(async () => {
   }
 });
 
-async function signedInStep(redraw, state, error) {
-  const out = h('button', { class: 'btn btn--soft', type: 'button' }, tx('account.signOut'));
-  out.addEventListener('click', () => {
+// The two ways to sign out. The one this device would usually want comes first: keeping
+// the explorers on the explorers' device, removing the family from a grown-up's phone.
+function signOutActions(redraw, error) {
+  const watch = appState.role === 'watch';
+  const keep = h('button', { class: ['btn', watch ? 'btn--soft' : 'btn--primary'], type: 'button' }, tx('account.signOut'));
+  keep.addEventListener('click', () => {
     if (!window.confirm(label('account.signOutConfirm'))) return;
-    busy(out, error, async () => { await auth.signOut(); redraw(); });
+    busy(keep, error, async () => { await auth.signOut(); redraw(); });
   });
+  const remove = h('button', { class: ['btn', watch ? 'btn--primary' : 'btn--soft'], type: 'button' }, tx('account.signOutRemove'));
+  remove.addEventListener('click', () => {
+    if (!window.confirm(label(watch ? 'account.removeConfirmWatch' : 'account.removeConfirmExplorers'))) return;
+    busy(remove, error, async () => {
+      const why = await sync.removeFamily(removeFiles);
+      if (!why) { location.reload(); return; } // everything on screen was the family's
+      const key = { offline: 'account.err.offline', server: 'sync.retry' }[why] ?? `role.err.${why}`;
+      mount(error, tx(key));
+      error.hidden = false;
+    });
+  });
+  return h('div', { class: 'sheet__actions' }, ...(watch ? [remove, keep] : [keep, remove]));
+}
+
+async function signedInStep(redraw, state, error) {
   const who = h('p', { role: 'status' }, tx('account.signedInAs', { email: state.email }));
-  const actions = h('div', { class: 'sheet__actions' }, out);
+  const actions = signOutActions(redraw, error);
   if (await sync.stage() === 'choose') {
+    // First sign-in here: what this device is, then (explorers' device) which explorers to
+    // add, or (a phone) its own explorers, if any, all go up.
+    if (!chosenRole) return [who, roleQuestion(role => { chosenRole = role; redraw(); }), actions];
     const list = await sync.candidates();
+    if (list.length && chosenRole === 'watch') return [who, phoneExplorersStep(redraw, list, error), actions];
     if (list.length) return [who, chooseStep(redraw, list, error), actions];
     // Nothing to choose: set up straight away (new explorers just go up). If that fails,
     // say why, with a way to try again.
     try {
-      await sync.setUp([]);
+      await sync.setUp([], { role: chosenRole });
+      await loadRole();
     } catch (err) {
       if (!(err instanceof AuthError)) console.error(err);
       mount(error, tx(errorKey(err)));
       error.hidden = false;
       const again = h('button', { class: 'btn btn--soft', type: 'button', onclick: () => redraw() }, tx('sync.tryAgain'));
-      return [who, error, h('div', { class: 'sheet__actions' }, again, out)];
+      return [who, error, h('div', { class: 'sheet__actions' }, again), actions];
     }
   }
   const s = await sync.status();
   if (s.stage === 'on' && !s.savedAt) sync.run(); // no run yet in this window: start one (the line follows it)
   const box = h('div', null, statusLines(s));
   statusBoxes.add(box);
-  return [who, box, error, actions];
+  return [who, box, s.stage === 'on' && rolePanel(redraw), error, actions];
 }
 
 async function render(el) {
@@ -202,6 +285,7 @@ async function render(el) {
   mount(el,
     h('h2', { class: 'panel__title' }, h('span', { 'aria-hidden': 'true' }, '☁️ '), tx('account.title')),
     !state.signedIn && h('p', null, tx('account.intro')),
+    !state.signedIn && appState.role === 'watch' && rolePanel(redraw),
     h('p', { class: 'muted' }, tx('account.syncs')),
     body);
 }
@@ -223,6 +307,7 @@ export function familySignIn({ explorers, gate = true }) {
   const dialog = h('dialog', { class: 'sheet sheet--form', 'aria-labelledby': 'join-title' });
   const body = h('div');
   let passed = !gate;
+  let role = null; // what this device is, asked before the first pull
   return new Promise(resolve => {
     const finish = result => { dialog.close(); dialog.remove(); resolve(result); };
     const cancel = h('div', { class: 'sheet__actions' },
@@ -247,10 +332,15 @@ export function familySignIn({ explorers, gate = true }) {
         if (!pending) focus();
         return;
       }
+      if (!role && await sync.stage() === 'choose') {
+        mount(body, roleQuestion(r => { role = r; draw(); }));
+        return;
+      }
       mount(body, h('p', { role: 'status' }, tx('welcome.bringing')));
       let where;
       try {
-        where = await sync.join();
+        where = await sync.join({ role: role ?? 'explorers' });
+        await loadRole();
       } catch (err) {
         if (!(err instanceof AuthError)) console.error(err);
         mount(error, tx(errorKey(err)));
