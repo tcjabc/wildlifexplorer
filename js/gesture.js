@@ -77,6 +77,7 @@ function velocityOf(samples) {
 // handlers.lock({ dx, dy, axis }) -> return false to give up (decided after `slop` px)
 // handlers.move({ dx, dy, x, y })
 // handlers.end({ dx, dy, vx, vy })
+// handlers.tap({ x, y }) -> the pointer went up before moving `slop` px (the click still happens)
 // handlers.pinchStart({ dist }) / pinchMove({ dist, scale }) / pinchEnd({ scale, velocity })
 export function track(el, handlers, { slop = 8 } = {}) {
   const pointers = new Map();
@@ -159,7 +160,10 @@ export function track(el, handlers, { slop = 8 } = {}) {
       if (pointers.size === 0) mode = null;
       return;
     }
-    if (e.pointerId === start?.id) finishDrag();
+    if (e.pointerId === start?.id) {
+      if (mode === 'pending') handlers.tap?.({ x: start.x, y: start.y });
+      finishDrag();
+    }
     if (pointers.size === 0 && mode === 'done-pinch') mode = null;
   };
 

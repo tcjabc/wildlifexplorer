@@ -12,7 +12,6 @@ import { worldMap } from './worldmap.js';
 import { comparePanel, modesFor } from './compare.js';
 import { lookalikesOf, lookalikePanel } from './lookalikes.js';
 import { magnifier, featureOf } from './magnifier.js';
-import { track, haptic } from './gesture.js';
 import { nameBi } from './zhuyin.js';
 import { lengthText, weightText, imperial } from './units.js';
 
@@ -124,7 +123,7 @@ export function coverPage(card, { onCredit } = {}) {
 
 // Left page of the open spread. Numbered labels sit on the picture; tap one to ring it,
 // see it through the magnifier and read about it in the box underneath. Tap it again, or the
-// picture, to close; swipe the box to step through.
+// picture, to close. (A sideways drag anywhere on the page closes the card: viewer.js.)
 export function profilePage(card) {
   if (!hasProfile(card)) return h('div', { class: 'cpage cpage--profile' }, blank(card));
   const kind = card.profile.image ?? 'photo';
@@ -145,7 +144,7 @@ export function profilePage(card) {
   });
   pic.append(h('div', { class: 'profile__marks' }, marks));
 
-  const detail = h('div', { class: 'profile__detail', 'data-swipe': true, 'aria-live': 'polite' });
+  const detail = h('div', { class: 'profile__detail', 'aria-live': 'polite' });
   const showDetail = i => mount(detail, i == null
     ? h('p', { class: 'stat__hint' }, tx('card.profileHint'))
     : [h('p', { class: 'profile__detail-name' }, h('span', { class: 'callouts__no', 'aria-hidden': 'true' }, String(i + 1)), bi(callouts[i])),
@@ -158,21 +157,6 @@ export function profilePage(card) {
   };
   pic.addEventListener('click', () => pick(null));
   showDetail(null);
-
-  // Swipe the box (either way) to move to the next or previous feature.
-  let axis = null;
-  track(detail, {
-    lock: ({ axis: a }) => { axis = a; return true; },
-    end: ({ dx, dy }) => {
-      const d = axis === 'x' ? dx : dy;
-      if (Math.abs(d) < 30) return;
-      const cur = loupe.current();
-      const step = d < 0 ? 1 : -1;
-      const next = cur === null ? (step > 0 ? 0 : callouts.length - 1) : (cur + step + callouts.length) % callouts.length;
-      haptic(6);
-      pick(next);
-    },
-  });
 
   return h('div', { class: 'cpage cpage--profile', 'data-group': card.group },
     pageTitle('card.profile', '🔍'), pic, detail);

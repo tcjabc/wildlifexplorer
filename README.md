@@ -269,11 +269,10 @@ card with none of them doesn't open.
   feature as fractions of the picture's width and height (0 = left/top, 1 = right/bottom; percent
   0–100 also works). `r` is how much the magnifier shows: the radius around the feature as a
   fraction of the picture's width (default 0.08; smaller = more zoom). The photo itself stays clean.
-  Tapping a list item rings the feature and opens a round magnifier in the emptiest corner, cut
-  from the full-size image; tap it again or the photo to close, or swipe the list to step through.
-  Each callout is a numbered label drawn on the picture; tapping it shows its ring and magnifier, and
-  a box under the picture with its name and `detail` (optional). Read-aloud reads every feature in
-  order. The build never touches `profile`, so hand-tuned values are safe.
+  Each callout is a numbered label drawn on the picture; tapping it rings the feature, opens a round
+  magnifier in the emptiest corner (cut from the full-size image) and shows a box under the picture
+  with its name and `detail` (optional). Tap it again or the picture to close. Read-aloud reads
+  every feature in order. The build never touches `profile`, so hand-tuned values are safe.
 - **stats**: `length`, `weight`, `lifespan` and `diet` are the text shown. `lengthCm`, `weightKg` and
   `lifespanYears` are the numbers the comparisons use (the middle of `min`–`max`). If you only give
   the numbers, the text is made from them. `dietIcons` are emoji for the diet plate.
@@ -351,8 +350,14 @@ above every layer.
   temperature pictures are painted with `--c-temp-scale`, so re-run `make-layers.mjs temp` if you change it.
 - Sources and licences: [CREDITS.md](CREDITS.md).
 
-In the app, children open a card by dragging the cover's right edge, like turning a page.
-Swipe up to turn the card over, and swipe down to put it back in the binder.
+In the app, gestures on a card are decided by direction, from anywhere on the card or a 40 px
+margin around it (the margin stops 60 px from the screen's right edge, where the notebook spine
+will go). Swipe sideways to open the card or close the open spread; swipe up to turn it over, and
+down to put it back in the binder (on the back, either way turns it back). A quarter of the way or
+a quick flick is enough; less springs back, and a touch that hardly moves is a tap. On pages that
+scroll (the Fact File, Vital Statistics), a vertical drag scrolls first and only turns the card from
+the scroll's edge. The first time a closed card settles, its cover peeks open a little, once per card
+per explorer (not with reduced motion).
 
 ## Packs and drops
 
