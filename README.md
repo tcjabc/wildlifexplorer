@@ -502,6 +502,27 @@ truth; it syncs with Supabase when online.
   first, then removes the family's explorers with their packs, cards, badges, quiz scores and Field
   Notes from this device only, and signs out. Explorers kept on the device only stay. Nothing is sent:
   the family account keeps everything.
+- **Another grown-up** (`js/cloud/family.js`, migration
+  `supabase/migrations/20261104112117_family_invites.sql`): the family's owner invites an email
+  under ☁️ Family account → "Grown-ups in this family". Nothing is emailed by the app: the owner
+  tells them to sign in here with that email within 7 days. At their first sign-in on a device they
+  are asked whether to join; joining makes them a *parent* of that family (only if their own
+  account has no explorers on the server yet). The owner sees open and expired invites (cancel,
+  invite again) and can remove a parent; a parent can leave. At most 4 grown-ups per family,
+  counting open invites. Every grown-up is in exactly one family: removed or leaving, they get an
+  empty one of their own. When the owner's account is deleted, the parent who joined first becomes
+  the owner. All of it goes through database functions that check who is asking (RLS check in
+  `supabase/tests/rls_check.sql`).
+- **No longer in the family** (removed, or left): each sync run first asks which family the
+  grown-up is in. When it isn't the device's any more, nothing goes up or comes down, the panel says
+  so, and "Sign out and remove the family from this device" (asks first) removes the family's
+  explorers from the device. Changes not saved yet are dropped with them. Back in the family, it
+  carries on.
+- **Who may make an account:** sign-ups are open only to invited emails, through the
+  *Before User Created* auth hook (`public.hook_before_user_created`, in the same migration).
+  Existing accounts sign in as before. In the dashboard: Authentication → Auth Hooks → Before User
+  Created → Postgres, `public.hook_before_user_created`; then Authentication → Sign In / Providers
+  → Allow new users to sign up. Turn the hook on before sign-ups, and sign-ups off before the hook.
 - **A new device:** the Welcome screen has "Already have a family account? Sign in". Behind the
   grown-ups' sum it is the same email and code (or link); then the family's explorers come down
   (`sync.join()`) and the picker shows them. If the family has no explorers yet, the Welcome form
@@ -539,9 +560,12 @@ truth; it syncs with Supabase when online.
   *Email OTP Length*; `CODE_LENGTH` in `js/config.js` must match it.
 - **Deleting an account:** when a user is deleted and their family has no members left, the
   family is deleted too, with its profiles, packs, cards and badges
-  (`supabase/migrations/20261104050133_family_cleanup.sql`). Devices keep their local copy.
+  (`supabase/migrations/20261104050133_family_cleanup.sql`). Devices keep their local copy. If
+  other grown-ups are still in it, the family stays, and if the owner was deleted the parent who
+  joined first becomes the owner.
 - **Privacy notice:** needed before any family other than ours uses accounts. It must say that
-  deleting a family's last parent account deletes that family's data on the server.
+  deleting a family's last parent account deletes that family's data on the server, and that the
+  family's grown-ups see each other's email addresses.
 
 The schema lives in `supabase/migrations/` and is applied with the Supabase CLI (a dev
 dependency). Once per machine:

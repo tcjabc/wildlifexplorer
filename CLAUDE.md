@@ -10,7 +10,7 @@
 - Design: all colours, sizes and fonts live in `css/tokens.css`; components in `css/app.css` use tokens only.
 
 ## GIT
-- The remote is already set up (SSH alias `github.com-second`, personal account `tcjabc`). Never change the remote, git config or SSH settings.
+- The remote is already set up (HTTPS, `https://tcjabc@github.com/tcjabc/wildlifexplorer.git`, signed in through Git Credential Manager, personal account `tcjabc`). Never change the remote, git config, credentials or SSH settings.
 - Commit in small, logical steps with clear messages.
 - Always ask before any `git push` (also enforced in `.claude/settings.json`).
 - Before every push, run `git fetch` and list `git log origin/main..HEAD` in the push report: every commit that would go out. Push only commits the owner has approved. If the list holds any other commit (for example one made in another session), stop and ask; never push it along.
@@ -23,7 +23,7 @@
 - No personal data about the family in the repo (names, photos, locations).
 - Progress data stays on the device (IndexedDB). It is sent only to the family's own Supabase project, and only after a parent signs in. Height, weight, age, home country, quiz scores and Field Notes stay on the device.
 - Before any family other than ours uses accounts, the app needs a privacy notice (what is stored, where, for how long, how to delete it).
-  It must say that deleting a family's last parent account deletes that family's data on the server (migration 4); devices keep their local copy.
+  It must say that deleting a family's last parent account deletes that family's data on the server (migration 4); devices keep their local copy. And that a family's grown-ups see each other's email addresses (migration 5).
 - `index.html` has a Content Security Policy meta tag allowing only same-origin resources, plus `connect-src` to the Supabase project URL (nothing else). The same CSP is sent as an HTTP header on wildfile.app (see DEPLOYMENT).
 - Escape or sanitise any text inserted into the DOM. Never use `innerHTML` with data from JSON or external sources.
 
@@ -58,6 +58,8 @@
 - "Automatically expose new tables" is off: every migration that adds a table has explicit GRANTs (nothing to `anon`) and RLS enabled with policies limited to the caller's family.
 - Pulled rows are merged by `js/cloud/merge.js` with the same rules as the merge triggers in `supabase/migrations/`; the fake server in `tests/fixtures/server.mjs` copies them too. Change all three together.
 - Settings conflicts are decided by device clocks (`client_updated_at`), so a device with a badly wrong clock can win. Accepted for now.
+- Invites (migration 5): clients reach `family_invites` and memberships only through the `security definer` functions there, each checking the caller's role (owner: invite, cancel, remove a parent; parent: leave). Keep it that way: no table grants to `anon` or `authenticated`. Every grown-up is in exactly one family (`unique (user_id)`).
+- New accounts only for invited emails: the Before User Created auth hook `public.hook_before_user_created` (enabled in the dashboard, not by a migration). It runs as `supabase_auth_admin`, which may read only `family_invites.email` and `expires_at`. Sign-ups must stay on for it to work; turn the hook on first and off last.
 - Re-run the RLS check after every migration: `npx supabase db query --remote -f supabase/tests/rls_check.sql`. CLI 3 targets a local stack by default; always pass `--remote`.
 - Auth email goes out through custom SMTP (Resend, from noreply@wildfile.app). Until accounts are opened to other families, test sign-in with the owner's address only.
 
