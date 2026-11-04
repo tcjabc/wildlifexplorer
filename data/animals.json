@@ -25,50 +25,63 @@
     "factFile": {
       "habitat": [
         {
-          "en": "Mountain forests, mostly between 1,000 and 3,500 metres up.",
-          "zh": "山區森林，大多在海拔1,000到3,500公尺之間。"
+          "en": "Formosan black bears live in Taiwan's mountain forests, from [[broadleaf-forest|broadleaf forests]] as low as about 200 metres up to conifer forests at an [[altitude]] of 3,500 metres. Most live along the Central Mountain Range, including Yushan National Park.",
+          "zh": "臺灣黑熊住在臺灣的山區森林，從海拔約200公尺的[[broadleaf-forest|闊葉林]]，一直到[[altitude|海拔]]3,500公尺的針葉林都有。牠們大多分布在中央山脈一帶，包括玉山國家公園。"
+        },
+        {
+          "en": "A single bear needs a very large [[home-range|home range]] with plenty of trees that give fruit and nuts.",
+          "zh": "一隻熊需要很大的[[home-range|活動範圍]]，裡面要有很多會結果實和堅果的樹。"
         }
       ],
       "breeding": [
         {
-          "en": "Bears mate in summer.",
-          "zh": "熊在夏天交配。"
+          "en": "Like other bears, Formosan black bears have [[delayed-implantation|delayed implantation]]: after mating, the fertilised egg waits for a while before it starts to grow, so the cubs arrive at a good time for the mother.",
+          "zh": "和其他熊一樣，臺灣黑熊有[[delayed-implantation|延遲著床]]的現象：交配後，受精卵會先等一段時間才開始發育，讓小熊在對媽媽最合適的時候出生。"
         },
         {
-          "en": "In winter, 1–2 tiny cubs are born in a den. At first their eyes are closed.",
-          "zh": "冬天，媽媽在洞裡生下1到2隻小熊，剛出生時眼睛還沒張開。"
+          "en": "Mothers give birth to one or two tiny cubs in a sheltered [[den]] in winter. At first the cubs' eyes are closed.",
+          "zh": "媽媽會在冬天，在隱蔽的[[den|巢穴]]裡生下1到2隻很小的小熊，剛出生的小熊眼睛還沒張開。",
+          "todo": "Litter size and birth month not confirmed for wild Formosan black bears. Tried: Kaohsiung Zoo animal page, FANCA, Yushan NP, captive breeding studies on lawdata.com.tw (no=345322 gives a captive breeding season of about Feb–Aug)."
         },
         {
-          "en": "Cubs stay with their mum for about two years, learning where to find food.",
-          "zh": "小熊跟著媽媽大約兩年，學習去哪裡找食物。"
-        },
-        {
-          "en": "Grown-up bears live on their own.",
-          "zh": "長大的熊會獨自生活。"
+          "en": "The cubs stay with their mother for about two years while she shows them where to find food. Then the young bears leave to live on their own.",
+          "zh": "小熊會跟著媽媽生活大約兩年，媽媽會帶牠們認識去哪裡找食物。之後，年輕的熊就會離開，獨立生活。"
         }
       ],
       "behaviour": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Adult Formosan black bears are [[solitary]], apart from mothers with cubs. They are excellent climbers, with long claws for gripping tree bark and thick paw pads.",
+          "zh": "除了帶著小熊的媽媽，成年的臺灣黑熊是[[solitary|獨居]]的。牠們很會爬樹，有抓樹皮用的長爪子和厚厚的腳掌肉墊。"
+        },
+        {
+          "en": "Bears in cold countries [[hibernate]] through the winter, but most Formosan black bears don't. Instead, many move from the high mountains down to lower forests, where food is still easy to find. Pregnant females are the exception: they rest in a den.",
+          "zh": "寒冷國家的熊會在冬天[[hibernate|冬眠]]，但大部分臺灣黑熊不會。很多熊會從高山移動到比較低的森林，那裡冬天還找得到食物。懷孕的母熊是例外，牠們會待在巢穴裡休息。"
         }
       ],
       "foodAndHunting": [
         {
-          "en": "",
-          "zh": ""
+          "en": "The Formosan black bear is an [[omnivore]], but about 80% of its food comes from plants: young leaves, fruit, nuts and acorns. It also eats insects and, now and then, small animals.",
+          "zh": "臺灣黑熊是[[omnivore|雜食性動物]]，不過牠的食物大約80%來自植物，例如嫩葉、果實、堅果和橡實。牠也吃昆蟲，偶爾也吃小動物。"
         }
       ],
       "conservation": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Around the world, Asiatic black bears are listed as [[vulnerable|Vulnerable]] on the [[red-list|IUCN Red List]]. In Taiwan, the Formosan black bear is so rare that the law protects it as an [[endangered]] species, the highest level of protection.",
+          "zh": "在全世界，亞洲黑熊在[[red-list|國際自然保護聯盟（IUCN）紅色名錄]]上被列為[[vulnerable|易危]]。在臺灣，臺灣黑熊非常稀少，法律把牠列為最高等級的[[endangered|瀕臨絕種]]保育類野生動物。"
+        },
+        {
+          "en": "In 2026, Taiwan's Forestry and Nature Conservation Agency made a first estimate of about 1,200 bears, more than earlier guesses, and wildlife cameras now photograph bears more often than a few years ago.",
+          "zh": "2026年，林業及自然保育署初步估計臺灣大約有1,200隻黑熊，比以前估計的多；野生動物自動相機拍到黑熊的機會也比幾年前高。"
+        },
+        {
+          "en": "A big danger is metal snares and traps that people set for other animals, such as wild pigs. A bear caught in one can lose a paw, or even die. Since 2021 Taiwan has banned [[leghold-trap|leg-hold traps]], with a few exceptions, and villages such as Zhuoxi in Hualien now have bear patrols.",
+          "zh": "一大威脅是人們為了抓山豬等其他動物而設下的金屬套索和陷阱，熊被困住可能會斷掌，甚至死亡。臺灣從2021年起全面禁用[[leghold-trap|獸鋏]]（只有少數例外），花蓮卓溪等地也成立了黑熊巡守隊。"
         }
       ],
       "didYouKnow": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Every bear's white V is a little different. In Hualien, researchers used body features and chest markings on camera photos to tell at least 20 different bears apart.",
+          "zh": "每隻熊胸前的白色V字都有點不一樣。在花蓮，研究人員靠自動相機照片裡的身體特徵和胸前斑紋，認出了至少20隻不同的熊。"
         }
       ]
     },
@@ -240,7 +253,49 @@
       "stats",
       "compare",
       "factFile.breeding",
-      "tags"
+      "tags",
+      "factFile.behaviour",
+      "factFile.foodAndHunting",
+      "factFile.conservation",
+      "factFile.didYouKnow"
+    ],
+    "_sources": [
+      {
+        "title": "Taipei Times: about 1,200 Formosan black bears, preliminary (2026-03-24)",
+        "url": "https://www.taipeitimes.com/News/taiwan/archives/2026/03/24/2003854374"
+      },
+      {
+        "title": "Zoological Studies 45(1): 93–97 (2006): range 200–3,500 m; no hibernation, move to lower elevations",
+        "url": "https://zoolstud.sinica.edu.tw/Journals/45.1/93.pdf"
+      },
+      {
+        "title": "Taiwan News: bears don't hibernate in Taiwan except pregnant females (FANCA specialist)",
+        "url": "https://www.taiwannews.com.tw/en/news/6001203"
+      },
+      {
+        "title": "Kaohsiung Zoo: Formosan black bear (80% plant food, claws, paw pads)",
+        "url": "https://zoo.kcg.gov.tw/en/animal/94"
+      },
+      {
+        "title": "Newtalk: Hualien camera monitoring, at least 20 individuals identified by chest markings (2024)",
+        "url": "https://newtalk.tw/news/view/2024-04-12/915779"
+      },
+      {
+        "title": "lawdata.com.tw no=351727: captive study discussing delayed implantation in bears",
+        "url": "https://lawdata.com.tw/tw/detail.aspx?no=351727"
+      },
+      {
+        "title": "Wikipedia: Formosan black bear (cubs stay about two years)",
+        "url": "https://en.wikipedia.org/wiki/Formosan_black_bear"
+      },
+      {
+        "title": "Control Yuan investigation: bears caught in metal snares (lost paws, dehydration, death)",
+        "url": "https://cybsbox.cy.gov.tw/CYBSBoxSSL/edoc/download/63763"
+      },
+      {
+        "title": "The News Lens: leg-hold traps banned in 2021 with exceptions; Zhuoxi bear patrol; improved traps",
+        "url": "https://www.thenewslens.com/article/138015"
+      }
     ]
   },
   {
@@ -269,50 +324,50 @@
     "factFile": {
       "habitat": [
         {
-          "en": "Forests and rocky cliffs, from the lowlands up to high mountains.",
-          "zh": "森林和岩壁，從低海拔到高山都有。"
+          "en": "The Formosan rock macaque is [[endemic]] to Taiwan: it lives nowhere else in the wild. It lives in forests from low hills up into the mountains.",
+          "zh": "臺灣獼猴是臺灣的[[endemic|特有種]]，野外只住在臺灣。牠們住在從低海拔丘陵到山區的森林裡。"
         }
       ],
       "breeding": [
         {
-          "en": "Babies are born in spring and early summer, one at a time.",
-          "zh": "小猴在春天到初夏出生，一次生一隻。"
+          "en": "Macaques mate mostly from November to January, and most babies are born between March and June. A mother has a single baby after a [[gestation]] of about 162 days.",
+          "zh": "獼猴大多在11月到隔年1月交配，寶寶多半在3月到6月出生。媽媽的[[gestation|懷孕期]]大約162天，每次生1隻寶寶。"
         },
         {
-          "en": "A baby holds on to its mum's belly and rides along with her.",
-          "zh": "小猴會緊緊抱住媽媽的肚子，跟著她到處走。"
-        },
-        {
-          "en": "Young monkeys play together and learn from the troop.",
-          "zh": "小猴們一起玩耍，向猴群學習。"
-        },
-        {
-          "en": "Daughters stay in the troop; sons leave to join another one.",
-          "zh": "母猴會留在原本的猴群；公猴長大後會離開，加入別的猴群。"
+          "en": "For the first two to three months, the baby rides in its mother's arms. In the wild, a mother usually has one baby a year.",
+          "zh": "寶寶出生後的頭兩三個月，會被媽媽抱在懷裡。在野外，媽媽通常一年生一胎。"
         }
       ],
       "behaviour": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Macaques live in groups called [[troop|troops]], with several adult males and females. The females stay in the troop they were born in, so a troop is built around related females.",
+          "zh": "獼猴過著群體生活，一群叫做[[troop|猴群]]，裡面有好幾隻成年公猴和母猴。母猴會一直留在出生的猴群，所以猴群是以有親戚關係的母猴為中心。"
         }
       ],
       "foodAndHunting": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Macaques are [[omnivore|omnivores]], but they eat mostly fruit and seeds, plus leaves and other plant parts. Scientists have recorded between 38 and 132 kinds of wild plants in their diet at different places.",
+          "zh": "獼猴是[[omnivore|雜食性動物]]，但主要吃果實和種子，也吃葉子和植物的其他部分。科學家在不同地方記錄到，牠們吃的野生植物有38到132種。"
+        },
+        {
+          "en": "They sometimes catch insects too. In one study, macaques snapped up flying leaf-cutting bees during the bees' short breeding season, a quick, protein-rich snack.",
+          "zh": "牠們有時也會抓昆蟲。有一項研究發現，獼猴會在切葉蜂短短的繁殖季節裡，抓飛行中的切葉蜂來吃，這是富含蛋白質的點心。"
         }
       ],
       "conservation": [
         {
-          "en": "",
-          "zh": ""
+          "en": "The Formosan rock macaque is listed as [[least-concern|Least Concern]] on the [[red-list|IUCN Red List]]. In 2019 Taiwan took it off the list of [[protected-species|protected species]], because there are now many of them.",
+          "zh": "臺灣獼猴在[[red-list|國際自然保護聯盟（IUCN）紅色名錄]]上被列為[[least-concern|無危]]。2019年，臺灣把牠從[[protected-species|保育類野生動物]]名單中移除，因為現在數量很多。"
+        },
+        {
+          "en": "Even so, they are still wild animals protected by Taiwan's wildlife law, and nobody may hunt them freely. Since 2022, people in Taiwan may no longer start keeping macaques as pets.",
+          "zh": "即使如此，牠們仍然是受野生動物保育法保護的野生動物，不能隨意獵捕。從2022年起，臺灣也不再允許新飼養獼猴當寵物。"
         }
       ],
       "didYouKnow": [
         {
-          "en": "",
-          "zh": ""
+          "en": "A mother macaque carries her baby in her arms for its first two to three months.",
+          "zh": "獼猴媽媽會把寶寶抱在懷裡，照顧牠出生後的頭兩三個月。"
         }
       ]
     },
@@ -427,7 +482,16 @@
         "🌿",
         "🌰",
         "🐛"
-      ]
+      ],
+      "development": {
+        "kind": "gestation",
+        "days": {
+          "min": 162
+        }
+      },
+      "youngCount": {
+        "min": 1
+      }
     },
     "compare": {
       "width": 80
@@ -481,7 +545,37 @@
       "stats",
       "compare",
       "factFile.breeding",
-      "tags"
+      "tags",
+      "factFile.behaviour",
+      "factFile.foodAndHunting",
+      "factFile.conservation",
+      "factFile.didYouKnow"
+    ],
+    "_sources": [
+      {
+        "title": "Plazi (Handbook of the Mammals of the World): Macaca cyclopis (gestation 162 days, births Mar–Jun, diet 38–132 plant species)",
+        "url": "https://publication.plazi.org/GgServer/html/CE199B17FFD5FFD1FA296FAFF736F6BF"
+      },
+      {
+        "title": "Hsu, Agoramoorthy & Lin (2001), Primates: birth seasonality at Mt. Longevity (one birth a year)",
+        "url": "https://acnpsearch.tweb-dev.unibo.it/singlejournalindex/79368765"
+      },
+      {
+        "title": "Primates (2025): macaques preying on leaf-cutting bees",
+        "url": "https://link.springer.com/article/10.1007/s10329-025-01189-1"
+      },
+      {
+        "title": "Wikipedia: Formosan rock macaque (troops, infant care)",
+        "url": "https://en.wikipedia.org/wiki/Formosan_rock_macaque"
+      },
+      {
+        "title": "FANCA: amended terrestrial protected wildlife list, effective 2019-01-09 (species removed)",
+        "url": "https://www.forest.gov.tw/news/0063328"
+      },
+      {
+        "title": "Focus Taiwan: ban on new owners of Formosan macaques (2022)",
+        "url": "https://focustaiwan.tw/society/202208100022"
+      }
     ]
   },
   {
@@ -511,38 +605,38 @@
     "factFile": {
       "habitat": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Chinese pangolins live in forests and hills, where they dig [[burrow|burrows]] in the soil. Taiwan still has stable wild populations: in Taitung, scientists counted about 12.8 pangolins per 100 hectares.",
+          "zh": "穿山甲住在森林和丘陵，會在土裡挖[[burrow|洞穴]]。臺灣仍然有穩定的野生族群：在臺東，科學家估計每100公頃大約有12.8隻穿山甲。"
         }
       ],
       "breeding": [
         {
-          "en": "",
-          "zh": ""
+          "en": "A mother pangolin usually has just one baby at a time. A study of wild pangolins in Taiwan found a [[gestation]] of about 150 days, shorter than many people had thought.",
+          "zh": "穿山甲媽媽通常一次只生1隻寶寶。一項在臺灣野外進行的研究發現，牠的[[gestation|懷孕期]]大約150天，比很多人以前以為的還短。"
         }
       ],
       "behaviour": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Pangolins are expert diggers. In one part of eastern Taiwan, scientists found as many as 110 burrows in a single hectare, used for resting and while hunting for food.",
+          "zh": "穿山甲是挖洞高手。在臺灣東部的一個地區，科學家在一公頃的土地上就找到多達110個洞穴，有的用來休息，有的是找食物時挖的。"
         }
       ],
       "foodAndHunting": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Pangolins eat ants and termites, which makes them [[insectivore|insectivores]]. A single pangolin may eat millions of ants, termites and their larvae in a year.",
+          "zh": "穿山甲吃螞蟻和白蟻，是[[insectivore|食蟲動物]]。一隻穿山甲一年可能吃掉幾百萬隻螞蟻、白蟻和牠們的幼蟲。"
         }
       ],
       "conservation": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Around the world, the Chinese pangolin is [[critically-endangered|Critically Endangered]], mostly because pangolins are hunted and traded for their scales and meat. In Taiwan, where wild populations are still stable, the law protects it as a \"rare and valuable\" [[protected-species|protected species]].",
+          "zh": "在全世界，中華穿山甲被列為[[critically-endangered|極危]]，主要是因為牠們的鱗片和肉被獵捕、買賣。在臺灣，野生族群還算穩定，法律把牠列為「珍貴稀有」的[[protected-species|保育類野生動物]]。"
         }
       ],
       "didYouKnow": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Scientists in Taiwan were the first to measure how long a wild pangolin is pregnant, using evidence from the mothers' bodies: about 150 days.",
+          "zh": "臺灣的科學家第一次根據野外母穿山甲的身體證據，估算出牠們懷孕的時間：大約150天。"
         }
       ]
     },
@@ -579,6 +673,15 @@
       "lengthCm": {
         "min": 40,
         "max": 58
+      },
+      "development": {
+        "kind": "gestation",
+        "days": {
+          "min": 150
+        }
+      },
+      "youngCount": {
+        "min": 1
       }
     },
     "related": [],
@@ -629,7 +732,35 @@
     "_draft": [
       "facts",
       "tags",
-      "stats"
+      "stats",
+      "factFile.habitat",
+      "factFile.breeding",
+      "factFile.behaviour",
+      "factFile.foodAndHunting",
+      "factFile.conservation",
+      "factFile.didYouKnow"
+    ],
+    "_sources": [
+      {
+        "title": "Sun et al.: first gestation estimate for wild Chinese pangolins (Taiwan), PMC8438059",
+        "url": "https://rcastoragev2.blob.core.windows.net/8eb6506a5f3951dcfa2b8ebdc83850f3/PMC8438059.pdf"
+      },
+      {
+        "title": "IUCN SSC Pangolin Specialist Group: Chinese pangolin",
+        "url": "https://pangolinsg.org/chinese-pangolin/"
+      },
+      {
+        "title": "EDGE of Existence: Chinese pangolin survival blueprint",
+        "url": "https://www.edgeofexistence.org/wp-content/uploads/2017/06/Survival_Blueprint_Chinese-Pangolin.pdf"
+      },
+      {
+        "title": "Rufford: pangolin manual (millions of ants and termites a year)",
+        "url": "https://media.rufford.org/media/project_reports/Pangolin%20Manual.pdf"
+      },
+      {
+        "title": "Wikipedia (zh): 臺灣保育物種列表 (protection categories)",
+        "url": "https://zh.wikipedia.org/zh-tw/%E8%87%BA%E7%81%A3%E4%BF%9D%E8%82%B2%E7%89%A9%E7%A8%AE%E5%88%97%E8%A1%A8"
+      }
     ]
   },
   {
@@ -659,38 +790,46 @@
     "factFile": {
       "habitat": [
         {
-          "en": "",
-          "zh": ""
+          "en": "The Taiwan serow is [[endemic]] to Taiwan. It lives from about 200 metres up to nearly 3,900 metres, but most live above 1,000 metres, away from people. It loves steep, rugged ground, and escapes danger on cliffs and rocky crags.",
+          "zh": "臺灣長鬃山羊是臺灣的[[endemic|特有種]]，住在海拔約200公尺到將近3,900公尺的地方，不過大多住在1,000公尺以上、遠離人類的地方。牠喜歡陡峭崎嶇的地形，遇到危險時會躲到懸崖和岩壁上。"
         }
       ],
       "breeding": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Serows mate from about September to December, and the babies are born from March to July. After a [[gestation]] of about 210 days, the mother has a single kid; twins are rare.",
+          "zh": "長鬃山羊大約在9月到12月交配，寶寶在3月到7月出生。媽媽的[[gestation|懷孕期]]大約210天，通常只生1隻，很少生雙胞胎。"
+        },
+        {
+          "en": "A newborn can stand and walk on its first day and follows its mother closely. It starts tasting solid food at about one month old, and stays with its mother for about a year.",
+          "zh": "剛出生的小羊當天就能站起來走路，緊緊跟著媽媽。大約一個月大時開始吃固體食物，會和媽媽一起生活大約一年。"
         }
       ],
       "behaviour": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Serows are [[solitary]] and keep a [[territory]]. They mark it by rubbing a smelly liquid from glands near their eyes onto branches and stones.",
+          "zh": "長鬃山羊是[[solitary|獨居]]的，會守著自己的[[territory|領域]]。牠們會把眼睛附近腺體分泌的氣味液體，抹在樹枝和石頭上做記號。"
+        },
+        {
+          "en": "They are mostly active by day, but switch to the night when people disturb them.",
+          "zh": "牠們主要在白天活動，但如果受到人類打擾，就會改在晚上活動。"
         }
       ],
       "foodAndHunting": [
         {
-          "en": "",
-          "zh": ""
+          "en": "The serow is a [[herbivore]] that mostly [[browse|browses]]: it nibbles shrubs, twigs and some fruit, and grasses and herbs matter in some seasons. Some serows even climb trees to feed.",
+          "zh": "長鬃山羊是[[herbivore|草食性動物]]，主要以[[browse|啃食]]為主：吃灌木、嫩枝和一些果實，某些季節也很依賴草和草本植物。有些長鬃山羊甚至會爬到樹上吃東西。"
         }
       ],
       "conservation": [
         {
-          "en": "",
-          "zh": ""
+          "en": "The Taiwan serow is listed as [[least-concern|Least Concern]] on the [[red-list|IUCN Red List]]. Taiwan's law still protects it, in the \"other conservation-deserving\" level, and its numbers are growing.",
+          "zh": "臺灣長鬃山羊在[[red-list|國際自然保護聯盟（IUCN）紅色名錄]]上被列為[[least-concern|無危]]。臺灣的法律仍然保護牠，列為「其他應予保育」的[[protected-species|保育類野生動物]]，牠的數量也在增加。"
         }
       ],
       "didYouKnow": [
         {
-          "en": "",
-          "zh": ""
+          "en": "A baby serow can stand up and walk on the very day it is born.",
+          "zh": "小長鬃山羊出生當天就能站起來走路。"
         }
       ]
     },
@@ -722,6 +861,15 @@
       "heightCm": {
         "min": 50,
         "max": 70
+      },
+      "development": {
+        "kind": "gestation",
+        "days": {
+          "min": 210
+        }
+      },
+      "youngCount": {
+        "min": 1
       }
     },
     "related": [],
@@ -773,7 +921,35 @@
     "_draft": [
       "facts",
       "tags",
-      "stats"
+      "stats",
+      "factFile.habitat",
+      "factFile.breeding",
+      "factFile.behaviour",
+      "factFile.foodAndHunting",
+      "factFile.conservation",
+      "factFile.didYouKnow"
+    ],
+    "_sources": [
+      {
+        "title": "Ultimate Ungulate: Capricornis swinhoei (elevation, cliffs, diet, solitary, territorial, diurnal)",
+        "url": "https://ultimateungulate.com/Artiodactyla/Capricornis_swinhoei.html"
+      },
+      {
+        "title": "Plazi (Handbook of the Mammals of the World): Capricornis swinhoei (mating Sep–Dec, births Mar–Jul, gestation 210 days)",
+        "url": "https://treatment.plazi.org/GgServer/html/03F5071399CEFF7606DFF668FDB2FC8B"
+      },
+      {
+        "title": "Taipei Times: protected sambar, serow and marten populations growing (2023)",
+        "url": "https://taipeitimes.com/News/taiwan/archives/2023/08/07/2003804383"
+      },
+      {
+        "title": "PTS News: 獼猴、山羌等8種動物 不再列保育類 (2019)",
+        "url": "https://news.pts.org.tw/article/419022"
+      },
+      {
+        "title": "Wikipedia (zh): 臺灣保育物種列表 (protection categories)",
+        "url": "https://zh.wikipedia.org/zh-tw/%E8%87%BA%E7%81%A3%E4%BF%9D%E8%82%B2%E7%89%A9%E7%A8%AE%E5%88%97%E8%A1%A8"
+      }
     ]
   },
   {
@@ -803,38 +979,38 @@
     "factFile": {
       "habitat": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Formosan sambar deer live in the forests and grassy slopes of Taiwan's high mountains, all along the Central Mountain Range.",
+          "zh": "臺灣水鹿住在臺灣高山的森林和草坡，沿著中央山脈都有分布。"
         }
       ],
       "breeding": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Sambar deer are pregnant for about eight months. Every year, the males grow a new set of [[antler|antlers]] and then shed them.",
+          "zh": "水鹿的懷孕期大約八個月。公鹿每年都會長出一副新的[[antler|鹿角]]，之後再脫落。"
         }
       ],
       "behaviour": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Sambar deer sometimes strip bark off trees with their teeth. At Tataka in Yushan National Park, this happens most from July to October, when the deer are growing antlers and feeding their young. Scientists think the bark may give them minerals, or help them fight stomach parasites.",
+          "zh": "水鹿有時會用牙齒啃下樹皮。在玉山國家公園的塔塔加，這種行為在7月到10月最常見，正好是公鹿長鹿角、母鹿哺育小鹿的時候。科學家認為，樹皮可能可以補充礦物質，或幫助牠們對抗腸胃裡的寄生蟲。"
         }
       ],
       "foodAndHunting": [
         {
-          "en": "",
-          "zh": ""
+          "en": "The sambar is a [[herbivore]]: it eats grasses and leaves, and sometimes bark.",
+          "zh": "水鹿是[[herbivore|草食性動物]]，吃草和葉子，有時也吃樹皮。"
         }
       ],
       "conservation": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Around the world, sambar deer are listed as [[vulnerable|Vulnerable]] on the [[red-list|IUCN Red List]], because they are hunted in many parts of Asia. In Taiwan the Formosan sambar is protected by law, and its numbers have grown steadily, so it is now in the \"other conservation-deserving\" level.",
+          "zh": "在全世界，水鹿在[[red-list|國際自然保護聯盟（IUCN）紅色名錄]]上被列為[[vulnerable|易危]]，因為牠們在亞洲很多地方被獵捕。在臺灣，臺灣水鹿受到法律保護，數量穩定增加，現在列為「其他應予保育」的[[protected-species|保育類野生動物]]。"
         }
       ],
       "didYouKnow": [
         {
-          "en": "",
-          "zh": ""
+          "en": "The Formosan sambar is the biggest deer in Taiwan, but it is the smallest kind of sambar in the world.",
+          "zh": "臺灣水鹿是臺灣最大的鹿，卻是全世界體型最小的水鹿[[subspecies|亞種]]。"
         }
       ]
     },
@@ -872,6 +1048,12 @@
       "heightCm": {
         "min": 100,
         "max": 120
+      },
+      "development": {
+        "kind": "gestation",
+        "en": "about 8 months",
+        "zh": "約8個月",
+        "todo": "Species-level figure (Wikipedia: sambar deer); not confirmed for the Formosan subspecies."
       }
     },
     "related": [],
@@ -919,7 +1101,39 @@
     "_draft": [
       "facts",
       "tags",
-      "stats"
+      "stats",
+      "factFile.habitat",
+      "factFile.breeding",
+      "factFile.behaviour",
+      "factFile.foodAndHunting",
+      "factFile.conservation",
+      "factFile.didYouKnow"
+    ],
+    "_sources": [
+      {
+        "title": "Zoological Studies (2022): bark stripping by Formosan sambar at Tataka, Yushan NP",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC9579954"
+      },
+      {
+        "title": "NPUST thesis: sambar widespread along the Central Mountain Range, population growing",
+        "url": "https://openaccess.library.uitm.edu.my/Record/ndltd-TW-103NPUS5746003/Description"
+      },
+      {
+        "title": "Wikipedia: sambar deer (gestation about 8 months; Formosan sambar the smallest subspecies)",
+        "url": "https://en.wikipedia.org/wiki/Sambar_deer"
+      },
+      {
+        "title": "Taipei Times: protected sambar, serow and marten populations growing (2023)",
+        "url": "https://taipeitimes.com/News/taiwan/archives/2023/08/07/2003804383"
+      },
+      {
+        "title": "PTS News: 獼猴、山羌等8種動物 不再列保育類 (2019)",
+        "url": "https://news.pts.org.tw/article/419022"
+      },
+      {
+        "title": "Wikipedia (zh): 臺灣保育物種列表 (protection categories)",
+        "url": "https://zh.wikipedia.org/zh-tw/%E8%87%BA%E7%81%A3%E4%BF%9D%E8%82%B2%E7%89%A9%E7%A8%AE%E5%88%97%E8%A1%A8"
+      }
     ]
   },
   {
@@ -948,38 +1162,42 @@
     "factFile": {
       "habitat": [
         {
-          "en": "",
-          "zh": ""
+          "en": "The Formosan muntjac is a [[subspecies]] of Reeves's muntjac, which lives in southern China and Taiwan. In Taiwan it lives in forests.",
+          "zh": "臺灣山羌是山羌的一個[[subspecies|亞種]]。山羌分布在中國南部和臺灣，在臺灣住在森林裡。"
         }
       ],
       "breeding": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Muntjacs have no fixed breeding season, so fawns can be born in any month. After a [[gestation]] of about 210 days, the mother has a single fawn. Females can become mothers when they are only 6 or 7 months old.",
+          "zh": "山羌沒有固定的繁殖季節，所以一年四季都可能有小羌出生。媽媽的[[gestation|懷孕期]]大約210天，每次生1隻。母羌只要6到7個月大就可以當媽媽了。"
         }
       ],
       "behaviour": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Muntjacs are mostly [[solitary]], though they are sometimes seen in pairs or small family groups. They mark their [[territory]] with scent from glands near their eyes.",
+          "zh": "山羌大多[[solitary|獨居]]，不過有時會看到成對或小家庭一起活動。牠們會用眼睛附近腺體的氣味標記自己的[[territory|領域]]。"
+        },
+        {
+          "en": "When alarmed, a muntjac gives a sharp call that sounds like a dog barking, which is why it is also called the barking deer.",
+          "zh": "山羌受到驚嚇時，會發出很像狗叫的尖銳叫聲，所以又被叫做「吠鹿」。"
         }
       ],
       "foodAndHunting": [
         {
-          "en": "",
-          "zh": ""
+          "en": "The muntjac is a [[herbivore]] that [[browse|browses]] on low plants and shrubs: herbs, leaves, juicy shoots, flowers, berries, nuts and even mushrooms.",
+          "zh": "山羌是[[herbivore|草食性動物]]，[[browse|啃食]]低矮的植物和灌木，包括草本植物、葉子、多汁的嫩芽、花、漿果、堅果，甚至蕈類。"
         }
       ],
       "conservation": [
         {
-          "en": "",
-          "zh": ""
+          "en": "The muntjac is listed as [[least-concern|Least Concern]] on the [[red-list|IUCN Red List]]. In 2019 Taiwan took it off the list of [[protected-species|protected species]] because it is common again, but it is still a wild animal that nobody may hunt freely.",
+          "zh": "山羌在[[red-list|國際自然保護聯盟（IUCN）紅色名錄]]上被列為[[least-concern|無危]]。2019年，臺灣因為牠的數量又變多，把牠從[[protected-species|保育類野生動物]]名單中移除，但牠仍然是野生動物，不能隨意獵捕。"
         }
       ],
       "didYouKnow": [
         {
-          "en": "",
-          "zh": ""
+          "en": "A muntjac's alarm call sounds so much like a dog that people call it the barking deer.",
+          "zh": "山羌的警戒叫聲很像狗叫，所以人們叫牠「吠鹿」。"
         }
       ]
     },
@@ -1003,6 +1221,15 @@
       "heightCm": {
         "min": 40,
         "max": 50
+      },
+      "development": {
+        "kind": "gestation",
+        "days": {
+          "min": 210
+        }
+      },
+      "youngCount": {
+        "min": 1
       }
     },
     "related": [],
@@ -1054,7 +1281,35 @@
     ],
     "_draft": [
       "tags",
-      "stats"
+      "stats",
+      "factFile.habitat",
+      "factFile.breeding",
+      "factFile.behaviour",
+      "factFile.foodAndHunting",
+      "factFile.conservation",
+      "factFile.didYouKnow"
+    ],
+    "_sources": [
+      {
+        "title": "Plazi (Handbook of the Mammals of the World): Muntiacus reevesi (gestation 210 days, one fawn, any month, solitary)",
+        "url": "https://treatment.plazi.org/id/03A087C4FFC7FFC6FAB5FDDAEE63F31D"
+      },
+      {
+        "title": "Ultimate Ungulate: Muntiacus reevesi (scent marking)",
+        "url": "https://www.ultimateungulate.com/Artiodactyla/Muntiacus_reevesi.html"
+      },
+      {
+        "title": "Wikipedia: Reeves's muntjac (gestation 209–220 days, barking call, diet)",
+        "url": "https://en.wikipedia.org/wiki/Reeves%27s_muntjac"
+      },
+      {
+        "title": "Riga Zoo: Chinese muntjac (browser; leaves, shoots, fruit, fungi)",
+        "url": "https://rigazoo.lv/en/animals/chinese-muntjac/"
+      },
+      {
+        "title": "FANCA: amended terrestrial protected wildlife list, effective 2019-01-09 (species removed)",
+        "url": "https://www.forest.gov.tw/news/0063328"
+      }
     ]
   },
   {
@@ -1083,38 +1338,38 @@
     "factFile": {
       "habitat": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Formosan flying foxes live on islands off Taiwan's east coast. A 2022 survey counted about 240 in Taiwan, and nearly three-quarters of them were on Gueishan Island. Small groups have also been found on Green Island and in Hualien.",
+          "zh": "臺灣狐蝠住在臺灣東部外海的島嶼。2022年的調查估計臺灣大約有240隻，其中將近四分之三在龜山島，綠島和花蓮也發現了小群體。"
         }
       ],
       "breeding": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Flying foxes of this species mate from about November to early January, and the pups are born in spring. A mother has a single pup after a pregnancy of four to six months.",
+          "zh": "這種狐蝠大約在11月到隔年1月初交配，寶寶在春天出生。媽媽懷孕四到六個月，每次只生1隻寶寶。"
         }
       ],
       "behaviour": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Flying foxes are big fruit bats. They hang upside down in trees to [[roost]] and fly out to find food. On Gueishan Island the survey found many more males than females.",
+          "zh": "狐蝠是大型的果蝠，會倒掛在樹上[[roost|棲息]]，再飛出去找食物。在龜山島的調查發現，公狐蝠比母狐蝠多很多。"
         }
       ],
       "foodAndHunting": [
         {
-          "en": "",
-          "zh": ""
+          "en": "They eat fruit. Scientists have recorded about 40 kinds of plants that give Formosan flying foxes food, places to roost or perches.",
+          "zh": "牠們吃果實。科學家記錄到大約40種植物，能提供臺灣狐蝠食物、棲息或停靠的地方。"
         }
       ],
       "conservation": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Around the world, this species is listed as [[vulnerable|Vulnerable]] on the [[red-list|IUCN Red List]]. In Taiwan it is far rarer: Green Island once had over 2,000 flying foxes, but heavy hunting from the 1970s nearly wiped them out. Since 1989 Taiwan's law has protected them as [[endangered]], and their numbers are slowly rising.",
+          "zh": "在全世界，這種狐蝠在[[red-list|國際自然保護聯盟（IUCN）紅色名錄]]上被列為[[vulnerable|易危]]。在臺灣，牠們更加稀少：綠島曾經有超過2,000隻狐蝠，但從1970年代開始被大量獵捕，幾乎消失。1989年起，臺灣法律把牠列為[[endangered|瀕臨絕種]]的保育類野生動物，數量正在慢慢增加。"
         }
       ],
       "didYouKnow": [
         {
-          "en": "",
-          "zh": ""
+          "en": "With its wings spread, a Formosan flying fox can measure 1.2 to 1.4 metres across, about as wide as a child is tall.",
+          "zh": "臺灣狐蝠張開翅膀時，寬度可以有1.2到1.4公尺，差不多和一個小朋友的身高一樣。"
         }
       ]
     },
@@ -1148,6 +1403,14 @@
       "wingspanCm": {
         "min": 124,
         "max": 141
+      },
+      "development": {
+        "kind": "gestation",
+        "en": "4–6 months",
+        "zh": "4到6個月"
+      },
+      "youngCount": {
+        "min": 1
       }
     },
     "compare": {
@@ -1201,7 +1464,35 @@
     "_draft": [
       "tags",
       "stats",
-      "compare"
+      "compare",
+      "factFile.habitat",
+      "factFile.breeding",
+      "factFile.behaviour",
+      "factFile.foodAndHunting",
+      "factFile.conservation",
+      "factFile.didYouKnow"
+    ],
+    "_sources": [
+      {
+        "title": "Zoological Studies 61:34 (2022): population of P. dasymallus in Taiwan, Gueishan Island, Lyudao history",
+        "url": "https://zoolstud.sinica.edu.tw/Journals/61/61-34.html"
+      },
+      {
+        "title": "NTU thesis: Formosan flying fox decline on Lyudao; protected 1989",
+        "url": "https://tdr.lib.ntu.edu.tw/handle/123456789/10447"
+      },
+      {
+        "title": "Animal Diversity Web: Pteropus dasymallus (single young, gestation 4–6 months)",
+        "url": "https://www.animaldiversity.org/accounts/Pteropus_dasymallus/"
+      },
+      {
+        "title": "Plazi (Handbook of the Mammals of the World): Pteropus dasymallus (mating Nov–Jan, births Apr–Jun)",
+        "url": "https://treatment.plazi.org/GgServer/html/03AD87FAFFA5F6488C6B3D46FB03F7CB"
+      },
+      {
+        "title": "Wikipedia (zh): 臺灣保育物種列表 (protection categories)",
+        "url": "https://zh.wikipedia.org/zh-tw/%E8%87%BA%E7%81%A3%E4%BF%9D%E8%82%B2%E7%89%A9%E7%A8%AE%E5%88%97%E8%A1%A8"
+      }
     ]
   },
   {
@@ -1230,38 +1521,42 @@
     "factFile": {
       "habitat": [
         {
-          "en": "",
-          "zh": ""
+          "en": "In Taiwan, most leopard cats are found in Miaoli County: of 77 leopard cat roadkills reported in Taiwan from 2011 to 2019, 56 were in Miaoli.",
+          "zh": "在臺灣，石虎大多出現在苗栗縣：2011到2019年臺灣通報的77起石虎路殺中，有56起在苗栗。"
         }
       ],
       "breeding": [
         {
-          "en": "",
-          "zh": ""
+          "en": "A mother leopard cat has one to four kittens at a time, most often two. Her pregnancy lasts a little over two months, about 60 to 70 days.",
+          "zh": "石虎媽媽一胎可以生1到4隻，最常見的是2隻。懷孕期大約兩個多月，也就是60到70天左右。"
         }
       ],
       "behaviour": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Leopard cats are [[nocturnal]] and are most active around dawn and dusk. Apart from the breeding season, they live alone.",
+          "zh": "石虎是[[nocturnal|夜行性]]動物，最常在清晨和黃昏活動。除了繁殖季節，牠們都獨自生活。"
         }
       ],
       "foodAndHunting": [
         {
-          "en": "",
-          "zh": ""
+          "en": "The leopard cat is a [[predator]]. Its main [[prey]] are mice and rats, which makes it a useful neighbour for farmers.",
+          "zh": "石虎是[[predator|掠食者]]，主要的[[prey|獵物]]是老鼠，對農夫來說是很有幫助的鄰居。"
         }
       ],
       "conservation": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Around the world, leopard cats are common across Asia and listed as [[least-concern|Least Concern]] on the [[red-list|IUCN Red List]]. Taiwan's leopard cats are a different story: only about 500 to 1,000 may be left, so Taiwan's law protects them as [[endangered]].",
+          "zh": "在全世界，石虎廣泛分布在亞洲，在[[red-list|國際自然保護聯盟（IUCN）紅色名錄]]上被列為[[least-concern|無危]]。但臺灣的石虎情況很不一樣：可能只剩下大約500到1,000隻，所以臺灣法律把牠列為[[endangered|瀕臨絕種]]的保育類野生動物。"
+        },
+        {
+          "en": "Cars are one of the biggest dangers. In 2023, 18 leopard cats were found dead in Miaoli County, and 17 of them were [[roadkill]].",
+          "zh": "車子是最大的威脅之一。2023年，苗栗縣發現18隻石虎死亡，其中17隻是被車撞死的[[roadkill|路殺]]。"
         }
       ],
       "didYouKnow": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Taipei Zoo has raised leopard cat kittens and trains some of them to survive in the wild, so they can be released back into nature.",
+          "zh": "臺北市立動物園曾經養育石虎寶寶，並訓練牠們在野外生存，讓牠們可以回到大自然。"
         }
       ]
     },
@@ -1291,6 +1586,17 @@
       "lengthCm": {
         "min": 45,
         "max": 55
+      },
+      "development": {
+        "kind": "gestation",
+        "days": {
+          "min": 60,
+          "max": 70
+        }
+      },
+      "youngCount": {
+        "min": 1,
+        "max": 4
       }
     },
     "related": [],
@@ -1329,7 +1635,43 @@
     "wikidata": "Q42627",
     "_draft": [
       "tags",
-      "stats"
+      "stats",
+      "factFile.habitat",
+      "factFile.breeding",
+      "factFile.behaviour",
+      "factFile.foodAndHunting",
+      "factFile.conservation",
+      "factFile.didYouKnow"
+    ],
+    "_sources": [
+      {
+        "title": "Taiwan News: Miaoli leopard cat deaths 2023 (18, 17 roadkills)",
+        "url": "https://www.taiwannews.com.tw/en/news/5078569"
+      },
+      {
+        "title": "Taiwan News: 77 leopard cat roadkills Nov 2011–Jun 2019, 56 in Miaoli",
+        "url": "https://www.taiwannews.com.tw/en/news/3766855"
+      },
+      {
+        "title": "Taipei Times: leopard cat population estimates (2019)",
+        "url": "https://taipeitimes.com/News/taiwan/archives/2019/09/27/2003722998"
+      },
+      {
+        "title": "MOA/TESRI: 石虎 nocturnal, dawn and dusk, solitary except breeding",
+        "url": "https://www.moa.gov.tw/ws.php?id=2508352"
+      },
+      {
+        "title": "Taiwan News (zh): Taipei Zoo leopard cat births, litter 1–4, gestation about 70 days",
+        "url": "https://www.taiwannews.com.tw/zh/news/4252131"
+      },
+      {
+        "title": "CNA: Taipei Zoo twin leopard cats begin release training (2023)",
+        "url": "https://www.cna.com.tw/news/aloc/202307060243.aspx"
+      },
+      {
+        "title": "Wikipedia (zh): 臺灣保育物種列表 (protection categories)",
+        "url": "https://zh.wikipedia.org/zh-tw/%E8%87%BA%E7%81%A3%E4%BF%9D%E8%82%B2%E7%89%A9%E7%A8%AE%E5%88%97%E8%A1%A8"
+      }
     ]
   },
   {
@@ -1358,38 +1700,38 @@
     "factFile": {
       "habitat": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Masked palm civets live in forests across Asia, including Taiwan.",
+          "zh": "白鼻心住在亞洲各地的森林裡，臺灣也有。"
         }
       ],
       "breeding": [
         {
-          "en": "",
-          "zh": ""
+          "en": "A mother civet has up to four young in a litter, after a pregnancy of about 51 to 56 days.",
+          "zh": "白鼻心媽媽懷孕大約51到56天，一胎最多可以生4隻。"
         }
       ],
       "behaviour": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Civets are mainly [[nocturnal]]. In one study, civets wearing radio collars were active more than half the time between late afternoon and early morning.",
+          "zh": "白鼻心主要是[[nocturnal|夜行性]]動物。在一項研究中，戴著無線電項圈的白鼻心，從傍晚到清晨有一半以上的時間都在活動。"
         }
       ],
       "foodAndHunting": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Civets are [[omnivore|omnivores]] that love fruit. In a study in Japan, fruit turned up in 73% of the stomachs checked, leaves in 56% and insects and other small creatures in 40%.",
+          "zh": "白鼻心是[[omnivore|雜食性動物]]，很愛吃水果。在日本的一項研究中，檢查過的胃裡有73%吃了水果，56%吃了葉子，40%吃了昆蟲等小動物。"
         }
       ],
       "conservation": [
         {
-          "en": "",
-          "zh": ""
+          "en": "The masked palm civet is listed as [[least-concern|Least Concern]] on the [[red-list|IUCN Red List]]. In 2019 Taiwan took it off the list of [[protected-species|protected species]], but it is still a wild animal that nobody may hunt freely.",
+          "zh": "白鼻心在[[red-list|國際自然保護聯盟（IUCN）紅色名錄]]上被列為[[least-concern|無危]]。2019年，臺灣把牠從[[protected-species|保育類野生動物]]名單中移除，但牠仍然是野生動物，不能隨意獵捕。"
         }
       ],
       "didYouKnow": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Its Chinese name, 白鼻心, means \"white nose heart\", after the white stripe that runs down the middle of its face.",
+          "zh": "牠的中文名字「白鼻心」，是因為牠的臉中間有一條白色的線，從額頭一直延伸到鼻子。"
         }
       ]
     },
@@ -1414,6 +1756,19 @@
       "license": "Public domain",
       "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Paguma_larvata_Hardwicke.jpg"
+    },
+    "stats": {
+      "development": {
+        "kind": "gestation",
+        "days": {
+          "min": 51,
+          "max": 56
+        }
+      },
+      "youngCount": {
+        "min": 1,
+        "max": 4
+      }
     },
     "related": [],
     "taxonomy": {
@@ -1450,7 +1805,28 @@
     },
     "wikidata": "Q626049",
     "_draft": [
-      "tags"
+      "tags",
+      "factFile.habitat",
+      "factFile.breeding",
+      "factFile.behaviour",
+      "factFile.foodAndHunting",
+      "factFile.conservation",
+      "factFile.didYouKnow",
+      "stats"
+    ],
+    "_sources": [
+      {
+        "title": "Plazi (Handbook of the Mammals of the World): Paguma larvata (gestation 51–56 days, litters up to 4, nocturnal, diet study)",
+        "url": "https://publication.plazi.org/GgServer/html/FC03440BFFF7FF94EADC4986FE78F25C"
+      },
+      {
+        "title": "Animal Diversity Web: Paguma larvata",
+        "url": "https://animaldiversity.org/accounts/Paguma_larvata"
+      },
+      {
+        "title": "FANCA: amended terrestrial protected wildlife list, effective 2019-01-09 (species removed)",
+        "url": "https://www.forest.gov.tw/news/0063328"
+      }
     ]
   },
   {
@@ -1479,38 +1855,39 @@
     "factFile": {
       "habitat": [
         {
-          "en": "",
-          "zh": ""
+          "en": "This is Taiwan's largest flying squirrel, weighing around 1.5 kilograms. It lives in forests with big old trees, and spends the day resting in holes in tree trunks.",
+          "zh": "大赤鼯鼠是臺灣最大的鼯鼠，體重大約1.5公斤。牠住在有高大老樹的森林裡，白天在樹幹的樹洞裡休息。"
         }
       ],
       "breeding": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Scientists know little about how these squirrels raise their young, but they think a mother usually has fewer than two young at a time.",
+          "zh": "科學家對大赤鼯鼠怎麼養育寶寶了解得不多，但認為媽媽一次通常生不到2隻。",
+          "todo": "Only one secondary source (\"reproductive rate likely low, less than two young per litter\"); no Taiwan-specific data found."
         }
       ],
       "behaviour": [
         {
-          "en": "",
-          "zh": ""
+          "en": "It is [[nocturnal]]. At night it climbs to a high branch, jumps, and spreads the furry skin between its legs to [[glide]] from tree to tree, usually 10 to 20 metres and sometimes much farther.",
+          "zh": "牠是[[nocturnal|夜行性]]動物。晚上牠會爬到高高的樹枝上，一躍而下，張開四肢之間有毛的皮膜，在樹和樹之間[[glide|滑翔]]，通常可以滑10到20公尺，有時候還能滑得更遠。"
         }
       ],
       "foodAndHunting": [
         {
-          "en": "",
-          "zh": ""
+          "en": "It is an [[omnivore]] that feeds high in the treetops on tender leaves, shoots, fruit, seeds and acorns, and sometimes insects.",
+          "zh": "牠是[[omnivore|雜食性動物]]，在高高的樹冠上吃嫩葉、嫩芽、果實、種子和橡實，有時也吃昆蟲。"
         }
       ],
       "conservation": [
         {
-          "en": "",
-          "zh": ""
+          "en": "The species is listed as [[least-concern|Least Concern]] on the [[red-list|IUCN Red List]]. It needs forests with big old trees that have holes for resting.",
+          "zh": "大赤鼯鼠在[[red-list|國際自然保護聯盟（IUCN）紅色名錄]]上被列為[[least-concern|無危]]。牠需要有高大老樹的森林，才有可以休息的樹洞。"
         }
       ],
       "didYouKnow": [
         {
-          "en": "",
-          "zh": ""
+          "en": "A flying squirrel doesn't really fly. It glides, steering with the furry skin between its legs like a living parachute.",
+          "zh": "鼯鼠其實不會真的飛，牠是靠四肢之間有毛的皮膜滑翔，就像一個活的降落傘。"
         }
       ]
     },
@@ -1591,7 +1968,27 @@
     "_draft": [
       "tags",
       "stats",
-      "compare"
+      "compare",
+      "factFile.habitat",
+      "factFile.breeding",
+      "factFile.behaviour",
+      "factFile.foodAndHunting",
+      "factFile.conservation",
+      "factFile.didYouKnow"
+    ],
+    "_sources": [
+      {
+        "title": "National Museum of Natural Science: Petaurista alborufus lena (Taiwan's largest flying squirrel, 1.5 kg, tree cavities, night gliding, diet)",
+        "url": "https://www.nmns.edu.tw/en/our-research/featured/Collection-E00315/"
+      },
+      {
+        "title": "Plazi (Handbook of the Mammals of the World): Petaurista alborufus (glide distances, diet)",
+        "url": "https://tb.plazi.org/GgServer/html/064D0660FFF3ED0FFA63F827FEF7F025"
+      },
+      {
+        "title": "Wikipedia: red and white giant flying squirrel (litter size)",
+        "url": "https://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq.ipfs.4everland.io/wiki/Red_and_white_giant_flying_squirrel.html"
+      }
     ]
   },
   {
@@ -1620,8 +2017,8 @@
     "factFile": {
       "habitat": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Eurasian otters once lived on Taiwan's main island too, but that population is thought to be gone. Today the only ones left in Taiwan live on Kinmen, a small island of about 152 square kilometres off the coast of Fujian.",
+          "zh": "歐亞水獺以前也住在臺灣本島，但那裡的族群被認為已經消失了。現在臺灣唯一的水獺住在金門，一個靠近福建沿岸、面積大約152平方公里的小島。"
         }
       ],
       "breeding": [
@@ -1632,26 +2029,30 @@
       ],
       "behaviour": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Kinmen's otters are an isolated group: none have been recorded recently on the nearby mainland. Their genes show they are most closely related to the otters that once lived on Taiwan's main island.",
+          "zh": "金門的水獺是一個孤立的族群，最近在附近的大陸沿岸都沒有發現水獺的紀錄。基因研究顯示，牠們和以前住在臺灣本島的水獺關係最接近。"
         }
       ],
       "foodAndHunting": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Otters are [[predator|predators]] that eat mostly fish. On Kinmen, scientists studying their droppings found that tilapia, a fish brought in from Africa, is one of their main foods.",
+          "zh": "水獺是[[predator|掠食者]]，主要吃魚。科學家分析金門水獺的排遺，發現從非洲引進的吳郭魚是牠們重要的食物之一。"
         }
       ],
       "conservation": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Around the world, the Eurasian otter is listed as [[near-threatened|Near Threatened]] on the [[red-list|IUCN Red List]]. In Taiwan, where only a small group survives on Kinmen, the law protects it as [[endangered]].",
+          "zh": "在全世界，歐亞水獺在[[red-list|國際自然保護聯盟（IUCN）紅色名錄]]上被列為[[near-threatened|近危]]。在臺灣，只剩下金門的一小群，所以法律把牠列為[[endangered|瀕臨絕種]]的保育類野生動物。"
+        },
+        {
+          "en": "Lost otter pups found on Kinmen have been cared for at Taipei Zoo, bottle-fed with milk and thin slices of fish.",
+          "zh": "在金門發現的迷路水獺寶寶，曾經被送到臺北市立動物園照顧，用奶瓶餵奶，再搭配薄薄的魚片。"
         }
       ],
       "didYouKnow": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Scientists count Kinmen's otters from their droppings! DNA in the droppings shows there are fewer than 100 otters there.",
+          "zh": "科學家是靠水獺的便便來數金門有多少水獺的！從排遺裡的DNA可以知道，金門的水獺不到100隻。"
         }
       ]
     },
@@ -1714,7 +2115,38 @@
     },
     "wikidata": "Q29995",
     "_draft": [
-      "tags"
+      "tags",
+      "factFile.habitat",
+      "factFile.behaviour",
+      "factFile.foodAndHunting",
+      "factFile.conservation",
+      "factFile.didYouKnow"
+    ],
+    "_sources": [
+      {
+        "title": "Evolutionary Applications (2024): genomic diversity of East Asian Eurasian otters (Kinmen, extinct Taiwan population)",
+        "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10824276/"
+      },
+      {
+        "title": "NTU scholars: Kinmen otter population by fecal DNA (fewer than 100)",
+        "url": "https://scholars.lib.ntu.edu.tw/handle/123456789/631446"
+      },
+      {
+        "title": "UDN: Kinmen otters about 100, Taipei Zoo",
+        "url": "https://udn.com/news/story/7470/9529313"
+      },
+      {
+        "title": "Liberty Times: Kinmen otters eat mostly fish, including tilapia (droppings analysis)",
+        "url": "https://news.ltn.com.tw/news/Taipei/paper/1756568"
+      },
+      {
+        "title": "TVBS: lost Kinmen otter pup cared for in Taipei (2019)",
+        "url": "https://news.tvbs.com.tw/life/1235367"
+      },
+      {
+        "title": "Wikipedia (zh): 臺灣保育物種列表 (protection categories)",
+        "url": "https://zh.wikipedia.org/zh-tw/%E8%87%BA%E7%81%A3%E4%BF%9D%E8%82%B2%E7%89%A9%E7%A8%AE%E5%88%97%E8%A1%A8"
+      }
     ]
   },
   {
@@ -1743,38 +2175,38 @@
     "factFile": {
       "habitat": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Bengal tigers live in South Asia, in forests, grasslands and the mangrove swamps of the Sundarbans, on the coast of India and Bangladesh.",
+          "zh": "孟加拉虎住在南亞的森林、草原，以及印度和孟加拉沿海孫德爾本斯的[[mangrove|紅樹林]]沼澤。"
         }
       ],
       "breeding": [
         {
-          "en": "",
-          "zh": ""
+          "en": "After a pregnancy of about three and a half months, a tigress gives birth to a [[litter]] of usually one to four cubs, hidden in a cave, tall grass or thick bushes. She raises them alone.",
+          "zh": "母老虎懷孕大約三個半月，通常會生下1到4隻小老虎，一窩叫做一[[litter|胎]]，牠會把小老虎藏在洞穴、高草叢或濃密的灌木裡，獨自把牠們養大。"
         }
       ],
       "behaviour": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Adult tigers are [[solitary]]. In the Sundarbans, tigers often swim from one mangrove island to another.",
+          "zh": "成年老虎是[[solitary|獨居]]的。在孫德爾本斯，老虎常常從一個紅樹林小島游到另一個小島。"
         }
       ],
       "foodAndHunting": [
         {
-          "en": "",
-          "zh": ""
+          "en": "The tiger is a powerful [[predator]] that usually hunts alone. It stalks quietly through the plants, then makes a sudden rush. In Nepal's Chitwan National Park, studies of tiger droppings found that its main [[prey]] are deer such as chital and sambar, and wild pigs.",
+          "zh": "老虎是很強大的[[predator|掠食者]]，通常獨自打獵。牠會在草木間悄悄靠近，再突然撲上去。在尼泊爾的奇特旺國家公園，科學家分析老虎的排遺，發現牠主要的[[prey|獵物]]是花鹿、水鹿等鹿類，還有野豬。"
         }
       ],
       "conservation": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Tigers are [[iucn-endangered|Endangered]] on the [[red-list|IUCN Red List]]. India started Project Tiger in 1973 to protect tiger forests, and tiger numbers there have risen, though the species as a whole is still in trouble.",
+          "zh": "老虎在[[red-list|國際自然保護聯盟（IUCN）紅色名錄]]上被列為[[iucn-endangered|瀕危]]。印度從1973年開始推動「老虎計畫」，保護老虎住的森林，那裡的老虎數量已經增加，不過整體來說，老虎還是面臨很大的危機。"
         }
       ],
       "didYouKnow": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Unlike most cats, tigers are good swimmers. In the Sundarbans they regularly swim between islands.",
+          "zh": "和大多數貓科動物不一樣，老虎很會游泳，在孫德爾本斯牠們常常在小島之間游來游去。"
         }
       ]
     },
@@ -1800,6 +2232,17 @@
       "license": "CC0 1.0",
       "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Civetkat_(Viverra),_alpenmarmot_(Marmota_marmota),_luipaard_(Panthera_pardus)_en_tijger_(Panthera_tigris),_RP-T-BR-2017-1-1-95.jpg"
+    },
+    "stats": {
+      "development": {
+        "kind": "gestation",
+        "en": "about 3½ months",
+        "zh": "約3個半月"
+      },
+      "youngCount": {
+        "min": 1,
+        "max": 4
+      }
     },
     "related": [],
     "taxonomy": {
@@ -1836,7 +2279,40 @@
     },
     "wikidata": "Q80952",
     "_draft": [
-      "tags"
+      "tags",
+      "factFile.habitat",
+      "factFile.breeding",
+      "factFile.behaviour",
+      "factFile.foodAndHunting",
+      "factFile.conservation",
+      "factFile.didYouKnow",
+      "stats"
+    ],
+    "_sources": [
+      {
+        "title": "Banglapedia: Bengal tiger (Sundarbans)",
+        "url": "https://en.banglapedia.org/index.php/Bengal_Tiger"
+      },
+      {
+        "title": "HowStuffWorks: Bengal tiger lives in swamps, forest and grasslands",
+        "url": "https://animals.howstuffworks.com/mammals/bengal-tiger.htm"
+      },
+      {
+        "title": "A-Z Animals: Bengal tiger (gestation, litter, Project Tiger, Endangered)",
+        "url": "https://a-z-animals.com/animals/Bengal-Tiger/"
+      },
+      {
+        "title": "European Journal of Ecology: diet of Bengal tigers in Chitwan National Park, Nepal (chital, sambar, wild pig)",
+        "url": "https://journals.ku.edu/EuroJEcol/article/view/11602"
+      },
+      {
+        "title": "Conserve Wild Cats: Bengal tiger diet landscape (2025)",
+        "url": "https://conservewildcats.org/2025/10/05/tiger-diet-landscaped/"
+      },
+      {
+        "title": "Big Cats India: hunting techniques of the Bengal tiger (alone, stalk and ambush)",
+        "url": "https://bigcatsindia.com/hunting-techniques-bengal-tiger/"
+      }
     ]
   },
   {
@@ -1865,38 +2341,42 @@
     "factFile": {
       "habitat": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Lions live in the [[savanna|savannas]] and grasslands of Africa. A small population of Asiatic lions lives only in India.",
+          "zh": "獅子住在非洲的[[savanna|莽原]]和草原。另外還有一小群亞洲獅，只住在印度。"
         }
       ],
       "breeding": [
         {
-          "en": "",
-          "zh": ""
+          "en": "A lioness is pregnant for about 110 days and has a [[litter]] of one to four cubs, sometimes more. Cubs can nurse from any mother in the group.",
+          "zh": "母獅懷孕大約110天，一[[litter|胎]]生1到4隻小獅子，有時更多。小獅子可以喝群體裡任何一隻母獅的奶。"
         }
       ],
       "behaviour": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Lions are the most social cats. They live in groups called [[pride|prides]]: up to three males, a dozen or so females and their young.",
+          "zh": "獅子是最喜歡群居的貓科動物，牠們住在叫做[[pride|獅群]]的群體裡：最多3隻公獅、十幾隻母獅，還有牠們的孩子。"
+        },
+        {
+          "en": "A male lion's roar can be heard about 8 kilometres away.",
+          "zh": "公獅的吼聲在大約8公里外都聽得到。"
         }
       ],
       "foodAndHunting": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Lions are [[predator|predators]], and the lionesses do most of the hunting. They work as a team, spreading out, circling and ambushing, to catch large [[prey]] such as wildebeest and zebras. Even so, most hunts fail.",
+          "zh": "獅子是[[predator|掠食者]]，大部分的狩獵是由母獅負責。牠們分工合作，散開、包圍、埋伏，捕捉牛羚和斑馬等大型[[prey|獵物]]。即使這樣，大多數的狩獵還是會失敗。"
         }
       ],
       "conservation": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Lions are [[vulnerable|Vulnerable]] on the [[red-list|IUCN Red List]]. Only a few tens of thousands are left in the wild, and in West Africa and India their situation is even more serious.",
+          "zh": "獅子在[[red-list|國際自然保護聯盟（IUCN）紅色名錄]]上被列為[[vulnerable|易危]]。野外只剩下幾萬隻，在西非和印度，情況更加嚴重。"
         }
       ],
       "didYouKnow": [
         {
-          "en": "",
-          "zh": ""
+          "en": "A male lion's roar carries about 8 kilometres, that's like hearing someone from the other side of a city.",
+          "zh": "公獅的吼聲可以傳到大約8公里遠，就像在城市的另一頭也聽得到一樣。"
         }
       ]
     },
@@ -1917,6 +2397,18 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:PZ_lion_pride.jpg"
     },
     "illustration": null,
+    "stats": {
+      "development": {
+        "kind": "gestation",
+        "days": {
+          "min": 110
+        }
+      },
+      "youngCount": {
+        "min": 1,
+        "max": 4
+      }
+    },
     "related": [],
     "taxonomy": {
       "kingdom": {
@@ -1952,7 +2444,36 @@
     },
     "wikidata": "Q140",
     "_draft": [
-      "tags"
+      "tags",
+      "factFile.habitat",
+      "factFile.breeding",
+      "factFile.behaviour",
+      "factFile.foodAndHunting",
+      "factFile.conservation",
+      "factFile.didYouKnow",
+      "stats"
+    ],
+    "_sources": [
+      {
+        "title": "Britannica: lion, reproduction and life cycle (gestation about 110 days)",
+        "url": "https://www.britannica.com/animal/lion/Reproduction-and-life-cycle"
+      },
+      {
+        "title": "Oregon Zoo: lion (pride, cubs nurse from any female)",
+        "url": "https://oregonzoo.org/animals/lion"
+      },
+      {
+        "title": "PBS Nature: lion fact sheet",
+        "url": "https://pbs.org/wnet/nature/blog/lion-fact-sheet"
+      },
+      {
+        "title": "Ranger Rick: lion prides (lionesses hunt)",
+        "url": "https://kids.rangerrick.org/articles/lion-prides/"
+      },
+      {
+        "title": "A-Z Animals: how lions hunt (flanking, circling, ambush; prey)",
+        "url": "https://a-z-animals.com/blog/how-lions-hunt-understanding-most-common-tactics/"
+      }
     ]
   },
   {
@@ -1981,38 +2502,42 @@
     "factFile": {
       "habitat": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Cheetahs live in open grasslands and [[savanna|savannas]], mostly in Africa, where there is room to run.",
+          "zh": "獵豹住在開闊的草原和[[savanna|莽原]]，大多在非洲，那裡有足夠的空間讓牠們奔跑。"
         }
       ],
       "breeding": [
         {
-          "en": "",
-          "zh": ""
+          "en": "After about three months of pregnancy, a mother cheetah usually has three to five cubs, and very rarely as many as eight.",
+          "zh": "獵豹媽媽懷孕大約三個月，通常生3到5隻小獵豹，非常少數會多達8隻。"
         }
       ],
       "behaviour": [
         {
-          "en": "",
-          "zh": ""
+          "en": "The cheetah is the fastest land animal. In short bursts it can reach around 100 to 110 kilometres an hour, its whole body built for speed.",
+          "zh": "獵豹是陸地上跑得最快的動物，短距離衝刺時速可以達到大約100到110公里，全身都是為了速度而生的。"
         }
       ],
       "foodAndHunting": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Cheetahs are [[predator|predators]] that chase fast [[prey]]. In East Africa their most common prey is Thomson's gazelle; elsewhere they also hunt impala and springbok. They don't chase over long distances: a sprint lasts less than a minute.",
+          "zh": "獵豹是[[predator|掠食者]]，專門追捕跑得很快的[[prey|獵物]]。在東非，牠們最常抓的是湯氏瞪羚，在其他地方也會抓黑斑羚和跳羚。牠們不會長距離追趕，一次衝刺不到一分鐘。"
         }
       ],
       "conservation": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Cheetahs are [[vulnerable|Vulnerable]] on the [[red-list|IUCN Red List]]. Only about 6,500 to 7,100 adults are left in the wild.",
+          "zh": "獵豹在[[red-list|國際自然保護聯盟（IUCN）紅色名錄]]上被列為[[vulnerable|易危]]，野外只剩下大約6,500到7,100隻成年獵豹。"
         }
       ],
       "didYouKnow": [
         {
-          "en": "",
-          "zh": ""
+          "en": "A cheetah can go from standing still to about 96 kilometres an hour in roughly three seconds, faster than most sports cars.",
+          "zh": "獵豹可以在大約三秒內，從靜止加速到時速約96公里，比大多數跑車還快。"
+        },
+        {
+          "en": "At about 100 kilometres an hour, a cheetah runs as fast as a car on a highway.",
+          "zh": "時速大約100公里的獵豹，跑得跟高速公路上的汽車一樣快。"
         }
       ]
     },
@@ -2038,6 +2563,17 @@
       "lengthCm": {
         "min": 110,
         "max": 150
+      },
+      "development": {
+        "kind": "gestation",
+        "days": {
+          "min": 90,
+          "max": 95
+        }
+      },
+      "youngCount": {
+        "min": 3,
+        "max": 5
       }
     },
     "related": [],
@@ -2089,7 +2625,35 @@
     ],
     "_draft": [
       "tags",
-      "stats"
+      "stats",
+      "factFile.habitat",
+      "factFile.breeding",
+      "factFile.behaviour",
+      "factFile.foodAndHunting",
+      "factFile.conservation",
+      "factFile.didYouKnow"
+    ],
+    "_sources": [
+      {
+        "title": "San Diego Zoo Wildlife Alliance: cheetah fact sheet (population about 7,100)",
+        "url": "https://ielc.libguides.com/sdzg/factsheets/cheetah"
+      },
+      {
+        "title": "Wikipedia: cheetah (6,517 mature individuals, 2021)",
+        "url": "https://en.wikipedia.org/wiki/Cheetah"
+      },
+      {
+        "title": "PBS Nature: cheetah fact sheet",
+        "url": "https://www.pbs.org/wnet/nature/blog/cheetah-fact-sheet"
+      },
+      {
+        "title": "UBC Physics & Astronomy: cheetah chase (0 to about 96 km/h in about 3 s)",
+        "url": "https://c21.phas.ubc.ca/article/cheetah-chase/"
+      },
+      {
+        "title": "Biology Insights: what animals do cheetahs hunt (Thomson's gazelle, impala, springbok)",
+        "url": "https://biologyinsights.com/cheetah-prey-what-animals-do-cheetahs-hunt/"
+      }
     ]
   },
   {
@@ -2118,38 +2682,42 @@
     "factFile": {
       "habitat": [
         {
-          "en": "",
-          "zh": ""
+          "en": "African savanna elephants live in the [[savanna|savannas]] and grasslands of East, Central and southern Africa.",
+          "zh": "非洲草原象住在非洲東部、中部和南部的[[savanna|莽原]]和草原。"
         }
       ],
       "breeding": [
         {
-          "en": "",
-          "zh": ""
+          "en": "An elephant mother is pregnant for about 22 months, the longest of any land animal, and then has a single calf.",
+          "zh": "大象媽媽懷孕大約22個月，是陸地動物中最長的，之後會生下1隻小象。"
         }
       ],
       "behaviour": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Elephants live in family groups led by an older female, the [[matriarch]]. Adult males usually live apart and join the herd to breed.",
+          "zh": "大象以家族為單位生活，由一隻年長的母象，也就是[[matriarch|女族長]]帶領。成年公象通常另外生活，到了繁殖時才會加入象群。"
         }
       ],
       "foodAndHunting": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Elephants are [[herbivore|herbivores]]. Savanna elephants mostly [[browse]] on trees and shrubs, and switch to fresh grasses and other plants when they grow in the rainy season.",
+          "zh": "大象是[[herbivore|草食性動物]]。草原象主要[[browse|啃食]]樹木和灌木，到了雨季，新鮮的草和其他植物長出來時，就改吃這些。"
         }
       ],
       "conservation": [
         {
-          "en": "",
-          "zh": ""
+          "en": "In 2021 scientists split African elephants into two species. The savanna elephant is [[iucn-endangered|Endangered]] on the [[red-list|IUCN Red List]], and the forest elephant is [[critically-endangered|Critically Endangered]]. Savanna elephants have fallen by at least 60% in 50 years, mostly because of [[poaching]] for ivory.",
+          "zh": "2021年，科學家把非洲象分成兩個物種。非洲草原象在[[red-list|國際自然保護聯盟（IUCN）紅色名錄]]上被列為[[iucn-endangered|瀕危]]，非洲森林象則被列為[[critically-endangered|極危]]。過去50年來，草原象減少了至少60%，主要原因是為了象牙的[[poaching|盜獵]]。"
+        },
+        {
+          "en": "There is hope too: in some places, such as the Kavango–Zambezi conservation area in southern Africa, savanna elephant numbers have been stable or growing for decades.",
+          "zh": "不過也有好消息：在非洲南部的卡萬戈—尚比西保育區等地方，草原象的數量幾十年來都很穩定，甚至在增加。"
         }
       ],
       "didYouKnow": [
         {
-          "en": "",
-          "zh": ""
+          "en": "A baby elephant spends about 22 months growing inside its mother, almost two whole years!",
+          "zh": "小象在媽媽肚子裡要長大約22個月，差不多整整兩年！"
         }
       ]
     },
@@ -2179,6 +2747,16 @@
       "heightCm": {
         "min": 220,
         "max": 400
+      },
+      "development": {
+        "kind": "gestation",
+        "days": {
+          "min": 640,
+          "max": 660
+        }
+      },
+      "youngCount": {
+        "min": 1
       }
     },
     "related": [],
@@ -2228,7 +2806,27 @@
     ],
     "_draft": [
       "tags",
-      "stats"
+      "stats",
+      "factFile.habitat",
+      "factFile.breeding",
+      "factFile.behaviour",
+      "factFile.foodAndHunting",
+      "factFile.conservation",
+      "factFile.didYouKnow"
+    ],
+    "_sources": [
+      {
+        "title": "IUCN: African elephant species now Endangered and Critically Endangered (2021)",
+        "url": "https://iucn.org/node/18226"
+      },
+      {
+        "title": "ElephantVoices: facts and figures (gestation 22 months, matriarch)",
+        "url": "https://www.elephantvoices.org/facts-and-figures"
+      },
+      {
+        "title": "San Diego Zoo Wildlife Alliance: African elephant fact sheet",
+        "url": "https://ielc.libguides.com/sdzg/factsheets/african_elephant/summary"
+      }
     ]
   },
   {
@@ -2257,38 +2855,38 @@
     "factFile": {
       "habitat": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Giraffes live in the [[savanna|savannas]] and open woodlands of Africa, where there are tall trees to feed from.",
+          "zh": "長頸鹿住在非洲的[[savanna|莽原]]和稀疏的林地，那裡有高高的樹可以吃。"
         }
       ],
       "breeding": [
         {
-          "en": "",
-          "zh": ""
+          "en": "A giraffe mother is pregnant for about 14 to 15 months and gives birth standing up. Her calf drops about one to one and a half metres to the ground, and it is already 1.5 to 2 metres tall.",
+          "zh": "長頸鹿媽媽懷孕大約14到15個月，會站著生小孩。小長頸鹿出生時會從大約1到1.5公尺高的地方掉到地上，而且一出生就有1.5到2公尺高。"
         }
       ],
       "behaviour": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Giraffes [[browse]] high in the trees, where other animals can't reach.",
+          "zh": "長頸鹿會在高高的樹上[[browse|啃食]]葉子，那是其他動物搆不到的地方。"
         }
       ],
       "foodAndHunting": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Giraffes are [[herbivore|herbivores]]. With a tongue about 45 to 50 centimetres long, they strip leaves even from spiky acacia trees.",
+          "zh": "長頸鹿是[[herbivore|草食性動物]]，牠的舌頭大約有45到50公分長，連長滿刺的金合歡樹都能把葉子捲下來吃。"
         }
       ],
       "conservation": [
         {
-          "en": "",
-          "zh": ""
+          "en": "In 2016 the giraffe was moved up to [[vulnerable|Vulnerable]] on the [[red-list|IUCN Red List]]. Estimates of how many are left vary, from about 68,000 to nearly 100,000.",
+          "zh": "2016年，長頸鹿在[[red-list|國際自然保護聯盟（IUCN）紅色名錄]]上被提升為[[vulnerable|易危]]。科學家估計剩下的數量從大約68,000到將近100,000隻都有。"
         }
       ],
       "didYouKnow": [
         {
-          "en": "",
-          "zh": ""
+          "en": "A baby giraffe's first moment is a fall: it drops about a metre or more to the ground when it is born!",
+          "zh": "小長頸鹿來到世界的第一件事就是「掉下來」：出生時會從一公尺多高的地方落到地上！"
         }
       ]
     },
@@ -2313,6 +2911,18 @@
       "license": "CC0 1.0",
       "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Giraffa_camelopardalis_(Giraf),_RP-T-1914-17-150.jpg"
+    },
+    "stats": {
+      "development": {
+        "kind": "gestation",
+        "days": {
+          "min": 400,
+          "max": 460
+        }
+      },
+      "youngCount": {
+        "min": 1
+      }
     },
     "related": [],
     "taxonomy": {
@@ -2349,7 +2959,28 @@
     },
     "wikidata": "Q15083",
     "_draft": [
-      "tags"
+      "tags",
+      "factFile.habitat",
+      "factFile.breeding",
+      "factFile.behaviour",
+      "factFile.foodAndHunting",
+      "factFile.conservation",
+      "factFile.didYouKnow",
+      "stats"
+    ],
+    "_sources": [
+      {
+        "title": "San Diego Zoo Wildlife Alliance: giraffe fact sheet",
+        "url": "https://ielc.libguides.com/sdzg/factsheets/giraffes"
+      },
+      {
+        "title": "Giraffe Centre: giraffe facts 2022",
+        "url": "https://www.giraffecentre.org/wp-content/uploads/2022/09/GIRAFFE-FACTS-2022-FOR-THE-WEB.pdf"
+      },
+      {
+        "title": "PBS Nature: giraffe fact sheet",
+        "url": "https://pbs.org/wnet/nature/blog/giraffe-fact-sheet"
+      }
     ]
   },
   {
@@ -2378,38 +3009,38 @@
     "factFile": {
       "habitat": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Plains zebras live on the grasslands and [[savanna|savannas]] of eastern and southern Africa.",
+          "zh": "平原斑馬住在非洲東部和南部的草原和[[savanna|莽原]]。"
         }
       ],
       "breeding": [
         {
-          "en": "",
-          "zh": ""
+          "en": "A zebra mother is pregnant for about a year, 360 to 396 days, and has a single foal. The foal can stand almost right away and starts eating grass within a week.",
+          "zh": "斑馬媽媽懷孕大約一年，也就是360到396天，每次生1隻小斑馬。小斑馬幾乎一出生就能站起來，一週內就開始吃草。"
         }
       ],
       "behaviour": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Zebras live in herds. Every zebra's stripes are different, so scientists can tell individuals apart by their stripe pattern.",
+          "zh": "斑馬成群生活。每隻斑馬的條紋都不一樣，所以科學家可以靠條紋認出每一隻斑馬。"
         }
       ],
       "foodAndHunting": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Zebras are [[herbivore|herbivores]] that [[graze]] on grass.",
+          "zh": "斑馬是[[herbivore|草食性動物]]，以[[graze|吃草]]為生。"
         }
       ],
       "conservation": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Plains zebras are [[near-threatened|Near Threatened]] on the [[red-list|IUCN Red List]], because their numbers are falling in 10 of the 17 countries where they live. One kind, the quagga, was hunted until it disappeared.",
+          "zh": "平原斑馬在[[red-list|國際自然保護聯盟（IUCN）紅色名錄]]上被列為[[near-threatened|近危]]，因為在牠們生活的17個國家中，有10個國家的數量在減少。斑馬的一種，斑驢，就是被獵捕到滅絕的。"
         }
       ],
       "didYouKnow": [
         {
-          "en": "",
-          "zh": ""
+          "en": "No two zebras have the same stripes, just like no two people have the same fingerprints.",
+          "zh": "沒有兩隻斑馬的條紋是一樣的，就像沒有兩個人的指紋一樣。"
         }
       ]
     },
@@ -2434,6 +3065,18 @@
       "license": "Public domain",
       "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Equus_quagga_quagga_lithograph.jpg"
+    },
+    "stats": {
+      "development": {
+        "kind": "gestation",
+        "days": {
+          "min": 360,
+          "max": 396
+        }
+      },
+      "youngCount": {
+        "min": 1
+      }
     },
     "related": [],
     "taxonomy": {
@@ -2470,7 +3113,28 @@
     },
     "wikidata": "Q245305",
     "_draft": [
-      "tags"
+      "tags",
+      "factFile.habitat",
+      "factFile.breeding",
+      "factFile.behaviour",
+      "factFile.foodAndHunting",
+      "factFile.conservation",
+      "factFile.didYouKnow",
+      "stats"
+    ],
+    "_sources": [
+      {
+        "title": "San Diego Zoo Wildlife Alliance: plains zebra fact sheet (gestation 360–396 days)",
+        "url": "https://ielc.libguides.com/sdzg/factsheets/plains_zebra"
+      },
+      {
+        "title": "World Land Trust: plains zebra (Near Threatened, declining in 10 of 17 countries)",
+        "url": "https://www.worldlandtrust.org/species/plains-zebra/"
+      },
+      {
+        "title": "Wikipedia: plains zebra (stripes, quagga)",
+        "url": "https://en.wikipedia.org/wiki/Plains_zebra"
+      }
     ]
   },
   {
@@ -2499,38 +3163,42 @@
     "factFile": {
       "habitat": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Hippos need two things close together: rivers or lakes deep enough to stay underwater in the day, and grasslands to feed on at night.",
+          "zh": "河馬需要兩樣靠得很近的東西：白天可以泡在水裡的河流或湖泊，還有晚上可以吃草的草原。"
         }
       ],
       "breeding": [
         {
-          "en": "",
-          "zh": ""
+          "en": "A hippo mother is pregnant for about 227 to 240 days, roughly eight months. Her calf is often born and nursed underwater.",
+          "zh": "河馬媽媽懷孕大約227到240天，差不多八個月，小河馬常常在水裡出生，也在水裡喝奶。"
         }
       ],
       "behaviour": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Hippos spend the day in the water. At night they come out onto land and [[graze]] for up to six hours.",
+          "zh": "河馬白天待在水裡，晚上才上岸，[[graze|吃草]]可以吃上六個小時。"
+        },
+        {
+          "en": "Hippo skin oozes a red-orange liquid sometimes called \"blood sweat\". It isn't blood or real sweat: it works like a sunscreen and helps keep wounds from getting infected.",
+          "zh": "河馬的皮膚會流出一種紅橘色的液體，有時被叫做「血汗」。它不是血，也不是真的汗，而是像防曬乳一樣保護皮膚，還能幫助傷口不被細菌感染。"
         }
       ],
       "foodAndHunting": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Hippos are [[herbivore|herbivores]]. In one night, a hippo can eat about 35 kilograms of grass.",
+          "zh": "河馬是[[herbivore|草食性動物]]，一個晚上就能吃掉大約35公斤的草。"
         }
       ],
       "conservation": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Hippos are [[vulnerable|Vulnerable]] on the [[red-list|IUCN Red List]].",
+          "zh": "河馬在[[red-list|國際自然保護聯盟（IUCN）紅色名錄]]上被列為[[vulnerable|易危]]。"
         }
       ],
       "didYouKnow": [
         {
-          "en": "",
-          "zh": ""
+          "en": "A hippo makes its own sunscreen: its red \"sweat\" soaks up the sun's harmful ultraviolet light.",
+          "zh": "河馬會自己製造防曬乳：牠紅色的「汗」可以吸收太陽有害的紫外線。"
         }
       ]
     },
@@ -2551,6 +3219,18 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Portrait_Hippopotamus_in_the_water.jpg"
     },
     "illustration": null,
+    "stats": {
+      "development": {
+        "kind": "gestation",
+        "days": {
+          "min": 227,
+          "max": 240
+        }
+      },
+      "youngCount": {
+        "min": 1
+      }
+    },
     "related": [],
     "taxonomy": {
       "kingdom": {
@@ -2586,7 +3266,32 @@
     },
     "wikidata": "Q34505",
     "_draft": [
-      "tags"
+      "tags",
+      "factFile.habitat",
+      "factFile.breeding",
+      "factFile.behaviour",
+      "factFile.foodAndHunting",
+      "factFile.conservation",
+      "factFile.didYouKnow",
+      "stats"
+    ],
+    "_sources": [
+      {
+        "title": "San Diego Zoo Wildlife Alliance: hippopotamus fact sheet (gestation 227–240 days)",
+        "url": "https://ielc.libguides.com/sdzg/factsheets/hippopotamus"
+      },
+      {
+        "title": "Philadelphia Zoo: hippopotamus (born and nursed underwater)",
+        "url": "https://www.philadelphiazoo.org/animals/hippopotamus/"
+      },
+      {
+        "title": "Science News: red sweat, hippo skin oozes antibiotic sunscreen",
+        "url": "https://www.sciencenews.org/article/red-sweat-hippo-skin-oozes-antibiotic-sunscreen"
+      },
+      {
+        "title": "Nature 429, 363 (2004): hippopotamus sweat pigments",
+        "url": "https://www.nature.com/articles/429363a"
+      }
     ]
   },
   {
@@ -2615,38 +3320,38 @@
     "factFile": {
       "habitat": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Black rhinos live in the [[savanna|savannas]] of Africa, never in thick, closed forest.",
+          "zh": "黑犀牛住在非洲的[[savanna|莽原]]，不會住在茂密封閉的森林裡。"
         }
       ],
       "breeding": [
         {
-          "en": "",
-          "zh": ""
+          "en": "A black rhino mother is pregnant for 15 to 17 months and has a single calf.",
+          "zh": "黑犀牛媽媽懷孕15到17個月，每次生1隻小犀牛。"
         }
       ],
       "behaviour": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Black rhinos are mostly [[solitary]], though they usually put up with one another without much fighting. Adult males are the ones most often alone.",
+          "zh": "黑犀牛大多是[[solitary|獨居]]的，不過彼此碰到時通常不太會打架。最常獨自生活的是成年公犀牛。"
         }
       ],
       "foodAndHunting": [
         {
-          "en": "",
-          "zh": ""
+          "en": "The black rhino is a [[herbivore]] that [[browse|browses]] on leaves and small twigs. Its pointed upper lip works almost like a finger, grabbing branches to pull into its mouth.",
+          "zh": "黑犀牛是[[herbivore|草食性動物]]，以[[browse|啃食]]葉子和小樹枝為主。牠尖尖的上唇幾乎像手指一樣，可以抓住樹枝送進嘴裡。"
         }
       ],
       "conservation": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Black rhinos are [[critically-endangered|Critically Endangered]] on the [[red-list|IUCN Red List]]. They were hunted nearly to extinction for their horns, and only about 3,100 adults are left.",
+          "zh": "黑犀牛在[[red-list|國際自然保護聯盟（IUCN）紅色名錄]]上被列為[[critically-endangered|極危]]。牠們的角讓牠們幾乎被獵捕到滅絕，現在只剩下大約3,100隻成年黑犀牛。"
         }
       ],
       "didYouKnow": [
         {
-          "en": "",
-          "zh": ""
+          "en": "A rhino's horns aren't bone. They are made of [[keratin]], the same stuff as hair and your fingernails.",
+          "zh": "犀牛角不是骨頭，而是由[[keratin|角蛋白]]組成的，和頭髮、指甲是同樣的材料。"
         }
       ]
     },
@@ -2676,6 +3381,14 @@
       "heightCm": {
         "min": 140,
         "max": 170
+      },
+      "development": {
+        "kind": "gestation",
+        "en": "15–17 months",
+        "zh": "15到17個月"
+      },
+      "youngCount": {
+        "min": 1
       }
     },
     "related": [],
@@ -2725,7 +3438,31 @@
     ],
     "_draft": [
       "tags",
-      "stats"
+      "stats",
+      "factFile.habitat",
+      "factFile.breeding",
+      "factFile.behaviour",
+      "factFile.foodAndHunting",
+      "factFile.conservation",
+      "factFile.didYouKnow"
+    ],
+    "_sources": [
+      {
+        "title": "San Diego Zoo Wildlife Alliance: black rhino fact sheet (gestation 15–17 months, prehensile lip, ~3,100 mature individuals)",
+        "url": "https://ielc.libguides.com/sdzg/factsheets/blackrhino"
+      },
+      {
+        "title": "WWF: black rhino factsheet (males solitary)",
+        "url": "https://www.wwf.org.uk/sites/default/files/2018-01/WWF_WIW_2017_Factsheet_BlackRhino%20FINAL.pdf"
+      },
+      {
+        "title": "Pittsburgh Zoo: black rhinoceros (horns made of hardened hair)",
+        "url": "https://pittsburghzoo.org/?p=1750"
+      },
+      {
+        "title": "San Francisco Zoo docents: black rhino fact sheet (hunted nearly to extinction)",
+        "url": "https://www.sfzoodocents.org/notebook/FactSheets/MAMMALIA/PERISSODACTYLA/RhinoBlack.pdf"
+      }
     ]
   },
   {
@@ -2754,38 +3491,38 @@
     "factFile": {
       "habitat": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Western lowland gorillas live in the [[rainforest|tropical rainforests]] and swamp forests of west-central Africa.",
+          "zh": "西部低地大猩猩住在非洲中西部的[[rainforest|熱帶雨林]]和沼澤森林。"
         }
       ],
       "breeding": [
         {
-          "en": "",
-          "zh": ""
+          "en": "A gorilla mother is pregnant for about eight and a half months and has one baby. She gives birth only every three to five years.",
+          "zh": "大猩猩媽媽懷孕大約八個半月，每次生1個寶寶，而且每三到五年才生一次。"
         }
       ],
       "behaviour": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Gorillas live in groups of about four to six adults, led by a big adult male called a [[silverback]]. Every night, each gorilla builds a nest to sleep in.",
+          "zh": "大猩猩成群生活，一群大約有4到6隻成年大猩猩，由一隻高大的成年公猩猩，也就是[[silverback|銀背]]帶領。每天晚上，每隻大猩猩都會做一個窩來睡覺。"
         }
       ],
       "foodAndHunting": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Gorillas mostly eat plants: leaves, stems, pith, fruit and seeds. They eat some insects too.",
+          "zh": "大猩猩主要吃植物，包括葉子、莖、髓、果實和種子，也會吃一些昆蟲。"
         }
       ],
       "conservation": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Western lowland gorillas are [[critically-endangered|Critically Endangered]] on the [[red-list|IUCN Red List]]. [[poaching|Poaching]] and disease are the most urgent dangers, and their numbers have been falling fast since the early 2000s.",
+          "zh": "西部低地大猩猩在[[red-list|國際自然保護聯盟（IUCN）紅色名錄]]上被列為[[critically-endangered|極危]]。[[poaching|盜獵]]和疾病是最迫切的威脅，從2000年代初期開始，牠們的數量就快速減少。"
         }
       ],
       "didYouKnow": [
         {
-          "en": "",
-          "zh": ""
+          "en": "A gorilla makes a brand-new bed every night, folding leaves and branches into a nest.",
+          "zh": "大猩猩每天晚上都會做一張新床，把葉子和樹枝折一折做成窩。"
         }
       ]
     },
@@ -2815,6 +3552,14 @@
       "heightCm": {
         "min": 140,
         "max": 180
+      },
+      "development": {
+        "kind": "gestation",
+        "en": "about 8½ months",
+        "zh": "約8個半月"
+      },
+      "youngCount": {
+        "min": 1
       }
     },
     "related": [],
@@ -2864,7 +3609,23 @@
     ],
     "_draft": [
       "tags",
-      "stats"
+      "stats",
+      "factFile.habitat",
+      "factFile.breeding",
+      "factFile.behaviour",
+      "factFile.foodAndHunting",
+      "factFile.conservation",
+      "factFile.didYouKnow"
+    ],
+    "_sources": [
+      {
+        "title": "San Diego Zoo Wildlife Alliance: western lowland gorilla fact sheet (gestation 8.5 months, birth every 3–5 years, nests, diet, groups)",
+        "url": "https://ielc.libguides.com/sdzg/factsheets/westernlowlandgorilla/summary"
+      },
+      {
+        "title": "Smithsonian's National Zoo: western lowland gorilla (Critically Endangered, poaching and disease, habitat)",
+        "url": "https://nationalzoo.si.edu/animals/western-lowland-gorilla"
+      }
     ]
   },
   {

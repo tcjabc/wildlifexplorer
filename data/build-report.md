@@ -1,6 +1,6 @@
 # Build report
 
-Generated 2026-11-04 12:55 UTC. Re-written on every build.
+Generated 2026-11-04 13:13 UTC. Re-written on every build.
 
 ## Summary
 
@@ -10,8 +10,8 @@ Generated 2026-11-04 12:55 UTC. Re-written on every build.
 - Rows not built yet: 183 (run with `--all` or a bigger `--limit`)
 - Cards without a photo: 5
 - Cards with facts still to write: 15
-- Cards with Fact File sections still to write: 30
-- Cards that open (profile or statistics): 17
+- Cards with Fact File sections still to write: 11
+- Cards that open (profile or statistics): 23
 
 ## Drops
 
@@ -321,26 +321,10 @@ These have no scientific name, so the build only creates the slots. Add facts, a
 
 Empty slots in `factFile` (habitat, breeding, behaviour, food, conservation, didYouKnow) are not shown on the card. The statistics rows (`stats.development`, `stats.youngCount`) are hidden until filled. Related species (`related`) are listed separately.
 
-- Formosan Black Bear · 臺灣黑熊 (`formosan-black-bear`): behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
-- Formosan Rock Macaque · 臺灣獼猴 (`formosan-rock-macaque`): behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
-- Chinese Pangolin · 穿山甲 (`chinese-pangolin`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
-- Taiwan Serow · 臺灣長鬃山羊 (`taiwan-serow`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
-- Formosan Sambar Deer · 水鹿 (`formosan-sambar-deer`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
-- Formosan Muntjac · 山羌 (`formosan-muntjac`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
-- Formosan Flying Fox · 臺灣狐蝠 (`formosan-flying-fox`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
-- Leopard Cat · 石虎 (`leopard-cat`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
-- Masked Palm Civet · 白鼻心 (`masked-palm-civet`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
-- Red and White Giant Flying Squirrel · 大赤鼯鼠 (`red-and-white-giant-flying-squirrel`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
-- Eurasian Otter · 歐亞水獺 (`eurasian-otter`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
-- Bengal Tiger · 孟加拉虎 (`bengal-tiger`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
-- Lion · 獅子 (`lion`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
-- Cheetah · 獵豹 (`cheetah`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
-- African Elephant · 非洲象 (`african-elephant`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
-- Giraffe · 長頸鹿 (`giraffe`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
-- Plains Zebra · 平原斑馬 (`plains-zebra`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
-- Hippopotamus · 河馬 (`hippopotamus`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
-- Black Rhinoceros · 黑犀牛 (`black-rhinoceros`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
-- Western Lowland Gorilla · 西部低地大猩猩 (`western-lowland-gorilla`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
+- Formosan Black Bear · 臺灣黑熊 (`formosan-black-bear`): development (gestation or incubation), number of young
+- Formosan Sambar Deer · 水鹿 (`formosan-sambar-deer`): number of young
+- Red and White Giant Flying Squirrel · 大赤鼯鼠 (`red-and-white-giant-flying-squirrel`): development (gestation or incubation), number of young
+- Eurasian Otter · 歐亞水獺 (`eurasian-otter`): breeding, development (gestation or incubation), number of young
 - Taiwan Blue Magpie · 臺灣藍鵲 (`taiwan-blue-magpie`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
 - Swinhoe's Pheasant · 藍腹鷴 (`swinhoe-s-pheasant`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
 - Mikado Pheasant · 帝雉 (`mikado-pheasant`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
@@ -354,38 +338,46 @@ Empty slots in `factFile` (habitat, breeding, behaviour, food, conservation, did
 
 Cards with no related species yet: 30 of 30 species cards.
 
+## To check (todo)
+
+Only shown in grown-up preview until checked. Delete the `todo` key once a fact is confirmed (or fix the text).
+
+- Formosan Black Bear (`formosan-black-bear`, factFile.breeding): Litter size and birth month not confirmed for wild Formosan black bears. Tried: Kaohsiung Zoo animal page, FANCA, Yushan NP, captive breeding studies on lawdata.com.tw (no=345322 gives a captive breeding season of about Feb–Aug).
+- Formosan Sambar Deer (`formosan-sambar-deer`, stats.development): Species-level figure (Wikipedia: sambar deer); not confirmed for the Formosan subspecies.
+- Red and White Giant Flying Squirrel (`red-and-white-giant-flying-squirrel`, factFile.breeding): Only one secondary source ("reproductive rate likely low, less than two young per litter"); no Taiwan-specific data found.
+
 ## Glossary
 
-- Terms in data/glossary.json: 14; used on cards: 0
+- Terms in data/glossary.json: 45; used on cards: 43
 - Missing: none
-- Not used on any card: `altitude`, `broadleaf-forest`, `carnivora`, `delayed-implantation`, `den`, `endangered`, `gestation`, `hibernate`, `home-range`, `incubation`, `leghold-trap`, `omnivore`, `poaching`, `solitary`
+- Not used on any card: `carnivora`, `incubation`
 
-Cards with a sources list (`_sources`): 0 of 30 species cards.
+Cards with a sources list (`_sources`): 20 of 30 species cards.
 
 ## Draft text to check
 
 Written by Claude as a starting point. Check or rewrite it, then remove the field name from `_draft`.
 
-- Formosan Black Bear · 臺灣黑熊 (`formosan-black-bear`): facts, factFile.habitat, profile, stats, compare, factFile.breeding, tags
-- Formosan Rock Macaque · 臺灣獼猴 (`formosan-rock-macaque`): facts, factFile.habitat, profile, stats, compare, factFile.breeding, tags
-- Chinese Pangolin · 穿山甲 (`chinese-pangolin`): facts, tags, stats
-- Taiwan Serow · 臺灣長鬃山羊 (`taiwan-serow`): facts, tags, stats
-- Formosan Sambar Deer · 水鹿 (`formosan-sambar-deer`): facts, tags, stats
-- Formosan Muntjac · 山羌 (`formosan-muntjac`): tags, stats
-- Formosan Flying Fox · 臺灣狐蝠 (`formosan-flying-fox`): tags, stats, compare
-- Leopard Cat · 石虎 (`leopard-cat`): tags, stats
-- Masked Palm Civet · 白鼻心 (`masked-palm-civet`): tags
-- Red and White Giant Flying Squirrel · 大赤鼯鼠 (`red-and-white-giant-flying-squirrel`): tags, stats, compare
-- Eurasian Otter · 歐亞水獺 (`eurasian-otter`): tags
-- Bengal Tiger · 孟加拉虎 (`bengal-tiger`): tags
-- Lion · 獅子 (`lion`): tags
-- Cheetah · 獵豹 (`cheetah`): tags, stats
-- African Elephant · 非洲象 (`african-elephant`): tags, stats
-- Giraffe · 長頸鹿 (`giraffe`): tags
-- Plains Zebra · 平原斑馬 (`plains-zebra`): tags
-- Hippopotamus · 河馬 (`hippopotamus`): tags
-- Black Rhinoceros · 黑犀牛 (`black-rhinoceros`): tags, stats
-- Western Lowland Gorilla · 西部低地大猩猩 (`western-lowland-gorilla`): tags, stats
+- Formosan Black Bear · 臺灣黑熊 (`formosan-black-bear`): facts, factFile.habitat, profile, stats, compare, factFile.breeding, tags, factFile.behaviour, factFile.foodAndHunting, factFile.conservation, factFile.didYouKnow
+- Formosan Rock Macaque · 臺灣獼猴 (`formosan-rock-macaque`): facts, factFile.habitat, profile, stats, compare, factFile.breeding, tags, factFile.behaviour, factFile.foodAndHunting, factFile.conservation, factFile.didYouKnow
+- Chinese Pangolin · 穿山甲 (`chinese-pangolin`): facts, tags, stats, factFile.habitat, factFile.breeding, factFile.behaviour, factFile.foodAndHunting, factFile.conservation, factFile.didYouKnow
+- Taiwan Serow · 臺灣長鬃山羊 (`taiwan-serow`): facts, tags, stats, factFile.habitat, factFile.breeding, factFile.behaviour, factFile.foodAndHunting, factFile.conservation, factFile.didYouKnow
+- Formosan Sambar Deer · 水鹿 (`formosan-sambar-deer`): facts, tags, stats, factFile.habitat, factFile.breeding, factFile.behaviour, factFile.foodAndHunting, factFile.conservation, factFile.didYouKnow
+- Formosan Muntjac · 山羌 (`formosan-muntjac`): tags, stats, factFile.habitat, factFile.breeding, factFile.behaviour, factFile.foodAndHunting, factFile.conservation, factFile.didYouKnow
+- Formosan Flying Fox · 臺灣狐蝠 (`formosan-flying-fox`): tags, stats, compare, factFile.habitat, factFile.breeding, factFile.behaviour, factFile.foodAndHunting, factFile.conservation, factFile.didYouKnow
+- Leopard Cat · 石虎 (`leopard-cat`): tags, stats, factFile.habitat, factFile.breeding, factFile.behaviour, factFile.foodAndHunting, factFile.conservation, factFile.didYouKnow
+- Masked Palm Civet · 白鼻心 (`masked-palm-civet`): tags, factFile.habitat, factFile.breeding, factFile.behaviour, factFile.foodAndHunting, factFile.conservation, factFile.didYouKnow, stats
+- Red and White Giant Flying Squirrel · 大赤鼯鼠 (`red-and-white-giant-flying-squirrel`): tags, stats, compare, factFile.habitat, factFile.breeding, factFile.behaviour, factFile.foodAndHunting, factFile.conservation, factFile.didYouKnow
+- Eurasian Otter · 歐亞水獺 (`eurasian-otter`): tags, factFile.habitat, factFile.behaviour, factFile.foodAndHunting, factFile.conservation, factFile.didYouKnow
+- Bengal Tiger · 孟加拉虎 (`bengal-tiger`): tags, factFile.habitat, factFile.breeding, factFile.behaviour, factFile.foodAndHunting, factFile.conservation, factFile.didYouKnow, stats
+- Lion · 獅子 (`lion`): tags, factFile.habitat, factFile.breeding, factFile.behaviour, factFile.foodAndHunting, factFile.conservation, factFile.didYouKnow, stats
+- Cheetah · 獵豹 (`cheetah`): tags, stats, factFile.habitat, factFile.breeding, factFile.behaviour, factFile.foodAndHunting, factFile.conservation, factFile.didYouKnow
+- African Elephant · 非洲象 (`african-elephant`): tags, stats, factFile.habitat, factFile.breeding, factFile.behaviour, factFile.foodAndHunting, factFile.conservation, factFile.didYouKnow
+- Giraffe · 長頸鹿 (`giraffe`): tags, factFile.habitat, factFile.breeding, factFile.behaviour, factFile.foodAndHunting, factFile.conservation, factFile.didYouKnow, stats
+- Plains Zebra · 平原斑馬 (`plains-zebra`): tags, factFile.habitat, factFile.breeding, factFile.behaviour, factFile.foodAndHunting, factFile.conservation, factFile.didYouKnow, stats
+- Hippopotamus · 河馬 (`hippopotamus`): tags, factFile.habitat, factFile.breeding, factFile.behaviour, factFile.foodAndHunting, factFile.conservation, factFile.didYouKnow, stats
+- Black Rhinoceros · 黑犀牛 (`black-rhinoceros`): tags, stats, factFile.habitat, factFile.breeding, factFile.behaviour, factFile.foodAndHunting, factFile.conservation, factFile.didYouKnow
+- Western Lowland Gorilla · 西部低地大猩猩 (`western-lowland-gorilla`): tags, stats, factFile.habitat, factFile.breeding, factFile.behaviour, factFile.foodAndHunting, factFile.conservation, factFile.didYouKnow
 - Taiwan Blue Magpie · 臺灣藍鵲 (`taiwan-blue-magpie`): facts, tags
 - Swinhoe's Pheasant · 藍腹鷴 (`swinhoe-s-pheasant`): facts, tags, stats
 - Mikado Pheasant · 帝雉 (`mikado-pheasant`): facts, tags, stats

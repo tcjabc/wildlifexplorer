@@ -2,60 +2,454 @@
   "note": "Terms used in card text as [[id]] or [[id|shown text]]. Each has the term and a kid-friendly definition in English and Traditional Chinese. tests/glossary.test.mjs fails if card text uses an id that isn't here; the build report lists missing and unused terms.",
   "terms": {
     "altitude": {
-      "term": { "en": "altitude", "zh": "海拔" },
-      "def": { "en": "How high a place is above the sea.", "zh": "一個地方比海平面高多少。" }
+      "term": {
+        "en": "altitude",
+        "zh": "海拔"
+      },
+      "def": {
+        "en": "How high a place is above the sea.",
+        "zh": "一個地方比海平面高多少。"
+      }
+    },
+    "antler": {
+      "term": {
+        "en": "antler",
+        "zh": "鹿角"
+      },
+      "def": {
+        "en": "A bony branch that grows on a deer's head. Deer shed their antlers and grow new ones every year.",
+        "zh": "長在鹿頭上的骨質分叉，鹿每年都會脫落舊角、長出新角。"
+      }
     },
     "broadleaf-forest": {
-      "term": { "en": "broadleaf forest", "zh": "闊葉林" },
-      "def": { "en": "A forest of trees with wide, flat leaves instead of needles.", "zh": "由葉子寬大扁平（不是針狀）的樹組成的森林。" }
+      "term": {
+        "en": "broadleaf forest",
+        "zh": "闊葉林"
+      },
+      "def": {
+        "en": "A forest of trees with wide, flat leaves instead of needles.",
+        "zh": "由葉子寬大扁平（不是針狀）的樹組成的森林。"
+      }
+    },
+    "browse": {
+      "term": {
+        "en": "browse",
+        "zh": "啃食"
+      },
+      "def": {
+        "en": "To eat leaves, twigs and shoots from bushes and trees.",
+        "zh": "吃灌木和樹上的葉子、嫩枝和嫩芽。"
+      }
+    },
+    "burrow": {
+      "term": {
+        "en": "burrow",
+        "zh": "洞穴"
+      },
+      "def": {
+        "en": "A hole or tunnel an animal digs in the ground to live or hide in.",
+        "zh": "動物在地下挖的洞或隧道，用來住或躲藏。"
+      }
     },
     "carnivora": {
-      "term": { "en": "Carnivora", "zh": "食肉目" },
-      "def": { "en": "The group of mammals that includes cats, dogs, bears and civets. Many of them eat meat, but not all.", "zh": "包括貓、狗、熊和果子狸等的哺乳動物類群，很多會吃肉，但不是全部。" }
+      "term": {
+        "en": "Carnivora",
+        "zh": "食肉目"
+      },
+      "def": {
+        "en": "The group of mammals that includes cats, dogs, bears and civets. Many of them eat meat, but not all.",
+        "zh": "包括貓、狗、熊和果子狸等的哺乳動物類群，很多會吃肉，但不是全部。"
+      }
+    },
+    "critically-endangered": {
+      "term": {
+        "en": "Critically Endangered",
+        "zh": "極危"
+      },
+      "def": {
+        "en": "On the IUCN Red List, the most serious danger level before an animal disappears from the wild.",
+        "zh": "在IUCN紅色名錄中，野外滅絕前最危險的等級。"
+      }
     },
     "delayed-implantation": {
-      "term": { "en": "delayed implantation", "zh": "延遲著床" },
-      "def": { "en": "When a fertilised egg waits for a while before it starts growing into a baby.", "zh": "受精卵先等一段時間，才開始長成寶寶。" }
+      "term": {
+        "en": "delayed implantation",
+        "zh": "延遲著床"
+      },
+      "def": {
+        "en": "When a fertilised egg waits for a while before it starts growing into a baby.",
+        "zh": "受精卵先等一段時間，才開始長成寶寶。"
+      }
     },
     "den": {
-      "term": { "en": "den", "zh": "巢穴" },
-      "def": { "en": "A sheltered hiding place where an animal rests or has its babies.", "zh": "動物休息或生寶寶的隱蔽地方。" }
+      "term": {
+        "en": "den",
+        "zh": "巢穴"
+      },
+      "def": {
+        "en": "A sheltered hiding place where an animal rests or has its babies.",
+        "zh": "動物休息或生寶寶的隱蔽地方。"
+      }
     },
     "endangered": {
-      "term": { "en": "endangered", "zh": "瀕臨絕種" },
-      "def": { "en": "At risk of disappearing forever.", "zh": "有可能永遠消失的危險。" }
+      "term": {
+        "en": "endangered",
+        "zh": "瀕臨絕種"
+      },
+      "def": {
+        "en": "In Taiwan's wildlife law, the highest level of protection, for animals at risk of disappearing forever.",
+        "zh": "臺灣野生動物保育法中最高的保護等級，用在有可能永遠消失的動物。"
+      }
+    },
+    "endemic": {
+      "term": {
+        "en": "endemic",
+        "zh": "特有種"
+      },
+      "def": {
+        "en": "Found naturally in only one place in the world.",
+        "zh": "在全世界只有某個地方才自然生長的物種。"
+      }
     },
     "gestation": {
-      "term": { "en": "gestation", "zh": "懷孕期" },
-      "def": { "en": "The time a baby animal grows inside its mother before it is born.", "zh": "動物寶寶出生前，在媽媽肚子裡長大的時間。" }
+      "term": {
+        "en": "gestation",
+        "zh": "懷孕期"
+      },
+      "def": {
+        "en": "The time a baby animal grows inside its mother before it is born.",
+        "zh": "動物寶寶出生前，在媽媽肚子裡長大的時間。"
+      }
+    },
+    "glide": {
+      "term": {
+        "en": "glide",
+        "zh": "滑翔"
+      },
+      "def": {
+        "en": "To float through the air without flapping, like a paper plane.",
+        "zh": "不用拍翅膀，像紙飛機一樣在空中飄行。"
+      }
+    },
+    "graze": {
+      "term": {
+        "en": "graze",
+        "zh": "吃草"
+      },
+      "def": {
+        "en": "To eat grass and other low plants growing on the ground.",
+        "zh": "吃地上的草和其他矮小的植物。"
+      }
+    },
+    "herbivore": {
+      "term": {
+        "en": "herbivore",
+        "zh": "草食性動物"
+      },
+      "def": {
+        "en": "An animal that eats only plants.",
+        "zh": "只吃植物的動物。"
+      }
     },
     "hibernate": {
-      "term": { "en": "hibernate", "zh": "冬眠" },
-      "def": { "en": "To go into a long, deep sleep through the winter to save energy.", "zh": "在冬天長時間沉睡，節省體力。" }
+      "term": {
+        "en": "hibernate",
+        "zh": "冬眠"
+      },
+      "def": {
+        "en": "To go into a long, deep sleep through the winter to save energy.",
+        "zh": "在冬天長時間沉睡，節省體力。"
+      }
     },
     "home-range": {
-      "term": { "en": "home range", "zh": "活動範圍" },
-      "def": { "en": "The whole area an animal moves around in to find food and shelter.", "zh": "動物平常找食物、休息時會走動的整片區域。" }
+      "term": {
+        "en": "home range",
+        "zh": "活動範圍"
+      },
+      "def": {
+        "en": "The whole area an animal moves around in to find food and shelter.",
+        "zh": "動物平常找食物、休息時會走動的整片區域。"
+      }
     },
     "incubation": {
-      "term": { "en": "incubation", "zh": "孵化期" },
-      "def": { "en": "The time an egg is kept warm until the baby inside hatches.", "zh": "蛋被保持溫暖，直到裡面的寶寶孵出來的時間。" }
+      "term": {
+        "en": "incubation",
+        "zh": "孵化期"
+      },
+      "def": {
+        "en": "The time an egg is kept warm until the baby inside hatches.",
+        "zh": "蛋被保持溫暖，直到裡面的寶寶孵出來的時間。"
+      }
+    },
+    "insectivore": {
+      "term": {
+        "en": "insectivore",
+        "zh": "食蟲動物"
+      },
+      "def": {
+        "en": "An animal that eats mostly insects.",
+        "zh": "主要吃昆蟲的動物。"
+      }
+    },
+    "iucn-endangered": {
+      "term": {
+        "en": "Endangered",
+        "zh": "瀕危"
+      },
+      "def": {
+        "en": "On the IUCN Red List, a very high risk of disappearing from the wild.",
+        "zh": "在IUCN紅色名錄中，在野外消失的風險非常高。"
+      }
+    },
+    "keratin": {
+      "term": {
+        "en": "keratin",
+        "zh": "角蛋白"
+      },
+      "def": {
+        "en": "A tough material that hair, nails, horns and scales are made of.",
+        "zh": "一種堅韌的材料，頭髮、指甲、角和鱗片都是由它組成的。"
+      }
+    },
+    "least-concern": {
+      "term": {
+        "en": "Least Concern",
+        "zh": "無危"
+      },
+      "def": {
+        "en": "On the IUCN Red List, an animal that is not in danger right now.",
+        "zh": "在IUCN紅色名錄中，目前沒有滅絕危險的動物。"
+      }
     },
     "leghold-trap": {
-      "term": { "en": "leg-hold trap", "zh": "獸鋏" },
-      "def": { "en": "A metal trap that snaps shut on an animal's leg or paw.", "zh": "會夾住動物腳的金屬陷阱。" }
+      "term": {
+        "en": "leg-hold trap",
+        "zh": "獸鋏"
+      },
+      "def": {
+        "en": "A metal trap that snaps shut on an animal's leg or paw.",
+        "zh": "會夾住動物腳的金屬陷阱。"
+      }
+    },
+    "litter": {
+      "term": {
+        "en": "litter",
+        "zh": "一胎"
+      },
+      "def": {
+        "en": "All the babies born to a mother at one time.",
+        "zh": "媽媽一次生下的所有寶寶。"
+      }
+    },
+    "mangrove": {
+      "term": {
+        "en": "mangrove",
+        "zh": "紅樹林"
+      },
+      "def": {
+        "en": "Trees and shrubs that grow in salty water along tropical coasts.",
+        "zh": "生長在熱帶海岸鹹水中的樹木和灌木。"
+      }
+    },
+    "matriarch": {
+      "term": {
+        "en": "matriarch",
+        "zh": "女族長"
+      },
+      "def": {
+        "en": "The oldest female, who leads her family group.",
+        "zh": "帶領家族的最年長母親。"
+      }
+    },
+    "near-threatened": {
+      "term": {
+        "en": "Near Threatened",
+        "zh": "近危"
+      },
+      "def": {
+        "en": "On the IUCN Red List, an animal that could soon be in danger.",
+        "zh": "在IUCN紅色名錄中，很快可能面臨危險的動物。"
+      }
+    },
+    "nocturnal": {
+      "term": {
+        "en": "nocturnal",
+        "zh": "夜行性"
+      },
+      "def": {
+        "en": "Active at night and resting during the day.",
+        "zh": "晚上活動，白天休息。"
+      }
     },
     "omnivore": {
-      "term": { "en": "omnivore", "zh": "雜食性動物" },
-      "def": { "en": "An animal that eats both plants and other animals.", "zh": "植物和動物都吃的動物。" }
+      "term": {
+        "en": "omnivore",
+        "zh": "雜食性動物"
+      },
+      "def": {
+        "en": "An animal that eats both plants and other animals.",
+        "zh": "植物和動物都吃的動物。"
+      }
     },
     "poaching": {
-      "term": { "en": "poaching", "zh": "盜獵" },
-      "def": { "en": "Hunting or catching wild animals when the law says you mustn't.", "zh": "違反法律去打獵或捕捉野生動物。" }
+      "term": {
+        "en": "poaching",
+        "zh": "盜獵"
+      },
+      "def": {
+        "en": "Hunting or catching wild animals when the law says you mustn't.",
+        "zh": "違反法律去打獵或捕捉野生動物。"
+      }
+    },
+    "predator": {
+      "term": {
+        "en": "predator",
+        "zh": "掠食者"
+      },
+      "def": {
+        "en": "An animal that hunts and eats other animals.",
+        "zh": "會獵捕並吃掉其他動物的動物。"
+      }
+    },
+    "prey": {
+      "term": {
+        "en": "prey",
+        "zh": "獵物"
+      },
+      "def": {
+        "en": "An animal that is hunted and eaten by another animal.",
+        "zh": "被其他動物獵捕來吃的動物。"
+      }
+    },
+    "pride": {
+      "term": {
+        "en": "pride",
+        "zh": "獅群"
+      },
+      "def": {
+        "en": "A family group of lions.",
+        "zh": "一起生活的獅子家族。"
+      }
+    },
+    "protected-species": {
+      "term": {
+        "en": "protected species",
+        "zh": "保育類野生動物"
+      },
+      "def": {
+        "en": "In Taiwan, a wild animal the law protects more strongly, in one of three levels: endangered, rare and valuable, or other conservation-deserving.",
+        "zh": "在臺灣，法律特別保護的野生動物，分成三級：瀕臨絕種、珍貴稀有、其他應予保育。"
+      }
+    },
+    "rainforest": {
+      "term": {
+        "en": "rainforest",
+        "zh": "雨林"
+      },
+      "def": {
+        "en": "A thick, green forest where it rains a lot all year.",
+        "zh": "一年到頭雨量很多、茂密翠綠的森林。"
+      }
+    },
+    "red-list": {
+      "term": {
+        "en": "IUCN Red List",
+        "zh": "IUCN紅色名錄"
+      },
+      "def": {
+        "en": "A worldwide list made by scientists that shows how much danger each species is in.",
+        "zh": "科學家整理的全球名單，說明每種生物面臨多大的危險。"
+      }
+    },
+    "roadkill": {
+      "term": {
+        "en": "roadkill",
+        "zh": "路殺"
+      },
+      "def": {
+        "en": "An animal killed by a car or other vehicle on the road.",
+        "zh": "在路上被汽車或其他車輛撞死的動物。"
+      }
+    },
+    "roost": {
+      "term": {
+        "en": "roost",
+        "zh": "棲息"
+      },
+      "def": {
+        "en": "To rest or sleep somewhere, like a bat hanging in a tree.",
+        "zh": "在某個地方休息或睡覺，例如蝙蝠倒掛在樹上。"
+      }
+    },
+    "savanna": {
+      "term": {
+        "en": "savanna",
+        "zh": "莽原"
+      },
+      "def": {
+        "en": "A wide, warm grassland with only a few trees.",
+        "zh": "溫暖、寬廣、只有少數樹木的草原。"
+      }
+    },
+    "silverback": {
+      "term": {
+        "en": "silverback",
+        "zh": "銀背"
+      },
+      "def": {
+        "en": "A grown-up male gorilla, named for the silver hair on his back, who leads the group.",
+        "zh": "成年公大猩猩，因背上有銀白色的毛而得名，是群體的領袖。"
+      }
     },
     "solitary": {
-      "term": { "en": "solitary", "zh": "獨居" },
-      "def": { "en": "Living alone instead of in a group.", "zh": "自己生活，不和同伴成群。" }
+      "term": {
+        "en": "solitary",
+        "zh": "獨居"
+      },
+      "def": {
+        "en": "Living alone instead of in a group.",
+        "zh": "自己生活，不和同伴成群。"
+      }
+    },
+    "subspecies": {
+      "term": {
+        "en": "subspecies",
+        "zh": "亞種"
+      },
+      "def": {
+        "en": "A group within a species that lives in one area and looks a little different from the others.",
+        "zh": "同一個物種中，住在某個地區、外表有點不同的一群。"
+      }
+    },
+    "territory": {
+      "term": {
+        "en": "territory",
+        "zh": "領域"
+      },
+      "def": {
+        "en": "An area an animal claims as its own and defends from others.",
+        "zh": "動物當成自己地盤、會趕走其他同類的區域。"
+      }
+    },
+    "troop": {
+      "term": {
+        "en": "troop",
+        "zh": "猴群"
+      },
+      "def": {
+        "en": "A group of monkeys that live together.",
+        "zh": "一起生活的一群猴子。"
+      }
+    },
+    "vulnerable": {
+      "term": {
+        "en": "Vulnerable",
+        "zh": "易危"
+      },
+      "def": {
+        "en": "On the IUCN Red List, an animal at high risk of becoming endangered.",
+        "zh": "在IUCN紅色名錄中，很有可能變得瀕危的動物。"
+      }
     }
   }
 }
