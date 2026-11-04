@@ -483,6 +483,11 @@ truth; it syncs with Supabase when online.
   from the email (or opens the email's link on this device, which asks before signing in). Signing
   out keeps the explorers on the device. The code is in `js/cloud/auth.js` (plain `fetch`, tests
   in `tests/`, run `npm test`).
+- **A new device:** the Welcome screen has "Already have a family account? Sign in". Behind the
+  grown-ups' sum it is the same email and code (or link); then the family's explorers come down
+  (`sync.join()`) and the picker shows them. If the family has no explorers yet, the Welcome form
+  carries on and the new explorer goes up. Opening the email link on a device with no explorers
+  does the same without the sum.
 - **Saving to the family account** (`js/cloud/sync.js`): the first time a parent signs in on a
   device, they tick which explorers to add (an unticked explorer stays on that device only, and
   so does one deleted before then); the choice is remembered. After that every change is sent:

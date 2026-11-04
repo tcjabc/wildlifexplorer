@@ -1,6 +1,6 @@
 // Shared UI pieces used by several views. Group and status colours come from
 // data-group / data-status attributes (see app.css), never inline styles.
-import { h } from './dom.js';
+import { h, mount } from './dom.js';
 import { bi, tx, t, label, getMode } from './i18n.js';
 import { isVisible, inUnopenedPack, thumbOf, mainImage, speechRate, groupById } from './store.js';
 import { speak, stop, isSpeaking, speechSupported } from './speech.js';
@@ -105,3 +105,26 @@ export const groupTitle = g =>
   h('span', { class: 'group-title', 'data-group': g.id },
     h('span', { 'aria-hidden': 'true' }, g.emoji),
     bi(g.name));
+
+// "Grown-ups only: what is 5 + 7?" in front of grown-up things. A wrong answer asks a new
+// sum; onPass() once it is right.
+export function sumGate(onPass) {
+  const form = h('form', { class: 'gate' });
+  let sum = 0;
+  const ask = () => {
+    const a = 3 + Math.floor(Math.random() * 7), b = 4 + Math.floor(Math.random() * 6);
+    sum = a + b;
+    const input = h('input', { id: 'gate-input', class: 'input', inputmode: 'numeric', pattern: '[0-9]*', autocomplete: 'off', required: true });
+    mount(form,
+      h('label', { for: 'gate-input' }, tx('parents.gate', { a, b })),
+      h('div', { class: 'gate__row' }, input, h('button', { class: 'btn btn--primary', type: 'submit' }, tx('parents.gateGo'))));
+    return input;
+  };
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    if (form.querySelector('input').value.trim() === String(sum)) onPass();
+    else ask().focus();
+  });
+  ask();
+  return form;
+}

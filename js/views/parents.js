@@ -7,6 +7,7 @@ import { state, updateProfile, createProfile, deleteProfile, resetProfile, reloa
 import { avatar, profileForm } from '../profiles.js';
 import { nextDropText, checkDrops } from '../packs.js';
 import { accountPanel } from '../account.js';
+import { sumGate } from '../components.js';
 import { backupProgress, restoreProgress, restoreText, restoreError } from '../backup.js';
 
 let gateOpen = false;
@@ -147,18 +148,9 @@ function backupPanel(redraw) {
 // ---------- Page ----------
 
 function renderGate(main) {
-  const a = 3 + Math.floor(Math.random() * 7), b = 4 + Math.floor(Math.random() * 6);
-  const input = h('input', { id: 'gate-input', class: 'input', inputmode: 'numeric', pattern: '[0-9]*', autocomplete: 'off', required: true });
-  const form = h('form', { class: 'gate' },
-    h('label', { for: 'gate-input' }, tx('parents.gate', { a, b })),
-    h('div', { class: 'gate__row' }, input, h('button', { class: 'btn btn--primary', type: 'submit' }, tx('parents.gateGo'))));
-  form.addEventListener('submit', e => {
-    e.preventDefault();
-    gateOpen = input.value.trim() === String(a + b);
-    if (gateOpen) draw(main); else renderGate(main);
-  });
-  mount(main, h('section', { class: 'page parents' }, title(), h('div', { class: 'panel' }, form)));
-  input.focus();
+  const gate = sumGate(() => { gateOpen = true; draw(main); });
+  mount(main, h('section', { class: 'page parents' }, title(), h('div', { class: 'panel' }, gate)));
+  gate.querySelector('input').focus();
 }
 
 const title = () => h('h1', { class: 'page__title' }, h('span', { 'aria-hidden': 'true' }, '🔒'), tx('parents.title'));

@@ -55,9 +55,11 @@ const RANGES = { age: [0, 120], heightCm: [40, 250], weightKg: [3, 300] };
 
 // The Welcome form. profile: the one to edit, or null for a new one. prefill: starting
 // values for a new one. onRestore(file): offered on the very first run, for grown-ups who
-// have a backup (backup.js). Resolves with the fields ({ name, lang, age, heightCm,
-// weightKg, homeCountry }, metric), { restored: true }, or null if cancelled.
-export function profileForm({ profile = null, prefill = null, cancellable = true, onRestore = null } = {}) {
+// have a backup (backup.js). onSignIn(): offered then too, for a family account that
+// already has explorers; resolves true once they are on this device. Resolves with the
+// fields ({ name, lang, age, heightCm, weightKg, homeCountry }, metric), { restored: true },
+// { signedIn: true }, or null if cancelled.
+export function profileForm({ profile = null, prefill = null, cancellable = true, onRestore = null, onSignIn = null } = {}) {
   const start = profile ?? { lang: getMode(), ...prefill };
   const units = profile?.parent ?? parentTemplate();
   const imperial = units.length === 'imperial';
@@ -129,6 +131,10 @@ export function profileForm({ profile = null, prefill = null, cancellable = true
       restoreFile && h('button', { class: 'btn btn--soft', type: 'button', onclick: () => restoreFile.click() },
         h('span', { 'aria-hidden': 'true' }, '📥'), tx('profile.restore')),
       restoreFile,
+      onSignIn && h('button', {
+        class: 'btn btn--soft', type: 'button',
+        onclick: async () => { if (await onSignIn()) finish({ signedIn: true }); },
+      }, h('span', { 'aria-hidden': 'true' }, '☁️'), tx('welcome.signIn')),
       h('button', { class: 'btn btn--primary btn--big', type: 'submit' }, tx(profile ? 'profile.save' : 'profile.start'))));
   dialog.append(form);
 

@@ -18,7 +18,7 @@ import { showPicker, profileForm } from './profiles.js';
 import { initPacks, checkDrops, updateBadge, hideArrival } from './packs.js';
 import { revealing } from './reveal.js';
 import { celebrate } from './celebrate.js';
-import { handleSignInLink } from './account.js';
+import { handleSignInLink, familySignIn } from './account.js';
 import { sync } from './cloud/sync.js';
 import { restoreProgress } from './backup.js';
 
@@ -128,7 +128,9 @@ async function enterProfile(id) {
 }
 
 // The picker (or, with no profiles yet, the Welcome form). Shown on launch and from the avatar.
-async function chooseProfile() {
+// join: this device just signed in from the email link, so with no explorers yet the
+// family's come down first (no sum: the grown-up is there).
+async function chooseProfile({ join = false } = {}) {
   if (choosing || revealing()) return;
   choosing = true;
   hideArrival();
@@ -136,8 +138,16 @@ async function chooseProfile() {
   try {
     for (;;) {
       if (!store.state.profiles.length) {
-        const fields = await profileForm({ prefill: store.legacyPrefill(), cancellable: false, onRestore: restoreFile });
-        if (fields.restored) continue; // the picker shows the explorers that came back
+        if (join) {
+          join = false;
+          if (await familySignIn({ explorers: familyExplorers, gate: false })) continue;
+        }
+        const fields = await profileForm({
+          prefill: store.legacyPrefill(), cancellable: false, onRestore: restoreFile,
+          onSignIn: () => familySignIn({ explorers: familyExplorers }),
+        });
+        // The picker shows the explorers that came back (backup) or down (family account).
+        if (fields.restored || fields.signedIn) continue;
         await enterProfile((await store.createProfile(fields)).id);
         return;
       }
@@ -171,6 +181,12 @@ async function dbNotice(kind) {
   el.showModal();
 }
 for (const kind of ['updated', 'blocked', 'unblocked']) dbEvents.addEventListener(kind, () => dbNotice(kind));
+
+// First run on a new device, signed in to the family account: how many explorers came down.
+async function familyExplorers() {
+  await store.reload();
+  return store.state.profiles.length;
+}
 
 // First run on a new device: bring back a backup instead of starting from scratch.
 async function restoreFile(file) {
@@ -218,8 +234,7 @@ async function boot() {
     .then(() => { if (store.state.profile && !choosing) return checkDrops(); })
     .catch(err => console.error(err)));
   sync.start(); // only does anything once a parent has signed in and chosen explorers
-  await handleSignInLink(); // opened from the sign-in email's link
-  await chooseProfile();
+  await chooseProfile({ join: await handleSignInLink() }); // opened from the sign-in email's link?
 }
 
 boot().catch(err => {
