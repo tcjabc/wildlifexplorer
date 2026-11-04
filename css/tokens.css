@@ -54,6 +54,7 @@
   --c-map-spot: #d7263d;
   --c-map-glow: rgb(120 190 235 / 0.45);  /* thin atmosphere around the globe */
   --c-map-home: #ffcf3f;                  /* home country outline, above every layer */
+  --c-map-coast: rgb(16 38 56 / 0.6); /* the coastline drawn over the globe's picture layers */
 
   /* Globe map layers (js/layers.js). */
   --c-depth-1: #9fd0ec;   /* deeper than 200 m */

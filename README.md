@@ -385,6 +385,10 @@ The chips along the top of the Globe switch on one map layer at a time: 🏔️ 
 - Picture layers (topography, temperature) are drawn with WebGL 2 by `js/globegl.js`, on a
   canvas between the land and the pins. It is only created when such a layer is first switched
   on. Shape layers (forests, depth, reefs) are drawn like the land.
+- Over the picture layers the land's own outline is drawn as a thin line (`--c-map-coast`,
+  `drawCoast` in `js/globe.js`), so the coasts stay sharp when zoomed in; the far or detailed
+  outline as for the land. The stretches along the map's frame, where Natural Earth cuts its
+  shapes (the antimeridian, the South Pole), are left out (`coastRuns`).
 - Coral reefs are areas made from Natural Earth's reef lines: everything within 8 km of a reef,
   joined where they touch and simplified (25 km for the whole-globe file, so they still show as a
   band), so the Great Barrier Reef reads as one long chain. See-through coral (`--c-reef-fill`) with

@@ -103,6 +103,28 @@ export function prepare(polys, { edges = false } = {}) {
   });
 }
 
+// The coastline as lines (drawn over the picture layers): each ring of the land without the
+// stretches along the map's frame, where Natural Earth cuts its shapes (the antimeridian, the
+// South Pole), which are not coast. Returns runs of [lon, lat] points.
+export function coastRuns(ring) {
+  const n = ring.length, frame = i => onFrame(...ring[i % n]);
+  // A segment is coast unless both its ends are on the frame.
+  const coast = i => !(frame(i) && frame(i + 1));
+  let start = 0;
+  while (start < n && coast(start)) start++;
+  if (start === n) return [[...ring, ring[0]]]; // all coast: the closed ring
+  const runs = [];
+  let run = null;
+  for (let k = 1; k <= n; k++) {
+    const i = (start + k) % n;
+    if (coast(i)) { run ??= [ring[i]]; run.push(ring[(i + 1) % n]); } else if (run) { runs.push(run); run = null; }
+  }
+  if (run) runs.push(run);
+  return runs;
+}
+// Runs → unit vectors with a bounding cap, as prepare() makes for shapes.
+const prepareLines = runs => prepare(runs.map(run => [run])).map(p => ({ ...p, line: p.rings[0] }));
+
 // assets/globe.json stores flat [lon, lat, …] arrays in hundredths of a degree. It is only
 // fetched when a globe is first made (the service worker keeps it from then on), so the very
 // first time needs the internet: if that fails the promise rejects and is forgotten, and the
@@ -111,8 +133,9 @@ let land = null;
 export function loadLand() {
   land ??= fetch('assets/globe.json').then(r => { if (!r.ok) throw new Error(`${r.status} assets/globe.json`); return r.json(); }).then(d => {
     const unflat = flat => { const out = []; for (let i = 0; i < flat.length; i += 2) out.push([flat[i] * d.unit, flat[i + 1] * d.unit]); return out; };
-    const lod = list => prepare(list.map(rings => rings.map(unflat)));
-    return { far: lod(d.far), near: lod(d.near) };
+    const far = d.far.map(rings => rings.map(unflat)), near = d.near.map(rings => rings.map(unflat));
+    const coast = list => prepareLines(list.flatMap(rings => rings.flatMap(coastRuns)));
+    return { far: prepare(far), near: prepare(near), coast: { far: coast(far), near: coast(near) } };
   });
   land.catch(() => { land = null; });
   return land;
@@ -147,7 +170,7 @@ function tokens(el) {
   const v = name => s.getPropertyValue(name).trim();
   return {
     sea: v('--c-map-sea'), land: v('--c-map-land'), grid: v('--c-shine'), glow: v('--c-map-glow'),
-    home: v('--c-map-home'), homeEdge: v('--c-shade-strong'),
+    home: v('--c-map-home'), homeEdge: v('--c-shade-strong'), coast: v('--c-map-coast'),
     group: g => v(`--g-${g}`),
   };
 }
@@ -459,10 +482,12 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
     // The picture layer, if any, between the two canvases.
     if (sphere) sphere.draw(B, size);
 
-    // Above every layer: the selected range, the home outline, pin fans.
+    // Above every layer: the coastline over a picture layer, the selected range, the home
+    // outline, pin fans.
     ctx = overCtx;
     ctx.save();
     ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
+    if (layer?.raster && polys?.coast) drawCoast(view.k >= NEAR_K ? polys.coast.near : polys.coast.far);
 
     if (range) {
       ctx.globalAlpha = 0.5;
@@ -494,6 +519,28 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
     ctx.restore();
 
     onFrame?.({ project, ctx, k: view.k, radius: r });
+  }
+
+  // The coastline: sharp lines over a picture layer (whose own coasts blur when zoomed in).
+  // Lines stop at the horizon.
+  function drawCoast(lines) {
+    ctx.strokeStyle = col.coast;
+    ctx.lineWidth = clamp(0.6 * Math.sqrt(view.k), 0.7, 1.4);
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    for (const p of lines) {
+      if (!inSight(p)) continue;
+      const v = p.line;
+      let pen = false;
+      for (let i = 0; i < v.length; i += 3) {
+        const Z = v[i] * B.c0 + v[i + 1] * B.c1 + v[i + 2] * B.c2;
+        if (Z < 0) { pen = false; continue; }
+        const x = B.cx + B.r * (v[i] * B.e0 + v[i + 1] * B.e1), y = B.cy - B.r * (v[i] * B.n0 + v[i + 1] * B.n1 + v[i + 2] * B.n2);
+        if (pen) ctx.lineTo(x, y); else ctx.moveTo(x, y);
+        pen = true;
+      }
+    }
+    ctx.stroke();
   }
 
   // A soft glow: white in the middle, the colour, then clear. One per colour, stamped.
