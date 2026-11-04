@@ -490,7 +490,22 @@ truth; it syncs with Supabase when online.
   transaction, and sync upserts the records (profiles first) and clears their entries. Offline
   or a busy server just means trying again later; a record the server refuses is held back with
   its error and shown in the panel. A different account signing in on that device sends
-  nothing. Other devices don't receive the changes yet (next step).
+  nothing.
+- **Bringing other devices' changes down** (`js/cloud/sync.js`, rules in `js/cloud/merge.js`):
+  each run pushes, then pulls every table's rows changed since the last pull (by the server's
+  `updated_at`, starting 60 s early, in pages of 1000) and merges them with the same rules as
+  the server's triggers. Settings: the newer `settingsAt` wins. Timeline: the higher epoch wins.
+  Packs: the first grant's details, the earliest opening. Cards and badges: the earliest time.
+  Deleted explorers stay deleted. Device-only fields are never touched, explorers kept on one
+  device only are never pulled into, and a "Start over" from another device also clears this
+  device's quiz scores. A pulled pack that isn't opened yet shows "New pack arrived" once on
+  each device. Runs on start, sign-in, coming back online, showing the app, after changes, and
+  every 5 minutes while the app is shown (no Realtime). Tests: `tests/pull.test.mjs`, with two
+  devices and a fake server that merges like the triggers (`tests/fixtures/server.mjs`).
+- **Clocks:** which settings win is decided by the devices' clocks (`client_updated_at`), so a
+  device whose clock is badly wrong can win over newer changes. Acceptable for now.
+- **Not handled:** the same child made as two explorers on two devices before signing in stays
+  two explorers.
 - **Sign-in email** is sent through Resend (custom SMTP, from noreply@wildfile.app). In the
   dashboard (Authentication → Emails), both *Confirm sign up* (a new address gets this one) and
   *Magic link* contain the code `{{ .Token }}` and the link

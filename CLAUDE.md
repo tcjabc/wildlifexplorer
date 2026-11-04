@@ -54,6 +54,8 @@
 - Project ref `yrgrihgmydzlxjzuoljq` (Seoul, Free plan). The GitHub integration is not connected: schema changes go through `supabase/migrations/` and `npx supabase db push`.
 - Show every migration to the owner before `db push`. Never edit a migration that has been pushed; add a new one.
 - "Automatically expose new tables" is off: every migration that adds a table has explicit GRANTs (nothing to `anon`) and RLS enabled with policies limited to the caller's family.
+- Pulled rows are merged by `js/cloud/merge.js` with the same rules as the merge triggers in `supabase/migrations/`; the fake server in `tests/fixtures/server.mjs` copies them too. Change all three together.
+- Settings conflicts are decided by device clocks (`client_updated_at`), so a device with a badly wrong clock can win. Accepted for now.
 - Re-run the RLS check after every migration: `npx supabase db query --remote -f supabase/tests/rls_check.sql`. CLI 3 targets a local stack by default; always pass `--remote`.
 - Auth email goes out through custom SMTP (Resend, from noreply@wildfile.app). Until accounts are opened to other families, test sign-in with the owner's address only.
 
