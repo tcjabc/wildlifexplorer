@@ -77,6 +77,25 @@
 /* Open: the cover lies flat to the left of the spine, inside facing up. */
 .card3d.is-rest[data-pose="open"] .leaf { inset: 0 100% 0 -100%; }
 
+/* The dog-ear: the front's bottom-right corner folded up, the place to grab to open the
+   card. The fold is the back of the page; the triangle behind it is what lies under it. */
+.dogear {
+  position: absolute; right: 0; bottom: 0; z-index: 1;
+  width: var(--dogear); height: var(--dogear);
+  border-top-left-radius: var(--r-sm);
+  background: linear-gradient(135deg, var(--c-paper-fold) 0%, var(--c-paper-line) 48%, var(--c-overlay) 50%);
+  box-shadow: calc(var(--s-hair) * -1) calc(var(--s-hair) * -1) var(--s-1) var(--c-shade);
+  transform-origin: 100% 100%;
+  cursor: grab;
+}
+.card3d.is-open .dogear { visibility: hidden; }
+/* Once, gently: the corner lifts a little and settles back. */
+.dogear.is-hinting { animation: dogear-lift 1.6s ease-in-out 0.3s 1; }
+@keyframes dogear-lift { 0%, 100% { transform: scale(1); } 45% { transform: scale(1.45); } }
+@media (prefers-reduced-motion: reduce) { .dogear.is-hinting { animation: none; } }
+/* Keep the badges clear of the corner. */
+.has-dogear .cover__side { margin-right: calc(var(--dogear) * 0.45); }
+
 /* ---------- Card pages ---------- */
 .cpage {
   position: absolute; inset: 0;

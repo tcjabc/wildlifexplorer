@@ -37,6 +37,7 @@
   /* Card pages, maps and packs */
   --c-paper: #fffdf6;
   --c-paper-line: #efe6d3;
+  --c-paper-fold: #ddcfae; /* the folded-up back of a card page (the dog-ear) */
   --c-map-sea: #d8eef6;
   --c-map-land: #9ccf8f;
   --c-map-spot: #d7263d;
@@ -211,6 +212,7 @@
   --profile-detail-min-h: 72px;
   --related-pic: 56px;  /* pictures in Related Species */
   --map-slot: 28px;     /* corner of the front map kept free for its expand button */
+  --dogear: 34px;       /* the folded corner on the card's front */
   --map-marker: 8px;    /* range marker on the little world map */
   --gpin: 52px;         /* photo pins on the Globe */
   --gsheet-pic: min(38dvh, 320px); /* photo in the Globe card sheet */

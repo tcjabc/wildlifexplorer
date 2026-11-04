@@ -39,9 +39,18 @@ export const openCardId = () => v?.card.id ?? null;
 
 // ---------- building the card ----------
 
+// The dog-ear lifts once, gently, the first time the closed card comes to rest.
+function hintDogear() {
+  if (v.dogearHinted || reducedMotion()) return;
+  v.dogearHinted = true;
+  v.built.root.querySelector('.dogear')?.classList.add('is-hinting');
+}
+
 function buildBook(card, onCredit) {
   const leaf = h('div', { class: 'leaf' },
-    h('div', { class: 'face face--front' }, coverPage(card, { onCredit })),
+    h('div', { class: ['face face--front', hasInside(card) && 'has-dogear'] }, coverPage(card, { onCredit }),
+      // The folded corner: where to grab the page to open it (tapping it opens it too).
+      hasInside(card) && h('span', { class: 'dogear', 'aria-hidden': 'true', onclick: () => toggleOpen() })),
     h('div', { class: 'face face--back face--y' }, profilePage(card)));
   const inside = insidePage(card);
   const base = h('div', { class: 'base' },
@@ -107,6 +116,7 @@ function draw() {
   v.built.root.classList.toggle('is-rest', rest);
   if (rest) {
     v.built.root.dataset.pose = f > 0.5 ? 'back' : p > 0.5 ? 'open' : 'front';
+    if (v.built.root.dataset.pose === 'front') hintDogear();
     pos.style.setProperty('left', `${Math.round(x0)}px`);
     pos.style.setProperty('top', `${Math.round(y0)}px`);
     pos.style.removeProperty('transform');
@@ -336,7 +346,7 @@ function setCard(card) {
   v.bar.replaceWith(bar);
   v.bar = bar;
   v.chrome = [v.bar, v.hint];
-  v.p = 0; v.f = 0; v.hintKey = undefined;
+  v.p = 0; v.f = 0; v.hintKey = undefined; v.dogearHinted = false;
 }
 
 // ---------- open / switch / close ----------
