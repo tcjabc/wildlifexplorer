@@ -313,15 +313,17 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
   background: var(--g); color: var(--g-ink);
   font-size: var(--fs-xs); font-weight: var(--fw-bold);
 }
-/* The country label on the photo's corner (🇹🇼; "TW" where there is no flag emoji). Its colour
-   follows the photo behind it (data-tone from the build); the opposite-coloured halo keeps it
-   readable on busy photos. No tone yet: white with a dark halo. */
+/* The country label on the photo's corner (🇹🇼; "TW" where there is no flag emoji), always on
+   a small translucent pill so it stands out from the photo. The pill follows the photo behind
+   it (data-tone from the build): a light corner gets a white pill with dark text, a dark corner
+   a dark pill with white text. No tone yet: the dark pill. */
 .tile__tw {
   position: absolute; top: var(--s-1); right: var(--s-1); z-index: 1;
-  font-size: var(--fs-md); font-weight: var(--fw-bold); line-height: 1;
-  color: var(--c-label-on-dark); text-shadow: var(--halo-dark);
+  padding: var(--s-hair) var(--s-2); border-radius: var(--r-pill);
+  font-size: var(--fs-sm); font-weight: var(--fw-bold); line-height: 1.1;
+  background: var(--c-label-pill-dark); color: var(--c-label-on-dark);
 }
-.tile__tw[data-tone="light"] { color: var(--c-label-on-light); text-shadow: var(--halo-light); }
+.tile__tw[data-tone="light"] { background: var(--c-label-pill-light); color: var(--c-label-on-light); }
 .tile__pic { flex: 1; min-height: 0; position: relative; display: flex; align-items: center; justify-content: center; background: var(--c-bg); }
 .tile__pic .pic { width: 100%; height: 100%; object-fit: cover; }
 .tile__name {

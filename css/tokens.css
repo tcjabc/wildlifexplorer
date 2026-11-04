@@ -37,12 +37,12 @@
   /* Card pages, maps and packs */
   --c-paper: #fffdf6;
   --c-paper-line: #efe6d3;
-  /* Labels on photos (the tile's country label): text colour for a light or dark photo,
-     and the opposite-coloured halo. scripts/lib/label-tone.mjs uses the same two colours. */
+  /* Labels on photos (the tile's country label): a translucent pill matched to the photo behind
+     it, and the text on it. scripts/lib/label-tone.mjs measures with these same values. */
   --c-label-on-light: #10171e;
   --c-label-on-dark: #ffffff;
-  --halo-light: 0 0 2px rgb(255 255 255 / 0.95), 0 0 4px rgb(255 255 255 / 0.8), 0 1px 1px rgb(255 255 255 / 0.9);
-  --halo-dark: 0 0 2px rgb(0 0 0 / 0.9), 0 0 4px rgb(0 0 0 / 0.7), 0 1px 1px rgb(0 0 0 / 0.85);
+  --c-label-pill-light: rgb(255 255 255 / 0.78);
+  --c-label-pill-dark: rgb(16 23 30 / 0.78);
   /* Gesture debug overlay (grown-up preview only) */
   --c-debug-line: rgb(0 0 0 / 0.5);
   --c-debug-near: rgb(255 201 60 / 0.25);

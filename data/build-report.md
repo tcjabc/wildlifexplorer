@@ -1,6 +1,6 @@
 # Build report
 
-Generated 2026-11-04 13:53 UTC. Re-written on every build.
+Generated 2026-11-04 13:59 UTC. Re-written on every build.
 
 ## Summary
 
@@ -337,14 +337,11 @@ Cards with no related species yet: 30 of 30 species cards.
 
 ## Country label on tile photos
 
-Text colour from the photo corner under the 🇹🇼 / "TW" label (`labelTone`): 13 dark-on-light, 6 white-on-dark. A corner is listed as busy when its average gives less than 4.5:1, or more than 25% of its pixels give less than 3:1 with the chosen colour; those may need a small translucent pill instead of the halo.
+Pill style from the photo corner under the 🇹🇼 / "TW" label (`labelTone`): 14 white pills with dark text, 5 dark pills with white text. The text is measured against the translucent pill over each pixel of the corner; a corner is listed as busy when more than 5% of its pixels give less than 4.5:1.
 
-| Card | Tone | Average contrast | Pixels under 3:1 |
-|---|---|---|---|
-| Taiwan Serow (`taiwan-serow`) | light | 4.8:1 | 32% |
-| Eurasian Otter (`eurasian-otter`) | light | 5.4:1 | 35% |
-| Taiwan Barbet (`taiwan-barbet`) | light | 6.4:1 | 32% |
-| Formosan Landlocked Salmon (`formosan-landlocked-salmon`) | light | 4.9:1 | 33% |
+Lowest contrast anywhere under a pill: 9.3:1 (Taiwan Blue Magpie).
+
+Busy corners: none.
 
 ## To check (todo)
 

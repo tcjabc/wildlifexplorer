@@ -1,64 +1,56 @@
-// The country label's colour follows the photo corner behind it (scripts/lib/label-tone.mjs).
+// The country label sits on a translucent pill matched to the photo corner behind it
+// (scripts/lib/label-tone.mjs). The text must reach 4.5:1 against the pill over any photo.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import sharp from 'sharp';
-import { decideTone, labelToneOf, cornerBox, sampleBox, contrast, luminance, TEXT, AA, TILE } from '../scripts/lib/label-tone.mjs';
+import { decideTone, labelToneOf, cornerBox, sampleBox, contrast, luminance, throughPill, TEXT, PILL, AA, TILE } from '../scripts/lib/label-tone.mjs';
 
-const lum = hex => { const n = parseInt(hex.slice(1), 16); return luminance(n >> 16, (n >> 8) & 255, n & 255); };
-const flat = (l, n = 100) => new Float64Array(n).fill(l);
+const rgb = hex => { const n = parseInt(hex.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255]; };
+const lum = hex => luminance(...rgb(hex));
+const grey = v => [v, v, v];
+const flat = (px, n = 100) => Array.from({ length: n }, () => px);
+const onPill = (px, tone) => contrast(luminance(...throughPill(px, tone)), lum(tone === 'light' ? TEXT.onLight : TEXT.onDark));
 
-test('light corners get near-black text, dark corners white text, and the choice passes 4.5:1', () => {
-  for (const l of [1, 0.8, 0.5, 0.3, 0.25]) {
-    const r = decideTone(flat(l));
-    assert.equal(r.tone, 'light', `L=${l}`);
-    assert.ok(contrast(l, lum(TEXT.onLight)) >= AA && r.passes, `L=${l}: ${r.contrast}`);
-  }
-  for (const l of [0, 0.02, 0.08, 0.15]) {
-    const r = decideTone(flat(l));
-    assert.equal(r.tone, 'dark', `L=${l}`);
-    assert.ok(contrast(l, lum(TEXT.onDark)) >= AA && r.passes, `L=${l}: ${r.contrast}`);
+test('the text reaches 4.5:1 on the pill even over the worst photo pixel', () => {
+  // White pill over pure black, dark pill over pure white: the pill's see-through part at its worst.
+  assert.ok(onPill(grey(0), 'light') >= AA, `white pill over black: ${onPill(grey(0), 'light')}`);
+  assert.ok(onPill(grey(255), 'dark') >= AA, `dark pill over white: ${onPill(grey(255), 'dark')}`);
+  for (const v of [0, 64, 128, 192, 255]) {
+    assert.ok(onPill(grey(v), 'light') >= AA && onPill(grey(v), 'dark') >= AA, `grey ${v}`);
   }
 });
 
-test('a mid-grey corner where neither colour reaches 4.5:1 is reported as busy', () => {
-  const r = decideTone(flat(0.19));
-  assert.equal(r.passes, false);
-  assert.equal(r.busy, true);
+test('a light corner gets the white pill, a dark corner the dark pill', () => {
+  for (const v of [255, 220, 180, 140]) assert.equal(decideTone(flat(grey(v))).tone, 'light', `grey ${v}`);
+  for (const v of [0, 30, 60, 90]) assert.equal(decideTone(flat(grey(v))).tone, 'dark', `grey ${v}`);
 });
 
-test('a corner that is half black, half white is busy even when the average looks fine', () => {
-  const lums = new Float64Array(100);
-  for (let i = 0; i < 100; i++) lums[i] = i < 50 ? 0 : 1;
-  const r = decideTone(lums);
-  assert.equal(r.busy, true);
-  assert.ok(r.poorShare >= 0.45);
+test('no real corner is busy behind the pill: a half black, half white corner still passes', () => {
+  const mixed = [...flat(grey(0), 50), ...flat(grey(255), 50)];
+  const r = decideTone(mixed);
+  assert.ok(r.minContrast >= AA, `lowest ${r.minContrast}`);
+  assert.equal(r.busy, false);
 });
 
 test('the sampled box is the photo\'s top-right corner, cropped like object-fit: cover', () => {
-  // A wide photo is cropped at the sides, so the box sits inside the image, away from its edge.
   const wide = cornerBox(480, 240, 150);
   assert.ok(wide.right < 480 && wide.left > 240, JSON.stringify(wide));
   assert.equal(wide.top, 0);
-  // A tall photo is cropped top and bottom: the box starts below the image's top edge.
   const tall = cornerBox(240, 480, 150);
   assert.ok(tall.top > 0 && Math.round(tall.right) === 240, JSON.stringify(tall));
-  // Both tile widths together, clamped to the image.
   const b = sampleBox(480, 320);
   assert.ok(b.left >= 0 && b.top >= 0 && b.left + b.width <= 480 && b.top + b.height <= 320);
   assert.ok(b.width >= TILE.label.w && b.height >= TILE.label.h);
 });
 
-test('from a real image: a white top-right corner on a black photo means dark text', async () => {
+test('from a real image: a white top-right corner gets the white pill, a black one the dark pill', async () => {
   const w = 480, h = 360;
-  const black = await sharp({ create: { width: w, height: h, channels: 3, background: '#000' } })
-    .composite([{ input: { create: { width: 200, height: 120, channels: 3, background: '#fff' } }, left: w - 200, top: 0 }])
+  const corner = async (bg, fg) => sharp({ create: { width: w, height: h, channels: 3, background: bg } })
+    .composite([{ input: { create: { width: 220, height: 130, channels: 3, background: fg } }, left: w - 220, top: 0 }])
     .png().toBuffer();
-  assert.equal((await labelToneOf(black)).tone, 'light');
-  const white = await sharp({ create: { width: w, height: h, channels: 3, background: '#fff' } })
-    .composite([{ input: { create: { width: 200, height: 120, channels: 3, background: '#000' } }, left: w - 200, top: 0 }])
-    .png().toBuffer();
-  assert.equal((await labelToneOf(white)).tone, 'dark');
+  assert.equal((await labelToneOf(await corner('#000', '#fff'))).tone, 'light');
+  assert.equal((await labelToneOf(await corner('#fff', '#000'))).tone, 'dark');
 });
 
 test('every card with a picture has a label tone, and only light or dark', () => {
@@ -69,8 +61,17 @@ test('every card with a picture has a label tone, and only light or dark', () =>
   }
 });
 
-test('the CSS colours match the ones the build measures against', () => {
+test('the CSS pill and text colours match the ones the build measures with', () => {
   const tokens = readFileSync(new URL('../css/tokens.css', import.meta.url), 'utf8');
   assert.match(tokens, new RegExp(`--c-label-on-light:\\s*${TEXT.onLight}`, 'i'));
   assert.match(tokens, new RegExp(`--c-label-on-dark:\\s*${TEXT.onDark}`, 'i'));
+  const pill = (name, hex) => {
+    const [r, g, b] = rgb(hex);
+    assert.match(tokens, new RegExp(`--c-label-pill-${name}:\\s*rgb\\(${r} ${g} ${b} / ${PILL.alpha}\\)`), `--c-label-pill-${name}`);
+  };
+  pill('light', PILL.light);
+  pill('dark', PILL.dark);
+  const app = readFileSync(new URL('../css/app.css', import.meta.url), 'utf8');
+  assert.match(app, /\.tile__tw \{[^}]*background: var\(--c-label-pill-dark\)/, 'default: the dark pill');
+  assert.match(app, /\.tile__tw\[data-tone="light"\] \{[^}]*background: var\(--c-label-pill-light\)/, 'light corner: the white pill');
 });

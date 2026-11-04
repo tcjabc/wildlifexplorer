@@ -568,11 +568,13 @@ function renderReport({ rows, cards, orphans, report, imageProblems, unused, sel
   if (corners.length) {
     const busy = corners.filter(c => c.busy);
     L.push('## Country label on tile photos', '');
-    L.push(`Text colour from the photo corner under the 🇹🇼 / "TW" label (\`labelTone\`): ${corners.filter(c => c.tone === 'light').length} dark-on-light, ${corners.filter(c => c.tone === 'dark').length} white-on-dark. A corner is listed as busy when its average gives less than ${AA}:1, or more than ${Math.round(BUSY * 100)}% of its pixels give less than 3:1 with the chosen colour; those may need a small translucent pill instead of the halo.`, '');
+    L.push(`Pill style from the photo corner under the 🇹🇼 / "TW" label (\`labelTone\`): ${corners.filter(c => c.tone === 'light').length} white pills with dark text, ${corners.filter(c => c.tone === 'dark').length} dark pills with white text. The text is measured against the translucent pill over each pixel of the corner; a corner is listed as busy when more than ${Math.round(BUSY * 100)}% of its pixels give less than ${AA}:1.`, '');
+    const lowest = corners.reduce((a, c) => (c.minContrast < a.minContrast ? c : a), corners[0]);
+    L.push(`Lowest contrast anywhere under a pill: ${lowest.minContrast.toFixed(1)}:1 (${lowest.card.name.en}).`, '');
     if (!busy.length) L.push('Busy corners: none.', '');
     else {
-      L.push('| Card | Tone | Average contrast | Pixels under 3:1 |', '|---|---|---|---|');
-      for (const c of busy) L.push(`| ${c.card.name.en} (\`${c.card.id}\`) | ${c.tone} | ${c.contrast.toFixed(1)}:1 | ${Math.round(c.poorShare * 100)}% |`);
+      L.push(`| Card | Pill | Lowest contrast | Pixels under ${AA}:1 |`, '|---|---|---|---|');
+      for (const c of busy) L.push(`| ${c.card.name.en} (\`${c.card.id}\`) | ${c.tone} | ${c.minContrast.toFixed(1)}:1 | ${Math.round(c.poorShare * 100)}% |`);
       L.push('');
     }
   }
