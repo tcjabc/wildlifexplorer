@@ -111,6 +111,16 @@
         "zh": "在IUCN紅色名錄中，野外滅絕前最危險的等級。"
       }
     },
+    "cryptobiosis": {
+      "term": {
+        "en": "cryptobiosis",
+        "zh": "隱生"
+      },
+      "def": {
+        "en": "A state in which an animal's body almost completely stops, so it can survive very harsh conditions.",
+        "zh": "動物的身體幾乎完全停止運作，讓牠能撐過非常惡劣環境的狀態。"
+      }
+    },
     "delayed-implantation": {
       "term": {
         "en": "delayed implantation",

@@ -331,7 +331,7 @@ Empty slots in `factFile` (habitat, breeding, behaviour, food, conservation, did
 - Formosan Landlocked Salmon · 櫻花鉤吻鮭 (`formosan-landlocked-salmon`): development (gestation or incubation), number of young
 - Atlas Moth · 皇蛾 (`atlas-moth`): conservation, development (gestation or incubation), number of young
 - Tyrannosaurus rex · 暴龍 (`tyrannosaurus-rex`): development (gestation or incubation), number of young
-- Tardigrade (Water Bear) · 水熊蟲 (`tardigrade-water-bear`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
+- Tardigrade (Water Bear) · 水熊蟲 (`tardigrade-water-bear`): conservation, development (gestation or incubation), number of young
 - Taiwan Cherry · 山櫻花 (`taiwan-cherry`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow
 
 Cards with no related species yet: 30 of 30 species cards.
@@ -348,11 +348,11 @@ Only shown in grown-up preview until checked. Delete the `todo` key once a fact 
 
 ## Glossary
 
-- Terms in data/glossary.json: 56; used on cards: 54
+- Terms in data/glossary.json: 57; used on cards: 55
 - Missing: none
 - Not used on any card: `carnivora`, `incubation`
 
-Cards with a sources list (`_sources`): 28 of 30 species cards.
+Cards with a sources list (`_sources`): 29 of 30 species cards.
 
 ## Draft text to check
 
@@ -391,5 +391,5 @@ Written by Claude as a starting point. Check or rewrite it, then remove the fiel
 - Saving the Formosan Black Bear · 守護臺灣黑熊 (`saving-the-formosan-black-bear`): facts, tags
 - How Animals Fly · 動物怎麼飛 (`how-animals-fly`): facts
 - Tyrannosaurus rex · 暴龍 (`tyrannosaurus-rex`): facts, tags, factFile.habitat, factFile.breeding, factFile.behaviour, factFile.foodAndHunting, factFile.conservation, factFile.didYouKnow
-- Tardigrade (Water Bear) · 水熊蟲 (`tardigrade-water-bear`): facts, tags
+- Tardigrade (Water Bear) · 水熊蟲 (`tardigrade-water-bear`): facts, tags, factFile.habitat, factFile.breeding, factFile.behaviour, factFile.foodAndHunting, factFile.didYouKnow
 - Taiwan Cherry · 山櫻花 (`taiwan-cherry`): facts, tags

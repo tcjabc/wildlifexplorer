@@ -5246,26 +5246,26 @@
     "factFile": {
       "habitat": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Tardigrades live almost anywhere there is a little moisture: in mosses, lichens, leaf litter and the mud of rivers. Scientists have described more than 1,100 species.",
+          "zh": "水熊蟲幾乎住在任何有一點點水分的地方：苔蘚、地衣、落葉堆和河底的泥巴裡都有。科學家已經描述了超過1,100種水熊蟲。"
         }
       ],
       "breeding": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Most tardigrades lay their eggs inside the old skin they have just shed. The babies hatch within 14 days, already with all the body cells they will have as adults.",
+          "zh": "大多數水熊蟲會把蛋產在剛脫下來的舊皮裡。寶寶在14天內就會孵出來，一出生就已經有長大後全部的身體細胞了。"
         }
       ],
       "behaviour": [
         {
-          "en": "",
-          "zh": ""
+          "en": "When its home dries out, a tardigrade pulls in its legs and curls into a dry little ball called a tun. Its body almost stops working, a state called [[cryptobiosis]], and it can stay like this for years until water comes back.",
+          "zh": "當住的地方乾掉時，水熊蟲會把腳縮起來，變成一顆乾乾的小球，叫做「酒桶狀態」。牠的身體幾乎停止運作，這叫做[[cryptobiosis|隱生]]，可以這樣撐好幾年，直到再碰到水。"
         }
       ],
       "foodAndHunting": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Most tardigrades eat plants and algae. They pierce single plant cells with two tiny spikes near their mouth and suck out what is inside. A few kinds hunt other tiny animals.",
+          "zh": "大多數水熊蟲吃植物和藻類。牠們用嘴巴附近兩根小小的尖刺刺穿植物的細胞，再把裡面的東西吸出來。也有少數種類會獵捕其他微小的動物。"
         }
       ],
       "conservation": [
@@ -5276,8 +5276,8 @@
       ],
       "didYouKnow": [
         {
-          "en": "",
-          "zh": ""
+          "en": "In 2007, tardigrades rode into space on the FOTON-M3 mission and spent 10 days outside, in the vacuum of space, and some survived!",
+          "zh": "2007年，水熊蟲搭上FOTON-M3任務飛到太空，在太空的真空中待了10天，有些居然活了下來！"
         }
       ]
     },
@@ -5342,7 +5342,38 @@
     ],
     "_draft": [
       "facts",
-      "tags"
+      "tags",
+      "factFile.habitat",
+      "factFile.breeding",
+      "factFile.behaviour",
+      "factFile.foodAndHunting",
+      "factFile.didYouKnow"
+    ],
+    "_sources": [
+      {
+        "title": "Britannica: tardigrade (more than 1,100 species; feeding with stylets)",
+        "url": "https://www.britannica.com/print/article/583460"
+      },
+      {
+        "title": "University of Wisconsin–Stevens Point: tardigrades (algae in the diet)",
+        "url": "https://winvertebrates.uwsp.edu/lockwood_361_2015.html"
+      },
+      {
+        "title": "Wikipedia: tardigrades in space (FOTON-M3, 2007, 10 days)",
+        "url": "https://en.wikipedia.org/wiki/Tardigrades_in_space"
+      },
+      {
+        "title": "Wikipedia: environmental tolerance in tardigrades (tun, cryptobiosis)",
+        "url": "https://en.wikipedia.org/wiki/Environmental_tolerance_in_tardigrades"
+      },
+      {
+        "title": "Wikipedia: tardigrade (eggs in the shed cuticle, hatch within 14 days)",
+        "url": "https://ipfs.ssi.eecc.de/ipns/en.wikipedia-on-ipfs.org/wiki/Tardigrade"
+      },
+      {
+        "title": "Live Science: tardigrade facts (habitat)",
+        "url": "https://www.livescience.com/amp/57985-tardigrade-facts.html"
+      }
     ]
   },
   {
