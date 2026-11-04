@@ -250,7 +250,7 @@ function wireGestures() {
 
 function readPairs() {
   const c = v.card;
-  if (v.f > 0.5) return [...(c.lifeCycle ?? []), ...(c.habitat?.en || c.habitat?.zh ? [t('card.habitat'), c.habitat] : [])];
+  if (v.f > 0.5) return [...(c.factFile?.breeding ?? []), t('card.habitat'), ...(c.factFile?.habitat ?? [])];
   if (v.p > 0.5) {
     const s = c.stats ?? {};
     return [...(c.profile?.callouts ?? []), ...(s.diet ? [t('card.diet'), s.diet] : [])];

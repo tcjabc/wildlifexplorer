@@ -20,7 +20,9 @@ export const hasStats = c => Boolean(c.stats && Object.keys(c.stats).length);
 export const hasCompare = c => Object.values(modesFor(c)).some(Boolean) || lookalikesOf(c).length > 0;
 export const hasInside = c => hasProfile(c) || hasStats(c) || hasCompare(c);
 const hasMap = c => Boolean(c.map?.areas?.length || c.range || c.mapBounds);
-export const hasBack = c => Boolean(c.lifeCycle?.length || filled(c.habitat) || hasMap(c));
+const habitatOf = c => (c.factFile?.habitat ?? []).find(filled);
+const breedingOf = c => (c.factFile?.breeding ?? []).filter(filled);
+export const hasBack = c => Boolean(breedingOf(c).length || habitatOf(c) || hasMap(c));
 
 const groupChip = g => h('span', { class: 'chip chip--group', 'data-group': g.id },
   h('span', { 'aria-hidden': 'true' }, g.emoji), bi(g.name));
@@ -197,13 +199,13 @@ export function insidePage(card) {
 export function backPage(card) {
   if (!hasBack(card)) return h('div', { class: 'cpage cpage--back' }, blank(card));
   return h('div', { class: 'cpage cpage--back', 'data-group': card.group },
-    card.lifeCycle?.length > 0 && h('section', { class: 'csection' },
+    breedingOf(card).length > 0 && h('section', { class: 'csection' },
       pageTitle('card.lifeCycle', '🔄'),
-      h('ol', { class: 'cycle' }, card.lifeCycle.map(step => h('li', null, bi(step))))),
-    (filled(card.habitat) || hasMap(card)) && h('section', { class: 'csection' },
+      h('ol', { class: 'cycle' }, breedingOf(card).map(step => h('li', null, bi(step))))),
+    (habitatOf(card) || hasMap(card)) && h('section', { class: 'csection' },
       pageTitle('card.habitat', '🌏'),
       worldMap(card, { detail: true, label: label('card.where') }),
-      filled(card.habitat) && h('p', { class: 'back__habitat' }, bi(card.habitat))),
+      habitatOf(card) && h('p', { class: 'back__habitat' }, bi(habitatOf(card)))),
     h('div', { class: 'back__badges' }, statusBadge(card.status), card.taiwan && taiwanBadge()));
 }
 

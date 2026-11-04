@@ -33,6 +33,7 @@ import { mergeCard, canUpdate } from './lib/merge.mjs';
 import { planDrops, dropOrder, DropPlanError } from './lib/drops.mjs';
 import { isReady, stillNeeds } from '../js/ready.js';
 import { renderBadgeSections } from './lib/badges-report.mjs';
+import { migrateCard, orderKeys, factFileTodo, statsTodo } from './lib/card-schema.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const P = {
@@ -82,7 +83,6 @@ function blankCard(row) {
     scientificName: row.scientific_name || null,
     name: { en: row.name_en, zh: row.name_zh },
     facts: [],
-    habitat: { en: '', zh: '' },
     status: null,
     taiwan: row.taiwan === 'Y',
     photo: null,
@@ -90,15 +90,7 @@ function blankCard(row) {
   };
 }
 
-const KEY_ORDER = ['id', 'group', 'scientificName', 'name', 'facts', 'habitat', 'status', 'taiwan', 'continents', 'biomes',
-  'photo', 'illustration', 'map', 'mapBounds', 'range', 'place', 'fossilSite', 'profile', 'stats', 'compare', 'lifeCycle', 'silhouette',
-  'taxonomy', 'wikidata', 'locked', '_draft'];
-function orderKeys(card) {
-  const out = {};
-  for (const k of KEY_ORDER) if (k in card) out[k] = card[k];
-  for (const k of Object.keys(card)) if (!(k in out)) out[k] = card[k];
-  return out;
-}
+// Key order and the Fact File shape: scripts/lib/card-schema.mjs.
 
 const pickBest = list => list.find(c => c.width >= c.height) ?? list[0];
 
@@ -281,7 +273,8 @@ async function main() {
   const dupes = rows.filter((r, i) => rows.findIndex(o => o.id === r.id) !== i);
   if (dupes.length) throw new Error(`Duplicate card names: ${dupes.map(d => d.name_en).join(', ')}`);
 
-  const existing = await readJson(P.cards, []);
+  // Older cards are moved to the current shape first (habitat and life cycle → Fact File).
+  const existing = (await readJson(P.cards, [])).map(migrateCard);
   const state = await readJson(P.state, {});
   const locations = await readJson(P.locations, {}); // globe pins for places and fossils
   // Badge and lookalike config, for the report's checks.
@@ -330,17 +323,16 @@ async function main() {
   let n = 0;
   for (const m of selected) {
     const { row } = m;
-    const card = m.card ?? blankCard(row);
+    const card = m.card ?? migrateCard(blankCard(row));
     m.card = card;
     const id = card.id;
     const prev = state[id];
     const issues = [], notes = [];
     process.stdout.write(`[${++n}/${selected.length}] ${row.name_en} … `);
 
-    // Facts and habitat are yours: only make sure the slots exist.
+    // Facts and the Fact File are yours: only make sure the slots exist (migrateCard).
     card.facts = Array.isArray(card.facts) ? card.facts : [];
     while (card.facts.length < 3) card.facts.push({ en: '', zh: '' });
-    card.habitat ??= { en: '', zh: '' };
     delete card.rangePoints; // replaced by the range shape (range)
 
     const values = {
@@ -473,7 +465,8 @@ function renderReport({ rows, cards, orphans, report, imageProblems, unused, sel
   const species = cards.filter(c => c.scientificName);
   const topics = cards.filter(c => !c.scientificName);
   const factsTodo = cards.filter(c => (c.facts ?? []).some(f => !f.en || !f.zh));
-  const habitatTodo = cards.filter(c => !c.habitat?.en || !c.habitat?.zh);
+  const factFileLeft = cards.filter(c => factFileTodo(c).length);
+  const statsLeft = cards.filter(c => statsTodo(c).length);
   const noPhoto = cards.filter(c => !c.photo);
 
   L.push('# Build report', '');
@@ -485,8 +478,8 @@ function renderReport({ rows, cards, orphans, report, imageProblems, unused, sel
   L.push(`- Rows not built yet: ${rows.length - cards.length} (run with \`--all\` or a bigger \`--limit\`)`);
   L.push(`- Cards without a photo: ${noPhoto.length}`);
   L.push(`- Cards with facts still to write: ${factsTodo.length}`);
-  L.push(`- Cards with habitat still to write: ${habitatTodo.length}`);
-  L.push(`- Cards with inside pages (profile, statistics, life cycle): ${cards.filter(c => c.profile || c.stats || c.lifeCycle).length}`, '');
+  L.push(`- Cards with Fact File sections still to write: ${factFileLeft.length}`);
+  L.push(`- Cards that open (profile or statistics): ${cards.filter(c => c.profile || c.stats).length}`, '');
   renderDrops(L, { rows, cards, drops, groups, warnings, newlyFrozen });
   L.push(...renderBadgeSections({ rows, cards, drops, cfg: extra }));
 
@@ -538,6 +531,18 @@ function renderReport({ rows, cards, orphans, report, imageProblems, unused, sel
     L.push('No card points at these files in img/ any more. Run with `--prune` to delete them.', '');
     for (const f of unused) L.push(`- img/${f}`);
     L.push('');
+  }
+
+  if (factFileLeft.length || statsLeft.length) {
+    L.push('## Still to write: Fact File and statistics', '');
+    L.push('Empty slots in `factFile` (habitat, breeding, behaviour, food, conservation, didYouKnow) are not shown on the card. The statistics rows (`stats.development`, `stats.youngCount`) are hidden until filled. Related species (`related`) are listed separately.', '');
+    for (const c of cards) {
+      const left = [...factFileTodo(c), ...statsTodo(c)];
+      if (left.length) L.push(`- ${c.name.en} · ${c.name.zh} (\`${c.id}\`): ${left.join(', ')}`);
+    }
+    L.push('');
+    const noRelated = cards.filter(c => Array.isArray(c.related) && !c.related.length);
+    if (noRelated.length) L.push(`Cards with no related species yet: ${noRelated.length} of ${cards.filter(c => c.scientificName).length} species cards.`, '');
   }
 
   const drafts = cards.filter(c => c._draft?.length);

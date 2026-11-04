@@ -22,9 +22,53 @@
         "zh": "牠很會爬樹，還會在樹上用樹枝做「熊窩」。"
       }
     ],
-    "habitat": {
-      "en": "Mountain forests, mostly between 1,000 and 3,500 metres up.",
-      "zh": "山區森林，大多在海拔1,000到3,500公尺之間。"
+    "factFile": {
+      "habitat": [
+        {
+          "en": "Mountain forests, mostly between 1,000 and 3,500 metres up.",
+          "zh": "山區森林，大多在海拔1,000到3,500公尺之間。"
+        }
+      ],
+      "breeding": [
+        {
+          "en": "Bears mate in summer.",
+          "zh": "熊在夏天交配。"
+        },
+        {
+          "en": "In winter, 1–2 tiny cubs are born in a den. At first their eyes are closed.",
+          "zh": "冬天，媽媽在洞裡生下1到2隻小熊，剛出生時眼睛還沒張開。"
+        },
+        {
+          "en": "Cubs stay with their mum for about two years, learning where to find food.",
+          "zh": "小熊跟著媽媽大約兩年，學習去哪裡找食物。"
+        },
+        {
+          "en": "Grown-up bears live on their own.",
+          "zh": "長大的熊會獨自生活。"
+        }
+      ],
+      "behaviour": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "food": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "conservation": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "didYouKnow": {
+        "en": "",
+        "zh": ""
+      }
     },
     "status": "VU",
     "taiwan": true,
@@ -64,28 +108,44 @@
           "y": 0.21,
           "en": "Round ears",
           "zh": "圓圓的耳朵",
-          "r": 0.05
+          "r": 0.05,
+          "detail": {
+            "en": "",
+            "zh": ""
+          }
         },
         {
           "x": 0.1,
           "y": 0.38,
           "en": "Strong sense of smell",
           "zh": "嗅覺很靈敏",
-          "r": 0.05
+          "r": 0.05,
+          "detail": {
+            "en": "",
+            "zh": ""
+          }
         },
         {
           "x": 0.34,
           "y": 0.45,
           "en": "White V on the chest",
           "zh": "胸前的白色V字",
-          "r": 0.07
+          "r": 0.07,
+          "detail": {
+            "en": "",
+            "zh": ""
+          }
         },
         {
           "x": 0.27,
           "y": 0.67,
           "en": "Long curved claws for climbing",
           "zh": "爬樹用的長爪子",
-          "r": 0.07
+          "r": 0.07,
+          "detail": {
+            "en": "",
+            "zh": ""
+          }
         }
       ]
     },
@@ -129,24 +189,7 @@
     "compare": {
       "width": 150
     },
-    "lifeCycle": [
-      {
-        "en": "Bears mate in summer.",
-        "zh": "熊在夏天交配。"
-      },
-      {
-        "en": "In winter, 1–2 tiny cubs are born in a den. At first their eyes are closed.",
-        "zh": "冬天，媽媽在洞裡生下1到2隻小熊，剛出生時眼睛還沒張開。"
-      },
-      {
-        "en": "Cubs stay with their mum for about two years, learning where to find food.",
-        "zh": "小熊跟著媽媽大約兩年，學習去哪裡找食物。"
-      },
-      {
-        "en": "Grown-up bears live on their own.",
-        "zh": "長大的熊會獨自生活。"
-      }
-    ],
+    "related": [],
     "silhouette": {
       "file": "img/silhouettes/formosan-black-bear-1b3f8e.svg",
       "author": "Tracy A. Heath",
@@ -190,11 +233,11 @@
     "wikidata": "Q716455",
     "_draft": [
       "facts",
-      "habitat",
+      "factFile.habitat",
       "profile",
       "stats",
       "compare",
-      "lifeCycle",
+      "factFile.breeding",
       "tags"
     ]
   },
@@ -221,9 +264,53 @@
         "zh": "牠可以把食物塞進臉頰的頰囊，等一下再慢慢吃。"
       }
     ],
-    "habitat": {
-      "en": "Forests and rocky cliffs, from the lowlands up to high mountains.",
-      "zh": "森林和岩壁，從低海拔到高山都有。"
+    "factFile": {
+      "habitat": [
+        {
+          "en": "Forests and rocky cliffs, from the lowlands up to high mountains.",
+          "zh": "森林和岩壁，從低海拔到高山都有。"
+        }
+      ],
+      "breeding": [
+        {
+          "en": "Babies are born in spring and early summer, one at a time.",
+          "zh": "小猴在春天到初夏出生，一次生一隻。"
+        },
+        {
+          "en": "A baby holds on to its mum's belly and rides along with her.",
+          "zh": "小猴會緊緊抱住媽媽的肚子，跟著她到處走。"
+        },
+        {
+          "en": "Young monkeys play together and learn from the troop.",
+          "zh": "小猴們一起玩耍，向猴群學習。"
+        },
+        {
+          "en": "Daughters stay in the troop; sons leave to join another one.",
+          "zh": "母猴會留在原本的猴群；公猴長大後會離開，加入別的猴群。"
+        }
+      ],
+      "behaviour": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "food": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "conservation": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "didYouKnow": {
+        "en": "",
+        "zh": ""
+      }
     },
     "status": "LC",
     "taiwan": true,
@@ -257,28 +344,44 @@
           "y": 0.25,
           "en": "Bare pink face",
           "zh": "粉紅色的臉",
-          "r": 0.08
+          "r": 0.08,
+          "detail": {
+            "en": "",
+            "zh": ""
+          }
         },
         {
           "x": 0.39,
           "y": 0.33,
           "en": "Clever hands for grooming",
           "zh": "靈巧的手，可以幫同伴理毛",
-          "r": 0.06
+          "r": 0.06,
+          "detail": {
+            "en": "",
+            "zh": ""
+          }
         },
         {
           "x": 0.6,
           "y": 0.42,
           "en": "Thick grey-brown fur",
           "zh": "厚厚的灰褐色毛",
-          "r": 0.1
+          "r": 0.1,
+          "detail": {
+            "en": "",
+            "zh": ""
+          }
         },
         {
           "x": 0.8,
           "y": 0.84,
           "en": "Long tail",
           "zh": "長長的尾巴",
-          "r": 0.08
+          "r": 0.08,
+          "detail": {
+            "en": "",
+            "zh": ""
+          }
         }
       ]
     },
@@ -325,24 +428,7 @@
     "compare": {
       "width": 80
     },
-    "lifeCycle": [
-      {
-        "en": "Babies are born in spring and early summer, one at a time.",
-        "zh": "小猴在春天到初夏出生，一次生一隻。"
-      },
-      {
-        "en": "A baby holds on to its mum's belly and rides along with her.",
-        "zh": "小猴會緊緊抱住媽媽的肚子，跟著她到處走。"
-      },
-      {
-        "en": "Young monkeys play together and learn from the troop.",
-        "zh": "小猴們一起玩耍，向猴群學習。"
-      },
-      {
-        "en": "Daughters stay in the troop; sons leave to join another one.",
-        "zh": "母猴會留在原本的猴群；公猴長大後會離開，加入別的猴群。"
-      }
-    ],
+    "related": [],
     "silhouette": {
       "file": "img/silhouettes/formosan-rock-macaque-5362ef.svg",
       "author": "Matthew Schmitz",
@@ -386,11 +472,11 @@
     "wikidata": "Q713841",
     "_draft": [
       "facts",
-      "habitat",
+      "factFile.habitat",
       "profile",
       "stats",
       "compare",
-      "lifeCycle",
+      "factFile.breeding",
       "tags"
     ]
   },
@@ -418,9 +504,41 @@
         "zh": "牠沒有牙齒，靠又長又黏的舌頭來吃螞蟻和白蟻。"
       }
     ],
-    "habitat": {
-      "en": "",
-      "zh": ""
+    "factFile": {
+      "habitat": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "breeding": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "behaviour": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "food": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "conservation": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "didYouKnow": {
+        "en": "",
+        "zh": ""
+      }
     },
     "status": "CR",
     "taiwan": true,
@@ -457,6 +575,7 @@
         "max": 58
       }
     },
+    "related": [],
     "silhouette": {
       "file": "img/silhouettes/chinese-pangolin-06a2d0.svg",
       "author": "Steven Traver",
@@ -531,9 +650,41 @@
         "zh": "牠脖子上的毛比較長，像馬的鬃毛，所以叫做「長鬃山羊」。"
       }
     ],
-    "habitat": {
-      "en": "",
-      "zh": ""
+    "factFile": {
+      "habitat": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "breeding": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "behaviour": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "food": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "conservation": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "didYouKnow": {
+        "en": "",
+        "zh": ""
+      }
     },
     "status": "LC",
     "taiwan": true,
@@ -565,6 +716,7 @@
         "max": 70
       }
     },
+    "related": [],
     "silhouette": {
       "file": "img/silhouettes/taiwan-serow-18d819.svg",
       "author": "Rick Wilhelmsen",
@@ -640,9 +792,41 @@
         "zh": "公鹿的角每年都會掉下來，然後再長出新的角。"
       }
     ],
-    "habitat": {
-      "en": "",
-      "zh": ""
+    "factFile": {
+      "habitat": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "breeding": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "behaviour": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "food": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "conservation": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "didYouKnow": {
+        "en": "",
+        "zh": ""
+      }
     },
     "status": "VU",
     "taiwan": true,
@@ -680,6 +864,7 @@
         "max": 120
       }
     },
+    "related": [],
     "silhouette": {
       "file": "img/silhouettes/formosan-sambar-deer-011001.svg",
       "author": "Caleb M. Gordon",
@@ -750,9 +935,41 @@
         "zh": ""
       }
     ],
-    "habitat": {
-      "en": "",
-      "zh": ""
+    "factFile": {
+      "habitat": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "breeding": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "behaviour": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "food": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "conservation": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "didYouKnow": {
+        "en": "",
+        "zh": ""
+      }
     },
     "status": "LC",
     "taiwan": true,
@@ -776,6 +993,7 @@
         "max": 50
       }
     },
+    "related": [],
     "silhouette": {
       "file": "img/silhouettes/formosan-muntjac-photo-5b1bf0.png",
       "author": "王朝威",
@@ -850,9 +1068,41 @@
         "zh": ""
       }
     ],
-    "habitat": {
-      "en": "",
-      "zh": ""
+    "factFile": {
+      "habitat": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "breeding": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "behaviour": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "food": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "conservation": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "didYouKnow": {
+        "en": "",
+        "zh": ""
+      }
     },
     "status": "VU",
     "taiwan": true,
@@ -889,6 +1139,7 @@
     "compare": {
       "width": 133
     },
+    "related": [],
     "silhouette": {
       "file": "img/silhouettes/formosan-flying-fox-86e4a8.svg",
       "author": "Andy Wilson",
@@ -962,9 +1213,41 @@
         "zh": ""
       }
     ],
-    "habitat": {
-      "en": "",
-      "zh": ""
+    "factFile": {
+      "habitat": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "breeding": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "behaviour": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "food": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "conservation": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "didYouKnow": {
+        "en": "",
+        "zh": ""
+      }
     },
     "status": "LC",
     "taiwan": true,
@@ -994,6 +1277,7 @@
         "max": 55
       }
     },
+    "related": [],
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -1055,9 +1339,41 @@
         "zh": ""
       }
     ],
-    "habitat": {
-      "en": "",
-      "zh": ""
+    "factFile": {
+      "habitat": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "breeding": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "behaviour": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "food": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "conservation": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "didYouKnow": {
+        "en": "",
+        "zh": ""
+      }
     },
     "status": "LC",
     "taiwan": true,
@@ -1081,6 +1397,7 @@
       "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Paguma_larvata_Hardwicke.jpg"
     },
+    "related": [],
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -1141,9 +1458,41 @@
         "zh": ""
       }
     ],
-    "habitat": {
-      "en": "",
-      "zh": ""
+    "factFile": {
+      "habitat": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "breeding": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "behaviour": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "food": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "conservation": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "didYouKnow": {
+        "en": "",
+        "zh": ""
+      }
     },
     "status": "LC",
     "taiwan": true,
@@ -1174,6 +1523,7 @@
     "compare": {
       "width": 50
     },
+    "related": [],
     "silhouette": {
       "file": "img/silhouettes/red-and-white-giant-flying-squirrel-eeaae0.svg",
       "author": "Unknown",
@@ -1247,9 +1597,41 @@
         "zh": ""
       }
     ],
-    "habitat": {
-      "en": "",
-      "zh": ""
+    "factFile": {
+      "habitat": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "breeding": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "behaviour": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "food": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "conservation": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "didYouKnow": {
+        "en": "",
+        "zh": ""
+      }
     },
     "status": "NT",
     "taiwan": true,
@@ -1275,6 +1657,7 @@
       "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Otter_(Lutra_lutra)_Otter._Lutra._Loutre._(titel_op_object),_RP-T-BR-2017-1-1-65.jpg"
     },
+    "related": [],
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -1335,9 +1718,41 @@
         "zh": ""
       }
     ],
-    "habitat": {
-      "en": "",
-      "zh": ""
+    "factFile": {
+      "habitat": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "breeding": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "behaviour": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "food": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "conservation": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "didYouKnow": {
+        "en": "",
+        "zh": ""
+      }
     },
     "status": "EN",
     "taiwan": false,
@@ -1362,6 +1777,7 @@
       "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Civetkat_(Viverra),_alpenmarmot_(Marmota_marmota),_luipaard_(Panthera_pardus)_en_tijger_(Panthera_tigris),_RP-T-BR-2017-1-1-95.jpg"
     },
+    "related": [],
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -1422,9 +1838,41 @@
         "zh": ""
       }
     ],
-    "habitat": {
-      "en": "",
-      "zh": ""
+    "factFile": {
+      "habitat": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "breeding": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "behaviour": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "food": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "conservation": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "didYouKnow": {
+        "en": "",
+        "zh": ""
+      }
     },
     "status": "VU",
     "taiwan": false,
@@ -1443,6 +1891,7 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:PZ_lion_pride.jpg"
     },
     "illustration": null,
+    "related": [],
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -1503,9 +1952,41 @@
         "zh": ""
       }
     ],
-    "habitat": {
-      "en": "",
-      "zh": ""
+    "factFile": {
+      "habitat": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "breeding": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "behaviour": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "food": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "conservation": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "didYouKnow": {
+        "en": "",
+        "zh": ""
+      }
     },
     "status": "VU",
     "taiwan": false,
@@ -1531,6 +2012,7 @@
         "max": 150
       }
     },
+    "related": [],
     "silhouette": {
       "file": "img/silhouettes/cheetah-photo-e378d6.png",
       "author": "Thomas Fuhrmann",
@@ -1605,9 +2087,41 @@
         "zh": ""
       }
     ],
-    "habitat": {
-      "en": "",
-      "zh": ""
+    "factFile": {
+      "habitat": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "breeding": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "behaviour": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "food": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "conservation": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "didYouKnow": {
+        "en": "",
+        "zh": ""
+      }
     },
     "status": "EN",
     "taiwan": false,
@@ -1637,6 +2151,7 @@
         "max": 400
       }
     },
+    "related": [],
     "silhouette": {
       "file": "img/silhouettes/african-elephant-48294b.svg",
       "author": "Margot Michaud",
@@ -1709,9 +2224,41 @@
         "zh": ""
       }
     ],
-    "habitat": {
-      "en": "",
-      "zh": ""
+    "factFile": {
+      "habitat": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "breeding": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "behaviour": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "food": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "conservation": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "didYouKnow": {
+        "en": "",
+        "zh": ""
+      }
     },
     "status": "VU",
     "taiwan": false,
@@ -1735,6 +2282,7 @@
       "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Giraffa_camelopardalis_(Giraf),_RP-T-1914-17-150.jpg"
     },
+    "related": [],
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -1795,9 +2343,41 @@
         "zh": ""
       }
     ],
-    "habitat": {
-      "en": "",
-      "zh": ""
+    "factFile": {
+      "habitat": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "breeding": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "behaviour": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "food": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "conservation": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "didYouKnow": {
+        "en": "",
+        "zh": ""
+      }
     },
     "status": "NT",
     "taiwan": false,
@@ -1821,6 +2401,7 @@
       "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Equus_quagga_quagga_lithograph.jpg"
     },
+    "related": [],
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -1881,9 +2462,41 @@
         "zh": ""
       }
     ],
-    "habitat": {
-      "en": "",
-      "zh": ""
+    "factFile": {
+      "habitat": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "breeding": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "behaviour": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "food": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "conservation": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "didYouKnow": {
+        "en": "",
+        "zh": ""
+      }
     },
     "status": "VU",
     "taiwan": false,
@@ -1902,6 +2515,7 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Portrait_Hippopotamus_in_the_water.jpg"
     },
     "illustration": null,
+    "related": [],
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -1962,9 +2576,41 @@
         "zh": ""
       }
     ],
-    "habitat": {
-      "en": "",
-      "zh": ""
+    "factFile": {
+      "habitat": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "breeding": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "behaviour": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "food": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "conservation": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "didYouKnow": {
+        "en": "",
+        "zh": ""
+      }
     },
     "status": "CR",
     "taiwan": false,
@@ -1994,6 +2640,7 @@
         "max": 170
       }
     },
+    "related": [],
     "silhouette": {
       "file": "img/silhouettes/black-rhinoceros-fa198a.svg",
       "author": "Christophe Mallet",
@@ -2066,9 +2713,41 @@
         "zh": ""
       }
     ],
-    "habitat": {
-      "en": "",
-      "zh": ""
+    "factFile": {
+      "habitat": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "breeding": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "behaviour": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "food": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "conservation": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "didYouKnow": {
+        "en": "",
+        "zh": ""
+      }
     },
     "status": "CR",
     "taiwan": false,
@@ -2098,6 +2777,7 @@
         "max": 180
       }
     },
+    "related": [],
     "silhouette": {
       "file": "img/silhouettes/western-lowland-gorilla-df2e2a.svg",
       "author": "Margot Michaud",
@@ -2170,9 +2850,41 @@
         "zh": "臺語叫牠「長尾山娘」，意思是尾巴長長的山中姑娘。"
       }
     ],
-    "habitat": {
-      "en": "",
-      "zh": ""
+    "factFile": {
+      "habitat": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "breeding": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "behaviour": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "food": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "conservation": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "didYouKnow": {
+        "en": "",
+        "zh": ""
+      }
     },
     "status": "LC",
     "taiwan": true,
@@ -2197,6 +2909,7 @@
       "north": 25.68
     },
     "range": "data/ranges/taiwan-blue-magpie.json",
+    "related": [],
     "silhouette": {
       "file": "img/silhouettes/taiwan-blue-magpie-d4b35a.svg",
       "author": "Lip Kee Yap (vectorized by T. Michael Keesey)",
@@ -2266,9 +2979,41 @@
         "zh": "牠只住在臺灣的山區森林裡，個性非常害羞。"
       }
     ],
-    "habitat": {
-      "en": "",
-      "zh": ""
+    "factFile": {
+      "habitat": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "breeding": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "behaviour": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "food": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "conservation": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "didYouKnow": {
+        "en": "",
+        "zh": ""
+      }
     },
     "status": "NT",
     "taiwan": true,
@@ -2300,6 +3045,7 @@
         "max": 72
       }
     },
+    "related": [],
     "silhouette": {
       "file": "img/silhouettes/swinhoe-s-pheasant-836d7f.svg",
       "author": "Unknown",
@@ -2371,9 +3117,41 @@
         "zh": "公鳥長長的尾巴上有一條條白色的橫紋。"
       }
     ],
-    "habitat": {
-      "en": "",
-      "zh": ""
+    "factFile": {
+      "habitat": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "breeding": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "behaviour": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "food": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "conservation": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "didYouKnow": {
+        "en": "",
+        "zh": ""
+      }
     },
     "status": "LC",
     "taiwan": true,
@@ -2412,6 +3190,7 @@
         "max": 88
       }
     },
+    "related": [],
     "silhouette": {
       "file": "img/silhouettes/mikado-pheasant-836d7f.svg",
       "author": "Unknown",
@@ -2485,9 +3264,41 @@
         "zh": "牠會用強壯的嘴巴，在老樹幹上挖洞做巢。"
       }
     ],
-    "habitat": {
-      "en": "",
-      "zh": ""
+    "factFile": {
+      "habitat": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "breeding": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "behaviour": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "food": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "conservation": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "didYouKnow": {
+        "en": "",
+        "zh": ""
+      }
     },
     "status": "LC",
     "taiwan": true,
@@ -2512,6 +3323,7 @@
       "north": 25.68
     },
     "range": "data/ranges/taiwan-barbet.json",
+    "related": [],
     "silhouette": {
       "file": "img/silhouettes/taiwan-barbet-9f025d.svg",
       "author": "Rohit N",
@@ -2581,9 +3393,41 @@
         "zh": "牠有毒！如果看到牠，千萬不要碰，慢慢退開，然後告訴大人。"
       }
     ],
-    "habitat": {
-      "en": "",
-      "zh": ""
+    "factFile": {
+      "habitat": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "breeding": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "behaviour": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "food": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "conservation": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "didYouKnow": {
+        "en": "",
+        "zh": ""
+      }
     },
     "status": "LC",
     "taiwan": true,
@@ -2614,6 +3458,7 @@
         "max": 110
       }
     },
+    "related": [],
     "silhouette": {
       "file": "img/silhouettes/brown-spotted-pit-viper-2efefa.svg",
       "author": "Beth Reinke",
@@ -2685,9 +3530,41 @@
         "zh": "臺灣人叫牠「國寶魚」。"
       }
     ],
-    "habitat": {
-      "en": "",
-      "zh": ""
+    "factFile": {
+      "habitat": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "breeding": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "behaviour": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "food": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "conservation": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "didYouKnow": {
+        "en": "",
+        "zh": ""
+      }
     },
     "status": null,
     "taiwan": true,
@@ -2719,6 +3596,7 @@
       "north": 24.86
     },
     "range": "data/ranges/formosan-landlocked-salmon.json",
+    "related": [],
     "silhouette": {
       "file": "img/silhouettes/formosan-landlocked-salmon-e74227.svg",
       "author": "Unknown",
@@ -2791,9 +3669,41 @@
         "zh": "長大的皇蛾沒有可以用的嘴巴，所以完全不吃東西，只能活一到兩個星期。"
       }
     ],
-    "habitat": {
-      "en": "",
-      "zh": ""
+    "factFile": {
+      "habitat": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "breeding": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "behaviour": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "food": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "conservation": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "didYouKnow": {
+        "en": "",
+        "zh": ""
+      }
     },
     "status": null,
     "taiwan": true,
@@ -2831,6 +3741,7 @@
         "max": 25
       }
     },
+    "related": [],
     "silhouette": {
       "file": "img/silhouettes/atlas-moth-817479.svg",
       "author": "Lauren Otolski",
@@ -2904,10 +3815,6 @@
         "zh": "每年冬天，黑面琵鷺會飛到臺灣，躲開北方的寒冷。"
       }
     ],
-    "habitat": {
-      "en": "",
-      "zh": ""
-    },
     "status": null,
     "taiwan": false,
     "photo": null,
@@ -2939,10 +3846,6 @@
         "zh": "下在山西邊的雨會流向臺灣海峽，下在東邊的雨會流向太平洋。"
       }
     ],
-    "habitat": {
-      "en": "",
-      "zh": ""
-    },
     "status": null,
     "taiwan": true,
     "continents": [
@@ -2987,10 +3890,6 @@
         "zh": "春天滿月後的幾個晚上，很多珊瑚會同時排卵，看起來就像海底在下雪。"
       }
     ],
-    "habitat": {
-      "en": "",
-      "zh": ""
-    },
     "status": null,
     "taiwan": true,
     "continents": [
@@ -3034,10 +3933,6 @@
         "zh": "從 1989 年開始，臺灣的法律就保護臺灣黑熊，任何人都不可以獵捕牠們。"
       }
     ],
-    "habitat": {
-      "en": "",
-      "zh": ""
-    },
     "status": null,
     "taiwan": true,
     "continents": [
@@ -3077,10 +3972,6 @@
         "zh": "蜂鳥可以停在空中不動，甚至還能倒著飛。"
       }
     ],
-    "habitat": {
-      "en": "",
-      "zh": ""
-    },
     "status": null,
     "taiwan": false,
     "photo": null,
@@ -3112,9 +4003,41 @@
         "zh": "牠的手臂很短，每隻手只有兩根手指。"
       }
     ],
-    "habitat": {
-      "en": "",
-      "zh": ""
+    "factFile": {
+      "habitat": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "breeding": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "behaviour": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "food": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "conservation": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "didYouKnow": {
+        "en": "",
+        "zh": ""
+      }
     },
     "status": null,
     "taiwan": false,
@@ -3143,6 +4066,7 @@
       "lng": -106.3,
       "site": "Hell Creek Formation, Montana, USA"
     },
+    "related": [],
     "silhouette": {
       "file": "img/silhouettes/tyrannosaurus-rex-5c0ca8.svg",
       "author": "artrociraptor",
@@ -3210,9 +4134,41 @@
         "zh": "牠可以撐過乾掉和結冰，有些甚至去過外太空還活著回來！"
       }
     ],
-    "habitat": {
-      "en": "",
-      "zh": ""
+    "factFile": {
+      "habitat": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "breeding": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "behaviour": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "food": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "conservation": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "didYouKnow": {
+        "en": "",
+        "zh": ""
+      }
     },
     "status": null,
     "taiwan": false,
@@ -3247,6 +4203,7 @@
       "north": 99.66
     },
     "range": "data/ranges/tardigrade-water-bear.json",
+    "related": [],
     "silhouette": {
       "file": "img/silhouettes/tardigrade-water-bear-0813c8.svg",
       "author": "Fernando Carezzano",
@@ -3300,9 +4257,41 @@
         "zh": "綠繡眼這些小鳥會飛來吸甜甜的花蜜。"
       }
     ],
-    "habitat": {
-      "en": "",
-      "zh": ""
+    "factFile": {
+      "habitat": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "breeding": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "behaviour": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "food": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "conservation": [
+        {
+          "en": "",
+          "zh": ""
+        }
+      ],
+      "didYouKnow": {
+        "en": "",
+        "zh": ""
+      }
     },
     "status": null,
     "taiwan": true,
@@ -3328,6 +4317,7 @@
       "north": 39.83
     },
     "range": "data/ranges/taiwan-cherry.json",
+    "related": [],
     "silhouette": {
       "file": "img/silhouettes/taiwan-cherry-4d43e4.svg",
       "author": "Benjamint444",

@@ -1,6 +1,6 @@
 # Build report
 
-Generated 2026-11-02 15:03 UTC. Re-written on every build.
+Generated 2026-11-04 11:59 UTC. Re-written on every build.
 
 ## Summary
 
@@ -10,8 +10,8 @@ Generated 2026-11-02 15:03 UTC. Re-written on every build.
 - Rows not built yet: 183 (run with `--all` or a bigger `--limit`)
 - Cards without a photo: 5
 - Cards with facts still to write: 15
-- Cards with habitat still to write: 33
-- Cards with inside pages (profile, statistics, life cycle): 17
+- Cards with Fact File sections still to write: 30
+- Cards that open (profile or statistics): 17
 
 ## Drops
 
@@ -317,12 +317,49 @@ These have no scientific name, so the build only creates the slots. Add facts, a
 - s1-w20: Cheetah · 獵豹 (`cheetah`): none found
 - s1-w26: Hippopotamus · 河馬 (`hippopotamus`): none found
 
+## Still to write: Fact File and statistics
+
+Empty slots in `factFile` (habitat, breeding, behaviour, food, conservation, didYouKnow) are not shown on the card. The statistics rows (`stats.development`, `stats.youngCount`) are hidden until filled. Related species (`related`) are listed separately.
+
+- Formosan Black Bear · 臺灣黑熊 (`formosan-black-bear`): behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
+- Formosan Rock Macaque · 臺灣獼猴 (`formosan-rock-macaque`): behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
+- Chinese Pangolin · 穿山甲 (`chinese-pangolin`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
+- Taiwan Serow · 臺灣長鬃山羊 (`taiwan-serow`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
+- Formosan Sambar Deer · 水鹿 (`formosan-sambar-deer`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
+- Formosan Muntjac · 山羌 (`formosan-muntjac`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
+- Formosan Flying Fox · 臺灣狐蝠 (`formosan-flying-fox`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
+- Leopard Cat · 石虎 (`leopard-cat`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
+- Masked Palm Civet · 白鼻心 (`masked-palm-civet`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
+- Red and White Giant Flying Squirrel · 大赤鼯鼠 (`red-and-white-giant-flying-squirrel`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
+- Eurasian Otter · 歐亞水獺 (`eurasian-otter`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
+- Bengal Tiger · 孟加拉虎 (`bengal-tiger`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
+- Lion · 獅子 (`lion`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
+- Cheetah · 獵豹 (`cheetah`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
+- African Elephant · 非洲象 (`african-elephant`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
+- Giraffe · 長頸鹿 (`giraffe`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
+- Plains Zebra · 平原斑馬 (`plains-zebra`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
+- Hippopotamus · 河馬 (`hippopotamus`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
+- Black Rhinoceros · 黑犀牛 (`black-rhinoceros`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
+- Western Lowland Gorilla · 西部低地大猩猩 (`western-lowland-gorilla`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
+- Taiwan Blue Magpie · 臺灣藍鵲 (`taiwan-blue-magpie`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
+- Swinhoe's Pheasant · 藍腹鷴 (`swinhoe-s-pheasant`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
+- Mikado Pheasant · 帝雉 (`mikado-pheasant`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
+- Taiwan Barbet · 五色鳥 (`taiwan-barbet`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
+- Brown-spotted Pit Viper · 龜殼花 (`brown-spotted-pit-viper`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
+- Formosan Landlocked Salmon · 櫻花鉤吻鮭 (`formosan-landlocked-salmon`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
+- Atlas Moth · 皇蛾 (`atlas-moth`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
+- Tyrannosaurus rex · 暴龍 (`tyrannosaurus-rex`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
+- Tardigrade (Water Bear) · 水熊蟲 (`tardigrade-water-bear`): habitat, breeding, behaviour, food, conservation, didYouKnow, development (gestation or incubation), number of young
+- Taiwan Cherry · 山櫻花 (`taiwan-cherry`): habitat, breeding, behaviour, food, conservation, didYouKnow
+
+Cards with no related species yet: 30 of 30 species cards.
+
 ## Draft text to check
 
 Written by Claude as a starting point. Check or rewrite it, then remove the field name from `_draft`.
 
-- Formosan Black Bear · 臺灣黑熊 (`formosan-black-bear`): facts, habitat, profile, stats, compare, lifeCycle, tags
-- Formosan Rock Macaque · 臺灣獼猴 (`formosan-rock-macaque`): facts, habitat, profile, stats, compare, lifeCycle, tags
+- Formosan Black Bear · 臺灣黑熊 (`formosan-black-bear`): facts, factFile.habitat, profile, stats, compare, factFile.breeding, tags
+- Formosan Rock Macaque · 臺灣獼猴 (`formosan-rock-macaque`): facts, factFile.habitat, profile, stats, compare, factFile.breeding, tags
 - Chinese Pangolin · 穿山甲 (`chinese-pangolin`): facts, tags, stats
 - Taiwan Serow · 臺灣長鬃山羊 (`taiwan-serow`): facts, tags, stats
 - Formosan Sambar Deer · 水鹿 (`formosan-sambar-deer`): facts, tags, stats

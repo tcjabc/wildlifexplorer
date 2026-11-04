@@ -176,7 +176,14 @@ Each card looks like this:
     { "en": "", "zh": "" },
     { "en": "", "zh": "" }
   ],
-  "habitat": { "en": "Mountain forests all over Taiwan.", "zh": "臺灣各地的山區森林。" },
+  "factFile": {
+    "habitat": [{ "en": "Mountain forests all over Taiwan.", "zh": "臺灣各地的山區森林。" }],
+    "breeding": [{ "en": "", "zh": "" }],
+    "behaviour": [{ "en": "", "zh": "" }],
+    "food": [{ "en": "", "zh": "" }],
+    "conservation": [{ "en": "", "zh": "" }],
+    "didYouKnow": { "en": "", "zh": "" }
+  },
   "status": "VU",
   "taiwan": true,
   "photo": { "file": "img/…webp", "author": "…", "license": "CC BY-SA 3.0", "licenseUrl": "…", "sourceUrl": "…" },
@@ -188,7 +195,10 @@ Each card looks like this:
 
 - **facts**: three `{ en, zh }` pairs. Empty facts are simply not shown. Short sentences
   read aloud best. For topic cards the facts appear under "About this topic 認識這個主題".
-- **habitat**: one `{ en, zh }` pair. For topic cards you can leave it empty.
+- **factFile**: the Fact File on the back of the card. Each section (`habitat`, `breeding`,
+  `behaviour`, `food` = Food & Hunting, `conservation`) is a list of paragraphs, each one
+  `{ en, zh }` pair; `didYouKnow` is one pair, shown in a callout. Empty slots are not shown, and the
+  build report lists them under "Still to write". Topic cards have no Fact File.
 - **status**: an IUCN code — `EX` `EW` `CR` `EN` `VU` `NT` `LC` `DD` `NE` — or `null`.
 - **photo / illustration**: to use your own picture, put it in `img/`, then fill in all five
   fields (`file`, `author`, `license`, `licenseUrl`, `sourceUrl`). The next build makes its thumbnail
@@ -199,7 +209,8 @@ Each card looks like this:
 
 You can re-run the build as often as you like:
 
-- `facts`, `habitat` and any field you add are **never** touched by the build.
+- `facts`, `factFile` and any field you add are **never** touched by the build. (Older cards with
+  `habitat` and `lifeCycle` are moved into `factFile` word for word: `scripts/lib/card-schema.mjs`.)
 - For the fields the build fills in (names, status, taxonomy, photo, illustration…),
   `data/build-state.json` remembers what the build wrote last time. If the value in
   `animals.json` is different, you changed it, so the build leaves it alone (the report says
@@ -217,14 +228,24 @@ every field that already has a value as yours and leaves it alone.
 
 ### The inside and back of a card
 
-Cards are bi-folds like the original Wildlife Explorer cards. The **cover** uses the photo,
-names, the first three facts and a small map. The **inside** and **back** come from these optional
-fields. Any you leave out are simply not shown, and a card with no inside fields doesn't open.
+Cards are bi-folds like the original Wildlife Explorer cards, every page 4:5 (448 × 560 at design size):
+
+- **Front (Card)**: group, card number and series (S1), the taxonomy strip (order · family · genus
+  and species), the photo and name, **Key Features** (the first three facts) and **Where in the
+  World** (the small map, the IUCN status and "Found in Taiwan"; these appear only here).
+- **Back (Fact File)**: Habitat (with a bigger range map), Breeding, Behaviour, Food & Hunting,
+  Conservation and a "Did You Know?" callout, from `factFile`. It scrolls inside the card.
+- **Open (Profile spread)**: on the left the Profile picture with numbered labels drawn on it; on
+  the right Vital Statistics, Creature Comparisons (You / Animal) and Related Species.
+
+The open spread comes from these optional fields. Any you leave out are simply not shown, and a
+card with none of them doesn't open.
 
 ```json
 "profile": {
   "image": "illustration",
-  "callouts": [{ "x": 0.34, "y": 0.45, "r": 0.07, "en": "White V on the chest", "zh": "胸前的白色V字" }]
+  "callouts": [{ "x": 0.34, "y": 0.45, "r": 0.07, "en": "White V on the chest", "zh": "胸前的白色V字",
+                 "detail": { "en": "", "zh": "" } }]
 },
 "stats": {
   "length": { "en": "120–180 cm", "zh": "120–180 公分", "note": { "en": "without the tail", "zh": "不含尾巴" } },
@@ -234,10 +255,12 @@ fields. Any you leave out are simply not shown, and a card with no inside fields
   "lifespan": { "en": "20–30 years", "zh": "20–30 年" },
   "lifespanYears": { "min": 20, "max": 30 },
   "diet": { "en": "Omnivore: …", "zh": "雜食：…" },
-  "dietIcons": ["🌰", "🍎", "🌿", "🐛", "🐭"]
+  "dietIcons": ["🌰", "🍎", "🌿", "🐛", "🐭"],
+  "development": { "kind": "gestation", "days": { "min": …, "max": … } },
+  "youngCount": { "min": …, "max": … }
 },
 "compare": { "width": 150 },
-"lifeCycle": [{ "en": "…", "zh": "…" }],
+"related": ["taiwan-serow", { "scientificName": "Ursus arctos", "name": { "en": "Brown bear", "zh": "棕熊" } }],
 "mapBounds": { "west": 119.8, "south": 21.9, "east": 122.3, "north": 24.8, "manual": true },
 "_draft": ["facts", "stats"]
 ```
@@ -248,10 +271,18 @@ fields. Any you leave out are simply not shown, and a card with no inside fields
   fraction of the picture's width (default 0.08; smaller = more zoom). The photo itself stays clean.
   Tapping a list item rings the feature and opens a round magnifier in the emptiest corner, cut
   from the full-size image; tap it again or the photo to close, or swipe the list to step through.
-  The build never touches `profile`, so hand-tuned values are safe.
+  Each callout is a numbered label drawn on the picture; tapping it shows its ring and magnifier, and
+  a box under the picture with its name and `detail` (optional). Read-aloud reads every feature in
+  order. The build never touches `profile`, so hand-tuned values are safe.
 - **stats**: `length`, `weight`, `lifespan` and `diet` are the text shown. `lengthCm`, `weightKg` and
   `lifespanYears` are the numbers the comparisons use (the middle of `min`–`max`). If you only give
   the numbers, the text is made from them. `dietIcons` are emoji for the diet plate.
+  `development` is gestation or incubation: `kind` is `"gestation"` (shown as Gestation 懷孕期) or
+  `"incubation"` (Incubation 孵化期), `days` the time in days (`min`–`max`), with optional `en`/`zh`
+  text instead. `youngCount` is the number of young (or eggs) at a time, with optional `young` text.
+- **related**: related species, as card ids or `{ scientificName, name }` for animals with no card.
+  A card the profile has opens on tap; one not collected yet shows as a locked silhouette; an animal
+  with no card is a small entry with its names. Cards not built yet are left out.
 - **Creature comparison**: each statistic you can tap switches the comparison and replays its
   animation: **length** (silhouettes side by side), **weight** (a balance; the lighter side fills with
   copies until it levels out, with a counter and "= Elephant × n" for huge numbers), **lifespan**
