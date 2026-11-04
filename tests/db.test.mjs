@@ -125,3 +125,34 @@ test('any other failure is an error, not memory, and the next try opens the data
   const again = await loadDb();
   assert.deepEqual(await again.get('profiles', 'p1'), { id: 'p1' }); // on disk, not in memory
 });
+
+test("on a grown-up's phone, progress writes are refused (put and add, any window); pulls, profiles and the rest still work", async () => {
+  const db = await loadDb();
+  assert.equal(await db.getRole(), 'explorers'); // no role yet: the explorers' device
+  await db.setMeta('device', { role: 'watch' });
+  assert.equal(await db.getRole(), 'watch');
+  const other = await loadDb(); // another window, which never read the role
+  for (const d of [db, other]) {
+    for (const store of db.PROGRESS) {
+      await assert.rejects(d.put(store, { id: `p1:1:${store}`, profileId: 'p1', epoch: 1 }), d.WatchOnly, store);
+      await assert.rejects(d.tx([store], 'readwrite', a => a.add(store, { id: `p1:1:a-${store}`, profileId: 'p1' })), d.WatchOnly, store);
+    }
+  }
+  // Nothing was written, not even half a transaction.
+  await assert.rejects(db.tx(['profiles', 'packs'], 'readwrite', async a => {
+    await a.put('profiles', { id: 'p1', name: 'Mia' });
+    await a.put('packs', { id: 'p1:1:s1-w01', profileId: 'p1' });
+  }), db.WatchOnly);
+  assert.equal(await db.get('profiles', 'p1'), undefined);
+  for (const store of db.PROGRESS) assert.deepEqual(await db.all(store), [], store);
+  assert.deepEqual(await db.all('outbox'), []);
+  // What a pull brings down, settings and device-only stores are fine.
+  await db.tx(['packs'], 'readwrite', a => a.putFromServer('packs', { id: 'p1:1:s1-w01', profileId: 'p1' }));
+  await db.put('profiles', { id: 'p1', name: 'Mia' });
+  await db.put('quiz', { id: 'p1:pictures', profileId: 'p1', best: 3 });
+  assert.ok(await db.get('packs', 'p1:1:s1-w01'));
+  assert.deepEqual((await db.all('outbox')).map(e => e.id), ['profiles:p1']);
+  // Back to the explorers' device: progress again.
+  await db.setMeta('device', { role: 'explorers' });
+  await db.put('badges', { id: 'p1:1:group:birds', profileId: 'p1' });
+});

@@ -26,6 +26,12 @@ const STORES = ['meta', 'profiles', ...BY_PROFILE, OUTBOX];
 // also puts an outbox entry, in the same transaction, so no change can be missed. Every
 // other store, including any new one, is device-only and never touches the outbox.
 export const SYNCED = ['profiles', 'packs', 'collection', 'badges'];
+// Progress: only the explorers' device makes it. On a grown-up's phone (meta 'device':
+// { role: 'watch' }, device-only) every write to these is refused, except what a pull
+// brings down (putFromServer). The role is read inside the writing transaction itself, so
+// no window, however out of date, can get past it.
+export const PROGRESS = ['packs', 'collection', 'badges'];
+export class WatchOnly extends Error {}
 const LEGACY = 'kv'; // version 1: one key-value store for a single child
 // Version 4 keeps the version 3 collection and badges records here, untouched, as a safety
 // net. Remove it in a later version once sync has been stable for a while.
@@ -172,14 +178,22 @@ function withOutbox(access, queued) {
     await access.put(OUTBOX, { id: `${name}:${value.id}`, store: name, key: value.id, rev: newId() });
     queued.yes = true;
   };
+  let watching = null; // read once per transaction
+  const guard = async name => {
+    if (!PROGRESS.includes(name)) return;
+    watching ??= (await access.get('meta', 'device'))?.value?.role === 'watch';
+    if (watching) throw new WatchOnly(`${name}: progress is made on the explorers' device`);
+  };
   return {
     ...access,
     put: async (name, value) => {
+      await guard(name);
       const r = await access.put(name, value);
       if (SYNCED.includes(name)) await note(name, value);
       return r;
     },
     add: async (name, value) => {
+      await guard(name);
       const added = await access.add(name, value);
       if (added && SYNCED.includes(name)) await note(name, value);
       return added;
@@ -205,7 +219,9 @@ export async function tx(stores, mode, fn) {
   const after = r => { if (queued.yes) emit('queued'); return r; };
   if (!db) return after(await fn(access(memoryAccess())));
   return new Promise((resolve, reject) => {
-    const t = db.transaction(writes ? [...new Set([...stores, OUTBOX])] : stores, mode);
+    // Writing to a synced store also needs the outbox; writing progress, the device role.
+    const extra = writes ? [OUTBOX, ...(stores.some(s => PROGRESS.includes(s)) ? ['meta'] : [])] : [];
+    const t = db.transaction([...new Set([...stores, ...extra])], mode);
     let result;
     t.oncomplete = () => resolve(after(result));
     t.onabort = () => reject(t.error ?? new Error('Transaction aborted'));
@@ -226,6 +242,10 @@ export async function getMeta(id, fallback) {
   return rec === undefined ? fallback : rec.value;
 }
 export const setMeta = (id, value) => put('meta', { id, value });
+
+// This device's role: 'explorers' (also every device from before there were roles) or
+// 'watch' (a grown-up's phone). Device-only: meta is never synced.
+export const getRole = async () => ((await getMeta('device', null))?.role === 'watch' ? 'watch' : 'explorers');
 
 // Progress saved by version 1 (before profiles), or null if there is none.
 export async function readLegacy() {
