@@ -20,8 +20,8 @@ const TIMEOUT_MS = 15 * 1000;
 const SESSION_GONE = new Set(['refresh_token_not_found', 'refresh_token_already_used', 'session_not_found',
   'session_expired', 'invalid_grant', 'user_not_found', 'user_banned']);
 
-// Why a call failed: 'offline', 'rate-limit', 'bad-code', 'bad-email', 'not-allowed' (new
-// sign-ups switched off), 'signed-out', 'needs-sign-in' or 'unknown'.
+// Why a call failed: 'offline', 'rate-limit', 'bad-code', 'bad-email', 'not-allowed' (a
+// new account for an email nobody invited), 'signed-out', 'needs-sign-in' or 'unknown'.
 export class AuthError extends Error {
   constructor(code, detail = '') {
     super(detail ? `${code}: ${detail}` : code);
@@ -35,8 +35,11 @@ export const redirectUrl = loc => loc.origin + loc.pathname;
 
 function errorCode(status, body) {
   const code = body?.error_code ?? body?.error ?? '';
+  const msg = body?.msg ?? body?.message ?? '';
   if (status === 429 || /rate_limit/.test(code)) return 'rate-limit';
-  if (/signup_disabled|email_address_not_authorized/.test(code)) return 'not-allowed';
+  // A new address without an open invite: the before-user-created hook (migration 5) says
+  // "invite-only: …" (with 403, so before the bad-code rule).
+  if (/signup_disabled|email_address_not_authorized/.test(code) || /invite-only/.test(msg)) return 'not-allowed';
   if (/email_address_invalid|validation_failed/.test(code)) return 'bad-email';
   if (/otp_expired/.test(code) || status === 403) return 'bad-code';
   return 'unknown';

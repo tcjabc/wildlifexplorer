@@ -892,7 +892,11 @@ dialog.picker::backdrop { background: var(--c-bg); }
 .role-btn__text { display: grid; gap: var(--s-1); }
 .role-now { display: grid; gap: var(--s-2); margin-top: var(--s-4); }
 
-/* A grown-up's phone (watch mode): the header chip, and the read-only Packs list. */
+/* The grown-ups of the family account, and invites (account.js). */
+.people { display: grid; gap: var(--s-2); margin-top: var(--s-4); }
+.people__email { overflow-wrap: anywhere; }
+
+/* A grown-up's device (watch mode): the header chip, and the read-only Packs list. */
 .watch-chip {
   display: inline-flex; align-items: center; gap: var(--s-1); flex: none;
   padding: var(--s-1) var(--s-3); border-radius: var(--r-pill);

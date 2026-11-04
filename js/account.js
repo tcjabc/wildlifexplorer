@@ -1,12 +1,14 @@
 // The family account, for grown-ups: the "Family account" panel in the Parents area (email
-// a code, type it in, choose which explorers to add the first time, see whether everything
-// is saved, sign out), signing in from the Welcome screen of a new device (the family's
-// explorers come down), and the sheet that asks before an email link signs this device in.
+// a code, type it in, join a family that invited this email, choose which explorers to add
+// the first time, see whether everything is saved, the family's grown-ups and invites, sign
+// out), signing in from the Welcome screen of a new device (the family's explorers come
+// down), and the sheet that asks before an email link signs this device in.
 // Signing in is optional (see README, Family accounts).
 import { h, mount } from './dom.js';
-import { tx, label } from './i18n.js';
+import { tx, label, dateText } from './i18n.js';
 import { auth, AuthError } from './cloud/auth.js';
 import { sync, statusKey } from './cloud/sync.js';
+import { family, REASONS } from './cloud/family.js';
 import { avatar } from './profiles.js';
 import { sumGate } from './components.js';
 import { state as appState, loadRole } from './store.js';
@@ -16,8 +18,17 @@ import { CODE_LENGTH } from './config.js';
 const RESEND_MS = 60 * 1000; // the project lets a code be emailed once a minute
 let pending = null; // { email, sentAt } while waiting for the code
 let chosenRole = null; // at the first sign-in here: what the grown-up said this device is
+let invitesDone = null; // the user whose invites were answered at the first sign-in here (or who had none)
 
-const errorKey = err => `account.err.${err instanceof AuthError ? err.code : 'unknown'}`;
+const errorKey = err => {
+  const code = err instanceof AuthError ? err.code : 'unknown';
+  return REASONS.has(code) ? `family.err.${code}` : `account.err.${code}`;
+};
+const showError = (error, err) => {
+  if (!(err instanceof AuthError)) console.error(err);
+  mount(error, tx(errorKey(err)));
+  error.hidden = false;
+};
 const field = (id, key, control, hint) => h('div', { class: 'field' },
   h('label', { class: 'field__label', for: id }, tx(key)), h('div', { class: 'field__control' }, control), hint);
 
@@ -28,9 +39,7 @@ async function busy(btn, error, fn) {
   try {
     await fn();
   } catch (err) {
-    if (!(err instanceof AuthError)) console.error(err);
-    mount(error, tx(errorKey(err)));
-    error.hidden = false;
+    showError(error, err);
   } finally {
     btn.disabled = false;
   }
@@ -128,6 +137,127 @@ function chooseStep(redraw, list, error) {
   return form;
 }
 
+// ---------- Joining a family that invited this email ----------
+
+// At the first sign-in here, before anything else: when a family has invited this email,
+// ask whether to join it. Resolves with what to show, or null when there is nothing to ask
+// (no invite, or already answered). Joining changes nothing on this device yet: the next
+// steps (what this device is, which explorers to add) then go to the family joined.
+async function inviteFirst(state, redraw) {
+  if (invitesDone === state.userId) return null;
+  const error = h('p', { class: 'form__error', role: 'alert', hidden: true });
+  const later = h('button', { class: 'btn btn--soft', type: 'button', onclick: () => { invitesDone = state.userId; redraw(); } }, tx('invite.notNow'));
+  let list;
+  try {
+    list = await family.myInvites();
+  } catch (err) {
+    showError(error, err);
+    const again = h('button', { class: 'btn btn--primary', type: 'button', onclick: () => redraw() }, tx('sync.tryAgain'));
+    return [error, h('div', { class: 'sheet__actions' }, again, later)];
+  }
+  const [invite] = list ?? [];
+  if (!invite) { invitesDone = state.userId; return null; }
+  const join = h('button', { class: 'btn btn--primary', type: 'button' }, tx('invite.join'));
+  join.addEventListener('click', () => busy(join, error, async () => {
+    await family.accept(invite.id);
+    invitesDone = state.userId;
+    redraw();
+  }));
+  return h('div', { class: 'form' },
+    h('h3', { class: 'panel__title' }, tx('invite.title')),
+    h('p', null, tx('invite.text', { email: invite.ownerEmail ?? '' })),
+    h('p', { class: 'muted' }, tx('invite.note')),
+    error,
+    h('div', { class: 'sheet__actions' }, join, later));
+}
+
+// ---------- The family's grown-ups ----------
+
+// Who is in the family account. The owner also sees its invites, can invite another
+// grown-up, cancel an invite and remove a parent; a parent can leave. The server decides
+// who may do what (family.js); this only leaves out the buttons that would be refused.
+function peopleSection(redraw) {
+  const box = h('div', { class: 'people', 'data-section': 'people' },
+    h('h3', { class: 'panel__title' }, tx('family.title')),
+    h('p', { class: 'muted', role: 'status' }, tx('family.loading')));
+  fillPeople(box, redraw);
+  return box;
+}
+
+async function fillPeople(box, redraw) {
+  const title = h('h3', { class: 'panel__title' }, tx('family.title'));
+  const error = h('p', { class: 'form__error', role: 'alert', hidden: true });
+  let p;
+  try {
+    p = await family.people();
+  } catch (err) {
+    showError(error, err);
+    mount(box, title, error);
+    return;
+  }
+  const owner = p.me.role === 'owner';
+  const members = p.members.map(m => {
+    const remove = owner && m.role === 'parent' && h('button', {
+      class: 'btn btn--soft', type: 'button', 'aria-label': label('family.removeLabel', { email: m.email }),
+    }, tx('family.remove'));
+    if (remove) remove.addEventListener('click', () => {
+      if (!window.confirm(label('family.removeConfirm', { email: m.email }))) return;
+      busy(remove, error, async () => { await family.removeParent(m.userId); redraw(); });
+    });
+    return h('div', { class: 'row-actions' },
+      h('span', { class: 'people__email' }, m.email),
+      h('span', { class: 'muted' }, tx(m.role === 'owner' ? 'family.owner' : 'family.parent')),
+      m.userId === p.me.userId && h('span', { class: 'muted' }, tx('family.you')),
+      remove);
+  });
+  const invites = owner && p.invites.map(i => {
+    const cancel = h('button', {
+      class: 'btn btn--soft', type: 'button', 'aria-label': label('family.cancelLabel', { email: i.email }),
+    }, tx('family.cancelInvite'));
+    cancel.addEventListener('click', () => busy(cancel, error, async () => { await family.cancelInvite(i.id); redraw(); }));
+    const again = i.expired && h('button', { class: 'btn btn--soft', type: 'button' }, tx('family.inviteAgain'));
+    if (again) again.addEventListener('click', () => busy(again, error, async () => { await family.invite(i.email); redraw(); }));
+    return h('div', { class: 'row-actions' },
+      h('span', { class: 'people__email' }, i.email),
+      h('span', { class: i.expired ? 'form__error' : 'muted' },
+        i.expired ? tx('family.inviteExpired') : tx('family.inviteUntil', { date: dateText(i.expiresAt) })),
+      again, cancel);
+  });
+  mount(box, title, members,
+    owner && invites.length > 0 && [h('p', { class: 'muted' }, tx('family.invites')), invites],
+    owner ? inviteForm(redraw, error) : leaveAction(redraw, error),
+    error);
+}
+
+// The owner: invite another grown-up by email. They sign in here with it within 7 days.
+function inviteForm(redraw, error) {
+  const email = h('input', {
+    id: 'family-email', class: 'input input--wide', type: 'email', inputmode: 'email', autocomplete: 'off',
+    autocapitalize: 'off', spellcheck: 'false',
+  });
+  const send = h('button', { class: 'btn btn--soft', type: 'submit' }, tx('family.invite'));
+  const form = h('form', { class: 'form', novalidate: true },
+    field('family-email', 'family.inviteEmail', email, h('p', { class: 'muted' }, tx('family.inviteHint'))),
+    h('div', { class: 'sheet__actions' }, send));
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const value = email.value.trim();
+    if (!value.includes('@')) { mount(error, tx('account.emailNeeded')); error.hidden = false; email.focus(); return; }
+    busy(send, error, async () => { await family.invite(value); redraw(); });
+  });
+  return form;
+}
+
+// A parent: leave the family. This device then asks what to do with the family's explorers.
+function leaveAction(redraw, error) {
+  const leave = h('button', { class: 'btn btn--soft', type: 'button' }, tx('family.leave'));
+  leave.addEventListener('click', () => {
+    if (!window.confirm(label('family.leaveConfirm'))) return;
+    busy(leave, error, async () => { await family.leave(); await sync.run(); redraw(); });
+  });
+  return h('div', { class: 'sheet__actions' }, leave);
+}
+
 // ---------- This device's role ----------
 
 const ROLES = [['explorers', 'role.explorers', 'role.explorersNote', '🧒'], ['watch', 'role.watch', 'role.watchNote', '👀']];
@@ -191,7 +321,7 @@ function statusLines(s) {
   if (key === 'sync.otherAccount') return h('p', { class: 'form__error' }, tx(key, { email: s.email }));
   if (!key) return null;
   return [
-    h('p', { role: 'status', class: key === 'sync.held' ? 'form__error' : null }, tx(key)),
+    h('p', { role: 'status', class: key === 'sync.held' || key === 'sync.removed' ? 'form__error' : null }, tx(key)),
     s.held > 0 && key !== 'sync.held' && h('p', { class: 'form__error' }, tx('sync.held')),
     s.localOnly.length > 0 && [h('p', { class: 'muted' }, tx('sync.localOnly')),
       s.localOnly.map(localExplorer)],
@@ -220,17 +350,20 @@ sync.onChange(async () => {
 });
 
 // The two ways to sign out. The one this device would usually want comes first: keeping
-// the explorers on the explorers' device, removing the family from a grown-up's phone.
-function signOutActions(redraw, error) {
-  const watch = appState.role === 'watch';
-  const keep = h('button', { class: ['btn', watch ? 'btn--soft' : 'btn--primary'], type: 'button' }, tx('account.signOut'));
+// the explorers on the explorers' device, removing the family from a grown-up's device or
+// from a device whose grown-up is no longer in the family (removed: it asks first).
+function signOutActions(redraw, error, removed = false) {
+  const first = removed || appState.role === 'watch';
+  const keep = h('button', { class: ['btn', first ? 'btn--soft' : 'btn--primary'], type: 'button' }, tx('account.signOut'));
   keep.addEventListener('click', () => {
     if (!window.confirm(label('account.signOutConfirm'))) return;
     busy(keep, error, async () => { await auth.signOut(); redraw(); });
   });
-  const remove = h('button', { class: ['btn', watch ? 'btn--primary' : 'btn--soft'], type: 'button' }, tx('account.signOutRemove'));
+  const remove = h('button', { class: ['btn', first ? 'btn--primary' : 'btn--soft'], type: 'button' }, tx('account.signOutRemove'));
+  const confirmKey = removed ? 'account.removeConfirmRemoved'
+    : appState.role === 'watch' ? 'account.removeConfirmWatch' : 'account.removeConfirmExplorers';
   remove.addEventListener('click', () => {
-    if (!window.confirm(label(watch ? 'account.removeConfirmWatch' : 'account.removeConfirmExplorers'))) return;
+    if (!window.confirm(label(confirmKey))) return;
     busy(remove, error, async () => {
       const why = await sync.removeFamily(removeFiles);
       if (!why) { location.reload(); return; } // everything on screen was the family's
@@ -239,16 +372,21 @@ function signOutActions(redraw, error) {
       error.hidden = false;
     });
   });
-  return h('div', { class: 'sheet__actions' }, ...(watch ? [remove, keep] : [keep, remove]));
+  return h('div', { class: 'sheet__actions' }, ...(first ? [remove, keep] : [keep, remove]));
 }
 
 async function signedInStep(redraw, state, error) {
   const who = h('p', { role: 'status' }, tx('account.signedInAs', { email: state.email }));
   const actions = signOutActions(redraw, error);
   if (await sync.stage() === 'choose') {
-    // First sign-in here: what this device is, then (explorers' device) which explorers to
-    // add, or (a phone) its own explorers, if any, all go up.
-    if (!chosenRole) return [who, roleQuestion(role => { chosenRole = role; redraw(); }), actions];
+    // First sign-in here: an invite to join a family, if any; what this device is; then
+    // (explorers' device) which explorers to add, or (a grown-up's device) its own
+    // explorers, if any, all go up.
+    if (!chosenRole) {
+      const ask = await inviteFirst(state, redraw);
+      if (ask) return [who, ask, actions];
+      return [who, roleQuestion(role => { chosenRole = role; redraw(); }), actions];
+    }
     const list = await sync.candidates();
     if (list.length && chosenRole === 'watch') return [who, phoneExplorersStep(redraw, list, error), actions];
     if (list.length) return [who, chooseStep(redraw, list, error), actions];
@@ -269,7 +407,9 @@ async function signedInStep(redraw, state, error) {
   if (s.stage === 'on' && !s.savedAt) sync.run(); // no run yet in this window: start one (the line follows it)
   const box = h('div', null, statusLines(s));
   statusBoxes.add(box);
-  return [who, box, s.stage === 'on' && rolePanel(redraw), error, actions];
+  const on = s.stage === 'on';
+  return [who, box, on && rolePanel(redraw), on && peopleSection(redraw), error,
+    s.stage === 'removed' ? signOutActions(redraw, error, true) : actions];
 }
 
 async function render(el) {
@@ -333,7 +473,8 @@ export function familySignIn({ explorers, gate = true }) {
         return;
       }
       if (!role && await sync.stage() === 'choose') {
-        mount(body, roleQuestion(r => { role = r; draw(); }));
+        const ask = await inviteFirst(state, draw);
+        mount(body, ask ?? roleQuestion(r => { role = r; draw(); }));
         return;
       }
       mount(body, h('p', { role: 'status' }, tx('welcome.bringing')));
@@ -352,6 +493,8 @@ export function familySignIn({ explorers, gate = true }) {
       const ok = h('button', { class: 'btn btn--primary', type: 'button', onclick: () => finish(false) }, tx('welcome.makeFirst'));
       if (where === 'other-account') {
         end(h('p', { class: 'form__error' }, tx('sync.otherAccount', { email: (await sync.status()).email })), h('div', { class: 'sheet__actions' }, ok));
+      } else if (where === 'removed') {
+        end(h('p', { class: 'form__error' }, tx('sync.removed')), h('div', { class: 'sheet__actions' }, ok));
       } else if (await explorers()) finish(true);
       else end(h('p', { role: 'status' }, tx('welcome.familyEmpty')), h('div', { class: 'sheet__actions' }, ok));
     }

@@ -116,6 +116,15 @@ test('wrong or expired code, too many emails, and offline give clear errors', as
   await assert.rejects(o.auth.sendCode('parent@example.test'), e => e.code === 'offline');
 });
 
+test('a new email nobody invited (the sign-up hook says no, with 403) is not-allowed, not a wrong code', async () => {
+  const s = setup({ routes: {
+    '/auth/v1/otp': () => [403, { code: 403, msg: 'invite-only: this email has no open invite to a family account' }],
+  } });
+  await assert.rejects(s.auth.sendCode('someone@example.test'), e => e instanceof AuthError && e.code === 'not-allowed');
+  const d = setup({ routes: { '/auth/v1/otp': () => [422, { code: 422, error_code: 'signup_disabled', msg: 'Signups not allowed for otp' }] } });
+  await assert.rejects(d.auth.sendCode('someone@example.test'), e => e.code === 'not-allowed');
+});
+
 test('2. a token that is not close to running out makes no network call', async () => {
   const s = await signedIn({ routes: { '/auth/v1/token': refreshOk } });
   s.tick(30 * 60 * 1000);
