@@ -194,8 +194,9 @@
   --feedback-min: 180px;
   --quiz-pic-min: 200px;
 
-  /* Card design size: pages are laid out at this size and the whole card is scaled to fit. */
-  --card-w: 400px;
+  /* Card design size: pages are laid out at this size (4:5, like the original Wildlife
+     Explorer pages) and the whole card is scaled to fit. */
+  --card-w: 448px;
   --card-h: 560px;
   --card-fs: 15px;      /* body text on card pages */
   --card-fs-sm: 12px;
@@ -205,7 +206,11 @@
   --zy-gap: 0.04em;     /* between a character and its zhuyin column */
   --spot: 10px;         /* map location dot */
   --callout-dot: 26px;  /* numbered steps, IUCN code on card pages */
-  --hotspot: 24px;      /* numbered bubbles in the Profile list */
+  --hotspot: 24px;      /* numbered labels on the Profile picture */
+  --profile-pic-max-h: 380px; /* the Profile picture, leaving room for its detail box */
+  --profile-detail-min-h: 72px;
+  --related-pic: 56px;  /* pictures in Related Species */
+  --map-slot: 28px;     /* corner of the front map kept free for its expand button */
   --map-marker: 8px;    /* range marker on the little world map */
   --gpin: 52px;         /* photo pins on the Globe */
   --gsheet-pic: min(38dvh, 320px); /* photo in the Globe card sheet */

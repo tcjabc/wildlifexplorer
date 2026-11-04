@@ -1,9 +1,13 @@
 // The card viewer: a full-screen layer over the binder.
 // - Opens by zooming from the tapped binder tile (the binder grows and blurs behind it).
-// - The card is a bi-fold: cover, inside spread, back. Drag the cover's right edge and it
-//   turns around the spine like a book (rotateY).
+// - The card is a bi-fold: cover (Card), inside spread (Profile), back (Fact File). Drag the
+//   right part of the cover (inside the card, never the screen edge) and it turns around the
+//   spine like a book (rotateY).
 // - Swipe up to turn the card over, swipe down to go back to the binder.
 // Every gesture follows the finger; on release a spring finishes or undoes it.
+// - Pages with more than fits ([data-scroll]: the Fact File, Vital Statistics) scroll inside
+//   the card: a vertical drag there scrolls; on the Fact File, a drag down from the top turns
+//   the card back over.
 //
 // Field Notes: 📓 opens the notebook beside the card (landscape: side by side with a
 // draggable divider; portrait tablet: one above the other; phones: Card / Notes tabs). Either
@@ -13,11 +17,11 @@
 // card scaled up). While it moves it uses 3D transforms; at rest every transform comes off
 // and the cover / open spread / back is drawn flat, so text and photos stay crisp.
 import { h, mount, reducedMotion } from './dom.js';
-import { tx, t, label, getMode } from './i18n.js';
+import { tx, label, getMode } from './i18n.js';
 import { cardsIn, isVisible, groupById, speechRate, watching } from './store.js';
 import {
   coverPage, profilePage, insidePage, backPage, cardCredits,
-  hasInside, hasBack, factsOf,
+  hasInside, hasBack, readOrder,
 } from './cardparts.js';
 import { cardNo, groupTitle } from './components.js';
 import { track, spring, tween, clamp, lerp, haptic } from './gesture.js';
@@ -37,8 +41,7 @@ export const openCardId = () => v?.card.id ?? null;
 
 function buildBook(card, onCredit) {
   const leaf = h('div', { class: 'leaf' },
-    h('div', { class: 'face face--front' }, coverPage(card, { onCredit }),
-      hasInside(card) && h('span', { class: 'grab', 'aria-hidden': 'true' }, '‹')),
+    h('div', { class: 'face face--front' }, coverPage(card, { onCredit })),
     h('div', { class: 'face face--back face--y' }, profilePage(card)));
   const inside = insidePage(card);
   const base = h('div', { class: 'base' },
@@ -145,7 +148,10 @@ function updateHint() {
 
 // Page turns and flips share one animation slot; the zoom in/out has its own, so tapping
 // open (or starting a drag) while the card is still zooming in doesn't freeze the zoom.
-function stopMotion() { v?.cancel?.(); if (v) v.cancel = null; }
+function stopMotion() {
+  v?.cancel?.(); v?.glide?.();
+  if (v) { v.cancel = null; v.glide = null; }
+}
 function stopZoom() { v?.zoomCancel?.(); if (v) v.zoomCancel = null; }
 
 // Spring one of p / f / z to a target, then run `after`.
@@ -181,27 +187,35 @@ export function toggleFlip() {
 // ---------- gestures ----------
 
 function wireGestures() {
-  let mode = null, base = 0;
+  let mode = null, base = 0, scroller = null;
   const cardRect = () => v.built.root.getBoundingClientRect();
   const closedFront = () => v.p < 0.01 && v.f < 0.01;
+  // The open-drag zone: the right part of the card itself, so it never reaches the screen's
+  // right edge (the notebook spine goes there).
+  const inOpenZone = (x, y) => {
+    const r = cardRect();
+    return x > r.left + r.width * 0.6 && x < r.right && y > r.top && y < r.bottom;
+  };
 
   track(v.stage, {
     start: ({ target }) => {
-      if (v.closing || target.closest?.('[data-swipe]')) return false; // e.g. the Profile list
+      if (v.closing || target.closest?.('[data-swipe]')) return false; // e.g. the Profile detail box
       stopMotion();
+      scroller = target.closest?.('[data-scroll]') ?? null;
       return true;
     },
-    lock: ({ dx, dy, axis, x }) => {
+    lock: ({ dx, dy, axis, x, y }) => {
       mode = null;
+      const scrollable = scroller && axis === 'y' && scroller.scrollHeight > scroller.clientHeight + 1;
       if (closedFront()) {
-        const r = cardRect();
-        if (axis === 'x' && dx < 0 && hasInside(v.card) && x > r.left + r.width * 0.6) mode = 'open';
+        if (axis === 'x' && dx < 0 && hasInside(v.card) && inOpenZone(x, y)) mode = 'open';
         else if (axis === 'y' && dy < 0 && hasBack(v.card)) mode = 'flip';
         else if (axis === 'y' && dy > 0) { mode = 'dismiss'; stopZoom(); }
       } else if (v.p > DONE && axis === 'x' && dx > 0) mode = 'close';
-      else if (v.f > DONE && axis === 'y' && dy > 0) mode = 'unflip';
+      else if (v.f > DONE && axis === 'y' && dy > 0 && !(scrollable && scroller.scrollTop > 0)) mode = 'unflip';
+      else if ((v.p > DONE || v.f > DONE) && scrollable) mode = 'scroll';
       if (!mode) return false;
-      base = { p: v.p, f: v.f, z: v.z };
+      base = { p: v.p, f: v.f, z: v.z, top: scroller?.scrollTop ?? 0 };
       v.dragging = true;
       return true;
     },
@@ -213,6 +227,8 @@ function wireGestures() {
       if (mode === 'flip') v.f = clamp(-dy / (L.H * L.s0 * 0.7));
       if (mode === 'unflip') v.f = 1 - clamp(dy / (L.H * L.s0 * 0.7));
       if (mode === 'dismiss') v.z = 1 - clamp(dy / (L.Hs * 0.6));
+      // The card is enlarged with CSS zoom, so a finger's pixels are fewer card pixels.
+      if (mode === 'scroll') { scroller.scrollTop = base.top - dy / v.zoom; return; }
       draw();
     },
     end: ({ dx, dy, vx, vy }) => {
@@ -229,6 +245,10 @@ function wireGestures() {
         const target = Math.abs(vel) > 1.2 ? (vel > 0 ? 1 : 0) : v.f > 0.5 ? 1 : 0;
         if (target !== base.f) haptic(12);
         settle('f', target, vel);
+      } else if (mode === 'scroll') {
+        // A flick keeps gliding a little.
+        const el = scroller, from = el.scrollTop, to = from - (vy / v.zoom) * 0.3;
+        if (Math.abs(vy) > 200) v.glide = tween({ from, to, duration: 500, onUpdate: x => { el.scrollTop = x; } });
       } else if (mode === 'dismiss') {
         if (dy > L.Hs * 0.18 || vy > 700) { haptic(8); dismiss(); } else settle('z', 1, -vy / (L.Hs * 0.6));
       }
@@ -248,15 +268,7 @@ function wireGestures() {
 
 // ---------- read aloud, credits, chrome ----------
 
-function readPairs() {
-  const c = v.card;
-  if (v.f > 0.5) return [...(c.factFile?.breeding ?? []), t('card.habitat'), ...(c.factFile?.habitat ?? [])];
-  if (v.p > 0.5) {
-    const s = c.stats ?? {};
-    return [...(c.profile?.callouts ?? []), ...(s.diet ? [t('card.diet'), s.diet] : [])];
-  }
-  return [c.name, ...factsOf(c)];
-}
+const readPairs = () => readOrder(v.card, v.f > 0.5 ? 'back' : v.p > 0.5 ? 'open' : 'front');
 
 function readButton() {
   if (!speechSupported) return null;
@@ -342,7 +354,8 @@ export function open(card, { fromEl, main, onDismiss } = {}) {
   sheet.addEventListener('click', e => { if (e.target === sheet) sheet.close(); });
   const pane = h('div', { class: 'viewer__pane' }, bar, stage, hint);
   const el = h('div', { class: 'viewer', role: 'dialog', 'aria-modal': 'true' }, scrim, pane, sheet);
-  el.addEventListener('wheel', e => e.preventDefault(), { passive: false });
+  // The page itself never scrolls; pages inside the card that scroll do.
+  el.addEventListener('wheel', e => { if (!e.target.closest?.('[data-scroll]')) e.preventDefault(); }, { passive: false });
   document.body.append(el);
 
   v = { el, pane, scrim, zoomer, stage, hint, bar, sheet, main, fromEl, onDismiss, p: 0, f: 0, z: 0, cancel: null, split: null, max: null };

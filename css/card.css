@@ -75,19 +75,6 @@
 /* Open: the cover lies flat to the left of the spine, inside facing up. */
 .card3d.is-rest[data-pose="open"] .leaf { inset: 0 100% 0 -100%; }
 
-.grab {
-  position: absolute; right: 0; top: 50%;
-  display: grid; place-items: center; width: var(--size-dot); height: calc(var(--size-dot) * 2.2);
-  border-radius: var(--r-sm) 0 0 var(--r-sm);
-  background: var(--c-accent); color: var(--c-on-accent);
-  font-size: var(--fs-lg); font-weight: var(--fw-bold);
-  box-shadow: var(--shadow-1);
-  transform: translateY(-50%);
-  animation: nudge 1.6s ease-in-out infinite;
-  pointer-events: none;
-}
-.card3d.is-open .grab { visibility: hidden; }
-
 /* ---------- Card pages ---------- */
 .cpage {
   position: absolute; inset: 0;
@@ -104,6 +91,22 @@
   font-size: var(--card-fs-title);
 }
 .cpage__heading .bi, .bi--inline { flex-direction: row; flex-wrap: wrap; column-gap: 0.4em; align-items: baseline; }
+/* Small section labels on the front (Key Features, Where in the World). */
+.cpage__label {
+  margin-bottom: var(--s-1);
+  color: var(--g-edge, var(--c-ink-soft)); font-size: var(--card-fs-sm); font-weight: var(--fw-bold);
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.cpage__label .bi { flex-direction: row; flex-wrap: wrap; column-gap: 0.4em; }
+/* A page body with more than fits scrolls inside the card (viewer.js scrolls it by drag);
+   the frame never grows. */
+.cpage__scroll {
+  flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  display: flex; flex-direction: column; gap: var(--s-3);
+  padding: var(--s-3);
+  scrollbar-width: thin;
+}
+.cpage__scroll > * { flex-shrink: 0; } /* sections keep their height; the body scrolls instead */
 .cpage .badge { min-height: 0; padding: var(--s-hair) var(--s-2) var(--s-hair) var(--s-hair); font-size: var(--card-fs-sm); }
 .cpage .badge .bi { flex-direction: row; }
 .cpage .badge__code { width: var(--callout-dot); height: var(--callout-dot); font-size: var(--card-fs-sm); }
@@ -117,7 +120,22 @@
 }
 .chip--group { display: inline-flex; align-items: center; gap: var(--s-1); padding: 0; background: none; color: inherit; font-size: var(--card-fs-sm); }
 .chip--group .bi { flex-direction: row; gap: 0.4em; }
+.cover__meta { display: inline-flex; align-items: center; gap: var(--s-2); }
 .cover__no { font-size: var(--card-fs-sm); }
+.series-badge {
+  padding: 0 var(--s-2); border-radius: var(--r-pill);
+  background: var(--c-veil); color: var(--c-ink);
+  font-size: var(--card-fs-sm); font-weight: var(--fw-bold); line-height: 1.5;
+}
+/* Order · Family · Genus species */
+.cover__tax {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--s-1);
+  padding: var(--s-hair) var(--s-3);
+  border-bottom: var(--bw-thin) solid var(--c-paper-line);
+  color: var(--c-ink-soft); font-size: var(--card-fs-sm);
+}
+.tax__item + .tax__item::before { content: "·"; margin-right: var(--s-1); }
+.tax__zh { margin-left: 0.3em; font-style: normal; }
 .cover__photo { position: relative; flex: 1 1 auto; min-height: 0; background: var(--c-bg-deep); }
 .cover__photo .pic { position: absolute; inset: 0; object-fit: cover; }
 .cover__credit {
@@ -128,13 +146,17 @@
 .cover__names { padding: var(--s-2) var(--s-3) 0; }
 .cover__name { font-size: var(--card-fs-name); line-height: 1.05; }
 .bi--cover > .t-zh { font-size: 0.8em !important; }
-.cover__sci { font-style: italic; color: var(--c-ink-soft); font-size: var(--card-fs-sm); }
-.cover__bottom { display: flex; gap: var(--s-3); align-items: flex-end; padding: var(--s-2) var(--s-3) var(--s-3); }
-.cover__facts { flex: 1; margin: 0; padding-left: 1.2em; display: grid; gap: var(--s-1); font-size: var(--card-fs-sm); }
-.cover__side { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: var(--s-1); width: calc(var(--card-w) * 0.32); }
-.cover__side .map { width: 100%; }
+.cover__bottom { display: flex; gap: var(--s-3); align-items: flex-start; padding: var(--s-2) var(--s-3) var(--s-3); }
+.cover__features { flex: 1; min-width: 0; }
+.cover__facts { margin: 0; padding-left: 1.2em; display: grid; gap: var(--s-1); font-size: var(--card-fs-sm); }
+.cover__side { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: var(--s-1); width: calc(var(--card-w) * 0.36); }
+.cover__side .cpage__label { align-self: stretch; text-align: right; }
+.cover__side .cpage__label .bi { justify-content: flex-end; }
+.cover__map { position: relative; width: 100%; }
+/* Kept free for the map's expand button (next prompt). */
+.cover__map-slot { position: absolute; top: var(--s-hair); right: var(--s-hair); width: var(--map-slot); height: var(--map-slot); }
 .cover__badges { display: flex; flex-direction: column; align-items: flex-end; gap: var(--s-1); }
-.cover__badges:empty, .back__badges:empty { display: none; } /* e.g. a plant with no IUCN status */
+.cover__badges:empty { display: none; } /* e.g. a plant with no IUCN status */
 
 /* Map: inline SVG (land from assets/world.svg), zoomed by its viewBox. */
 .map { position: relative; width: 100%; aspect-ratio: 360 / 142; overflow: hidden; border-radius: var(--r-sm); background: var(--c-map-sea); }
@@ -165,9 +187,34 @@
   box-shadow: 0 0 0 var(--bw-thin) var(--c-surface);
 }
 
-/* Profile: a clean photo; picking a feature shows it through a magnifier (magnifier.js). */
-.profile__pic { position: relative; flex: none; border-radius: var(--r-sm); overflow: hidden; background: var(--c-bg-deep); cursor: pointer; }
-.profile__pic .pic { position: static; height: auto; }
+/* Profile: numbered labels on the picture; picking one rings it, shows it through a
+   magnifier (magnifier.js) and tells about it in the box underneath. The picture's box is
+   exactly the image, so the labels' percentages land on the features. */
+.profile__pic {
+  position: relative; flex: none; align-self: center; max-width: 100%;
+  border-radius: var(--r-sm); overflow: hidden; background: var(--c-bg-deep); cursor: pointer;
+}
+.profile__pic .pic { position: static; display: block; width: auto; max-width: 100%; height: auto; max-height: var(--profile-pic-max-h); }
+.profile__marks { position: absolute; inset: 0; pointer-events: none; }
+.profile__mark {
+  position: absolute; display: grid; place-items: center;
+  width: var(--hotspot); height: var(--hotspot); padding: 0; transform: translate(-50%, -50%);
+  border: var(--bw-thin) solid var(--c-surface); border-radius: 50%;
+  background: var(--c-callout); color: var(--c-callout-ink);
+  font: inherit; font-size: var(--card-fs-sm); font-weight: var(--fw-bold);
+  box-shadow: var(--shadow-1); cursor: pointer; pointer-events: auto;
+}
+/* The picked feature is ringed by the magnifier; its label steps aside so the ring shows. */
+.profile__mark.is-lit { background: var(--g, var(--c-accent)); color: var(--g-ink, var(--c-on-accent)); opacity: 0.85; }
+.profile__detail {
+  min-height: var(--profile-detail-min-h);
+  padding: var(--s-2); border-radius: var(--r-sm); background: var(--c-callout-soft);
+  font-size: var(--card-fs-sm);
+}
+.profile__detail .stat__hint { margin: 0; }
+.profile__detail-name { display: flex; align-items: center; gap: var(--s-2); font-weight: var(--fw-bold); font-size: var(--card-fs); }
+.profile__detail-name .bi { flex-direction: row; flex-wrap: wrap; column-gap: 0.5em; }
+.profile__detail-text { margin-top: var(--s-1); }
 .loupe { position: absolute; inset: 0; pointer-events: none; }
 .loupe__wire { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .loupe__wire line {
@@ -186,22 +233,13 @@
   box-shadow: var(--shadow-3);
 }
 .loupe__img { position: absolute; max-width: none; height: auto; }
-.callouts { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-hair); font-size: var(--card-fs-sm); }
-.callouts__item {
-  display: grid; grid-template-columns: var(--hotspot) 1fr; gap: var(--s-2); align-items: center;
-  width: 100%; padding: var(--s-hair); border: 0; border-radius: var(--r-sm);
-  background: none; color: inherit; font: inherit; text-align: left; cursor: pointer;
-}
 .callouts__no {
-  display: grid; place-items: center; width: var(--hotspot); height: var(--hotspot); border-radius: 50%;
-  background: var(--c-callout); color: var(--c-callout-ink); font-weight: var(--fw-bold);
+  flex: none; display: grid; place-items: center; width: var(--hotspot); height: var(--hotspot); border-radius: 50%;
+  background: var(--c-callout); color: var(--c-callout-ink); font-weight: var(--fw-bold); font-size: var(--card-fs-sm);
 }
-.callouts__item .bi, .cycle li .bi { flex-direction: row; flex-wrap: wrap; column-gap: 0.5em; }
-.callouts li.is-lit .callouts__item { background: var(--c-callout-soft); font-weight: var(--fw-semi); }
-.profile__tax { display: flex; flex-wrap: wrap; gap: var(--s-1) var(--s-3); margin-top: auto; color: var(--c-ink-soft); font-size: var(--card-fs-sm); }
 
-/* Inside right page: statistics you can tap, and the comparison they drive. */
-.cpage--inside { gap: var(--s-2); }
+/* Inside right page: statistics you can tap, the comparison they drive, related species. */
+.cpage--inside { padding: 0; }
 .csection { display: flex; flex-direction: column; gap: var(--s-1); }
 .stat {
   display: grid; grid-template-columns: auto auto 1fr; gap: var(--s-2); align-items: baseline;
@@ -305,22 +343,47 @@
 }
 .cmp-diet__food { position: absolute; transform: translate(-50%, -50%); font-size: var(--card-fs-name); line-height: 1; }
 
-/* Back */
-.cycle { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-2); counter-reset: step; font-size: var(--card-fs-sm); }
-.cycle li { counter-increment: step; position: relative; display: grid; grid-template-columns: var(--callout-dot) 1fr; gap: var(--s-2); align-items: start; }
-.cycle li::before {
-  content: counter(step); display: grid; place-items: center;
-  width: var(--callout-dot); height: var(--callout-dot); border-radius: 50%;
-  background: var(--g); color: var(--g-ink); font-weight: var(--fw-bold);
+/* Related Species: a card you have, one not collected yet (locked), or an animal with no card. */
+.related { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-2); }
+.related__item {
+  display: flex; flex-direction: column; align-items: center; gap: var(--s-1); height: 100%;
+  padding: var(--s-1); border: var(--bw-thin) solid var(--c-paper-line); border-radius: var(--r-sm);
+  color: inherit; text-align: center; text-decoration: none; font-size: var(--card-fs-sm);
 }
-.back__habitat { font-size: var(--card-fs-sm); }
-.back__badges { display: flex; flex-wrap: wrap; gap: var(--s-2); margin-top: auto; }
+a.related__item { border-color: var(--g, var(--c-paper-line)); }
+.related__pic {
+  position: relative; display: grid; place-items: center; overflow: hidden;
+  width: var(--related-pic); height: var(--related-pic); border-radius: 50%;
+  background: var(--c-bg-deep); font-size: var(--card-fs-title);
+}
+.related__pic .pic { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.related__item.is-locked { border-color: var(--c-locked); }
+.related__item.is-locked .related__pic { background: var(--c-paper-line); color: var(--c-ink-faint); }
+/* Not collected yet: a dark silhouette, like the lookalikes. */
+.related__shape { width: 80%; height: 80%; object-fit: contain; filter: brightness(0); opacity: 0.55; }
+.related__q { position: absolute; font-weight: var(--fw-bold); color: var(--c-surface); }
+.related__item--entry { border-style: dashed; }
+.related__pic--entry { background: var(--c-paper-line); }
+.related__name .bi { align-items: center; }
+.related__sci { display: block; color: var(--c-ink-soft); }
+
+/* Back: the Fact File. The header stays put; the sections scroll inside the card. */
+.cpage--back { padding: 0; gap: 0; }
+.ff__title { display: inline-flex; align-items: center; gap: var(--s-1); font-size: var(--card-fs-sm); }
+.ff__title .bi { flex-direction: row; gap: 0.4em; }
+.ff__section .map { margin-bottom: var(--s-1); }
+.ff__text { font-size: var(--card-fs-sm); }
+.ff__text + .ff__text { margin-top: var(--s-1); }
+.ff__dyk {
+  padding: var(--s-2) var(--s-3); border-radius: var(--r-sm);
+  border-left: var(--bw-mid) solid var(--c-callout); background: var(--c-callout-soft);
+}
+.ff__dyk-title { display: flex; align-items: center; gap: var(--s-1); margin-bottom: var(--s-1); font-weight: var(--fw-bold); }
+.ff__dyk-title .bi { flex-direction: row; gap: 0.4em; }
 
 .card-credits { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-2); font-size: var(--fs-xs); }
 .card-credits a { word-break: break-word; }
 .card-credits .bi { display: inline-flex; flex-direction: row; gap: 0.3em; }
-
-@keyframes nudge { 0%, 100% { transform: translate(0, -50%); } 50% { transform: translate(calc(var(--s-2) * -1), -50%); } }
 
 /* You / Animal: what the creature is compared with. */
 .cview { display: flex; flex-direction: column; gap: var(--s-2); }
