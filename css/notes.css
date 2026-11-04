@@ -74,14 +74,35 @@
 }
 .nb-input .bi { flex-direction: row; gap: 0.3em; }
 .nb-input[aria-pressed="true"] { border-color: var(--c-primary); }
-/* Phones: one row of tools that scrolls sideways, smaller page buttons, and the pen / finger
-   toggle first (just its icon) so it never scrolls out of sight. */
+/* Only in narrow notebooks: the row break, the colour swatch and footprint buttons, and their pickers. */
+.nb__break, .nb-tool--colour, .nb-tool--foot, .nb-pop { display: none; }
+.nb-swatch {
+  display: block; width: var(--s-5); height: var(--s-5); border-radius: 50%;
+  border: var(--bw-mid) solid var(--c-surface); box-shadow: var(--shadow-1); background: var(--pencil);
+}
+.nb-pop {
+  position: absolute; z-index: 4;
+  grid-template-columns: repeat(4, var(--tap-xs)); gap: var(--s-2);
+  padding: var(--s-2); border-radius: var(--r-md);
+  background: var(--c-surface); box-shadow: var(--shadow-3);
+}
+.nb-pop .nb-colour { width: var(--tap-xs); height: var(--tap-xs); }
+/* Narrow notebooks (the panel beside a card, phones): two rows that never scroll, every control
+   44 px. Tools and photo on the first; colour, size, footprints (roller), undo / redo and the
+   pen / finger toggle (just its icon) on the second. */
 @container (max-width: 520px) {
   .nb__bar { gap: var(--s-1); padding: var(--s-1) var(--s-2); }
   .nb__bar .btn--icon { width: var(--tap-xs); height: var(--tap-xs); min-width: var(--tap-xs); min-height: var(--tap-xs); }
-  .nb__tools { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; touch-action: pan-x; }
-  .nb__tools::-webkit-scrollbar { display: none; }
-  .nb-input { order: -1; justify-content: center; width: var(--tap-sm); padding: 0; }
+  .nb__tools { flex-wrap: wrap; }
+  .nb__break { display: block; flex-basis: 100%; height: 0; }
+  .nb__tools > .nb__sep, .nb__tools > .nb-colour, .nb__tools > .spacer,
+  .nb[data-tool="roller"] .nb__feet { display: none; }
+  .nb-tool { width: var(--tap-xs); height: var(--tap-xs); }
+  .nb-tool--colour { display: grid; }
+  .nb[data-tool="roller"] .nb-tool--foot { display: grid; }
+  .nb-pop:not([hidden]) { display: grid; }
+  .nb-undo { margin-left: auto; }
+  .nb-input { justify-content: center; width: var(--tap-xs); min-height: var(--tap-xs); padding: 0; }
   .nb-input .bi { display: none; }
 }
 

@@ -507,8 +507,10 @@ One notebook per profile (📓 in the nav, or beside every card). Code: `js/note
   cards' silhouettes, or the group emoji), footprint roller (cat paw, hoof, bird, bear), move
   (drag, the corner handles or a two-finger pinch to resize and turn; ✕ to remove), photos, undo
   and redo (Ctrl/⌘+Z). Swipe across the page with a finger to turn it.
+  In a narrow notebook (the panel beside a card, phones) the toolbar has two rows of 44 px controls
+  and never scrolls: the colours, and the roller's feet, open from one button each in a small picker.
 - **Pen or finger**: the first time a pen touches the page, the notebook switches to *Pen only*
-  so a resting hand doesn't draw. The toggle at the end of the toolbar (first, on phones) switches
+  so a resting hand doesn't draw. The toggle at the end of the toolbar switches
   back to finger drawing at any time; the choice is kept per profile. Touches wider than a finger
   are ignored, and so are touches while the pen is down.
 - **Backup** (⋯ menu): *Back up all my notes* makes a zip (`manifest.json`, `pages/*.json`,

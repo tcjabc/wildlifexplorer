@@ -94,14 +94,59 @@ export function notebook({ cardId = null, beside = false, onMaximise = null, onC
     type: 'button', class: 'nb-tool nb-tool--small', 'data-foot': id, 'aria-pressed': 'false', 'aria-label': label(`notes.foot.${id}`),
     onclick: () => { nb.foot = id; drawTools(); },
   }, h('span', { 'aria-hidden': 'true' }, icon)));
-  const undoBtn = h('button', { type: 'button', class: 'nb-tool', 'aria-label': label('notes.undo'), onclick: () => undo() }, h('span', { 'aria-hidden': 'true' }, '↶'));
+  const undoBtn = h('button', { type: 'button', class: 'nb-tool nb-undo', 'aria-label': label('notes.undo'), onclick: () => undo() }, h('span', { 'aria-hidden': 'true' }, '↶'));
   const redoBtn = h('button', { type: 'button', class: 'nb-tool', 'aria-label': label('notes.redo'), onclick: () => redo() }, h('span', { 'aria-hidden': 'true' }, '↷'));
   const inputBtn = h('button', { type: 'button', class: 'nb-input', onclick: () => setInput(input() === 'pen' ? 'finger' : 'pen') });
+  // Narrow notebooks (the panel beside a card, phones) have two rows of 44 px controls and no
+  // room for a row of colours: a swatch opens them in a small picker, and so does the footprint
+  // button for the roller's feet. Wider notebooks show both in the toolbar itself (css/notes.css).
+  const colourPick = picker('nb-tool--colour', 'notes.colourPick', PENCILS.map(id => h('button', {
+    type: 'button', class: 'nb-colour', 'data-colour': id, 'aria-pressed': 'false', 'aria-label': label(`notes.colour.${id}`),
+    onclick: () => { nb.colour = id; closePicker(); drawTools(); },
+  })));
+  const footPick = picker('nb-tool--foot', 'notes.footPick', FEET.map(([id, icon]) => h('button', {
+    type: 'button', class: 'nb-tool', 'data-foot': id, 'aria-pressed': 'false', 'aria-label': label(`notes.foot.${id}`),
+    onclick: () => { nb.foot = id; closePicker(); drawTools(); },
+  }, h('span', { 'aria-hidden': 'true' }, icon))));
   const tools = h('div', { class: 'nb__tools', role: 'toolbar', 'aria-label': label('notes.tools') },
-    toolBtns, photoBtn, h('span', { class: 'nb__sep' }), colourBtns, sizeBtn,
+    toolBtns, photoBtn, h('span', { class: 'nb__break', 'aria-hidden': 'true' }), h('span', { class: 'nb__sep' }),
+    colourPick.btn, colourBtns, sizeBtn, footPick.btn,
     h('span', { class: 'nb__feet' }, footBtns), h('span', { class: 'nb__sep' }), undoBtn, redoBtn, h('span', { class: 'spacer' }), inputBtn);
 
-  const el = h('section', { class: 'nb', 'aria-label': label('notes.title') }, bar, tools, desk, fileInput, importInput, menuSheet, pickSheet);
+  const el = h('section', { class: 'nb', 'aria-label': label('notes.title') },
+    bar, tools, colourPick.box, footPick.box, desk, fileInput, importInput, menuSheet, pickSheet);
+
+  // ---------- pickers (narrow notebooks) ----------
+  // One open at a time, just under its button; a pick, a tap elsewhere, Esc or another tool closes it.
+  let openPick = null;
+  function picker(cls, key, items) {
+    const box = h('div', { class: 'nb-pop', role: 'group', 'aria-label': label(key), hidden: true }, items);
+    const p = { box };
+    p.btn = h('button', {
+      type: 'button', class: ['nb-tool', cls], 'aria-haspopup': 'true', 'aria-expanded': 'false', 'aria-label': label(key),
+      onclick: () => (openPick === p ? closePicker() : openPicker(p)),
+    });
+    return p;
+  }
+  function openPicker(p) {
+    closePicker();
+    openPick = p;
+    p.box.hidden = false;
+    const left = Math.max(0, Math.min(p.btn.offsetLeft, el.clientWidth - p.box.offsetWidth));
+    p.box.style.setProperty('left', `${left}px`);
+    p.box.style.setProperty('top', `${p.btn.offsetTop + p.btn.offsetHeight}px`);
+    p.btn.setAttribute('aria-expanded', 'true');
+    document.addEventListener('pointerdown', onOutside, true);
+    p.box.querySelector('[aria-pressed="true"]')?.focus({ preventScroll: true });
+  }
+  function closePicker() {
+    if (!openPick) return;
+    openPick.box.hidden = true;
+    openPick.btn.setAttribute('aria-expanded', 'false');
+    openPick = null;
+    document.removeEventListener('pointerdown', onOutside, true);
+  }
+  const onOutside = e => { if (openPick && !openPick.box.contains(e.target) && !openPick.btn.contains(e.target)) closePicker(); };
 
   // ---------- drawing the page ----------
   let scale = 1, dpr = 1;
@@ -202,8 +247,10 @@ export function notebook({ cardId = null, beside = false, onMaximise = null, onC
   }
   function drawTools() {
     toolBtns.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tool === nb.tool)));
-    colourBtns.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.colour === nb.colour)));
-    footBtns.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.foot === nb.foot)));
+    el.querySelectorAll('button[data-colour]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.colour === nb.colour)));
+    el.querySelectorAll('button[data-foot]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.foot === nb.foot)));
+    mount(colourPick.btn, h('span', { class: 'nb-swatch', 'data-colour': nb.colour, 'aria-hidden': 'true' }));
+    mount(footPick.btn, h('span', { 'aria-hidden': 'true' }, FEET.find(([id]) => id === nb.foot)?.[1] ?? ''));
     el.dataset.tool = nb.tool;
     mount(sizeBtn, h('span', { class: ['nb-size', `nb-size--${nb.size}`], 'aria-hidden': 'true' }));
     undoBtn.disabled = !nb.undo.length;
@@ -214,6 +261,7 @@ export function notebook({ cardId = null, beside = false, onMaximise = null, onC
     inputBtn.setAttribute('aria-label', label(pen ? 'notes.penOnlyHint' : 'notes.fingerHint'));
   }
   function setTool(id) {
+    closePicker();
     nb.tool = id;
     if (id !== 'move') { nb.selected = -1; drawSelection(); }
     if (id === 'stamp' && !nb.stampCard) openStampPicker();
@@ -615,6 +663,13 @@ export function notebook({ cardId = null, beside = false, onMaximise = null, onC
   desk.addEventListener('pointerup', e => { if (e.target === desk && swipe?.id === e.pointerId) up(e); });
   const onKey = e => {
     if (!el.isConnected || e.target.closest?.('textarea, input')) return;
+    if (e.key === 'Escape' && openPick) {
+      e.preventDefault(); e.stopPropagation();
+      const btn = openPick.btn;
+      closePicker();
+      btn.focus({ preventScroll: true });
+      return;
+    }
     const mod = e.ctrlKey || e.metaKey;
     if (mod && e.key.toLowerCase() === 'z') { e.preventDefault(); e.stopPropagation(); if (e.shiftKey) redo(); else undo(); }
   };
@@ -635,6 +690,7 @@ export function notebook({ cardId = null, beside = false, onMaximise = null, onC
     el,
     async destroy() {
       ro.disconnect();
+      closePicker();
       document.removeEventListener('keydown', onKey, true);
       await flushSave();
       for (const bmp of nb.assets.photos.values()) bmp?.close?.();
