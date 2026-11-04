@@ -516,7 +516,11 @@ truth; it syncs with Supabase when online.
   *Magic link* contain the code `{{ .Token }}` and the link
   `{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=email`. The code's length is the project's
   *Email OTP Length*; `CODE_LENGTH` in `js/config.js` must match it.
-- **Privacy notice:** needed before any family other than ours uses accounts.
+- **Deleting an account:** when a user is deleted and their family has no members left, the
+  family is deleted too, with its profiles, packs, cards and badges
+  (`supabase/migrations/20261104050133_family_cleanup.sql`). Devices keep their local copy.
+- **Privacy notice:** needed before any family other than ours uses accounts. It must say that
+  deleting a family's last parent account deletes that family's data on the server.
 
 The schema lives in `supabase/migrations/` and is applied with the Supabase CLI (a dev
 dependency). Once per machine:

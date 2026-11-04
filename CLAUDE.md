@@ -23,6 +23,7 @@
 - No personal data about the family in the repo (names, photos, locations).
 - Progress data stays on the device (IndexedDB). It is sent only to the family's own Supabase project, and only after a parent signs in. Height, weight, age, home country, quiz scores and Field Notes stay on the device.
 - Before any family other than ours uses accounts, the app needs a privacy notice (what is stored, where, for how long, how to delete it).
+  It must say that deleting a family's last parent account deletes that family's data on the server (migration 4); devices keep their local copy.
 - `index.html` has a Content Security Policy meta tag allowing only same-origin resources, plus `connect-src` to the Supabase project URL (nothing else). The same CSP is sent as an HTTP header on wildfile.app (see DEPLOYMENT).
 - Escape or sanitise any text inserted into the DOM. Never use `innerHTML` with data from JSON or external sources.
 

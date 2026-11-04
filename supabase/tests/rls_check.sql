@@ -396,5 +396,28 @@ begin
   end if;
 end $$;
 
+-- ---------- Deleting a user (migration 4) ----------
+
+-- A family left with no members is deleted, with its profiles and progress. Another
+-- family is untouched. (Still as postgres; rolled back with everything else.)
+delete from auth.users where id = current_setting('rls.user_b')::uuid;
+
+do $$
+begin
+  if exists (select 1 from public.families where id = current_setting('rls.fam_b')::uuid) then
+    raise exception 'FAIL: family B was not deleted with its last member';
+  end if;
+  if exists (select 1 from public.profiles where family_id = current_setting('rls.fam_b')::uuid)
+     or exists (select 1 from public.packs where family_id = current_setting('rls.fam_b')::uuid)
+     or exists (select 1 from public.collection where family_id = current_setting('rls.fam_b')::uuid)
+     or exists (select 1 from public.badges where family_id = current_setting('rls.fam_b')::uuid) then
+    raise exception 'FAIL: family B''s profiles or progress outlived the family';
+  end if;
+  if not exists (select 1 from public.families where id = current_setting('rls.fam_a')::uuid)
+     or not exists (select 1 from public.family_members where family_id = current_setting('rls.fam_a')::uuid) then
+    raise exception 'FAIL: deleting user B touched family A';
+  end if;
+end $$;
+
 select 'RLS check passed' as result;
 rollback;
