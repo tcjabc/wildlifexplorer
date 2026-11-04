@@ -3654,38 +3654,47 @@
     "factFile": {
       "habitat": [
         {
-          "en": "",
-          "zh": ""
+          "en": "The Taiwan blue magpie is [[endemic]] to Taiwan. It lives in forests, and some live in city parks too, such as in Taipei.",
+          "zh": "臺灣藍鵲是臺灣的[[endemic|特有種]]，住在森林裡，也有一些住在城市的公園，例如臺北。"
         }
       ],
       "breeding": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Blue magpies breed with [[helper|helpers at the nest]]: as well as the parents, older young birds from earlier broods help to bring food and defend the nest. In one study, 70% of nests had helpers.",
+          "zh": "臺灣藍鵲採用「[[helper|巢邊幫手]]」的繁殖方式：除了爸爸媽媽，之前出生的大哥哥大姊姊也會幫忙找食物、保護鳥巢。有一項研究發現，70%的鳥巢都有幫手。"
+        },
+        {
+          "en": "A [[clutch]] has about 3 to 8 pale blue-green eggs with brown spots. The mother sits on them alone, and they hatch after about 17 to 19 days. Pairs can raise two broods a year.",
+          "zh": "一[[clutch|窩蛋]]大約有3到8顆，蛋殼是淡青色、帶有褐色斑點。由媽媽獨自孵蛋，大約17到19天孵化。一年可以生兩窩。"
         }
       ],
       "behaviour": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Blue magpies live in family groups and defend their nests fiercely. In the breeding season they will dive at anyone who comes too close, even people, until they leave.",
+          "zh": "臺灣藍鵲成群生活，會非常拚命地保護鳥巢。在繁殖季節，只要有人靠得太近，牠們就會俯衝攻擊，直到對方離開為止，連人也不例外。"
         }
       ],
       "foodAndHunting": [
         {
-          "en": "",
-          "zh": ""
+          "en": "The blue magpie is an [[omnivore]] and a [[scavenger]]. It eats fruit, seeds, insects, snakes, rodents, the eggs and chicks of other birds, and the remains of dead animals.",
+          "zh": "臺灣藍鵲是[[omnivore|雜食性動物]]，也是[[scavenger|食腐動物]]。牠吃果實、種子、昆蟲、蛇、鼠類、其他鳥的蛋和雛鳥，也吃死掉動物的屍體。"
         }
       ],
       "conservation": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Around the world, the Taiwan blue magpie is listed as [[least-concern|Least Concern]] on the [[red-list|IUCN Red List]]. Taiwan's law still protects it, in the \"other conservation-deserving\" level, so its nests and chicks may not be disturbed.",
+          "zh": "在全世界，臺灣藍鵲在[[red-list|國際自然保護聯盟（IUCN）紅色名錄]]上被列為[[least-concern|無危]]。臺灣的法律仍然保護牠，列為「其他應予保育」的[[protected-species|保育類野生動物]]，所以不能干擾牠的鳥巢和雛鳥。"
         }
       ],
       "didYouKnow": [
         {
-          "en": "",
-          "zh": ""
+          "en": "If a blue magpie swoops at you in spring, it is guarding its chicks. Walk away calmly and give the nest some space.",
+          "zh": "如果春天有臺灣藍鵲朝你俯衝，那是牠在保護寶寶。請冷靜地走開，讓鳥巢保有一點空間。",
+          "todo": "Spring as the breeding season: sources give \"breeding season\" without months; not confirmed in this pass."
+        },
+        {
+          "en": "Its tail is longer than the rest of its body, so it looks like it is trailing ribbons when it flies.",
+          "zh": "牠的尾巴比身體還長，飛起來就像拖著長長的彩帶。"
         }
       ]
     },
@@ -3712,6 +3721,19 @@
       "north": 25.68
     },
     "range": "data/ranges/taiwan-blue-magpie.json",
+    "stats": {
+      "development": {
+        "kind": "incubation",
+        "days": {
+          "min": 17,
+          "max": 19
+        }
+      },
+      "youngCount": {
+        "min": 3,
+        "max": 8
+      }
+    },
     "related": [],
     "silhouette": {
       "file": "img/silhouettes/taiwan-blue-magpie-d4b35a.svg",
@@ -3756,7 +3778,36 @@
     "wikidata": "Q94533",
     "_draft": [
       "facts",
-      "tags"
+      "tags",
+      "factFile.habitat",
+      "factFile.breeding",
+      "factFile.behaviour",
+      "factFile.foodAndHunting",
+      "factFile.conservation",
+      "factFile.didYouKnow",
+      "stats"
+    ],
+    "_sources": [
+      {
+        "title": "Severinghaus (1987), Zoological Studies 26(1): social behaviour of the Formosan blue magpie (70% of nests had helpers; females incubate)",
+        "url": "https://zoolstud.sinica.edu.tw/Journals/26.1/27.pdf"
+      },
+      {
+        "title": "FANCA: 臺灣藍鵲 helpers at the nest (保育專題)",
+        "url": "https://conservation.forest.gov.tw/File.aspx?fno=65415"
+      },
+      {
+        "title": "Taipei City: 臺灣藍鵲 (two broods a year, pale blue eggs, about 17 days)",
+        "url": "https://www-ws.gov.taipei/001/Upload/581/relfile/27790/8188221/8dc80088-8c77-4de9-9086-a84ff465005f.pdf"
+      },
+      {
+        "title": "Storm Media: blue magpies attack people in breeding season; Category III protected",
+        "url": "https://www.storm.mg/article/434731"
+      },
+      {
+        "title": "Wikipedia: Taiwan blue magpie (clutch 3–8, hatching 17–19 days, diet, nest defence)",
+        "url": "https://en.wikipedia.org/wiki/Taiwan_blue_magpie"
+      }
     ]
   },
   {
@@ -3785,38 +3836,42 @@
     "factFile": {
       "habitat": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Swinhoe's pheasant is [[endemic]] to the mountains of central Taiwan. It lives in old [[broadleaf-forest|broadleaf forests]] up to about 2,300 metres.",
+          "zh": "藍腹鷴是臺灣中部山區的[[endemic|特有種]]，住在海拔大約2,300公尺以下的原始[[broadleaf-forest|闊葉林]]。"
         }
       ],
       "breeding": [
         {
-          "en": "",
-          "zh": ""
+          "en": "The female sits on the eggs by herself for about 25 days. Her brown feathers help her stay hidden on the forest floor.",
+          "zh": "母鳥會獨自孵蛋大約25天，牠褐色的羽毛能幫牠在森林地面上躲藏起來。"
+        },
+        {
+          "en": "The chicks can leave the nest when they are only two or three days old.",
+          "zh": "小鳥孵出來兩三天，就可以離開鳥巢了。"
         }
       ],
       "behaviour": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Swinhoe's pheasants are shy and hard to spot. A male is often seen with several females.",
+          "zh": "藍腹鷴很害羞，不容易被看到。常常可以看到一隻公鳥帶著好幾隻母鳥。"
         }
       ],
       "foodAndHunting": [
         {
-          "en": "",
-          "zh": ""
+          "en": "It is an [[omnivore]] that searches the forest floor for seeds and fruit, plus some insects and other small animals.",
+          "zh": "牠是[[omnivore|雜食性動物]]，在森林地面上找種子和果實，也吃一些昆蟲和其他小動物。"
         }
       ],
       "conservation": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Swinhoe's pheasant is [[near-threatened|Near Threatened]] on the [[red-list|IUCN Red List]], and Taiwan's law protects it as \"rare and valuable\". There may be over 10,000 birds, but logging cut down forests where some lived, and a few groups disappeared in the 1960s and 1970s.",
+          "zh": "藍腹鷴在[[red-list|國際自然保護聯盟（IUCN）紅色名錄]]上被列為[[near-threatened|近危]]，臺灣法律則把牠列為「珍貴稀有」的[[protected-species|保育類野生動物]]。牠的數量可能超過10,000隻，但伐木破壞了一些牠們居住的森林，1960和1970年代還有一些族群消失了。"
         }
       ],
       "didYouKnow": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Baby Swinhoe's pheasants are ready to leave the nest just two or three days after hatching.",
+          "zh": "藍腹鷴寶寶孵出來兩三天，就已經準備好離開鳥巢了。"
         }
       ]
     },
@@ -3848,6 +3903,13 @@
       "lengthCm": {
         "min": 50,
         "max": 72
+      },
+      "development": {
+        "kind": "incubation",
+        "days": {
+          "min": 25,
+          "max": 28
+        }
       }
     },
     "related": [],
@@ -3895,7 +3957,31 @@
     "_draft": [
       "facts",
       "tags",
-      "stats"
+      "stats",
+      "factFile.habitat",
+      "factFile.breeding",
+      "factFile.behaviour",
+      "factFile.foodAndHunting",
+      "factFile.conservation",
+      "factFile.didYouKnow"
+    ],
+    "_sources": [
+      {
+        "title": "Wikipedia: Swinhoe's pheasant (habitat up to 2,300 m, incubation 25–28 days, chicks leave nest at 2–3 days, IUCN NT)",
+        "url": "https://en.wikipedia.org/wiki/Swinhoe%27s_pheasant"
+      },
+      {
+        "title": "Nova Scotia Wildlife Park: Swinhoe's pheasant (female incubates alone, 25 days)",
+        "url": "https://wildlifepark.novascotia.ca/animals/swinhoes-pheasant.asp"
+      },
+      {
+        "title": "Watchbird: Taiwan's pheasants (Mikado and Swinhoe's)",
+        "url": "https://watchbird-ojs-tamu.tdl.org/watchbird/article/view/1915"
+      },
+      {
+        "title": "Wikipedia (zh): 臺灣保育物種列表 (protection categories)",
+        "url": "https://zh.wikipedia.org/zh-tw/%E8%87%BA%E7%81%A3%E4%BF%9D%E8%82%B2%E7%89%A9%E7%A8%AE%E5%88%97%E8%A1%A8"
+      }
     ]
   },
   {
@@ -3925,38 +4011,38 @@
     "factFile": {
       "habitat": [
         {
-          "en": "",
-          "zh": ""
+          "en": "The Mikado pheasant is [[endemic]] to Taiwan. It lives high in the mountains of central and southern Taiwan, at about 2,000 to 3,200 metres, in the shrubs and bamboo under [[conifer-forest|conifer forests]] and on grassy slopes. Most live in Yushan National Park.",
+          "zh": "帝雉是臺灣的[[endemic|特有種]]，住在臺灣中部和南部的高山，大約海拔2,000到3,200公尺，在[[conifer-forest|針葉林]]下的灌叢、箭竹和草坡間生活。大部分住在玉山國家公園。"
         }
       ],
       "breeding": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Mikado pheasants breed from March to June. The female sits on her eggs alone for about 27 to 28 days and looks after the chicks by herself.",
+          "zh": "帝雉在3月到6月繁殖。母鳥會獨自孵蛋大約27到28天，也獨自照顧小鳥。"
         }
       ],
       "behaviour": [
         {
-          "en": "",
-          "zh": ""
+          "en": "It walks quietly through the misty forest and comes out to feed most often in rain and fog.",
+          "zh": "牠會在霧氣瀰漫的森林裡安靜地走動，最常在下雨和起霧的時候出來覓食。"
         }
       ],
       "foodAndHunting": [
         {
-          "en": "",
-          "zh": ""
+          "en": "The Mikado pheasant is an [[omnivore]]. It eats fruit, berries, leaves, fern shoots, flower buds and seeds, and small animals without backbones, such as insects and worms.",
+          "zh": "帝雉是[[omnivore|雜食性動物]]，吃果實、漿果、葉子、蕨類嫩芽、花苞和種子，也吃昆蟲、蚯蚓等沒有脊椎的小動物。"
         }
       ],
       "conservation": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Around the world, the Mikado pheasant is listed as [[least-concern|Least Concern]] on the [[red-list|IUCN Red List]], because tens of thousands live in well-protected parks. Taiwan's law still protects it as \"rare and valuable\". Hunting was once a big problem, but it is not a serious threat today.",
+          "zh": "在全世界，帝雉在[[red-list|國際自然保護聯盟（IUCN）紅色名錄]]上被列為[[least-concern|無危]]，因為有好幾萬隻住在保護良好的國家公園裡。臺灣的法律仍然把牠列為「珍貴稀有」的[[protected-species|保育類野生動物]]。以前獵捕是很大的問題，但現在已經不是嚴重的威脅了。"
         }
       ],
       "didYouKnow": [
         {
-          "en": "",
-          "zh": ""
+          "en": "The Mikado pheasant likes bad weather: rain and fog are when it is most likely to come out and feed.",
+          "zh": "帝雉喜歡壞天氣：下雨和起霧的時候，是牠最常出來覓食的時候。"
         }
       ]
     },
@@ -3995,6 +4081,13 @@
       "lengthCm": {
         "min": 47,
         "max": 88
+      },
+      "development": {
+        "kind": "incubation",
+        "days": {
+          "min": 27,
+          "max": 28
+        }
       }
     },
     "related": [],
@@ -4045,7 +4138,35 @@
     "_draft": [
       "facts",
       "tags",
-      "stats"
+      "stats",
+      "factFile.habitat",
+      "factFile.breeding",
+      "factFile.behaviour",
+      "factFile.foodAndHunting",
+      "factFile.conservation",
+      "factFile.didYouKnow"
+    ],
+    "_sources": [
+      {
+        "title": "BirdLife DataZone: Mikado pheasant (Least Concern, tens of thousands, protected areas)",
+        "url": "https://datazone.birdlife.org/species/factsheet/mikado-pheasant-syrmaticus-mikado"
+      },
+      {
+        "title": "Birding in Taiwan: Mikado pheasant (altitude, incubation 28 days, diet, rain and fog)",
+        "url": "https://www.birdingintaiwan.com/mikadopheasant.htm"
+      },
+      {
+        "title": "Wikipedia: Mikado pheasant (2,000–3,200 m, breeding Mar–Jun, female incubates, Yushan)",
+        "url": "https://en.wikipedia.org/wiki/Mikado_pheasant"
+      },
+      {
+        "title": "Avian Genetics: Mikado pheasant (incubation 27–28 days)",
+        "url": "https://aviangenetics.com/PheasantRidge/mikado-pheasant.html"
+      },
+      {
+        "title": "Wikipedia (zh): 臺灣保育物種列表 (protection categories)",
+        "url": "https://zh.wikipedia.org/zh-tw/%E8%87%BA%E7%81%A3%E4%BF%9D%E8%82%B2%E7%89%A9%E7%A8%AE%E5%88%97%E8%A1%A8"
+      }
     ]
   },
   {
@@ -4074,38 +4195,43 @@
     "factFile": {
       "habitat": [
         {
-          "en": "",
-          "zh": ""
+          "en": "The Taiwan barbet is [[endemic]] to Taiwan. It lives in low- and mid-elevation forests, and also in city parks, such as Taipei Botanical Garden and Daan Forest Park.",
+          "zh": "五色鳥是臺灣的[[endemic|特有種]]，住在低海拔和中海拔的森林，也住在城市的公園，例如臺北植物園和大安森林公園。"
         }
       ],
       "breeding": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Barbets breed from about April to August and often raise two broods in a season. A [[clutch]] is usually about three eggs, and both parents take turns keeping them warm. The eggs hatch after about 14 days, and the chicks stay in the nest for about four weeks.",
+          "zh": "五色鳥大約在4月到8月繁殖，一季常常生兩窩。一[[clutch|窩蛋]]通常大約3顆，爸爸媽媽會輪流孵蛋。大約14天孵化，小鳥會在巢裡待大約四週。"
+        },
+        {
+          "en": "Life is hard for the eggs and chicks: in one study, only about one in three eggs became a bird that left the nest.",
+          "zh": "蛋和雛鳥要長大並不容易：有一項研究發現，大約只有三分之一的蛋，最後能長成離開鳥巢的小鳥。"
         }
       ],
       "behaviour": [
         {
-          "en": "",
-          "zh": ""
+          "en": "The barbet digs its own nest hole, a [[cavity]], in old, soft tree trunks. In Taipei, nest holes facing south-west did best, perhaps because the wind in the breeding season helps keep them dry inside.",
+          "zh": "五色鳥會在老的、比較軟的樹幹上，自己挖[[cavity|樹洞]]當巢。在臺北的研究發現，開口朝西南方的巢最成功，可能是因為繁殖季的風能讓巢裡保持乾燥。"
         }
       ],
       "foodAndHunting": [
         {
-          "en": "",
-          "zh": ""
+          "en": "It mostly eats fruit, and also catches insects, especially when it has chicks to feed.",
+          "zh": "牠主要吃果實，也會抓昆蟲，特別是要餵雛鳥的時候。",
+          "todo": "Diet source is weak (Wikipedia mirror: fruit and insects); the Wilson study only notes animal food available while nesting."
         }
       ],
       "conservation": [
         {
-          "en": "",
-          "zh": ""
+          "en": "The Taiwan barbet is listed as [[least-concern|Least Concern]] on the [[red-list|IUCN Red List]]. It needs old trees with soft wood where it can dig its nest holes.",
+          "zh": "五色鳥在[[red-list|國際自然保護聯盟（IUCN）紅色名錄]]上被列為[[least-concern|無危]]。牠需要木質比較軟的老樹，才能挖洞做巢。"
         }
       ],
       "didYouKnow": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Which way the front door faces matters: in Taipei, barbet nest holes facing south-west did best.",
+          "zh": "巢的大門朝哪裡很重要：在臺北，開口朝西南方的五色鳥巢最成功。"
         }
       ]
     },
@@ -4132,6 +4258,17 @@
       "north": 25.68
     },
     "range": "data/ranges/taiwan-barbet.json",
+    "stats": {
+      "development": {
+        "kind": "incubation",
+        "en": "about 14 days",
+        "zh": "約14天"
+      },
+      "young": {
+        "en": "about 3 eggs",
+        "zh": "約3顆蛋"
+      }
+    },
     "related": [],
     "silhouette": {
       "file": "img/silhouettes/taiwan-barbet-9f025d.svg",
@@ -4176,7 +4313,28 @@
     "wikidata": "Q27074855",
     "_draft": [
       "facts",
-      "tags"
+      "tags",
+      "factFile.habitat",
+      "factFile.breeding",
+      "factFile.behaviour",
+      "factFile.foodAndHunting",
+      "factFile.conservation",
+      "factFile.didYouKnow",
+      "stats"
+    ],
+    "_sources": [
+      {
+        "title": "Wilson Journal of Ornithology (2010): breeding biology of the Taiwan barbet in Taipei Botanical Garden (clutch 3.0, incubation 13.8 days, nestlings 27.5 days, success 32.8%)",
+        "url": "https://katalog.lib.cas.cz/KNAV/EdsRecord/edsair,edsair.doi...........41c8ae65d4563e70bed8d309e4a1d327"
+      },
+      {
+        "title": "NTU thesis (2022): Taiwan barbet nest cavities in Daan Forest Park (April–August, south-west facing)",
+        "url": "https://tdr.lib.ntu.edu.tw/handle/123456789/87214"
+      },
+      {
+        "title": "Wikipedia: Taiwan barbet (diet)",
+        "url": "https://en.wikipedia.com/wiki/Taiwan_barbet"
+      }
     ]
   },
   {

@@ -1,6 +1,6 @@
 # Build report
 
-Generated 2026-11-04 13:13 UTC. Re-written on every build.
+Generated 2026-11-04 13:16 UTC. Re-written on every build.
 
 ## Summary
 
@@ -10,8 +10,8 @@ Generated 2026-11-04 13:13 UTC. Re-written on every build.
 - Rows not built yet: 183 (run with `--all` or a bigger `--limit`)
 - Cards without a photo: 5
 - Cards with facts still to write: 15
-- Cards with Fact File sections still to write: 11
-- Cards that open (profile or statistics): 23
+- Cards with Fact File sections still to write: 7
+- Cards that open (profile or statistics): 25
 
 ## Drops
 
@@ -325,10 +325,8 @@ Empty slots in `factFile` (habitat, breeding, behaviour, food, conservation, did
 - Formosan Sambar Deer · 水鹿 (`formosan-sambar-deer`): number of young
 - Red and White Giant Flying Squirrel · 大赤鼯鼠 (`red-and-white-giant-flying-squirrel`): development (gestation or incubation), number of young
 - Eurasian Otter · 歐亞水獺 (`eurasian-otter`): breeding, development (gestation or incubation), number of young
-- Taiwan Blue Magpie · 臺灣藍鵲 (`taiwan-blue-magpie`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
-- Swinhoe's Pheasant · 藍腹鷴 (`swinhoe-s-pheasant`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
-- Mikado Pheasant · 帝雉 (`mikado-pheasant`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
-- Taiwan Barbet · 五色鳥 (`taiwan-barbet`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
+- Swinhoe's Pheasant · 藍腹鷴 (`swinhoe-s-pheasant`): number of young
+- Mikado Pheasant · 帝雉 (`mikado-pheasant`): number of young
 - Brown-spotted Pit Viper · 龜殼花 (`brown-spotted-pit-viper`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
 - Formosan Landlocked Salmon · 櫻花鉤吻鮭 (`formosan-landlocked-salmon`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
 - Atlas Moth · 皇蛾 (`atlas-moth`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
@@ -345,14 +343,16 @@ Only shown in grown-up preview until checked. Delete the `todo` key once a fact 
 - Formosan Black Bear (`formosan-black-bear`, factFile.breeding): Litter size and birth month not confirmed for wild Formosan black bears. Tried: Kaohsiung Zoo animal page, FANCA, Yushan NP, captive breeding studies on lawdata.com.tw (no=345322 gives a captive breeding season of about Feb–Aug).
 - Formosan Sambar Deer (`formosan-sambar-deer`, stats.development): Species-level figure (Wikipedia: sambar deer); not confirmed for the Formosan subspecies.
 - Red and White Giant Flying Squirrel (`red-and-white-giant-flying-squirrel`, factFile.breeding): Only one secondary source ("reproductive rate likely low, less than two young per litter"); no Taiwan-specific data found.
+- Taiwan Blue Magpie (`taiwan-blue-magpie`, factFile.didYouKnow): Spring as the breeding season: sources give "breeding season" without months; not confirmed in this pass.
+- Taiwan Barbet (`taiwan-barbet`, factFile.foodAndHunting): Diet source is weak (Wikipedia mirror: fruit and insects); the Wilson study only notes animal food available while nesting.
 
 ## Glossary
 
-- Terms in data/glossary.json: 45; used on cards: 43
+- Terms in data/glossary.json: 50; used on cards: 48
 - Missing: none
 - Not used on any card: `carnivora`, `incubation`
 
-Cards with a sources list (`_sources`): 20 of 30 species cards.
+Cards with a sources list (`_sources`): 24 of 30 species cards.
 
 ## Draft text to check
 
@@ -378,10 +378,10 @@ Written by Claude as a starting point. Check or rewrite it, then remove the fiel
 - Hippopotamus · 河馬 (`hippopotamus`): tags, factFile.habitat, factFile.breeding, factFile.behaviour, factFile.foodAndHunting, factFile.conservation, factFile.didYouKnow, stats
 - Black Rhinoceros · 黑犀牛 (`black-rhinoceros`): tags, stats, factFile.habitat, factFile.breeding, factFile.behaviour, factFile.foodAndHunting, factFile.conservation, factFile.didYouKnow
 - Western Lowland Gorilla · 西部低地大猩猩 (`western-lowland-gorilla`): tags, stats, factFile.habitat, factFile.breeding, factFile.behaviour, factFile.foodAndHunting, factFile.conservation, factFile.didYouKnow
-- Taiwan Blue Magpie · 臺灣藍鵲 (`taiwan-blue-magpie`): facts, tags
-- Swinhoe's Pheasant · 藍腹鷴 (`swinhoe-s-pheasant`): facts, tags, stats
-- Mikado Pheasant · 帝雉 (`mikado-pheasant`): facts, tags, stats
-- Taiwan Barbet · 五色鳥 (`taiwan-barbet`): facts, tags
+- Taiwan Blue Magpie · 臺灣藍鵲 (`taiwan-blue-magpie`): facts, tags, factFile.habitat, factFile.breeding, factFile.behaviour, factFile.foodAndHunting, factFile.conservation, factFile.didYouKnow, stats
+- Swinhoe's Pheasant · 藍腹鷴 (`swinhoe-s-pheasant`): facts, tags, stats, factFile.habitat, factFile.breeding, factFile.behaviour, factFile.foodAndHunting, factFile.conservation, factFile.didYouKnow
+- Mikado Pheasant · 帝雉 (`mikado-pheasant`): facts, tags, stats, factFile.habitat, factFile.breeding, factFile.behaviour, factFile.foodAndHunting, factFile.conservation, factFile.didYouKnow
+- Taiwan Barbet · 五色鳥 (`taiwan-barbet`): facts, tags, factFile.habitat, factFile.breeding, factFile.behaviour, factFile.foodAndHunting, factFile.conservation, factFile.didYouKnow, stats
 - Brown-spotted Pit Viper · 龜殼花 (`brown-spotted-pit-viper`): facts, tags, stats
 - Formosan Landlocked Salmon · 櫻花鉤吻鮭 (`formosan-landlocked-salmon`): facts, tags
 - Atlas Moth · 皇蛾 (`atlas-moth`): facts, tags, stats

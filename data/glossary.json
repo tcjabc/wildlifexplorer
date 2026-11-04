@@ -61,6 +61,36 @@
         "zh": "包括貓、狗、熊和果子狸等的哺乳動物類群，很多會吃肉，但不是全部。"
       }
     },
+    "cavity": {
+      "term": {
+        "en": "cavity",
+        "zh": "樹洞"
+      },
+      "def": {
+        "en": "A hole inside a tree trunk, used by some birds and animals as a nest.",
+        "zh": "樹幹裡的洞，有些鳥和動物會用來當巢。"
+      }
+    },
+    "clutch": {
+      "term": {
+        "en": "clutch",
+        "zh": "一窩蛋"
+      },
+      "def": {
+        "en": "All the eggs a bird lays in one nest at one time.",
+        "zh": "鳥在同一個巢裡、一次生下的所有蛋。"
+      }
+    },
+    "conifer-forest": {
+      "term": {
+        "en": "conifer forest",
+        "zh": "針葉林"
+      },
+      "def": {
+        "en": "A forest of trees with needle-like leaves and cones, such as pines.",
+        "zh": "由葉子像針、會結毬果的樹（例如松樹）組成的森林。"
+      }
+    },
     "critically-endangered": {
       "term": {
         "en": "Critically Endangered",
@@ -139,6 +169,16 @@
       "def": {
         "en": "To eat grass and other low plants growing on the ground.",
         "zh": "吃地上的草和其他矮小的植物。"
+      }
+    },
+    "helper": {
+      "term": {
+        "en": "helper at the nest",
+        "zh": "巢邊幫手"
+      },
+      "def": {
+        "en": "A young bird that helps its parents raise the next chicks instead of breeding itself.",
+        "zh": "自己先不繁殖，幫爸爸媽媽養育弟弟妹妹的年輕鳥。"
       }
     },
     "herbivore": {
@@ -389,6 +429,16 @@
       "def": {
         "en": "A wide, warm grassland with only a few trees.",
         "zh": "溫暖、寬廣、只有少數樹木的草原。"
+      }
+    },
+    "scavenger": {
+      "term": {
+        "en": "scavenger",
+        "zh": "食腐動物"
+      },
+      "def": {
+        "en": "An animal that eats the remains of animals that are already dead.",
+        "zh": "會吃已經死掉的動物屍體的動物。"
       }
     },
     "silverback": {
