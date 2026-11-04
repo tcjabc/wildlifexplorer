@@ -35,6 +35,7 @@ const SHELL = [
   'js/reveal.js',
   'js/offline.js',
   'js/gesture.js',
+  'js/gesture-release.js',
   'js/glossary.js',
   'js/viewer.js',
   'js/cardparts.js',

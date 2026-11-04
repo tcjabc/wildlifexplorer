@@ -33,6 +33,7 @@ import { speak, stop, isSpeaking, speechSupported } from './speech.js';
 import { notebook } from './notebook.js';
 import { notesCount } from './notes-store.js';
 import { closePopover } from './glossary.js';
+import { releaseOutcome } from './gesture-release.js';
 
 const cssNum = name => parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
 const DONE = 0.999;
@@ -233,8 +234,6 @@ export function toggleFlip() {
 // Gesture tuning, for young kids who aren't precise.
 const SLOP = 11;          // px before a movement is a drag (less is a tap)
 const SIDEWAYS = Math.tan(30 * Math.PI / 180); // within 30° of horizontal counts as sideways
-const COMMIT = 0.25;      // a quarter of the way is enough
-const FLICK = 1.1;        // turns per second: a quick flick towards the goal is enough too
 const MARGIN = 40;        // px around the card that also start a gesture
 const OPEN_REACH = 0.5;   // the open zone reaches this share of a card's width to its right
 const CLOSE_MARGIN = 80;  // px around the open spread that also start closing it
@@ -382,33 +381,19 @@ function wireGestures() {
     draw();
   }
 
-  function release(mode, { dy, vx, vy }) {
-      const T = travel();
-      const L = v.L;
-      // Progress towards the goal (0–1) and its speed; commit past a quarter, or on a flick.
-      const decide = (q, speed) => (speed > FLICK ? true : speed < -FLICK ? false : q > COMMIT);
-      if (mode === 'open' || mode === 'close') {
-        const q = mode === 'open' ? v.p : 1 - v.p;
-        const speed = (vx * dir) / T.x;
-        const target = decide(q, speed) === (mode === 'open') ? 1 : 0;
-        if (target !== base.p) haptic(12);
-        settle('p', target, mode === 'open' ? speed : -speed);
-      } else if (mode === 'flip' || mode === 'unflip') {
-        const q = mode === 'flip' ? v.f : 1 - v.f;
-        const speed = mode === 'flip' ? -vy / T.y : (vy * dir) / T.y;
-        const target = decide(q, speed) === (mode === 'flip') ? 1 : 0;
-        if (target !== base.f) haptic(12);
-        settle('f', target, mode === 'flip' ? speed : -speed);
-      } else if (mode === 'scroll') {
-        // A flick keeps gliding a little.
-        const el = scroller, from = el.scrollTop, to = from - (vy / v.zoom) * 0.3;
-        if (Math.abs(vy) > 200) v.glide = tween({ from, to, duration: 500, onUpdate: x => { el.scrollTop = x; } });
-      } else if (mode === 'dismiss') {
-        // Down far enough, or a flick down: back to the binder. A flick up (or too little)
-        // springs back to full size.
-        const commit = vy < -700 ? false : vy > 700 || dy > L.Hs * 0.18;
-        if (commit) { haptic(8); dismiss(); } else settle('z', 1, -vy / (L.Hs * 0.6));
-      } else springBack();
+  // Apply what the release decided (js/gesture-release.js).
+  function release(mode, info) {
+    const o = releaseOutcome(mode, { p: v.p, f: v.f, base, dir, travel: travel(), stageH: v.L.Hs }, info);
+    if (o.dismiss) { haptic(8); dismiss(); return; }
+    if (o.springBack) { springBack(); return; }
+    if (o.scroll) {
+      // A flick keeps gliding a little.
+      const el = scroller, from = el.scrollTop, to = from - (o.velocity / v.zoom) * 0.3;
+      if (Math.abs(o.velocity) > 200) v.glide = tween({ from, to, duration: 500, onUpdate: x => { el.scrollTop = x; } });
+      return;
+    }
+    if (o.prop !== 'z' && o.target !== base[o.prop]) haptic(12);
+    settle(o.prop, o.target, o.velocity);
   }
 }
 
