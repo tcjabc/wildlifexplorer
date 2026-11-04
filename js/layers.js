@@ -110,7 +110,9 @@ export const LAYER_CREDITS = [
     sourceUrl: 'https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-0-countries/' },
 ];
 
-const DEPTHS = [200, 2000, 4000, 6000];
+// Where the ocean's zones meet (NOAA / NWS JetStream, Layers of the Ocean): sunlight to 200 m,
+// twilight to 1,000 m, midnight to 4,000 m, the abyss to 6,000 m, then the trenches.
+export const DEPTHS = [200, 1000, 4000, 6000];
 const FORESTS = ['tropical', 'temperate', 'boreal'];
 
 // legend: [{ colour token, label key }] or a special kind the view knows how to draw.

@@ -137,7 +137,7 @@ test('curves pass exactly through hard points (the antimeridian, where outlines 
 // ---------- the real depth bands ----------
 
 const topo = name => decodeTopo(JSON.parse(readFileSync(new URL(`../assets/layers/${name}.topo.json`, import.meta.url), 'utf8')));
-const BANDS = [200, 2000, 4000, 6000];
+const BANDS = [200, 1000, 4000, 6000]; // js/layers.js DEPTHS: where the ocean zones meet
 const VIEWS = [
   { name: 'Indian Ocean, whole globe', lon: 78, lat: -15, k: 1, file: 'depth-far' },
   // The detailed depth file from zoom 5 (js/layers.js DEPTH_NEAR_K), the far one before.
@@ -227,5 +227,18 @@ test('leaving out points far off the screen never changes what is filled on scre
         }
       }
     }
+  }
+});
+
+test('the depth bands are the ocean zones: 200, 1,000, 4,000 and 6,000 m, each with a label in both languages', async () => {
+  const { DEPTHS } = await import('../js/layers.js');
+  assert.deepEqual(DEPTHS, [200, 1000, 4000, 6000]);
+  for (const file of ['depth', 'depth-far']) {
+    const levels = [...new Set(topo(file).map(s => s.props.depth))].sort((a, b) => a - b);
+    assert.deepEqual(levels, DEPTHS, file);
+  }
+  for (const lang of ['en', 'zh-TW']) {
+    const s = JSON.parse(readFileSync(new URL(`../lang/${lang}.json`, import.meta.url), 'utf8'));
+    for (let i = 0; i <= DEPTHS.length; i++) assert.ok(s[`layer.depth.${i}`], `${lang} layer.depth.${i}`);
   }
 });

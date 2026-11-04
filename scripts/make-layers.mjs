@@ -210,8 +210,10 @@ async function ms(commands) {
 async function depth() {
   const dir = await unpacked('depth');
   // Natural Earth has a polygon layer per depth (0, 200, 1000 … 10000 m), each covering
-  // everything at least that deep. Four steps are plenty for a child; deeper trenches stay inside 6000.
-  const keep = [200, 2000, 4000, 6000];
+  // everything at least that deep. These four are where the ocean's zones meet (NOAA /
+  // National Weather Service JetStream, Layers of the Ocean): sunlight 0–200 m, twilight
+  // 200–1,000 m, midnight 1,000–4,000 m, the abyss 4,000–6,000 m, trenches below 6,000 m.
+  const keep = [200, 1000, 4000, 6000];
   const files = [];
   for (const d of keep) files.push(await find(dir, new RegExp(`_${d}\\.shp$`)));
   // Two levels of detail, like assets/globe.json: "far" while the whole globe shows. The

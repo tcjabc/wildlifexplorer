@@ -371,7 +371,9 @@ above every layer.
 - Picture layers (topography, night lights, temperature) are drawn with WebGL 2 by
   `js/globegl.js`, on a canvas between the land and the pins. It is only created when such
   a layer is first switched on. Shape layers (forests, depth, reefs) are drawn like the land.
-- The ocean depth bands are Natural Earth's 1:10m bathymetry, simplified to the forests'
+- The ocean depth bands are Natural Earth's 1:10m bathymetry at 200, 1,000, 4,000 and 6,000 m,
+  where the ocean's zones meet (sunlight, twilight, midnight, the abyss, the trenches; NOAA /
+  NWS JetStream "Layers of the Ocean"), simplified to the forests'
   density: about 0.23° between points in the detailed file (99% of segments under 1°) and 0.7°
   in the far one (none over 4°); `tests/globe-path.test.mjs` keeps them there. They are drawn
   with light curves (`DEPTH_CURVE`), which never cross a clip point (the horizon, the map's

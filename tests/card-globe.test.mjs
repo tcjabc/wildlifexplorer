@@ -125,7 +125,7 @@ test('the globe\'s data is not installed with the app: it is kept on its first o
   for (const p of ['/assets/globe.json', '/assets/home.json', '/assets/layers/depth.topo.json']) assert.ok(rule.test(p), p);
   assert.ok(!rule.test('/assets/world.svg'));
   assert.match(sw, /if \(GLOBE_FILE\.test\(url\.pathname\)\) event\.respondWith\(cacheFirst\(request, LAYER_CACHE\)\)/);
-  assert.match(sw, /const LAYERS_VERSION = 'l2';/);
+  assert.match(sw, /const LAYERS_VERSION = 'l\d+';/);
   // The view tells the child when it can't load, with Back to card still there.
   const view = src('js/views/globe.js');
   assert.match(view, /onLand: ok => \{ offline\.hidden = ok; \}/);
