@@ -1,6 +1,7 @@
 // js/cloud/sync.js against a fake Data API, on the realistic database of tests/fixtures/v3.mjs
 // (upgraded on open): the first-sign-in choice, what may leave the device, the order and
-// size of uploads, the outbox, and offline, rejected or concurrent changes.
+// size of uploads, the outbox, and offline, rejected or concurrent changes. Pulling between
+// devices: pull.test.mjs.
 // Run: npm test
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
@@ -8,9 +9,9 @@ import 'fake-indexeddb/auto';
 import * as db from '../js/db.js';
 import { createSync, toRow, statusKey } from '../js/cloud/sync.js';
 import { AuthError } from '../js/cloud/auth.js';
+import { createServer, FAMILY, keyOf } from './fixtures/server.mjs';
 import { buildV3, ADA, BEN, CAT, DAN } from './fixtures/v3.mjs';
 
-const FAMILY = '11111111-1111-4111-8111-111111111111';
 // Exactly the columns each table has (supabase/migrations): nothing else may be sent.
 const COLUMNS = {
   profiles: ['id', 'family_id', 'name', 'lang', 'avatar', 'zhuyin', 'rate', 'length_unit', 'temp_unit', 'drop_day',
@@ -20,31 +21,11 @@ const COLUMNS = {
   badges: ['profile_id', 'family_id', 'epoch', 'badge_id', 'earned_at'],
 };
 
-// The fake server: records requests, keeps upserted rows, and can be offline or refuse rows.
-const server = {
-  calls: [], rows: { profiles: new Map(), packs: new Map(), collection: new Map(), badges: new Map() },
-  offline: false, refuse: () => false, during: null,
-};
-const KEY = { packs: 'drop_id', collection: 'card_id', badges: 'badge_id' };
-const keyOf = (table, r) => (table === 'profiles' ? r.id : [r.profile_id, r.epoch, r[KEY[table]]].join(':'));
-const reply = (status, body) => ({ status, json: async () => body, text: async () => (body === undefined ? '' : JSON.stringify(body)) });
+// The fake server (fixtures/server.mjs): records requests, merges upserts like the
+// triggers do, and can be offline or refuse rows. Pulls are recorded apart (server.pulls).
+const server = createServer();
 let user = { signedIn: true, userId: 'user-1', email: 'parent@example.test', needsSignIn: false };
-const auth = {
-  state: async () => user,
-  onChange: () => {},
-  async authFetch(path, init = {}) {
-    if (server.offline) throw new AuthError('offline');
-    const u = new URL(path, 'https://example.supabase.co');
-    const table = u.pathname.split('/').pop();
-    const body = init.body ? JSON.parse(init.body) : undefined;
-    server.calls.push({ table, method: init.method ?? 'GET', search: u.search, prefer: init.headers?.Prefer, body });
-    if (table === 'family_members') return reply(200, [{ family_id: FAMILY, role: 'owner' }]);
-    if (server.during) { const fn = server.during; server.during = null; await fn(); }
-    if (body.some(r => server.refuse(table, r))) return reply(409, { code: '23505', message: 'duplicate key' });
-    for (const r of body) server.rows[table].set(keyOf(table, r), r);
-    return reply(201);
-  },
-};
+const auth = { state: async () => user, onChange: () => {}, authFetch: server.authFetch };
 const noTimers = { setTimeout: () => 0, clearTimeout: () => {} };
 const newSync = () => createSync({ db, auth, locks: undefined, timers: noTimers });
 let sync;
@@ -60,7 +41,7 @@ before(async () => {
 
 test('before the first choice nothing is sent, and the explorers on offer are the ones not deleted', async () => {
   assert.equal(await sync.stage(), 'choose');
-  await sync.push();
+  await sync.run();
   assert.deepEqual(server.calls, []);
   assert.deepEqual((await sync.candidates()).map(p => p.name), ['Ada', 'Ben', 'Dan']); // Cat was deleted
 });
@@ -106,7 +87,7 @@ test('an unticked explorer stays on this device: its changes are never sent', as
   await db.put('profiles', { ...dan, name: 'Danny' });
   await db.put('collection', { id: `${DAN}:2:red-fox`, profileId: DAN, epoch: 2, cardId: 'red-fox', collectedAt: new Date().toISOString(), packId: null, dropId: null });
   assert.equal((await outbox()).length, 2);
-  await sync.push();
+  await sync.run();
   assert.deepEqual(server.calls, []);
   assert.deepEqual(await outbox(), []);
   assert.deepEqual((await sync.status()).localOnly.map(p => p.name), ['Danny']);
@@ -116,7 +97,7 @@ test('a change after the first sync sends just that record', async () => {
   reset();
   const at = new Date().toISOString();
   await db.put('collection', { id: `${BEN}:1:emu`, profileId: BEN, epoch: 1, cardId: 'emu', collectedAt: at, packId: `${BEN}:1:s1-w03`, dropId: 's1-w03' });
-  await sync.push();
+  await sync.run();
   assert.equal(server.calls.length, 1);
   assert.deepEqual(server.calls[0].body, [{ profile_id: BEN, family_id: FAMILY, epoch: 1, card_id: 'emu', collected_at: at, drop_id: 's1-w03' }]);
 });
@@ -126,10 +107,14 @@ test('a deletion after the first sync goes up', async () => {
   const ben = await db.get('profiles', BEN);
   const at = new Date().toISOString();
   await db.put('profiles', { ...ben, deletedAt: at, updatedAt: at });
-  await sync.push();
-  assert.equal(server.rows.profiles.get(BEN).deleted_at, at);
-  await db.put('profiles', ben); // back, for the tests below
-  await sync.push();
+  await sync.run();
+  assert.equal(Date.parse(server.rows.profiles.get(BEN).deleted_at), Date.parse(at));
+  // Deletions stick: undeleting here doesn't bring Ben back, and the pull deletes him again.
+  await db.put('profiles', ben);
+  await sync.run();
+  assert.equal(Date.parse(server.rows.profiles.get(BEN).deleted_at), Date.parse(at));
+  assert.equal((await db.get('profiles', BEN)).deletedAt, at);
+  assert.deepEqual(await outbox(), []);
 });
 
 test('many records go up in batches of 500', async () => {
@@ -138,7 +123,7 @@ test('many records go up in batches of 500', async () => {
   await db.tx(['collection'], 'readwrite', async a => {
     for (let i = 0; i < 1200; i++) await a.put('collection', { id: `${ADA}:3:card-${i}`, profileId: ADA, epoch: 3, cardId: `card-${i}`, collectedAt: at, packId: null, dropId: null });
   });
-  await sync.push();
+  await sync.run();
   assert.deepEqual(uploads('collection').map(c => c.body.length), [500, 500, 200]);
   assert.deepEqual(await outbox(), []);
 });
@@ -148,11 +133,11 @@ test('offline: everything stays queued, and goes up once back online', async () 
   server.offline = true;
   const ada = await db.get('profiles', ADA);
   await db.put('profiles', { ...ada, avatar: 5, settingsAt: new Date().toISOString() });
-  await sync.push();
+  await sync.run();
   assert.equal((await outbox()).length, 1);
   assert.equal((await sync.status()).problem, 'offline');
   server.offline = false;
-  await sync.push();
+  await sync.run();
   assert.deepEqual(await outbox(), []);
   assert.equal(server.rows.profiles.get(ADA).avatar, 5);
   assert.equal((await sync.status()).problem, null);
@@ -161,12 +146,14 @@ test('offline: everything stays queued, and goes up once back online', async () 
 test('a change made while its record is being sent is sent again', async () => {
   reset();
   const ada = await db.get('profiles', ADA);
-  await db.put('profiles', { ...ada, name: 'Ada L.' });
-  server.during = () => db.put('profiles', { ...ada, name: 'Ada Lovelace' }); // lands mid-request
-  await sync.push();
+  const t = Date.now();
+  await db.put('profiles', { ...ada, name: 'Ada L.', settingsAt: new Date(t).toISOString() });
+  // Lands mid-request (newer settings, as updateProfile stamps them).
+  server.during = () => db.put('profiles', { ...ada, name: 'Ada Lovelace', settingsAt: new Date(t + 1).toISOString() });
+  await sync.run();
   assert.equal(server.rows.profiles.get(ADA).name, 'Ada L.');
   assert.equal((await outbox()).length, 1); // the newer change is still queued
-  await sync.push();
+  await sync.run();
   assert.equal(server.rows.profiles.get(ADA).name, 'Ada Lovelace');
   assert.deepEqual(await outbox(), []);
 });
@@ -180,7 +167,7 @@ test('a record the server refuses is held back; the rest still go', async () => 
       await a.put('collection', { id: `${ADA}:3:${cardId}`, profileId: ADA, epoch: 3, cardId, collectedAt: at, packId: null, dropId: null });
     }
   });
-  await sync.push();
+  await sync.run();
   for (const c of ['koala', 'orca', 'emu']) assert.ok(server.rows.collection.has(`${ADA}:3:${c}`), c);
   assert.equal(server.rows.collection.has(`${ADA}:3:tiger`), false);
   const held = await outbox();
@@ -188,11 +175,11 @@ test('a record the server refuses is held back; the rest still go', async () => 
   assert.equal(held[0].error, '409 23505');
   assert.equal((await sync.status()).held, 1);
   reset();
-  await sync.push(); // held back: not sent again on its own
+  await sync.run(); // held back: not sent again on its own
   assert.deepEqual(server.calls, []);
   server.refuse = () => false;
   await db.put('collection', { id: `${ADA}:3:tiger`, profileId: ADA, epoch: 3, cardId: 'tiger', collectedAt: at, packId: null, dropId: null });
-  await sync.push(); // it changed: tried again
+  await sync.run(); // it changed: tried again
   assert.ok(server.rows.collection.has(`${ADA}:3:tiger`));
   assert.deepEqual(await outbox(), []);
 });
@@ -201,11 +188,11 @@ test('a record the server would refuse anyway is held back without sending it', 
   reset();
   const ada = await db.get('profiles', ADA);
   await db.put('profiles', { ...ada, name: '' });
-  await sync.push();
+  await sync.run();
   assert.deepEqual(server.calls, []);
   assert.equal((await outbox())[0].error, 'invalid name');
   await db.put('profiles', ada);
-  await sync.push();
+  await sync.run();
   assert.deepEqual(await outbox(), []);
 });
 
@@ -215,13 +202,13 @@ test('another account signed in on this device sends nothing', async () => {
   const ada = await db.get('profiles', ADA);
   await db.put('profiles', { ...ada, name: 'Ada 2' });
   assert.equal(await sync.stage(), 'other-account');
-  await sync.push();
+  await sync.run();
   assert.deepEqual(server.calls, []);
   const s = await sync.status();
   assert.equal(s.stage, 'other-account');
   assert.equal(s.email, 'parent@example.test');
   user = { ...user, userId: 'user-1', email: 'parent@example.test' };
-  await sync.push(); // the right account again: it goes up
+  await sync.run(); // the right account again: it goes up
   assert.equal(server.rows.profiles.get(ADA).name, 'Ada 2');
 });
 
@@ -230,7 +217,7 @@ test('signed out: nothing is sent and changes wait', async () => {
   user = { signedIn: false, userId: null, email: 'parent@example.test', needsSignIn: false };
   const ada = await db.get('profiles', ADA);
   await db.put('profiles', { ...ada, name: 'Ada 3' });
-  await sync.push();
+  await sync.run();
   assert.deepEqual(server.calls, []);
   assert.equal((await outbox()).length, 1);
   user = { signedIn: true, userId: 'user-1', email: 'parent@example.test', needsSignIn: false };
@@ -245,7 +232,7 @@ test('an explorer unticked at first sign-in can be added later: everything they 
     await a.put('collection', { id: `${DAN}:2:barn-owl`, profileId: DAN, epoch: 2, cardId: 'barn-owl', collectedAt: at, packId: `${DAN}:2:s1-w01`, dropId: 's1-w01' });
     await a.put('badges', { id: `${DAN}:2:continent:asia:bronze`, profileId: DAN, epoch: 2, badgeId: 'continent:asia:bronze', earnedAt: at });
   });
-  await sync.push();
+  await sync.run();
   reset();
   assert.deepEqual((await sync.status()).localOnly.map(p => p.id), [DAN]);
 
@@ -264,12 +251,12 @@ test('an explorer unticked at first sign-in can be added later: everything they 
   assert.deepEqual(await outbox(), []);
 
   reset();
-  await sync.push(); // once: nothing left to send
+  await sync.run(); // once: nothing left to send
   await sync.addToFamily(DAN); // already added: nothing happens
   assert.deepEqual(server.calls, []);
   const dan = await db.get('profiles', DAN);
   await db.put('profiles', { ...dan, name: 'Dan', settingsAt: new Date().toISOString() });
-  await sync.push(); // and from now on like everyone else
+  await sync.run(); // and from now on like everyone else
   assert.equal(server.rows.profiles.get(DAN).name, 'Dan');
 });
 
@@ -311,7 +298,7 @@ test('statusKey: "saved" only once set up and a push went through, with nothing 
 test('status: set up but not pushed yet in this window is not "saved"; after a push it is', async () => {
   const fresh = newSync(); // a new window: nothing pushed yet
   assert.equal(statusKey(await fresh.status()), 'sync.saving');
-  await fresh.push();
+  await fresh.run();
   assert.equal(statusKey(await fresh.status()), 'sync.saved');
 });
 

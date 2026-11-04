@@ -1,12 +1,14 @@
 // Sends this device's explorers and their progress to the family account (Supabase Data
-// API, tables in supabase/migrations). The first time a parent signs in on a device they
-// choose which explorers to add; after that every change goes up. Bringing other devices'
-// changes down comes later (README, Family accounts).
+// API, tables in supabase/migrations), and brings the other devices' changes down. The
+// first time a parent signs in on a device they choose which explorers to add; after that
+// every change goes up, and the family's explorers come down. Each run pushes first (so the
+// server has merged this device's changes), then pulls.
 //
 // What is sent is an allow-list per table (toRow). Never: height, weight, age, home
 // country, preview, Field Notes settings, quiz scores, Field Notes, or when a pack was first
 // shown. Not sent at all: explorers the parent left unticked, explorers deleted before this
-// device's first sync, progress from before a "Start over" in version 3 (marked deleted).
+// device's first sync, progress from before a "Start over" in version 3 (marked deleted), and
+// progress of an explorer already deleted.
 //
 // Changes are found through the outbox (db.js), which every write to a synced store fills
 // in the same transaction. An entry is removed once the server has the record, and only if
@@ -15,12 +17,20 @@
 // busy or the session running out only means trying again later: nothing here blocks the
 // app, and nothing runs unless a parent is signed in.
 //
+// Pulling reads each table's rows changed since the last pull (updated_at, the server's
+// time), and merges them in with the server's own rules (merge.js). A record that ends up
+// exactly as the server has it gets no outbox entry, so nothing bounces back up. Not
+// pulled: explorers left on this device only (their ids, should the server ever have
+// them), and progress of explorers this device doesn't have or has deleted. "Start over"
+// done on another device also clears this device's quiz scores, as it does here.
+//
 // meta 'sync': { userId, email, familyId, setUpAt, localOnly: [profile ids] }, written when
 // the parent first chooses. A different account signing in on this device later sends
-// nothing: these explorers belong to the first account's family.
+// and pulls nothing: these explorers belong to the first account's family.
+// meta 'syncPull': { version, familyId, at: { table: updated_at of the last row pulled } }.
 import * as defaultDb from '../db.js';
 import { auth as defaultAuth, AuthError } from './auth.js';
-import { CARD, DROP, BADGE, HHMM, iso, isoOrNull, epochOk, Invalid, check } from './merge.js';
+import { CARD, DROP, BADGE, HHMM, iso, isoOrNull, epochOk, Invalid, check, MERGE } from './merge.js';
 
 export { Invalid };
 
@@ -28,6 +38,16 @@ const BATCH = 500;
 const DEBOUNCE_MS = 2000;
 const RETRY_MS = [5e3, 30e3, 2 * 60e3, 10 * 60e3];
 const LOCK = 'wildfile-sync';
+// Pages bigger than an upload batch: rows sent in one request share one updated_at, so a
+// page always gets past them.
+const PAGE = 1000;
+// updated_at is when a write's transaction began, so a row can commit a little after rows
+// with later times. Each pull starts this much before the last one ended; merging a row
+// twice changes nothing.
+const OVERLAP_MS = 60e3;
+const PULL_EVERY_MS = 5 * 60e3;
+// Bump to pull everything again (when what is pulled, or how it is merged, changes).
+const PULL_VERSION = 1;
 
 // Each table's primary key, for the upsert. In this order: progress needs its profile there.
 const TABLES = {
@@ -37,6 +57,15 @@ const TABLES = {
   badges: 'profile_id,epoch,badge_id',
 };
 const ORDER = Object.keys(TABLES);
+// What is pulled: the columns merge.js reads, and the cursor.
+const PULLED = {
+  profiles: 'id,name,lang,avatar,zhuyin,rate,length_unit,temp_unit,drop_day,drop_time,timeline_epoch,timeline_start_at,client_updated_at,created_at,deleted_at',
+  packs: 'profile_id,epoch,drop_id,seq,card_ids,due_at,granted_at,opened_at',
+  collection: 'profile_id,epoch,card_id,collected_at,drop_id',
+  badges: 'profile_id,epoch,badge_id,earned_at',
+};
+// The local id of a pulled row (the same as the server's key).
+const localId = (store, row) => (store === 'profiles' ? row.id : `${row.profile_id}:${row.epoch}:${row[TABLES[store].split(',')[2]]}`);
 
 // ---------- Records to rows ----------
 
@@ -167,11 +196,12 @@ export function createSync({ db = defaultDb, auth = defaultAuth, locks = globalT
       await a.put('meta', { id: 'sync', value: { userId: st.userId, email: st.email, familyId, setUpAt: new Date().toISOString(), localOnly } });
     });
     changed();
-    await push();
+    await run();
   }
 
   // An explorer left on this device only, added later: from now on like the others, and
-  // everything they already have goes up now.
+  // everything they already have goes up now. Everything is pulled again too, in case the
+  // server already had rows of theirs that earlier pulls skipped.
   async function addToFamily(pid) {
     if (await stage() !== 'on') return;
     await db.tx(['meta', 'outbox', ...ORDER], 'readwrite', async a => {
@@ -179,10 +209,11 @@ export function createSync({ db = defaultDb, auth = defaultAuth, locks = globalT
       const p = await a.get('profiles', pid);
       if (!cfg?.localOnly.includes(pid) || !p || p.deletedAt) return;
       await a.put('meta', { id: 'sync', value: { ...cfg, localOnly: cfg.localOnly.filter(id => id !== pid) } });
+      await a.remove('meta', 'syncPull');
       await queueExplorer(a, pid);
     });
     changed();
-    await push();
+    await run();
   }
 
   // ---------- Pushing ----------
@@ -228,7 +259,7 @@ export function createSync({ db = defaultDb, auth = defaultAuth, locks = globalT
       const list = (await a.all('outbox')).filter(e => !e.error); // held ones wait for a change
       const recs = new Map();
       for (const e of list) recs.set(e.id, await a.get(e.store, e.key));
-      return { entries: list, records: recs, profiles: new Set((await a.all('profiles')).map(p => p.id)) };
+      return { entries: list, records: recs, profiles: new Map((await a.all('profiles')).map(p => [p.id, p])) };
     });
     const groups = Object.fromEntries(ORDER.map(s => [s, []]));
     const drop = [];
@@ -236,7 +267,9 @@ export function createSync({ db = defaultDb, auth = defaultAuth, locks = globalT
     for (const e of entries) {
       const rec = records.get(e.id);
       const pid = e.store === 'profiles' ? e.key : rec?.profileId;
-      if (!rec || localOnly.has(pid) || !profiles.has(pid)) { drop.push(e); continue; }
+      // Progress of a deleted explorer stays here (their deletion went up instead).
+      const gone = !profiles.has(pid) || (e.store !== 'profiles' && profiles.get(pid).deletedAt);
+      if (!rec || localOnly.has(pid) || gone) { drop.push(e); continue; }
       try {
         const row = toRow(e.store, rec, cfg.familyId);
         if (row) groups[e.store].push({ e, row }); else drop.push(e);
@@ -252,16 +285,98 @@ export function createSync({ db = defaultDb, auth = defaultAuth, locks = globalT
     return true;
   }
 
-  function schedule(ms) {
-    timers.clearTimeout(timer);
-    timer = timers.setTimeout(() => { timer = null; push(); }, ms);
+  // ---------- Pulling ----------
+
+  const pullUrl = (store, familyId, since) => `/rest/v1/${store}?select=${PULLED[store]},updated_at` +
+    `&family_id=eq.${encodeURIComponent(familyId)}` + (since ? `&updated_at=gte.${encodeURIComponent(since)}` : '') +
+    `&order=updated_at.asc,${TABLES[store].split(',').map(c => `${c}.asc`).join(',')}&limit=${PAGE}`;
+
+  async function fetchPage(store, familyId, since) {
+    const res = await auth.authFetch(pullUrl(store, familyId, since));
+    if (retryable(res.status)) throw new Retry(String(res.status));
+    if (res.status !== 200) throw new Error(`pull ${store} ${res.status}`);
+    return res.json();
   }
 
-  // Push now (one at a time, in every window). Resolves when done; never throws.
-  function push() {
+  // Merge one page of rows and move the cursor past it, in one transaction: if the app
+  // closes half-way, the page is pulled again. Adds the explorers that changed to touched.
+  async function applyPage(store, rows, cursor, touched) {
+    const now = new Date().toISOString();
+    await db.tx(['meta', 'quiz', ...ORDER], 'readwrite', async a => {
+      const cfg = (await a.get('meta', 'sync'))?.value;
+      const localOnly = new Set(cfg?.localOnly ?? []);
+      for (const row of rows) {
+        const pid = store === 'profiles' ? row.id : row.profile_id;
+        if (localOnly.has(pid)) continue;
+        if (store !== 'profiles') {
+          const p = await a.get('profiles', pid);
+          if (!p || p.deletedAt) continue;
+        }
+        const local = await a.get(store, localId(store, row));
+        let merged;
+        try { merged = MERGE[store](local, row, now); } catch (err) {
+          if (!(err instanceof Invalid)) throw err;
+          console.warn(`Skipped a ${store} row this app can't use (${err.message})`);
+          continue;
+        }
+        if (!merged) continue;
+        // Exactly what the server has: no outbox entry. Ahead: it goes up again.
+        await (merged.ahead ? a.put : a.putFromServer)(store, merged.record);
+        touched.add(pid);
+        // "Start over" on another device: the quiz scores here start over too (store.js).
+        if (store === 'profiles' && local && merged.record.timeline.epoch > local.timeline.epoch) {
+          for (const q of await a.all('quiz', pid)) {
+            if (!q.deletedAt) await a.put('quiz', { ...q, updatedAt: now, deletedAt: now });
+          }
+        }
+      }
+      await a.put('meta', { id: 'syncPull', value: cursor });
+    });
+  }
+
+  // Bring every table's changes down, profiles first (progress needs its explorer here).
+  async function pullOnce() {
+    const cfg = await config();
+    const saved = await db.getMeta('syncPull', null);
+    const same = saved?.version === PULL_VERSION && saved.familyId === cfg.familyId;
+    const cursor = { version: PULL_VERSION, familyId: cfg.familyId, at: same ? { ...saved.at } : {} };
+    const touched = new Set();
+    for (const store of ORDER) {
+      const last = cursor.at[store];
+      let since = last && new Date(Date.parse(last) - OVERLAP_MS).toISOString();
+      for (;;) {
+        const rows = await fetchPage(store, cfg.familyId, since);
+        if (!rows.length) break;
+        const end = rows.at(-1).updated_at;
+        if (rows.length === PAGE && rows[0].updated_at === end) throw new Error(`pull ${store}: a whole page at one time`);
+        cursor.at[store] = end; // the server's own string: a Date would drop the microseconds
+        await applyPage(store, rows, structuredClone(cursor), touched);
+        if (rows.length < PAGE) break;
+        since = end;
+      }
+    }
+    if (touched.size) events.dispatchEvent(new CustomEvent('pulled', { detail: [...touched] }));
+  }
+
+  // ---------- Running ----------
+
+  // false when there was nothing it may do (not signed in, not set up, other account).
+  const runOnce = async () => {
+    if (!(await pushOnce())) return false;
+    await pullOnce();
+    return true;
+  };
+
+  function schedule(ms) {
+    timers.clearTimeout(timer);
+    timer = timers.setTimeout(() => { timer = null; run(); }, ms);
+  }
+
+  // Push, then pull (one at a time, in every window). Resolves when done; never throws.
+  function run() {
     running ??= (async () => {
       try {
-        if (await withLock(pushOnce)) last = { problem: null, savedAt: new Date().toISOString() };
+        if (await withLock(runOnce)) last = { problem: null, savedAt: new Date().toISOString() };
         tries = 0;
       } catch (err) {
         const offline = err instanceof AuthError && err.code === 'offline';
@@ -294,17 +409,24 @@ export function createSync({ db = defaultDb, auth = defaultAuth, locks = globalT
     };
   }
 
-  // Push after changes (once they settle), on sign-in, when the device comes back online
-  // and when the app is shown again.
+  // Run after changes (once they settle), on sign-in, when the device comes back online,
+  // when the app is shown again, and every few minutes while it is shown.
   function start() {
+    const shown = () => globalThis.document?.visibilityState !== 'hidden';
     db.events.addEventListener('queued', () => schedule(DEBOUNCE_MS));
-    auth.onChange?.(() => { changed(); push(); });
-    globalThis.addEventListener?.('online', () => push());
-    globalThis.document?.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') push(); });
-    push();
+    auth.onChange?.(() => { changed(); run(); });
+    globalThis.addEventListener?.('online', () => run());
+    globalThis.document?.addEventListener('visibilitychange', () => { if (shown()) run(); });
+    timers.setInterval?.(() => { if (shown()) run(); }, PULL_EVERY_MS);
+    run();
   }
 
-  return { stage, candidates, setUp, addToFamily, push, status, start, onChange: fn => events.addEventListener('change', fn) };
+  return {
+    stage, candidates, setUp, addToFamily, run, status, start,
+    onChange: fn => events.addEventListener('change', fn),
+    // fn(profile ids): records of these explorers changed here in a pull.
+    onPulled: fn => events.addEventListener('pulled', e => fn(e.detail)),
+  };
 }
 
 export const sync = createSync();

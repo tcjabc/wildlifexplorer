@@ -181,7 +181,7 @@ async function signedInStep(el, state, error) {
     }
   }
   const s = await sync.status();
-  if (s.stage === 'on' && !s.savedAt) sync.push(); // no push yet in this window: start one (the line follows it)
+  if (s.stage === 'on' && !s.savedAt) sync.run(); // no run yet in this window: start one (the line follows it)
   const box = h('div', null, statusLines(s));
   statusBoxes.add(box);
   return [who, box, error, actions];
