@@ -109,6 +109,9 @@ export const LAYER_CREDITS = [
     sourceUrl: 'https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-bathymetry/' },
   { layer: 'plates', author: 'Peter Bird (2003), PB2002 plate boundaries (doi:10.1029/2001GC000252), GIS version by Hugo Ahlenius, Nordpil; plate motion from its poles', license: 'ODC-By 1.0', licenseUrl: 'https://opendatacommons.org/licenses/by/1-0/',
     sourceUrl: 'https://github.com/fraxen/tectonicplates' },
+  { layer: 'plates', author: 'NOAA National Centers for Environmental Information (NCEI), Volcano Locations Database (from the Smithsonian Global Volcanism Program); Chinese names from Wikidata (CC0)',
+    license: 'Public domain (US government work)', licenseUrl: 'https://www.ncei.noaa.gov/access/metadata/landing-page/bin/iso?id=gov.noaa.ngdc.mgg.hazards:G02135',
+    sourceUrl: 'https://www.ncei.noaa.gov/products/natural-hazards/tsunamis-earthquakes-volcanoes/volcanoes' },
   { layer: 'home', author: 'Natural Earth, 1:10m Admin 0 countries (home outline)', ...NE,
     sourceUrl: 'https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-0-countries/' },
 ];
@@ -173,8 +176,11 @@ export const LAYERS = [
     // scripts/make-layers.mjs plates: PB2002 boundaries (far and near) and each major plate's
     // motion; drawn by js/globe.js (drawPlates), the names by js/views/globe.js.
     async load({ col }) {
-      const [far, near, motion] = await Promise.all(['plates-far.json', 'plates.json', 'plates-motion.json'].map(f => getJson(`${DIR}${f}`)));
-      return { plates: { far: plateLines(far), near: plateLines(near), motion: plateMotion(motion), colour: col('--c-plate'), halo: col('--c-plate-halo'), arrow: col('--c-plate-arrow'), arrowEdge: col('--c-plate-arrow-edge') } };
+      const [far, near, motion, volc] = await Promise.all(['plates-far.json', 'plates.json', 'plates-motion.json', 'volcanoes.json'].map(f => getJson(`${DIR}${f}`)));
+      return {
+        plates: { far: plateLines(far), near: plateLines(near), motion: plateMotion(motion), colour: col('--c-plate'), halo: col('--c-plate-halo'), gap: col('--c-plate-gap'), arrow: col('--c-plate-arrow'), arrowEdge: col('--c-plate-arrow-edge') },
+        volcanoes: { list: volcanoList(volc), fill: col('--c-volcano'), edge: col('--c-volcano-edge') },
+      };
     },
   },
 ];
@@ -191,6 +197,11 @@ export function plateLines(d) {
     meta.push({ kind: d.kinds[l[0]], side: l[1] });
   }
   return prepareLines(runs).map((p, i) => ({ ...p, ...meta[i] }));
+}
+// volcanoes.json (scripts/make-layers.mjs volcanoes): [lon, lat, notable, last, place, en, zh],
+// the notable ones (erupted since 1964, and Taiwan's) first.
+export function volcanoList(d) {
+  return d.v.map(([lon, lat, notable, last, place, en, zh]) => ({ v: toVec(lon * d.unit, lat * d.unit), lon: lon * d.unit, lat: lat * d.unit, notable: notable === 1, last, place, name: { en, zh } }));
 }
 // plates-motion.json: each major plate's label point and its motion (mm/yr east, north).
 export function plateMotion(d) {

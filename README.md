@@ -415,6 +415,19 @@ The chips along the top of the Globe switch on one map layer at a time: 🏔️ 
   the pins, and an arrow (`plates-motion.json`): Bird's poles are relative to the Pacific, so
   the build takes off the shell's net rotation (no-net-rotation frame); the longer the arrow, the
   faster. The pieces Bird splits off west of Taiwan (Yangtze, Sunda) are named the Eurasian Plate.
+  Drawn for tablets: the dashes are made as short lines, the double line is a light stripe on a
+  wide line, and the teeth and volcano triangles are stamped from small pictures (a canvas line
+  dash, cutting the stripe out, and hundreds of tiny paths each cost about 10 fps).
+- Volcanoes (the same layer): NOAA NCEI's Volcano Locations Database (public domain), made by
+  `node scripts/make-layers.mjs volcanoes` into `assets/layers/volcanoes.json`: place, name,
+  country and the last eruption as a period (NCEI has no years: since 1964, 1900–1963, the 1800s
+  … date unknown). Chinese names from Wikidata (zh-tw or zh-hant only); the notable ones are
+  listed in `data/volcano-names-review.md` for checking. `data/volcano-overrides.json` is
+  written by hand (with sources) and wins: Taiwan's Tatun Volcanic Group and Kueishantao, both
+  "uncertain". The whole globe shows the notable volcanoes (erupted since 1964, and Taiwan's),
+  zoom 2.5 and closer all of them. A tap within 22 px of a triangle (a 44 px target) opens its
+  card; a tap elsewhere or Esc closes it; a drag that starts on one still turns the globe
+  (`tests/volcano-touch.test.mjs`).
 - Coral reefs are areas made from Natural Earth's reef lines: everything within 8 km of a reef,
   joined where they touch and simplified (25 km for the whole-globe file, so they still show as a
   band), so the Great Barrier Reef reads as one long chain. See-through coral (`--c-reef-fill`) with

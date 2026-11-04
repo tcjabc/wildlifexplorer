@@ -26,6 +26,7 @@ import { track, haptic } from '../gesture.js';
 import { nameBi } from '../zhuyin.js';
 import { LAYERS, tempStops } from '../layers.js';
 import { tempText } from '../units.js';
+import { countryName } from '../countries.js';
 
 const NEAR_SIDE = 0.06;   // pins this close to the rim fade out
 const TOUCH = 0.8;        // pins closer than this many pin widths stack up
@@ -39,6 +40,7 @@ let shownFilter = null;   // { key: 'continents' | 'biomes', id }: only show pin
 let tempMonth = new Date().getMonth() + 1;
 let goBack = null;         // "Back to card", while the globe was opened from a card
 let closePanel = null;     // folds the info panel back when it is open over the globe
+let closeVolc = null;      // closes a volcano's card, while one is open
 
 // ---------- where pins go ----------
 
@@ -143,6 +145,36 @@ export function render(main, [cardId] = []) {
   const measure = () => { pinSize = parseFloat(getComputedStyle(view).getPropertyValue('--gpin')) || pinSize; };
   measure();
 
+  // Plates & volcanoes: a tap on a volcano (within its 44 px target, js/globe.js volcanoAt)
+  // opens a little card with its name, country and last eruption; a tap anywhere else, Esc or
+  // another layer closes it. A drag that starts on a volcano still turns the globe (the
+  // triangles are drawn on the globe's canvas; js/gesture.js tells a tap from a drag).
+  const volcCard = h('div', { class: 'gvolc', role: 'status', hidden: true });
+  let volcOpen = null;
+  function tapVolcano(at) {
+    const v = at && globe?.volcanoAt(at.x, at.y);
+    if (!v) { closeVolcano(); return; }
+    volcOpen = v;
+    const place = v.place.startsWith('sea:') ? t(`volcano.sea.${v.place.slice(4)}`) : countryName(v.place);
+    mount(volcCard,
+      h('button', { class: 'gvolc__close', type: 'button', 'aria-label': label('volcano.close'), onclick: closeVolcano }, '×'),
+      h('p', { class: 'gvolc__name' }, h('span', { 'aria-hidden': 'true' }, '🌋 '), v.name.en || v.name.zh ? bi(v.name) : tx('volcano.unnamed')),
+      place && h('p', { class: 'gvolc__place' }, bi(place)),
+      h('p', { class: 'gvolc__last' }, h('span', { class: 'gvolc__label' }, tx('volcano.last')), ' ', tx(`volcano.last.${v.last}`)));
+    volcCard.hidden = false;
+    closeVolc = closeVolcano;
+    globe.redraw();
+  }
+  function closeVolcano() { volcOpen = null; volcCard.hidden = true; closeVolc = null; }
+  layer.append(volcCard);
+  function placeVolcano(project) {
+    if (!volcOpen) return;
+    const [x, y, z] = project(volcOpen.v);
+    if (z < 0.05) { volcCard.style.setProperty('visibility', 'hidden'); return; }
+    volcCard.style.removeProperty('visibility');
+    volcCard.style.setProperty('transform', `translate3d(${(x - volcCard.offsetWidth / 2).toFixed(1)}px, ${(y - volcCard.offsetHeight - 14).toFixed(1)}px, 0)`);
+  }
+
   // Plates & volcanoes: the major plates' names, where each plate is widest (plates-motion.json),
   // only when the name fits inside its plate and never on top of a pin.
   let plateLabels = [];
@@ -217,6 +249,7 @@ export function render(main, [cardId] = []) {
       p.el.style.setProperty('opacity', depth.toFixed(2));
     }
     if (plateLabels.length) layoutPlateLabels(project, radius);
+    placeVolcano(project);
     if (fanning) globe.redraw();
   }
 
@@ -229,7 +262,7 @@ export function render(main, [cardId] = []) {
       if (fan) { fan = null; globe.redraw(); }
       if (holding) { holding = false; globe.pause(false); } // touched: it may turn by itself again
     },
-    onTap: () => { fan = null; select(null); closePanel?.(); },
+    onTap: (ll, at) => { fan = null; select(null); closePanel?.(); tapVolcano(at); },
   });
 
   // Tapping a stack zooms in far enough to pull its pins apart (and fans them if needed).
@@ -583,6 +616,7 @@ export function render(main, [cardId] = []) {
     chips.forEach(c => { c.setAttribute('aria-pressed', String(c.dataset.layer === id)); c.classList.remove('is-failed'); });
     const L = LAYERS.find(l => l.id === id);
     setPlateLabels(null);
+    closeVolcano();
     if (!L) { wanted = null; drawPanel(null, false); globe.setLayer(null).catch(() => {}); return; }
     drawPanel(L, false);
     show(L);
@@ -601,6 +635,7 @@ export function render(main, [cardId] = []) {
     window.removeEventListener('online', onOnline);
     goBack = null;
     closePanel = null;
+    closeVolc = null;
     closeSheet({ animate: false });
     globe.destroy();
     globe = null;
@@ -611,6 +646,7 @@ export function render(main, [cardId] = []) {
 export function onKey(e) {
   if (!globe) return;
   if (e.key === 'Escape' && sheet) { e.preventDefault(); sheet.el.querySelector('.gsheet__close')?.click(); return; }
+  if (e.key === 'Escape' && closeVolc) { e.preventDefault(); closeVolc(); return; }
   if (e.key === 'Escape' && closePanel) { e.preventDefault(); closePanel(); return; }
   if (e.key === 'Escape' && goBack) { e.preventDefault(); goBack(); return; }
   if (sheet) return;

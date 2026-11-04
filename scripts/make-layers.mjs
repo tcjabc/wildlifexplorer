@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Makes the Globe's map layers (assets/layers/) and the home outline (assets/home.json)
 // from big public datasets. Run: node scripts/make-layers.mjs [relief tiles night temp depth
-// forests reefs plates home] (no names = all).
+// forests reefs plates volcanoes home] (no names = all).
 //
 // Raw downloads go into data-raw/ (git-ignored) and are reused. Only the small processed
 // files are committed. Sources and licences: CREDITS.md.
@@ -490,6 +490,85 @@ async function plates() {
   console.log(`  plates.json ${await near}, plates-far.json ${await far}, plates-motion.json ${await kb(mfile)}, ${runs.length} runs`);
 }
 
+// ---------- volcanoes (NOAA NCEI) ----------
+
+// NOAA NCEI's Volcano Locations Database (public domain in the US; obtained from the
+// Smithsonian Global Volcanism Program), from its HazEL API, 200 a page. Its last-eruption
+// codes (GVP's): D1 1964 or later, D2 1900-1963, D3 1800-1899, D4 1700-1799, D5 1500-1699,
+// D6 1-1499 CE, D7 BCE (Holocene), U undated but probably Holocene, ? uncertain Holocene,
+// Q Quaternary with only hot springs and fumaroles since. zh names: Wikidata (CC0), by GVP
+// volcano number (P1886), zh-tw or else zh-hant labels only (never Simplified).
+// data/volcano-overrides.json (hand-written, with sources) wins over both.
+const NCEI = 'https://www.ngdc.noaa.gov/hazel/hazard-service/api/v1/volcanolocs';
+const WIKIDATA = 'https://query.wikidata.org/sparql';
+const LAST = { D1: 'D1', D2: 'D2', D3: 'D3', D4: 'D4', D5: 'D5', D6: 'D6', D7: 'D7', '?': 'maybe', Q: 'Q' }; // anything else: 'U'
+// NCEI's country names as ISO 3166 codes (their names come from the browser, js/countries.js),
+// or a sea (strings volcano.sea.*). A volcano NCEI places in Taiwan is shown in Taiwan.
+const PLACE = {
+  Germany: 'DE', France: 'FR', Spain: 'ES', Italy: 'IT', Greece: 'GR', Turkey: 'TR', Russia: 'RU', Georgia: 'GE', Armenia: 'AM',
+  Yemen: 'YE', Eritrea: 'ER', Ethiopia: 'ET', Kenya: 'KE', Tanzania: 'TZ', 'Congo, DRC': 'CD', Rwanda: 'RW', Uganda: 'UG',
+  Cameroon: 'CM', Nigeria: 'NG', Libya: 'LY', Chad: 'TD', Sudan: 'SD', Syria: 'SY', 'Saudi Arabia': 'SA', Iran: 'IR',
+  Afghanistan: 'AF', Comoros: 'KM', Reunion: 'RE', Antarctica: 'AQ', 'Heard I. & McDonald Is.': 'HM',
+  'French Southern & Antarctic Lands': 'TF', 'South Africa': 'ZA', 'New Zealand': 'NZ', Tonga: 'TO', 'United States': 'US',
+  'American Samoa': 'AS', Samoa: 'WS', 'Wallis & Futuna': 'WF', Fiji: 'FJ', 'Papua New Guinea': 'PG', 'Solomon Is.': 'SB',
+  Vanuatu: 'VU', Australia: 'AU', India: 'IN', Indonesia: 'ID', Malaysia: 'MY', Philippines: 'PH', China: 'CN', Vietnam: 'VN',
+  Myanmar: 'MM', Taiwan: 'TW', Japan: 'JP', Mongolia: 'MN', 'North Korea': 'KP', 'South Korea': 'KR', Canada: 'CA', Mexico: 'MX',
+  Guatemala: 'GT', 'El Salvador': 'SV', Honduras: 'HN', Nicaragua: 'NI', 'Costa Rica': 'CR', Panama: 'PA', Colombia: 'CO',
+  Ecuador: 'EC', Peru: 'PE', Chile: 'CL', Bolivia: 'BO', Argentina: 'AR', Netherlands: 'NL', 'St. Kitts & Nevis': 'KN',
+  Montserrat: 'MS', Guadeloupe: 'GP', Dominica: 'DM', Martinique: 'MQ', 'St. Lucia': 'LC', 'St. Vincent & the Grenadines': 'VC',
+  Grenada: 'GD', Trinidad: 'TT', Iceland: 'IS', 'Jan Mayen': 'SJ', Portugal: 'PT', 'Cape Verde': 'CV', 'Bouvet I.': 'BV',
+  Djibouti: 'DJ', 'Sao Tome & Principe': 'ST', 'Equatorial Guinea': 'GQ', Mali: 'ML', Algeria: 'DZ', Madagascar: 'MG',
+  'United Kingdom': 'GB',
+  'Pacific Ocean': 'sea:pacific', 'Atlantic Ocean': 'sea:atlantic', 'Indian Ocean': 'sea:indian', 'Arctic Ocean': 'sea:arctic',
+};
+
+async function volcanoes() {
+  const cache = path.join(RAW, 'ncei-volcanolocs.json');
+  if (!existsSync(cache)) {
+    const all = [];
+    for (let page = 1, pages = 1; page <= pages; page++) {
+      const res = await fetch(`${NCEI}?itemsPerPage=200&page=${page}`);
+      if (!res.ok) throw new Error(`${res.status} ${NCEI}`);
+      const d = await res.json();
+      all.push(...d.items);
+      pages = d.totalPages;
+    }
+    await writeFile(cache, JSON.stringify(all));
+  }
+  const locs = JSON.parse(await readFile(cache, 'utf8'));
+  const wdCache = path.join(RAW, 'wikidata-volcanoes.json');
+  if (!existsSync(wdCache)) {
+    const q = 'SELECT ?id ?tw ?hant WHERE { ?v wdt:P1886 ?id . OPTIONAL { ?v rdfs:label ?tw FILTER(LANG(?tw) = "zh-tw") } OPTIONAL { ?v rdfs:label ?hant FILTER(LANG(?hant) = "zh-hant") } }';
+    const res = await fetch(`${WIKIDATA}?format=json&query=${encodeURIComponent(q)}`, { headers: { 'User-Agent': 'WildFile-build/1.0 (educational app build script)', Accept: 'application/sparql-results+json' } });
+    if (!res.ok) throw new Error(`${res.status} Wikidata`);
+    await writeFile(wdCache, JSON.stringify((await res.json()).results.bindings));
+  }
+  const zhOf = new Map();
+  for (const b of JSON.parse(await readFile(wdCache, 'utf8'))) { const zh = b.tw?.value ?? b.hant?.value; if (zh && !zhOf.has(b.id.value)) zhOf.set(b.id.value, zh); }
+  const overrides = JSON.parse(await readFile(path.join(ROOT, 'data/volcano-overrides.json'), 'utf8'));
+  const list = [], unknownPlace = new Set();
+  for (const v of locs) {
+    if (/not volcanic/i.test(v.morphology ?? '')) continue;
+    const num = v.newNum ? String(v.newNum) : null, o = (num && overrides[num]) || {};
+    const place = o.place ?? (v.location === 'Taiwan' ? 'TW' : PLACE[v.country]);
+    if (!place) unknownPlace.add(v.country);
+    const last = o.last ?? LAST[v.timeErupt] ?? 'U';
+    // NCEI writes some names back to front for sorting ("Fournaise, Piton de la"): turned round.
+    const en = o.name?.en ?? (/^unnamed$/i.test(v.name) ? '' : v.name.replace(/^([^,]+), ([^,]+)$/, '$2 $1'));
+    const zh = o.name?.zh ?? (num && zhOf.get(num)) ?? '';
+    const notable = o.notable ?? last === 'D1';
+    list.push([Math.round(v.longitude * 100), Math.round(v.latitude * 100), notable ? 1 : 0, last, place ?? '', en, zh]);
+  }
+  if (unknownPlace.size) throw new Error(`volcanoes: no place for ${[...unknownPlace].join(', ')}`);
+  list.sort((a, b) => b[2] - a[2]); // the notable ones first
+  const file = path.join(OUT, 'volcanoes.json');
+  await writeFile(file, JSON.stringify({ source: 'NOAA NCEI Volcano Locations Database (public domain); zh names from Wikidata (CC0); data/volcano-overrides.json', unit: 0.01, fields: ['lon', 'lat', 'notable', 'last', 'place', 'en', 'zh'], v: list }) + '\n');
+  // The zh names shown on the whole globe, for checking (Wikidata names can be odd).
+  const review = list.filter(v => v[2] && v[6]).map(v => `| ${v[5]} | ${v[6]} | ${v[4]} |`);
+  await writeFile(path.join(ROOT, 'data/volcano-names-review.md'), `# Volcano names to check (zh)\n\nThe notable volcanoes' Chinese names, from Wikidata (zh-tw, else zh-hant) or data/volcano-overrides.json. Made by \`node scripts/make-layers.mjs volcanoes\`; fix a name in data/volcano-overrides.json.\n\n| English | 中文 | Place |\n|---|---|---|\n${review.join('\n')}\n`);
+  console.log(`  volcanoes.json ${list.length} volcanoes (${list.filter(v => v[2]).length} notable, ${list.filter(v => v[6]).length} with a zh name), ${await kb(file)}`);
+}
+
 async function home() {
   const shp = await find(await unpacked('countries'), /ne_10m_admin_0_countries\.shp$/);
   const tmp = path.join(RAW, 'home.json');
@@ -507,7 +586,7 @@ async function home() {
 
 // ---------- main ----------
 
-const STEPS = { relief, tiles, night, temp, depth, forests, reefs, plates, home };
+const STEPS = { relief, tiles, night, temp, depth, forests, reefs, plates, volcanoes, home };
 const wanted = process.argv.slice(2);
 for (const w of wanted) if (!STEPS[w]) throw new Error(`Unknown layer "${w}" (have: ${Object.keys(STEPS).join(', ')})`);
 await mkdir(RAW, { recursive: true });

@@ -509,6 +509,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
     ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
     if (layer?.raster && polys?.coast) drawCoast(view.k >= NEAR_K ? polys.coast.near : polys.coast.far);
     if (layer?.plates) drawPlates(layer.plates);
+    if (layer?.volcanoes) drawVolcanoes(layer.volcanoes); else volcShown = [];
 
     if (range) {
       ctx.globalAlpha = 0.5;
@@ -570,16 +571,38 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
   }
 
   // Plates & Volcanoes: the plate boundaries, in three styles, and each major plate's arrow.
-  //   apart (pulling apart): a double line, the middle cut out so the map shows through;
+  //   apart (pulling apart): a double line, a light stripe between two red ones;
   //   crash (crashing together): a line with teeth on the side of the plate on top (side 1:
   //     left walking along the line, -1 right, 0 both);
   //   slide (sliding past): a dashed line.
   // Lines go into one path per style, built from the points on the near side and on screen; a
   // stretch beyond one edge of the screen lifts the pen (as traceRing does for shapes).
-  // plates: { far, near: [{ kind, side, line, c, r }], motion: [{ v, dir, speed }], colour,
-  // halo, arrow }.
+  // plates: { far, near: [{ kind, side, line, c, r }], motion: [{ v, ahead, speed }], colour,
+  // halo, gap (the stripe in a double line), arrow, arrowEdge }.
   const TOOTH_GAP = 16, TOOTH = 4; // px between teeth, and their size (times the line width / 1.5)
-  function platePath(list, kind, teeth) {
+  const TOOTH_TURNS = 32;
+  // A tooth s px long pointing the way of turn (of TOOTH_TURNS round), its base in the middle of
+  // the picture; drawn at the device's pixel ratio so it stays sharp.
+  const toothSprites = new Map();
+  function toothSprite(s, turn, colour) {
+    const key = `${s}|${turn}|${colour}|${size.dpr}`;
+    if (!toothSprites.has(key)) {
+      const box = Math.ceil(s * 2 + 4), c = document.createElement('canvas');
+      c.width = c.height = Math.ceil(box * size.dpr);
+      const g = c.getContext('2d'), a = (turn / TOOTH_TURNS) * 2 * Math.PI, nx = Math.cos(a), ny = Math.sin(a);
+      g.scale(size.dpr, size.dpr);
+      g.translate(box / 2, box / 2);
+      g.beginPath();
+      g.moveTo(ny * s * 0.6, -nx * s * 0.6); g.lineTo(nx * s, ny * s); g.lineTo(-ny * s * 0.6, nx * s * 0.6); g.closePath();
+      g.fillStyle = colour; g.fill();
+      if (toothSprites.size > 400) toothSprites.clear();
+      toothSprites.set(key, { c, size: box });
+    }
+    return toothSprites.get(key);
+  }
+  // dash: [on, off] px: the dashes are made here as short lines (a canvas line dash costs far
+  // more to draw on a phone or tablet).
+  function platePath(list, kind, teeth, dash) {
     const { w, h: ht } = B, M = 40;
     const out = (x, y) => (x < -M ? 1 : x > w + M ? 2 : 0) | (y < -M ? 4 : y > ht + M ? 8 : 0);
     ctx.beginPath();
@@ -587,13 +610,24 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
       if (p.kind !== kind || !inSight(p)) continue;
       const v = p.line;
       let px = 0, py = 0, pen = false, po = 0, along = TOOTH_GAP / 2;
+      let dashOn = true, dashLeft = dash?.[0] ?? 0; // the dash pattern: on or off, and how much of it is left
       for (let i = 0; i < v.length; i += 3) {
         const Z = v[i] * B.c0 + v[i + 1] * B.c1 + v[i + 2] * B.c2;
         if (Z < 0) { pen = false; continue; }
         const x = B.cx + B.r * (v[i] * B.e0 + v[i + 1] * B.e1), y = B.cy - B.r * (v[i] * B.n0 + v[i + 1] * B.n1 + v[i + 2] * B.n2);
         const o = out(x, y);
         if (pen && (po & o)) { px = x; py = y; po = o; continue; } // both beyond the same edge
-        if (pen) {
+        if (pen && dash) {
+          // Along this segment, draw the "on" parts of the dash pattern only.
+          const dx = x - px, dy = y - py, len = Math.hypot(dx, dy);
+          let t = 0;
+          while (len - t > 1e-6) {
+            const step = Math.min(len - t, dashLeft);
+            if (dashOn) { ctx.moveTo(px + (dx * t) / len, py + (dy * t) / len); ctx.lineTo(px + (dx * (t + step)) / len, py + (dy * (t + step)) / len); }
+            t += step; dashLeft -= step;
+            if (dashLeft <= 1e-6) { dashOn = !dashOn; dashLeft = dashOn ? dash[0] : dash[1]; }
+          }
+        } else if (pen) {
           ctx.lineTo(x, y);
           if (teeth) {
             // Teeth every TOOTH_GAP px along the line, on the side of the plate on top.
@@ -606,38 +640,33 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
       }
     }
   }
-  function drawPlates({ far, near, motion, colour, halo, arrow, arrowEdge }) {
+  function drawPlates({ far, near, motion, colour, halo, gap, arrow, arrowEdge }) {
     const list = view.k >= NEAR_K ? near : far, w = coastWidth(view.k);
-    ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    ctx.lineJoin = 'bevel'; ctx.lineCap = 'butt';
     const stroke = (style, width) => { ctx.strokeStyle = style; ctx.lineWidth = width; ctx.stroke(); };
     // Sliding past: dashed.
-    platePath(list, 'slide');
-    ctx.setLineDash([w * 3, w * 2.5]);
+    platePath(list, 'slide', null, [w * 3, w * 2.5]);
     stroke(halo, w + COAST_HALO); stroke(colour, w);
-    ctx.setLineDash([]);
-    // Pulling apart: two lines with the map between them.
+    // Pulling apart: two lines with a light stripe between them (a wide line, then the stripe
+    // over it; cutting the middle out with destination-out cost about 10 fps on a tablet).
     platePath(list, 'apart');
-    stroke(halo, w * 3 + COAST_HALO); stroke(colour, w * 3);
-    ctx.globalCompositeOperation = 'destination-out';
-    stroke('#000', w);
-    ctx.globalCompositeOperation = 'source-over';
+    stroke(colour, w * 3 + 1); stroke(gap, w);
     // Crashing together: a line and its teeth.
     const teeth = [];
     platePath(list, 'crash', teeth);
     stroke(halo, w + COAST_HALO); stroke(colour, w);
-    const s = (TOOTH * w) / 1.5;
-    ctx.beginPath();
+    // The teeth: one small picture per direction (TOOTH_TURNS of them), stamped (many little
+    // filled paths cost a tablet far more to draw).
+    const s = Math.round(((TOOTH * w) / 1.5) * 2) / 2;
     for (let i = 0; i < teeth.length; i += 5) {
-      const [x, y, ux, uy, side] = teeth.slice(i, i + 5);
+      const x = teeth[i], y = teeth[i + 1], ux = teeth[i + 2], uy = teeth[i + 3], side = teeth[i + 4];
       for (const sd of side ? [side] : [1, -1]) {
-        const nx = uy * sd, ny = -ux * sd; // to the left of the way along, on screen (y down)
-        ctx.moveTo(x - ux * s * 0.6, y - uy * s * 0.6);
-        ctx.lineTo(x + nx * s, y + ny * s);
-        ctx.lineTo(x + ux * s * 0.6, y + uy * s * 0.6);
-        ctx.closePath();
+        // To the left of the way along, on screen (y down): (uy, -ux) for side 1.
+        const turn = Math.round((Math.atan2(-ux * sd, uy * sd) / (2 * Math.PI)) * TOOTH_TURNS + TOOTH_TURNS) % TOOTH_TURNS;
+        const img = toothSprite(s, turn, colour), half = img.size / 2;
+        ctx.drawImage(img.c, x - half, y - half, img.size, img.size);
       }
     }
-    ctx.fillStyle = colour; ctx.fill();
     // Each major plate's arrow: which way it moves, the longer the faster.
     for (const m of motion) {
       const [x, y, z] = project(m.v);
@@ -651,6 +680,41 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
   }
   // The longest arrow (px), at ARROW_TOP mm/yr; its middle ARROW_BELOW px under the plate's name.
   const ARROW_PX = 56, ARROW_TOP = 75, ARROW_BELOW = 44;
+
+  // Volcanoes: small triangles. The whole globe shows the notable ones (erupted since 1964, and
+  // Taiwan's); from zoom VOLC_ALL_K all of them. Where each was drawn is kept for volcanoAt().
+  const VOLC_ALL_K = 2.5, VOLC_HIT = 22; // px: half a 44 px touch target
+  let volcShown = [];
+  function drawVolcanoes({ list, fill, edge }) {
+    const all = view.k >= VOLC_ALL_K, { w, h: ht } = B;
+    volcShown = [];
+    const big = volcSprite(7, fill, edge), small = volcSprite(5, fill, edge);
+    for (const v of list) {
+      if (!v.notable && !all) break; // the notable ones come first
+      const [x, y, z] = project(v.v);
+      if (z < 0.05 || x < -20 || y < -20 || x > w + 20 || y > ht + 20) continue;
+      const img = v.notable ? big : small;
+      ctx.drawImage(img.c, x - img.size / 2, y - img.size / 2, img.size, img.size);
+      volcShown.push({ v, x, y });
+    }
+  }
+  // A volcano triangle (s px from its middle to its top) with its edge, as a small picture.
+  const volcSprites = new Map();
+  function volcSprite(s, fill, edge) {
+    const key = `${s}|${fill}|${edge}|${size.dpr}`;
+    if (!volcSprites.has(key)) {
+      const box = Math.ceil(s * 2 + 6), c = document.createElement('canvas');
+      c.width = c.height = Math.ceil(box * size.dpr);
+      const g = c.getContext('2d');
+      g.scale(size.dpr, size.dpr);
+      g.translate(box / 2, box / 2);
+      g.beginPath(); g.moveTo(0, -s); g.lineTo(s * 0.95, s * 0.7); g.lineTo(-s * 0.95, s * 0.7); g.closePath();
+      g.lineJoin = 'round'; g.lineWidth = 2; g.strokeStyle = edge; g.stroke();
+      g.fillStyle = fill; g.fill();
+      volcSprites.set(key, { c, size: box });
+    }
+    return volcSprites.get(key);
+  }
   function drawArrow(x, y, ux, uy, L, fill, edge) {
     const hw = 3.5, head = 11, hh = 8; // half width of the shaft, head length and half width (px)
     const nx = -uy, ny = ux, bx = x + ux * (L - head), by = y + uy * (L - head);
@@ -881,7 +945,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
     }
     lastTap = { t: now, x, y };
     touched();
-    onTap?.(invert(x, y));
+    onTap?.(invert(x, y), { x, y });
   });
 
   function zoomTo(x, y, k, duration = 380) {
@@ -913,6 +977,8 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
     // ?debug=fps only: draw n frames in a row, turning 1° each, and time them (ms), to compare
     // drawing cost without depending on the display's frame rate.
     ...(debug && {
+      // The volcanoes drawn in the last frame, where (stage px): for tests.
+      volcanoesShown: () => volcShown.map(s => ({ en: s.v.name.en, x: s.x, y: s.y })),
       bench(n = 60) {
         const times = [];
         for (let i = 0; i < n; i++) { view.lon = wrap(view.lon + 1); const t0 = performance.now(); draw(); baseCtx.getImageData(0, 0, 1, 1); overCtx.getImageData(0, 0, 1, 1); times.push(performance.now() - t0); } // reading a pixel back waits until the frame is really drawn
@@ -931,7 +997,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
     //   sea:    [{ polys, near?, fill, edge? }] drawn on the sea, under the land (prepare())
     //   land:   [{ polys, near?, fill }] drawn on the land
     //   night:  { sun, lights, shade, twilight, light }: day & night (drawNight)
-    //   plates: { far, near, motion, colour, halo, arrow }: plate boundaries (drawPlates)
+    //   plates: { far, near, motion, colour, halo, gap, arrow, arrowEdge }: plate boundaries (drawPlates)
     //   raster: a js/globegl.js spec, drawn above sea and land; with tiles (js/globe-tiles.js
     //           RELIEF_TILES), sharper pictures fetched for the view once zoomed in
     // Resolves when the layer is showing; rejects if its pictures can't be shown.
@@ -955,6 +1021,12 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
       if (layer?.night) Object.assign(layer.night, patch);
       if (layer?.raster) sphere?.update(patch);
       dirty = true;
+    },
+    // The volcano drawn nearest (x, y) on the stage, within a 44 px touch target, or null.
+    volcanoAt(x, y) {
+      let best = null, bd = VOLC_HIT * VOLC_HIT;
+      for (const s of volcShown) { const d = (s.x - x) ** 2 + (s.y - y) ** 2; if (d < bd) { bd = d; best = s.v; } }
+      return best;
     },
     // Turn (and zoom) to a place.
     flyTo(lon, lat, k = view.k, { duration = 700, onDone } = {}) {

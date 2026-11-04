@@ -80,11 +80,15 @@ test('the layer: one chip, its names and key in both languages, credited (ODC-By
   assert.match(sw, /const LAYERS_VERSION = 'l4';/);
 });
 
-test('drawn as planned: dashes for sliding past, a cut-out double line for pulling apart, teeth for crashing together', () => {
+test('drawn as planned: dashes for sliding past, a double line for pulling apart, teeth for crashing together', () => {
   const g = src('js/globe.js');
-  assert.match(g, /platePath\(list, 'slide'\);\n\s*ctx\.setLineDash/);
-  assert.match(g, /platePath\(list, 'apart'\);[\s\S]*?destination-out/);
+  assert.match(g, /platePath\(list, 'slide', null, \[w \* 3, w \* 2\.5\]\);/, 'dashes made as short lines');
+  assert.doesNotMatch(g, /setLineDash\(/, 'no canvas line dash: too slow on tablets');
+  assert.match(g, /platePath\(list, 'apart'\);\n\s*stroke\(colour, w \* 3 \+ 1\); stroke\(gap, w\);/, 'a light stripe between two lines');
+  assert.doesNotMatch(g, /globalCompositeOperation = 'destination-out'/, 'cutting the middle out was too slow');
   assert.match(g, /platePath\(list, 'crash', teeth\);/);
-  assert.match(g, /const nx = uy \* sd, ny = -ux \* sd;/, 'side 1: the left of the way along, on screen');
+  assert.match(g, /Math\.atan2\(-ux \* sd, uy \* sd\)/, 'side 1: the left of the way along, on screen (uy, -ux)');
+  assert.match(g, /toothSprite\(s, turn, colour\)/, 'teeth stamped from small pictures');
+  assert.match(g, /volcSprite\(7, fill, edge\)/, 'volcanoes stamped too');
   assert.match(g, /const list = view\.k >= NEAR_K \? near : far, w = coastWidth\(view\.k\);/, 'the coastline\'s widths');
 });

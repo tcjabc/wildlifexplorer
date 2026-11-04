@@ -78,6 +78,7 @@ export const INFO = {
       { line: 'crash', label: 'info.plates.key.crash' },
       { line: 'slide', label: 'info.plates.key.slide' },
       { line: 'arrow', label: 'info.plates.key.arrow' },
+      { line: 'volcano', label: 'info.plates.key.volcano' },
     ],
     what: ['info.plates.what.1', 'info.plates.what.2'], art: 'plates',
     more: ['info.plates.more.speed'],

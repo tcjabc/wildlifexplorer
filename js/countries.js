@@ -16,7 +16,8 @@ function namer() {
   try {
     const en = new Intl.DisplayNames(['en'], { type: 'region' });
     const zh = new Intl.DisplayNames(['zh-Hant-TW'], { type: 'region' });
-    names = code => ({ en: en.of(code) ?? code, zh: zh.of(code) ?? code });
+    // Taiwan as the app writes it everywhere else (臺, not the browser's 台).
+    names = code => ({ en: en.of(code) ?? code, zh: code === 'TW' ? '臺灣' : zh.of(code) ?? code });
   } catch {
     names = code => ({ en: code, zh: code });
   }

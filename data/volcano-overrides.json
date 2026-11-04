@@ -1,0 +1,25 @@
+{
+  "_about": "Hand-written volcano entries for the globe's Plates & volcanoes layer (scripts/make-layers.mjs volcanoes). They win over NOAA NCEI's Volcano Locations Database and Wikidata, by GVP volcano number. last: a period key (see make-layers) or 'uncertain'. notable: shown on the whole globe too. The build never writes this file.",
+  "281032": {
+    "name": { "en": "Tatun Volcanic Group", "zh": "大屯火山群" },
+    "place": "TW",
+    "last": "uncertain",
+    "notable": true,
+    "sources": [
+      "NOAA NCEI Volcano Locations Database: Tatun Volcanic Group, 25.178 N 121.553 E (its last-eruption code Q: Quaternary, with fumaroles)",
+      "Geoscience Letters 2024, 'Volcanic activity around Taipei, Taiwan: new data and perspectives on the Tatun Volcano Group', doi:10.1186/s40562-024-00358-2: new 40Ar/39Ar dating refutes the earlier age model; the date of the last eruption is not settled",
+      "Taiwan Volcano Observatory at Tatun (Academia Sinica, Institute of Earth Sciences) watches it"
+    ]
+  },
+  "281031": {
+    "name": { "en": "Kueishantao (Turtle Island)", "zh": "龜山島" },
+    "place": "TW",
+    "last": "uncertain",
+    "notable": true,
+    "sources": [
+      "NOAA NCEI Volcano Locations Database: Kueishantao, 24.841 N 121.953 E (code Q: Quaternary, with fumaroles)",
+      "Chen Y.-G. et al. 2001, Quaternary Science Reviews, 'A date for volcanic eruption inferred from a siltstone xenolith' (thermoluminescence: possibly younger than 10,000 years, the authors call the date not fully reliable)",
+      "Catalogues list eruptions in 1785, 1795 or 1853 from historical accounts, which later studies do not confirm: so 'uncertain'"
+    ]
+  }
+}

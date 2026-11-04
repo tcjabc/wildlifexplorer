@@ -70,8 +70,11 @@
   --c-reef-edge: #c2365e;               /* and their edge */
   --c-plate: #b3261e;                   /* plate boundaries on the globe */
   --c-plate-halo: rgb(255 255 255 / 0.7); /* the light edge round them */
+  --c-plate-gap: #fff3ef;               /* the stripe inside a double line (pulling apart) */
   --c-plate-arrow: #fff6e0;             /* plate motion arrows */
   --c-plate-arrow-edge: #3b2f2a;        /* and their outline */
+  --c-volcano: #e8590c;                 /* volcano triangles on the globe */
+  --c-volcano-edge: #ffffff;            /* and their edge */
   /* The topography picture's own colours (Natural Earth, sampled from relief-4k.webp: the
      Amazon and Congo lowlands, the Sahara, the Tibetan plateau), for its key and drawings. */
   --c-relief-low: #acc9ae;
@@ -255,6 +258,7 @@
   --gpanel-strip: 72px; /* the same panel collapsed to its key */
   --gpanel-art: 280px;  /* the drawings in the panel (at most; they fill its width) */
   --gzone-art: 64px;    /* the example animal of each ocean zone */
+  --gvolc-w: 260px;     /* a volcano's card on the globe */
   --gpanel-scale: 180px; /* the temperature scale in the panel, open */
   --gpanel-sheet: 60%;  /* the portrait sheet, open: at most this much of the globe's height */
   --gsheet-pic: min(38dvh, 320px); /* photo in the Globe card sheet */

@@ -680,6 +680,24 @@ a.gzone__animal { text-decoration: underline; }
 .art__glass { fill: var(--c-surface); stroke: var(--c-line); stroke-width: 1.5; }
 .art__mercury { fill: var(--c-bad); }
 .art__snow { stroke: var(--c-depth-2); stroke-width: 2; stroke-linecap: round; }
+/* A volcano's card, over the globe above its triangle (views/globe.js tapVolcano). */
+.gvolc {
+  position: absolute; left: 0; top: 0; z-index: 2; pointer-events: auto; max-width: var(--gvolc-w);
+  padding: var(--s-2) calc(var(--tap-xs) + var(--s-2)) var(--s-2) var(--s-3);
+  border-radius: var(--r-md); background: var(--c-surface); box-shadow: var(--shadow-2); color: var(--c-ink);
+}
+.gvolc[hidden] { display: none; }
+.gvolc p { margin: 0; }
+.gvolc__name { display: flex; align-items: flex-start; gap: var(--s-1); font-size: var(--fs-md); font-weight: var(--fw-bold); line-height: 1.25; }
+.gvolc__place { color: var(--c-ink-soft); }
+.gvolc__last { margin-top: var(--s-1) !important; }
+.gvolc__label { font-weight: var(--fw-bold); }
+.gvolc :is(.gvolc__place, .gvolc__last) .bi { display: inline-flex; flex-direction: row; flex-wrap: wrap; column-gap: 0.4em; }
+.gvolc__close {
+  position: absolute; top: var(--s-1); right: var(--s-1); display: grid; place-items: center;
+  width: var(--tap-xs); height: var(--tap-xs); padding: 0; border: 0; border-radius: 50%;
+  background: transparent; color: var(--c-ink-soft); font: inherit; font-size: var(--fs-lg); cursor: pointer;
+}
 /* The major plates' names over the globe (views/globe.js), readable on land and sea. */
 .gplate {
   position: absolute; left: 0; top: 0; pointer-events: none; white-space: nowrap; text-align: center;
@@ -693,9 +711,10 @@ a.gzone__animal { text-decoration: underline; }
 .gkey__line .art { display: block; width: 100%; height: 100%; }
 .art__plate, .art__plate-move { fill: none; stroke: var(--c-plate); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .art__plate--double { stroke-width: 6; }
-.art__plate-gap { fill: none; stroke: var(--c-map-land); stroke-width: 2; stroke-linecap: round; }
+.art__plate-gap { fill: none; stroke: var(--c-plate-gap); stroke-width: 2; stroke-linecap: round; }
 .art__plate--dash { stroke-dasharray: 4 3; stroke-linecap: butt; }
-.art__plate-teeth, .art__volcano { fill: var(--c-plate); }
+.art__plate-teeth { fill: var(--c-plate); }
+.art__volcano { fill: var(--c-volcano); stroke: var(--c-volcano-edge); stroke-width: 1.5; stroke-linejoin: round; }
 .art__plate-arrow { fill: var(--c-plate-arrow); stroke: var(--c-plate-arrow-edge); stroke-width: 1.5; stroke-linejoin: round; }
 .art__zone--1 { fill: var(--c-depth-1); }
 .art__zone--2 { fill: var(--c-depth-2); }
