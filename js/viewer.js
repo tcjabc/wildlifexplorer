@@ -136,6 +136,7 @@ function draw() {
   else v.zoomer.style.setProperty('transform', `translate(${(from.cx - L.cx) * q}px, ${(from.cy - L.cy) * q}px) scale(${lerp(1, from.k, q)})`);
 
   updateHint();
+  if (rest) drawZones();
 }
 
 function updateHint() {
@@ -235,22 +236,63 @@ const SIDEWAYS = Math.tan(30 * Math.PI / 180); // within 30° of horizontal coun
 const COMMIT = 0.25;      // a quarter of the way is enough
 const FLICK = 1.1;        // turns per second: a quick flick towards the goal is enough too
 const MARGIN = 40;        // px around the card that also start a gesture
-const SPINE = 60;         // px at the screen's right edge where the margin stops (the notebook spine)
+const OPEN_REACH = 0.5;   // the open zone reaches this share of a card's width to its right
+const CLOSE_MARGIN = 80;  // px around the open spread that also start closing it
+const SPINE = 60;         // px at the screen's right edge kept free (the notebook spine)
+
+// Where a gesture may start, in screen pixels:
+//   card – the card itself (both pages when open): always
+//   near – a margin around it (wider around the open spread, for closing)
+//   open – the space right of the closed card, where its right page will appear: opening only
+// Everything stays inside the stage (below the top bar) and left of the spine strip.
+function gestureZones() {
+  const r = v.built.root.getBoundingClientRect();
+  const s = v.stage.getBoundingClientRect();
+  const isOpen = v.p > 0.5;
+  const card = { left: isOpen ? r.left - r.width : r.left, right: r.right, top: r.top, bottom: r.bottom };
+  const spine = window.innerWidth - SPINE;
+  const fit = b => ({ left: Math.max(b.left, s.left), right: Math.min(b.right, spine, s.right), top: Math.max(b.top, s.top), bottom: Math.min(b.bottom, s.bottom) });
+  const m = isOpen ? CLOSE_MARGIN : MARGIN;
+  const near = fit({ left: card.left - m, right: card.right + m, top: card.top - m, bottom: card.bottom + m });
+  const closed = v.p < PEEK + 0.01 && v.f < 0.01 && hasInside(v.card);
+  const open = closed ? fit({ left: card.right, right: card.right + r.width * OPEN_REACH, top: card.top, bottom: card.bottom }) : null;
+  return { card, near, open, spine, stage: s };
+}
+const inBox = (b, x, y) => Boolean(b && b.right > b.left && x >= b.left && x <= b.right && y >= b.top && y <= b.bottom);
+
+// Debug overlay of the gesture zones, for grown-ups in preview: add ?debug=gestures to the
+// address (kept for this tab), ?debug=off to stop.
+function gestureDebugOn() {
+  try {
+    const q = new URLSearchParams(location.search).get('debug');
+    if (q === 'gestures') sessionStorage.setItem('we-debug-gestures', '1');
+    if (q === 'off') sessionStorage.removeItem('we-debug-gestures');
+    return Boolean(state.profile?.parent.preview) && sessionStorage.getItem('we-debug-gestures') === '1';
+  } catch { return false; }
+}
+function drawZones() {
+  if (!gestureDebugOn()) { v.zones?.remove(); v.zones = null; return; }
+  const z = gestureZones();
+  if (!v.zones?.isConnected) { v.zones = h('div', { class: 'gzones', 'aria-hidden': 'true' }); v.stage.append(v.zones); }
+  const box = (kind, b) => {
+    if (!b || b.right <= b.left || b.bottom <= b.top) return null;
+    const el = h('div', { class: ['gzones__box', `gzones__box--${kind}`] });
+    el.style.setProperty('left', `${b.left - z.stage.left}px`);
+    el.style.setProperty('top', `${b.top - z.stage.top}px`);
+    el.style.setProperty('width', `${b.right - b.left}px`);
+    el.style.setProperty('height', `${b.bottom - b.top}px`);
+    return el;
+  };
+  mount(v.zones,
+    box('near', z.near), box('open', z.open), box('card', z.card),
+    box('spine', { left: z.spine, right: z.stage.right, top: z.stage.top, bottom: z.stage.bottom }));
+}
 
 function wireGestures() {
-  let mode = null, base = null, scroller = null, dir = 1;
-  // The card on screen: both pages when it is open (the left page lies left of .card3d).
-  const cardRect = () => {
-    const r = v.built.root.getBoundingClientRect();
-    const open = v.p > 0.5;
-    return { left: open ? r.left - r.width : r.left, right: r.right, top: r.top, bottom: r.bottom };
-  };
-  // On the card always; in the margin around it, except at the screen's right edge.
-  const inReach = (x, y) => {
-    const r = cardRect();
-    const on = x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
-    const near = x >= r.left - MARGIN && x <= r.right + MARGIN && y >= r.top - MARGIN && y <= r.bottom + MARGIN;
-    return on || (near && x < window.innerWidth - SPINE);
+  let mode = null, base = null, scroller = null, dir = 1, zone = null;
+  const where = (x, y) => {
+    const z = gestureZones();
+    return inBox(z.card, x, y) ? 'card' : inBox(z.near, x, y) ? 'near' : inBox(z.open, x, y) ? 'open' : null;
   };
   const atEdge = (el, dy) => !el || el.scrollHeight <= el.clientHeight + 1
     || (dy > 0 ? el.scrollTop <= 0 : el.scrollTop + el.clientHeight >= el.scrollHeight - 1);
@@ -258,7 +300,9 @@ function wireGestures() {
 
   track(v.stage, {
     start: ({ x, y, target }) => {
-      if (v.closing || target.closest?.('[data-swipe], .gloss-pop') || !inReach(x, y)) return false;
+      if (v.closing || target.closest?.('[data-swipe], .gloss-pop')) return false;
+      zone = where(x, y);
+      if (!zone) return false;
       const peeking = interruptPeek();
       if (!peeking) stopMotion();
       scroller = target.closest?.('[data-scroll]') ?? null;
@@ -267,7 +311,15 @@ function wireGestures() {
     tap: () => { if (v.p > 0 && v.p < DONE && !v.cancel) settle('p', 0); }, // e.g. tapped during the peek
     lock: ({ dx, dy }) => {
       mode = null;
-      const sideways = Math.abs(dy) <= Math.abs(dx) * SIDEWAYS;
+      const ax = Math.abs(dx), ay = Math.abs(dy);
+      // Within 30° of horizontal is sideways, within 30° of vertical is vertical. In between
+      // (a hand that wobbles at the start of a drag), wait for a little more movement, then go
+      // by the stronger direction.
+      const clear = ay <= ax * SIDEWAYS || ax <= ay * SIDEWAYS;
+      if (!clear && Math.hypot(dx, dy) < SLOP * 2) return null;
+      const sideways = clear ? ay <= ax * SIDEWAYS : ax >= ay;
+      // The open zone right of the card is only for opening.
+      if (zone === 'open' && !sideways) return false;
       const closed = v.p < PEEK + 0.01 && v.f < 0.01;
       if (sideways) {
         if (closed && hasInside(v.card)) mode = 'open';
@@ -277,6 +329,7 @@ function wireGestures() {
         else if (dy > 0) { mode = 'dismiss'; stopZoom(); }
       } else if (v.f > DONE) mode = atEdge(scroller, dy) ? 'unflip' : 'scroll';
       else if (v.p > DONE && !atEdge(scroller, dy)) mode = 'scroll';
+      if (zone === 'open' && mode !== 'open') mode = null;
       // Anything but opening closes a cover left ajar by the peek.
       if (mode !== 'open' && v.p > 0 && v.p <= PEEK + 0.01) { v.p = 0; draw(); }
       if (!mode) return false;

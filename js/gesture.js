@@ -74,7 +74,8 @@ function velocityOf(samples) {
 // Track one- and two-finger gestures on `el`.
 // handlers.start(info) -> return false to ignore this pointer sequence
 //   info: { x, y, target, pointers }
-// handlers.lock({ dx, dy, axis }) -> return false to give up (decided after `slop` px)
+// handlers.lock({ dx, dy, axis }) -> return false to give up, null to decide later (asked
+//   again on each move once the pointer has moved `slop` px), anything else to start dragging
 // handlers.move({ dx, dy, x, y })
 // handlers.end({ dx, dy, vx, vy })
 // handlers.tap({ x, y }) -> the pointer went up before moving `slop` px (the click still happens)
@@ -136,7 +137,9 @@ export function track(el, handlers, { slop = 8 } = {}) {
     if (mode === 'pending') {
       if (Math.hypot(dx, dy) < slop) return;
       const axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
-      if (handlers.lock?.({ dx, dy, axis, x: start.x, y: start.y }) === false) { mode = null; return; }
+      const decided = handlers.lock?.({ dx, dy, axis, x: start.x, y: start.y });
+      if (decided === false) { mode = null; return; }
+      if (decided === null) return; // not sure yet: ask again on the next move
       mode = 'drag';
       try { el.setPointerCapture(e.pointerId); } catch { /* gone */ }
     }

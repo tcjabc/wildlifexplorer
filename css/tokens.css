@@ -37,6 +37,12 @@
   /* Card pages, maps and packs */
   --c-paper: #fffdf6;
   --c-paper-line: #efe6d3;
+  /* Gesture debug overlay (grown-up preview only) */
+  --c-debug-line: rgb(0 0 0 / 0.5);
+  --c-debug-near: rgb(255 201 60 / 0.25);
+  --c-debug-open: rgb(60 160 255 / 0.3);
+  --c-debug-card: rgb(0 170 90 / 0.9);
+  --c-debug-spine: rgb(220 40 60 / 0.25);
   --c-map-sea: #d8eef6;
   --c-map-land: #9ccf8f;
   --c-map-spot: #d7263d;

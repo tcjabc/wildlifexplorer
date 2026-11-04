@@ -361,8 +361,12 @@ above every layer.
 - Sources and licences: [CREDITS.md](CREDITS.md).
 
 In the app, gestures on a card are decided by direction, from anywhere on the card or a 40 px
-margin around it (the margin stops 60 px from the screen's right edge, where the notebook spine
-will go). Swipe sideways to open the card or close the open spread; swipe up to turn it over, and
+margin around it. To the right of a closed card, an open zone about half a card wide (where the
+right page will appear) also opens it with a sideways drag, and the open spread can be closed from
+an 80 px margin around it. All of this stays below the top bar and out of the rightmost 60 px of
+the screen (the notebook spine); on narrow screens the zones shrink to fit. A drag that starts at
+an in-between angle waits a few more pixels before deciding its direction. Grown-ups in preview can
+see these areas: add `?debug=gestures` to the address (`?debug=off` to stop). Swipe sideways to open the card or close the open spread; swipe up to turn it over, and
 down to put it back in the binder (on the back, either way turns it back). A quarter of the way or
 a quick flick is enough; less springs back, and a touch that hardly moves is a tap. On pages that
 scroll (the Fact File, Vital Statistics), a vertical drag scrolls first and only turns the card from

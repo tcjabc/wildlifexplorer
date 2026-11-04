@@ -77,6 +77,14 @@
 /* Open: the cover lies flat to the left of the spine, inside facing up. */
 .card3d.is-rest[data-pose="open"] .leaf { inset: 0 100% 0 -100%; }
 
+/* Debug overlay of where gestures can start (grown-up preview, ?debug=gestures). */
+.gzones { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
+.gzones__box { position: absolute; border: var(--bw-thin) dashed var(--c-debug-line); }
+.gzones__box--near { background: var(--c-debug-near); }
+.gzones__box--open { background: var(--c-debug-open); border-style: solid; }
+.gzones__box--card { border-style: solid; border-color: var(--c-debug-card); }
+.gzones__box--spine { background: var(--c-debug-spine); border: 0; }
+
 /* ---------- Card pages ---------- */
 .cpage {
   position: absolute; inset: 0;
