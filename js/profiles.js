@@ -2,7 +2,7 @@
 // and the Welcome form (new profile) that is also used to edit one later.
 import { h, mount } from './dom.js';
 import { tx, label, getMode, setMode } from './i18n.js';
-import { state, parentTemplate, currentAge } from './store.js';
+import { state, parentTemplate, currentAge, onChange } from './store.js';
 import { countryOptions } from './countries.js';
 import { restoreError } from './backup.js';
 import { cmFromFtIn, ftInFromCm, kgFromLb, lbFromKg } from './units.js';
@@ -18,26 +18,32 @@ export function initial(name) {
 export const avatar = (p, cls = '') =>
   h('span', { class: ['avatar', cls], 'data-avatar': p.avatar, 'aria-hidden': 'true' }, initial(p.name));
 
-// Full-screen picker. Resolves with { pick: id } or { add: true }.
+// Full-screen picker. Resolves with { pick: id } or { add: true }. Explorers coming in
+// from the family account (or deleted there) while it is open show up straight away.
 export function showPicker() {
   return new Promise(resolve => {
     const done = result => {
+      stop();
       el.classList.remove('is-open');
       setTimeout(() => el.remove(), 250);
       resolve(result);
     };
-    const items = state.profiles.map(p => h('li', null,
-      h('button', { class: 'picker__item', type: 'button', onclick: () => done({ pick: p.id }) },
-        avatar(p, 'avatar--big'),
-        h('span', { class: 'picker__name' }, p.name))));
-    items.push(h('li', null,
-      h('button', { class: 'picker__item picker__item--add', type: 'button', onclick: () => done({ add: true }) },
-        h('span', { class: 'avatar avatar--big avatar--add', 'aria-hidden': 'true' }, '+'),
-        h('span', { class: 'picker__name' }, tx('profile.add')))));
+    const items = () => [
+      ...state.profiles.map(p => h('li', null,
+        h('button', { class: 'picker__item', type: 'button', onclick: () => done({ pick: p.id }) },
+          avatar(p, 'avatar--big'),
+          h('span', { class: 'picker__name' }, p.name)))),
+      h('li', null,
+        h('button', { class: 'picker__item picker__item--add', type: 'button', onclick: () => done({ add: true }) },
+          h('span', { class: 'avatar avatar--big avatar--add', 'aria-hidden': 'true' }, '+'),
+          h('span', { class: 'picker__name' }, tx('profile.add')))),
+    ];
+    const list = h('ul', { class: 'picker__list' }, items());
+    const stop = onChange('profiles', () => mount(list, items()));
     const el = h('div', { class: 'picker', role: 'dialog', 'aria-modal': 'true', 'aria-label': label('profile.who') },
       h('img', { class: 'picker__logo', src: 'icons/icon-192.png', alt: '', width: 96, height: 96 }),
       h('h1', { class: 'picker__title' }, tx('profile.who')),
-      h('ul', { class: 'picker__list' }, items));
+      list);
     document.body.append(el);
     requestAnimationFrame(() => el.classList.add('is-open'));
     el.querySelector('.picker__item')?.focus();

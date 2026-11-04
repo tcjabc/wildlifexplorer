@@ -142,6 +142,7 @@ async function chooseProfile() {
         return;
       }
       const choice = await showPicker();
+      if (choice.pick && !store.state.profiles.some(p => p.id === choice.pick)) continue; // deleted meanwhile
       if (choice.pick) { await enterProfile(choice.pick); return; }
       const fields = await profileForm();
       if (fields) { await enterProfile((await store.createProfile(fields)).id); return; }
@@ -212,6 +213,10 @@ async function boot() {
   setInterval(onWake, 60 * 1000);
 
   registerOffline();
+  // Changes from the family account's other devices: show them, and say if a pack arrived.
+  sync.onPulled(ids => store.applyPulled(ids)
+    .then(() => { if (store.state.profile && !choosing) return checkDrops(); })
+    .catch(err => console.error(err)));
   sync.start(); // only does anything once a parent has signed in and chosen explorers
   await handleSignInLink(); // opened from the sign-in email's link
   await chooseProfile();

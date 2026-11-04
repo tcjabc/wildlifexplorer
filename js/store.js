@@ -26,9 +26,12 @@ export const state = {
 };
 
 // 'profile': the active profile or one of its settings changed. 'profiles': the list
-// changed. 'packs': a pack arrived or was opened.
+// changed. 'packs': a pack arrived or was opened. Returns a function that stops listening.
 const bus = new EventTarget();
-export const onChange = (type, fn) => bus.addEventListener(type, fn);
+export const onChange = (type, fn) => {
+  bus.addEventListener(type, fn);
+  return () => bus.removeEventListener(type, fn);
+};
 const emit = type => bus.dispatchEvent(new Event(type));
 
 export async function init() {
@@ -82,6 +85,25 @@ export async function reload() {
   await loadProgress();
   emit('profile');
   emit('packs');
+  await grantDue();
+}
+
+// After a pull from the family account (cloud/sync.js) changed the records of the
+// explorers in ids: read the list again, and the active one's progress if it was one of
+// them. Deleted elsewhere: there is no active explorer any more (the app shows the picker).
+// Started over elsewhere: the new timeline's packs arrive. Pulled badges are only shown,
+// not celebrated: they were earned on another device.
+export async function applyPulled(ids) {
+  await loadProfiles();
+  const p = state.profile && state.profiles.find(x => x.id === state.profile.id);
+  const touched = Boolean(p && ids.includes(p.id));
+  state.profile = p ?? null;
+  emit('profiles');
+  if (!touched) return;
+  await loadProgress();
+  emit('profile');
+  emit('packs');
+  emit('badges');
   await grantDue();
 }
 
@@ -179,23 +201,35 @@ const SYNCED_SETTINGS = p => [p.name, p.lang, p.avatar, p.zhuyin, p.rate,
   p.parent.dropDay, p.parent.dropTime, p.parent.length, p.parent.temp];
 const sameSettings = (a, b) => SYNCED_SETTINGS(a).every((v, i) => v === SYNCED_SETTINGS(b)[i]);
 
+// Profile changes start from the stored record, read in the same transaction, so a pull
+// that just wrote it isn't undone by the copy in state.
+const changeProfile = (id, fn) => db.tx(['profiles'], 'readwrite', async a => {
+  const prev = await a.get('profiles', id);
+  if (!prev || prev.deletedAt) return null;
+  const next = fn(prev);
+  await a.put('profiles', next);
+  return next;
+});
+
 export async function updateProfile(id, patch) {
-  const prev = state.profiles.find(p => p.id === id);
-  if (!prev) return;
+  if (!state.profiles.some(p => p.id === id)) return;
   const now = nowIso();
-  const next = stamp({
-    ...prev,
-    ...pickFields(patch, prev),
-    ...('zhuyin' in patch && { zhuyin: Boolean(patch.zhuyin) }),
-    ...('rate' in patch && { rate: patch.rate }),
-    // Field Notes input: 'pen' (only a pen draws; fingers turn pages) or 'finger'.
-    ...('notesInput' in patch && { notesInput: patch.notesInput }),
-    // Set once, the first time a pen draws: the switch to pen-only happens only then.
-    ...('notesPenSeen' in patch && { notesPenSeen: Boolean(patch.notesPenSeen) }),
-    parent: { ...prev.parent, ...patch.parent },
-  }, now);
-  if (!sameSettings(prev, next)) next.settingsAt = now;
-  await db.put('profiles', next);
+  const next = await changeProfile(id, prev => {
+    const rec = stamp({
+      ...prev,
+      ...pickFields(patch, prev),
+      ...('zhuyin' in patch && { zhuyin: Boolean(patch.zhuyin) }),
+      ...('rate' in patch && { rate: patch.rate }),
+      // Field Notes input: 'pen' (only a pen draws; fingers turn pages) or 'finger'.
+      ...('notesInput' in patch && { notesInput: patch.notesInput }),
+      // Set once, the first time a pen draws: the switch to pen-only happens only then.
+      ...('notesPenSeen' in patch && { notesPenSeen: Boolean(patch.notesPenSeen) }),
+      parent: { ...prev.parent, ...patch.parent },
+    }, now);
+    if (!sameSettings(prev, rec)) rec.settingsAt = now;
+    return rec;
+  });
+  if (!next) return;
   state.profiles = state.profiles.map(p => (p.id === id ? next : p));
   emit('profiles');
   if (state.profile?.id === id) {
@@ -207,9 +241,8 @@ export async function updateProfile(id, patch) {
 
 // Kept as a deleted record (for syncing later); the profile's cards go with it.
 export async function deleteProfile(id) {
-  const prev = state.profiles.find(p => p.id === id);
-  if (!prev) return;
-  await db.put('profiles', stamp({ ...prev, deletedAt: nowIso() }));
+  if (!state.profiles.some(p => p.id === id)) return;
+  await changeProfile(id, prev => stamp({ ...prev, deletedAt: nowIso() }));
   state.profiles = state.profiles.filter(p => p.id !== id);
   if (state.profile?.id === id) state.profile = null;
   emit('profiles');
@@ -245,14 +278,17 @@ async function loadPacks() {
 // packs, cards and badges stay as they are (in the old epoch) and new ones get new ids.
 // Quiz scores stay on the device and aren't per epoch, so they are marked deleted.
 export async function resetProfile(id) {
-  const prev = state.profiles.find(p => p.id === id);
-  if (!prev) return;
+  if (!state.profiles.some(p => p.id === id)) return;
   const now = nowIso();
-  await db.tx(['quiz'], 'readwrite', async a => {
+  const next = await db.tx(['quiz', 'profiles'], 'readwrite', async a => {
+    const prev = await a.get('profiles', id);
+    if (!prev || prev.deletedAt) return null;
     for (const r of live(await a.all('quiz', id))) await a.put('quiz', stamp({ ...r, deletedAt: now }, now));
+    const rec = stamp({ ...prev, timeline: { epoch: prev.timeline.epoch + 1, startAt: now } }, now);
+    await a.put('profiles', rec);
+    return rec;
   });
-  const next = stamp({ ...prev, timeline: { epoch: prev.timeline.epoch + 1, startAt: now } }, now);
-  await db.put('profiles', next);
+  if (!next) return;
   state.profiles = state.profiles.map(p => (p.id === id ? next : p));
   emit('profiles');
   if (state.profile?.id === id) {

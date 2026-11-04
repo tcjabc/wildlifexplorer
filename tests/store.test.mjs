@@ -82,3 +82,36 @@ test('settingsAt changes with a setting the family account keeps, not with heigh
   // Each of those writes queued the profile for the family account.
   assert.ok((await readAll()).outbox.some(e => e.id === `profiles:${BEN}`));
 });
+
+test('an edit right after a pull starts from the pulled record, not the copy in state', async () => {
+  const db = await import('../js/db.js');
+  const pulled = { ...(await db.get('profiles', BEN)), name: 'Ben (from the tablet)', settingsAt: new Date(Date.now() + 60e3).toISOString() };
+  await db.tx(['profiles'], 'readwrite', a => a.putFromServer('profiles', pulled));
+  await store.updateProfile(BEN, { heightCm: 140 }); // before the app heard about the pull
+  const saved = await db.get('profiles', BEN);
+  assert.equal(saved.name, 'Ben (from the tablet)');
+  assert.equal(saved.settingsAt, pulled.settingsAt);
+  assert.equal(saved.heightCm, 140);
+});
+
+test('applyPulled: the active explorer\'s progress is read again; deleted elsewhere, there is none', async () => {
+  const db = await import('../js/db.js');
+  await store.selectProfile(ADA);
+  const events = [];
+  for (const type of ['profiles', 'profile', 'packs', 'badges']) store.onChange(type, () => events.push(type));
+  const at = new Date().toISOString();
+  await db.tx(['collection'], 'readwrite', a => a.putFromServer('collection',
+    { id: `${ADA}:4:orca`, profileId: ADA, epoch: 4, cardId: 'orca', collectedAt: at, packId: null, dropId: null, createdAt: at, updatedAt: at, deletedAt: null }));
+  await store.applyPulled([BEN]); // someone else: just the list
+  assert.deepEqual(events, ['profiles']);
+  assert.equal(store.state.collected.orca, undefined);
+  await store.applyPulled([ADA]);
+  assert.equal(store.state.collected.orca, at);
+  assert.deepEqual(events.slice(1, 5), ['profiles', 'profile', 'packs', 'badges']);
+  const ada = await db.get('profiles', ADA);
+  await db.tx(['profiles'], 'readwrite', a => a.putFromServer('profiles', { ...ada, deletedAt: at }));
+  await store.applyPulled([ADA]);
+  assert.equal(store.state.profile, null);
+  assert.equal(store.state.profiles.some(p => p.id === ADA), false);
+  assert.equal(events.at(-1), 'profiles');
+});
