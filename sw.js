@@ -12,6 +12,10 @@ const IMAGE_CACHE = `images-${VERSION}`;
 // LAYERS_VERSION when scripts/make-layers.mjs or scripts/make-globe.mjs is re-run.
 const LAYERS_VERSION = 'l3';
 const LAYER_CACHE = `layers-${LAYERS_VERSION}`;
+// Topography zoom tiles (assets/layers/relief-tiles/): only those looked at, in their own cache,
+// the oldest let go once it holds more than TILE_CAP bytes.
+const TILE_CACHE = `tiles-${LAYERS_VERSION}`;
+const TILE_CAP = 25 * 1024 * 1024;
 const NETWORK_TIMEOUT_MS = 3000;
 
 // The page is cached as './' only: hosts may answer 'index.html' with a redirect to './'
@@ -51,6 +55,7 @@ const SHELL = [
   'js/globegl.js',
   'js/globe-info.js',
   'js/globe-art.js',
+  'js/globe-tiles.js',
   'js/layers.js',
   'js/views/binder.js',
   'js/views/globe.js',
@@ -134,7 +139,7 @@ self.addEventListener('install', event => {
 
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
-    const keep = new Set([SHELL_CACHE, IMAGE_CACHE, LAYER_CACHE]);
+    const keep = new Set([SHELL_CACHE, IMAGE_CACHE, LAYER_CACHE, TILE_CACHE]);
     for (const key of await caches.keys()) if (!keep.has(key)) await caches.delete(key);
     await self.clients.claim();
   })());
@@ -169,6 +174,25 @@ async function networkFirst(request) {
 
 // The globe's own files, kept across releases (see LAYERS_VERSION).
 const GLOBE_FILE = /\/assets\/(layers\/|globe\.json$|home\.json$)/;
+const TILE_FILE = /\/assets\/layers\/relief-tiles\//;
+
+// Keep the tile cache under TILE_CAP: the first entries (the oldest) go first.
+let trimming = null;
+async function trimTiles() {
+  const cache = await caches.open(TILE_CACHE);
+  const keys = await cache.keys();
+  const sizes = await Promise.all(keys.map(async k => {
+    const r = await cache.match(k);
+    return Number(r?.headers.get('content-length')) || (await r?.blob())?.size || 0;
+  }));
+  let total = sizes.reduce((s, x) => s + x, 0);
+  for (let i = 0; i < keys.length && total > TILE_CAP; i++) { await cache.delete(keys[i]); total -= sizes[i]; }
+}
+async function tileFirst(request) {
+  const response = await cacheFirst(request, TILE_CACHE);
+  trimming ??= new Promise(r => setTimeout(r, 2000)).then(trimTiles).catch(() => {}).finally(() => { trimming = null; });
+  return response;
+}
 
 async function cacheFirst(request, name = IMAGE_CACHE) {
   const cache = await caches.open(name);
@@ -184,7 +208,8 @@ self.addEventListener('fetch', event => {
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
-  if (GLOBE_FILE.test(url.pathname)) event.respondWith(cacheFirst(request, LAYER_CACHE));
+  if (TILE_FILE.test(url.pathname)) event.respondWith(tileFirst(request));
+  else if (GLOBE_FILE.test(url.pathname)) event.respondWith(cacheFirst(request, LAYER_CACHE));
   else if (url.pathname.includes('/img/')) event.respondWith(cacheFirst(request));
   else event.respondWith(networkFirst(request));
 });

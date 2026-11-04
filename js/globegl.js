@@ -6,6 +6,10 @@
 // The context is only made when a picture layer is first switched on, and textures are
 // let go as soon as their layer is switched off, so the plain globe costs nothing.
 // Lighting is local only: relief gets bumps from a height map, never a darker rim.
+//
+// Zoomed in, relief can show a sharper picture (js/globe-tiles.js): a detail window of
+// DETAIL × DETAIL tiles round the view's centre, in one texture (the atlas). Tiles not loaded
+// yet are clear in the atlas, so the base picture shows there.
 
 const VERT = `#version 300 es
 in vec2 aPos;
@@ -21,6 +25,10 @@ uniform sampler2D uTex, uAux;
 uniform vec2 uAuxStep;    // one texel of uAux
 uniform float uBump;
 uniform vec3 uLight;
+uniform sampler2D uDetail;
+uniform vec4 uWin;        // detail window: first column, first row, columns, rows (tiles)
+uniform vec2 uGrid;       // tiles across and down the whole map
+uniform bool uDetailOn;
 out vec4 outColor;
 const float PI = 3.14159265;
 
@@ -43,9 +51,23 @@ void main() {
   vec2 uv = uvOf(w);
   float rim = clamp((1.0 - sqrt(rr)) * uR * uDpr, 0.0, 1.0); // smooth edge, one pixel
 
+  // The texture coordinates' steps across a pixel, without the jump at 180° (as in look()).
+  vec2 gx = dFdx(uv), gy = dFdy(uv);
+  gx.x -= floor(gx.x + 0.5);
+  gy.x -= floor(gy.x + 0.5);
+
   vec4 col;
   if (uMode == 0) {
     vec3 base = look(uTex, uv).rgb;
+    if (uDetailOn) {
+      vec2 t = uv * uGrid;
+      float c = mod(floor(t.x) - uWin.x + uGrid.x, uGrid.x), r = floor(t.y) - uWin.y;
+      if (c < uWin.z && r >= 0.0 && r < uWin.w) {
+        vec2 s = uGrid / uWin.zw;
+        vec4 d = textureGrad(uDetail, (vec2(c, r) + fract(t)) / uWin.zw, gx * s, gy * s);
+        base = mix(base, d.rgb / max(d.a, 1e-4), d.a);
+      }
+    }
     float hE = texture(uAux, uv + vec2(uAuxStep.x, 0.0)).r, hW = texture(uAux, uv - vec2(uAuxStep.x, 0.0)).r;
     float hN = texture(uAux, uv - vec2(0.0, uAuxStep.y)).r, hS = texture(uAux, uv + vec2(0.0, uAuxStep.y)).r;
     vec3 east = normalize(vec3(-w.y, w.x, 0.0) + vec3(1e-6, 0.0, 0.0));
@@ -97,15 +119,16 @@ export function createSphere(canvas) {
     gl.enableVertexAttribArray(a);
     gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
     loc = {};
-    for (const n of ['uCentre', 'uR', 'uDpr', 'uH', 'uE', 'uN', 'uC', 'uMode', 'uTex', 'uAux', 'uAuxStep', 'uBump', 'uLight']) {
+    for (const n of ['uCentre', 'uR', 'uDpr', 'uH', 'uE', 'uN', 'uC', 'uMode', 'uTex', 'uAux', 'uAuxStep', 'uBump', 'uLight', 'uDetail', 'uWin', 'uGrid', 'uDetailOn']) {
       loc[n] = gl.getUniformLocation(prog, n);
     }
     gl.uniform1i(loc.uTex, 0);
     gl.uniform1i(loc.uAux, 1);
+    gl.uniform1i(loc.uDetail, 2);
   }
   setup();
 
-  canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); lost = true; textures.clear(); });
+  canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); lost = true; textures.clear(); detail = null; });
   canvas.addEventListener('webglcontextrestored', () => { lost = false; setup(); });
 
   async function texture(url) {
@@ -132,16 +155,53 @@ export function createSphere(canvas) {
 
   let spec = null; // { mode, tex, aux, bump }
 
+  // The detail atlas: { tex, win: [col, row, cols, rows], grid: [cols, rows], tile (px) }.
+  let detail = null;
+  function dropDetail() { if (detail) { gl.deleteTexture(detail.tex); detail = null; } }
+
   return {
     // spec: { mode: 'relief' | 'picture', tex: url, aux?: url (height map), bump? } or null.
     // Resolves once loaded.
     async set(next) {
       spec = next;
+      if (next?.mode !== 'relief') dropDetail();
       release(next ? [next.tex, next.aux].filter(Boolean) : []);
       if (!next) return;
       await Promise.all([next.tex, next.aux].filter(Boolean).map(texture));
     },
     update(patch) { if (spec) Object.assign(spec, patch); },
+    // A new detail window (null: none). The atlas starts clear; putTile fills it.
+    setDetail(win, grid, tile) {
+      if (lost) return;
+      if (!win) { dropDetail(); return; }
+      const w = win[2] * tile, h = win[3] * tile;
+      if (!detail || detail.w !== w || detail.h !== h) {
+        dropDetail();
+        const tex = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.texStorage2D(gl.TEXTURE_2D, Math.log2(Math.max(w, h)) + 1, gl.RGBA8, w, h);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        detail = { tex, w, h };
+      }
+      // Clear: where no tile is, the base picture shows.
+      gl.bindTexture(gl.TEXTURE_2D, detail.tex);
+      if (detail.zeros?.length !== w * h * 4) detail.zeros = new Uint8Array(w * h * 4);
+      gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, detail.zeros);
+      gl.generateMipmap(gl.TEXTURE_2D);
+      Object.assign(detail, { win, grid, tile });
+    },
+    // One tile's picture into its place in the window (x, y: its place, in tiles).
+    putTile(x, y, img) {
+      if (lost || !detail) return;
+      gl.bindTexture(gl.TEXTURE_2D, detail.tex);
+      gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+      gl.texSubImage2D(gl.TEXTURE_2D, 0, x * detail.tile, y * detail.tile, gl.RGBA, gl.UNSIGNED_BYTE, img);
+      gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+      gl.generateMipmap(gl.TEXTURE_2D);
+    },
     // B: the basis from globe.js for this frame; size: { w, h, dpr }.
     draw(B, size) {
       if (lost) return;
@@ -170,10 +230,17 @@ export function createSphere(canvas) {
         (L[0] * B.e0 + L[1] * B.n0 + L[2] * B.c0) / m,
         (L[0] * B.e1 + L[1] * B.n1 + L[2] * B.c1) / m,
         (L[1] * B.n2 + L[2] * B.c2) / m);
+      const on = Boolean(detail?.win) && spec.mode === 'relief';
+      gl.uniform1i(loc.uDetailOn, on ? 1 : 0);
+      if (on) {
+        gl.uniform4f(loc.uWin, ...detail.win);
+        gl.uniform2f(loc.uGrid, ...detail.grid);
+        gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, detail.tex);
+      }
       gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, tex.tex);
       gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, aux.tex);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     },
-    destroy() { release([]); gl.getExtension('WEBGL_lose_context')?.loseContext(); },
+    destroy() { release([]); dropDetail(); gl.getExtension('WEBGL_lose_context')?.loseContext(); },
   };
 }

@@ -412,6 +412,13 @@ The chips along the top of the Globe switch on one map layer at a time: 🏔️ 
   (`DEPTH_NEAR_K`). Outline points far off the screen are left out (`traceRing`), which changes
   nothing on screen but saves drawing when zoomed in.
 - Phones load 2048×1024 pictures (topography), tablets and computers 4096×2048.
+- Topography zoom tiles (`js/globe-tiles.js`): from zoom 2.4, where the 4096 px picture starts
+  to blur, the same picture at 8192×4096 in 512 px tiles (`assets/layers/relief-tiles/<row>-<col>.webp`,
+  128 tiles, 2.2 MB in all) is fetched for the view only, the tiles nearest the middle first, four
+  at a time. They go into a 4 × 4 tile window round the view's centre (one 2048 px texture in
+  `js/globegl.js`); where a tile isn't there yet (or offline), the base picture shows. The service
+  worker keeps them in their own cache (`tiles-…`), letting the oldest go above 25 MB.
+  `node scripts/make-layers.mjs tiles` makes them (from the same Natural Earth picture).
 - Nothing is downloaded until a layer is first switched on; the service worker then keeps it
   (`layers-…` cache, which also holds `assets/globe.json` and `assets/home.json`), so it works
   offline from then on.

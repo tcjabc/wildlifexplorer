@@ -4,6 +4,7 @@
 //
 // layer.load({ col, month }) resolves to a spec for globe.setLayer() (see js/globe.js).
 import { prepare, toVec } from './globe.js';
+import { RELIEF_TILES } from './globe-tiles.js';
 
 const DIR = 'assets/layers/';
 const DEG = Math.PI / 180;
@@ -120,7 +121,7 @@ export const LAYERS = [
   {
     id: 'relief', emoji: '🏔️',
     async load() {
-      return { raster: { mode: 'relief', tex: `${DIR}relief-${size()}.webp`, aux: `${DIR}height-2k.webp`, bump: 5 } };
+      return { raster: { mode: 'relief', tex: `${DIR}relief-${size()}.webp`, aux: `${DIR}height-2k.webp`, bump: 5, tiles: RELIEF_TILES } };
     },
   },
   {

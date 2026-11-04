@@ -10,6 +10,7 @@
 // projector (onFrame) and places its own elements over the canvas.
 import { h, reducedMotion } from './dom.js';
 import { track, tween, clamp } from './gesture.js';
+import { createTiles } from './globe-tiles.js';
 
 const DEG = Math.PI / 180;
 const MIN_K = 1, MAX_K = 40;
@@ -342,6 +343,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
   const col = tokens(stage);
   let layer = null;          // see setLayer
   let sphere = null;         // js/globegl.js, once a picture layer has been shown
+  let tiles = null;          // js/globe-tiles.js, once a layer with zoom tiles has been shown
   let home = null;
   const getHome = () => loadHome().then(p => { home = p; dirty = true; }).catch(() => {});
   getHome();
@@ -480,7 +482,10 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
     ctx.restore();
 
     // The picture layer, if any, between the two canvases.
-    if (sphere) sphere.draw(B, size);
+    if (sphere) {
+      if (layer?.raster?.tiles) tiles?.update(B, view.k);
+      sphere.draw(B, size);
+    }
 
     // Above every layer: the coastline over a picture layer, the selected range, the home
     // outline, pin fans.
@@ -807,7 +812,8 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
     //   sea:    [{ polys, near?, fill, edge? }] drawn on the sea, under the land (prepare())
     //   land:   [{ polys, near?, fill }] drawn on the land
     //   night:  { sun, lights, shade, twilight, light }: day & night (drawNight)
-    //   raster: a js/globegl.js spec, drawn above sea and land
+    //   raster: a js/globegl.js spec, drawn above sea and land; with tiles (js/globe-tiles.js
+    //           RELIEF_TILES), sharper pictures fetched for the view once zoomed in
     // Resolves when the layer is showing; rejects if its pictures can't be shown.
     async setLayer(next) {
       layer = next;
@@ -820,6 +826,8 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
         overCanvas.before(glCanvas);
       }
       await sphere?.set(next?.raster ?? null);
+      if (next?.raster?.tiles) tiles ??= createTiles(sphere, () => { dirty = true; }, next.raster.tiles);
+      else tiles?.clear();
       dirty = true;
     },
     // Change the layer's settings (e.g. where the sun is) without reloading it.

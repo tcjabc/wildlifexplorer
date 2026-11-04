@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Makes the Globe's map layers (assets/layers/) and the home outline (assets/home.json)
-// from big public datasets. Run: node scripts/make-layers.mjs [relief night temp depth
+// from big public datasets. Run: node scripts/make-layers.mjs [relief tiles night temp depth
 // forests reefs home] (no names = all).
 //
 // Raw downloads go into data-raw/ (git-ignored) and are reused. Only the small processed
@@ -86,6 +86,30 @@ async function token(name) {
 }
 
 // ---------- picture layers ----------
+
+// Topography zoom tiles: the same picture at TILE_LEVEL × TILE_LEVEL/2 px, cut into TILE × TILE
+// tiles (16 × 8 of them, 22.5° each), assets/layers/relief-tiles/<row>-<col>.webp, row 0 at
+// the top (90° N), column 0 at 180° W. The globe fetches only the ones in view once zoomed in
+// (js/globegl.js); keep these numbers in step with RELIEF_TILES in js/layers.js.
+const TILE_LEVEL = 8192, TILE = 512;
+async function tiles() {
+  const tif = await find(await unpacked('relief'), /.tif$/i);
+  const dir = path.join(OUT, 'relief-tiles');
+  await mkdir(dir, { recursive: true });
+  const big8k = await sharp(tif, big).resize(TILE_LEVEL, TILE_LEVEL / 2, { kernel: 'lanczos3' }).raw().toBuffer({ resolveWithObject: true });
+  const { width, height, channels } = big8k.info;
+  let total = 0;
+  for (let row = 0; row < height / TILE; row++) {
+    for (let col = 0; col < width / TILE; col++) {
+      const file = path.join(dir, `${row}-${col}.webp`);
+      await sharp(big8k.data, { raw: { width, height, channels } })
+        .extract({ left: col * TILE, top: row * TILE, width: TILE, height: TILE })
+        .webp({ quality: 80, effort: 6 }).toFile(file);
+      total += (await readFile(file)).length;
+    }
+  }
+  console.log(`  relief-tiles: ${(width / TILE) * (height / TILE)} tiles, ${(total / 1048576).toFixed(1)} MB`);
+}
 
 async function relief() {
   const tif = await find(await unpacked('relief'), /\.tif$/i);
@@ -303,7 +327,7 @@ async function home() {
 
 // ---------- main ----------
 
-const STEPS = { relief, night, temp, depth, forests, reefs, home };
+const STEPS = { relief, tiles, night, temp, depth, forests, reefs, home };
 const wanted = process.argv.slice(2);
 for (const w of wanted) if (!STEPS[w]) throw new Error(`Unknown layer "${w}" (have: ${Object.keys(STEPS).join(', ')})`);
 await mkdir(RAW, { recursive: true });
