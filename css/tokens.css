@@ -64,6 +64,8 @@
   --c-forest-temperate: #7fbf4d;
   --c-forest-boreal: #2f6b57;
   --c-reef: #ff6f91;
+  --c-reef-fill: rgb(255 111 145 / 0.6); /* reefs on the globe: --c-reef, see-through */
+  --c-reef-edge: #c2365e;               /* and their edge */
   --c-relief-low: #9cc47e;
   --c-relief-dry: #d8c38f;
   --c-relief-high: #f4f1ea;

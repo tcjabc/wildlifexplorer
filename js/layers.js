@@ -74,12 +74,12 @@ export const tempStops = col => col('--c-temp-scale').split(',').map(s => {
 });
 
 // <name>-far.topo.json and <name>.topo.json, split by a property into one fill each:
-// [{ polys (far), near, fill, curve }] for globe.setLayer(). curve > 0 draws the outlines as
-// gentle curves (js/globe.js traceRing).
-async function shapesBy(name, prop, values, fill, { curve = 0, nearK } = {}) {
+// [{ polys (far), near, fill, curve, edge }] for globe.setLayer(). curve > 0 draws the outlines
+// as gentle curves (js/globe.js traceRing); edge: an outline colour.
+async function shapesBy(name, prop, values, fill, { curve = 0, nearK, edge } = {}) {
   const [far, near] = (await Promise.all([`${DIR}${name}-far.topo.json`, `${DIR}${name}.topo.json`].map(getJson))).map(decodeTopo);
   const pick = (shapes, v) => prepare(shapes.filter(s => s.props[prop] === v).flatMap(s => s.polys), { edges: curve > 0 });
-  return values.map((v, i) => ({ polys: pick(far, v), near: pick(near, v), fill: fill(v, i), curve, nearK }));
+  return values.map((v, i) => ({ polys: pick(far, v), near: pick(near, v), fill: fill(v, i), curve, nearK, edge }));
 }
 // The depth bands' curves: light, a third of each segment at a corner. Their detailed file
 // (four times the points of the far one) only from zoom 5: before that the far one's curves
@@ -98,9 +98,9 @@ export const LAYER_CREDITS = [
     sourceUrl: 'https://science.nasa.gov/earth/earth-observatory/blue-marble-next-generation/topography-bathymetry-maps' },
   { layer: 'forests', author: 'Dinerstein et al. 2017, RESOLVE Ecoregions 2017 (simplified, grouped into three forest types)',
     license: 'CC BY 4.0', licenseUrl: 'https://creativecommons.org/licenses/by/4.0/', sourceUrl: 'https://ecoregions.appspot.com/' },
-  { layer: 'reefs', author: 'Natural Earth, 1:10m Reefs (shown as dots)', ...NE,
+  { layer: 'reefs', author: 'Natural Earth, 1:10m Reefs (shown as areas: 8 km around each reef, joined)', ...NE,
     sourceUrl: 'https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-reefs/' },
-  { layer: 'night', author: 'NASA Earth Observatory (Joshua Stevens), Black Marble 2016, Suomi NPP VIIRS', ...NASA,
+  { layer: 'night', author: 'NASA Earth Observatory (Joshua Stevens), Black Marble 2016, Suomi NPP VIIRS (city lights as points)', ...NASA,
     sourceUrl: 'https://visibleearth.nasa.gov/images/144898/earth-at-night-black-marble-2016-color-maps' },
   { layer: 'temp', author: 'NASA EOSDIS GIBS: MODIS Terra land surface temperature and MODIS Aqua sea surface temperature, monthly 2024 (recoloured)', ...NASA,
     sourceUrl: 'https://worldview.earthdata.nasa.gov/' },
@@ -131,11 +131,10 @@ export const LAYERS = [
   },
   {
     id: 'reefs', emoji: '🪸',
+    // Areas (scripts/make-layers.mjs reefs): a translucent coral fill with a darker edge, on the
+    // sea, under the land.
     async load({ col }) {
-      const d = await getJson(`${DIR}reefs.json`);
-      const vecs = new Float32Array(d.points.length * 1.5);
-      for (let i = 0, j = 0; i < d.points.length; i += 2, j += 3) vecs.set(toVec(d.points[i] * d.unit, d.points[i + 1] * d.unit), j);
-      return { points: { vecs, colour: col('--c-reef') } };
+      return { sea: await shapesBy('reefs', 'kind', ['reef'], () => col('--c-reef-fill'), { edge: col('--c-reef-edge') }) };
     },
   },
   {

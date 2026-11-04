@@ -271,33 +271,19 @@ async function forests() {
   console.log(`  forests.topo.json ${await kb(out)}, forests-far.topo.json ${await kb(far)}`);
 }
 
+// Natural Earth's reefs are lines along each reef. As areas: everything within REEF_NEAR of a
+// line, joined where they touch (so the Great Barrier Reef reads as one long chain of reefs),
+// then simplified. The far file (the whole globe) uses REEF_FAR, so reefs still show as a band
+// at that size.
+const REEF_NEAR = 8000, REEF_FAR = 25000; // m
 async function reefs() {
-  const shp = await find(await unpacked('reefs'), /ne_10m_reefs\.shp$/);
-  const tmp = path.join(RAW, 'reefs.geojson');
-  await ms(`-i "${shp}" -o "${tmp}" format=geojson`);
-  const geo = JSON.parse(await readFile(tmp, 'utf8'));
-  // Dots every 0.1° along the reef lines, then at most one per 0.2° square.
-  const seen = new Set(), pts = [];
-  const add = (lon, lat) => {
-    const key = `${Math.round(lon * 5)},${Math.round(lat * 5)}`;
-    if (seen.has(key)) return;
-    seen.add(key);
-    pts.push(Math.round(lon * 100), Math.round(lat * 100));
-  };
-  for (const f of geo.features) {
-    const lines = f.geometry.type === 'LineString' ? [f.geometry.coordinates] : f.geometry.coordinates;
-    for (const line of lines) {
-      add(...line[0]);
-      for (let i = 1; i < line.length; i++) {
-        const [ax, ay] = line[i - 1], [bx, by] = line[i];
-        const n = Math.ceil(Math.hypot(bx - ax, by - ay) / 0.1);
-        for (let j = 1; j <= n; j++) add(ax + ((bx - ax) * j) / n, ay + ((by - ay) * j) / n);
-      }
-    }
+  const shp = await find(await unpacked('reefs'), /ne_10m_reefs.shp$/);
+  const out = path.join(OUT, 'reefs.topo.json'), far = path.join(OUT, 'reefs-far.topo.json');
+  for (const [radius, file, keep, q] of [[REEF_NEAR, out, '10%', 8000], [REEF_FAR, far, '4%', 4000]]) {
+    await ms(`-i "${shp}" -buffer radius=${radius} -dissolve2 -each "kind = 'reef'" -filter-fields kind ` +
+      `-simplify ${keep} keep-shapes -o "${file}" format=topojson quantization=${q}`);
   }
-  const file = path.join(OUT, 'reefs.json');
-  await writeFile(file, JSON.stringify({ source: 'Natural Earth 1:10m reefs (public domain)', unit: 0.01, points: pts }) + '\n');
-  console.log(`  reefs.json ${pts.length / 2} points, ${await kb(file)}`);
+  console.log(`  reefs.topo.json ${await kb(out)}, reefs-far.topo.json ${await kb(far)}`);
 }
 
 async function home() {

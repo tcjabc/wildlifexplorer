@@ -385,6 +385,10 @@ The chips along the top of the Globe switch on one map layer at a time: 🏔️ 
 - Picture layers (topography, temperature) are drawn with WebGL 2 by `js/globegl.js`, on a
   canvas between the land and the pins. It is only created when such a layer is first switched
   on. Shape layers (forests, depth, reefs) are drawn like the land.
+- Coral reefs are areas made from Natural Earth's reef lines: everything within 8 km of a reef,
+  joined where they touch and simplified (25 km for the whole-globe file, so they still show as a
+  band), so the Great Barrier Reef reads as one long chain. See-through coral (`--c-reef-fill`) with
+  a darker edge (`--c-reef-edge`), on the sea under the land, so they stop at the coast.
 - Day & night has no picture and no WebGL (`drawNight` in `js/globe.js`). The night side is
   a translucent dark overlay worked out from the sun's height at each point, one value every
   4 px, smoothed up and clipped to the globe: dusk starts while the sun is just up, the colour

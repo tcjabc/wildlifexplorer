@@ -406,7 +406,13 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
   // version for zooming in, as with the land.
   // nearK: a layer's own zoom for its detailed shapes (the depth bands' far ones, drawn as
   // curves, are plenty until then).
-  const fillAll = list => { for (const s of list ?? []) fillPolys((view.k >= (s.nearK ?? NEAR_K) && s.near) || s.polys, s.fill, false, s.curve ?? 0); };
+  // edge: an outline colour (reefs).
+  const fillAll = list => {
+    for (const s of list ?? []) {
+      if (s.edge) { ctx.strokeStyle = s.edge; ctx.lineWidth = 1.2; ctx.lineJoin = 'round'; }
+      fillPolys((view.k >= (s.nearK ?? NEAR_K) && s.near) || s.polys, s.fill, Boolean(s.edge), s.curve ?? 0);
+    }
+  };
 
   function draw() {
     const { w, h: ht, dpr } = size;
@@ -453,11 +459,10 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
     // The picture layer, if any, between the two canvases.
     if (sphere) sphere.draw(B, size);
 
-    // Above every layer: reef points, the selected range, the home outline, pin fans.
+    // Above every layer: the selected range, the home outline, pin fans.
     ctx = overCtx;
     ctx.save();
     ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
-    if (layer?.points) drawPoints(layer.points);
 
     if (range) {
       ctx.globalAlpha = 0.5;
@@ -508,16 +513,6 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
       sprites.set(colour, c);
     }
     return sprites.get(colour);
-  }
-
-  // Glowing dots (reefs): stamped at every point on the near side.
-  function drawPoints({ vecs, colour }) {
-    const sprite = glow(colour);
-    const s = clamp(5 * Math.sqrt(view.k), 5, 22); // dot size on screen
-    for (let i = 0; i < vecs.length; i += 3) {
-      const [x, y, z] = project([vecs[i], vecs[i + 1], vecs[i + 2]]);
-      if (z > 0) ctx.drawImage(sprite, x - s, y - s, s * 2, s * 2);
-    }
   }
 
   // Day & night: the night side darkened, with its twilight band, worked out on a small
@@ -762,9 +757,8 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
     // polys: GeoJSON-style [[ [lon, lat]… ]…] lists, or null to clear.
     setRange(list, group) { range = list ? { polys: prepare(list), colour: col.group(group) } : null; dirty = true; },
     // A map layer, or null for the plain globe:
-    //   sea:    [{ polys, near?, fill }] drawn on the sea, under the land (prepared with prepare())
+    //   sea:    [{ polys, near?, fill, edge? }] drawn on the sea, under the land (prepare())
     //   land:   [{ polys, near?, fill }] drawn on the land
-    //   points: { vecs, colour } glowing dots above everything (flat unit vectors)
     //   night:  { sun, lights, shade, twilight, light }: day & night (drawNight)
     //   raster: a js/globegl.js spec, drawn above sea and land
     // Resolves when the layer is showing; rejects if its pictures can't be shown.
