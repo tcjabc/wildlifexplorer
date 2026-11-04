@@ -9,6 +9,7 @@ import { bi, tx, t, label } from './i18n.js';
 import { state, groupById, isVisible } from './store.js';
 import { picture, statusBadge, taiwanBadge, cardNo } from './components.js';
 import { worldMap } from './worldmap.js';
+import { opensGlobe } from './card-return.js';
 import { comparePanel, modesFor } from './compare.js';
 import { lookalikesOf, lookalikePanel } from './lookalikes.js';
 import { magnifier, featureOf } from './magnifier.js';
@@ -101,7 +102,18 @@ function taxStrip(card) {
   return items.length ? h('p', { class: 'cover__tax', 'aria-label': label('card.taxonomy') }, items) : null;
 }
 
-export function coverPage(card, { onCredit } = {}) {
+// A card's map, as a button that opens the globe at its range (onMap): the whole map is the
+// button, with a small globe in its top corner. Only for cards with a range file, and only
+// where the card is open in the viewer (not in a pack reveal). It is a plain button inside
+// the card, so the card's gestures still win a drag that starts on it (js/gesture.js lets the
+// click through only for a tap).
+function mapButton(card, map, onMap, cls) {
+  if (!map || !opensGlobe(card, onMap)) return null;
+  return h('button', { class: ['map-open', cls], type: 'button', 'aria-label': label('card.mapToGlobe'), onclick: () => onMap(card) },
+    map, h('span', { class: 'map-open__icon', 'aria-hidden': 'true' }, '🌏'));
+}
+
+export function coverPage(card, { onCredit, onMap } = {}) {
   const g = groupById(card.group);
   const facts = factsOf(card);
   const img = card.photo ?? card.illustration;
@@ -122,9 +134,10 @@ export function coverPage(card, { onCredit } = {}) {
         h('ol', { class: 'cover__facts' }, facts.slice(0, 3).map(f => h('li', null, bi(f))))),
       h('section', { class: 'cover__side' },
         smallTitle('card.where'),
-        // The corner slot is kept free for the map's expand button (next prompt).
-        h('div', { class: 'cover__map' }, worldMap(card, { label: label('card.where') }),
-          h('span', { class: 'cover__map-slot', 'aria-hidden': 'true' })),
+        // The corner slot holds the small globe when the map opens the globe.
+        mapButton(card, worldMap(card, { label: label('card.where') }), onMap, 'cover__map')
+          ?? h('div', { class: 'cover__map' }, worldMap(card, { label: label('card.where') }),
+            h('span', { class: 'cover__map-slot', 'aria-hidden': 'true' })),
         h('div', { class: 'cover__badges' }, statusBadge(card.status), card.taiwan && taiwanBadge()))));
 }
 
@@ -306,7 +319,7 @@ export function insidePage(card) {
 
 // The Fact File. Its body scrolls inside the card; the frame never grows. With no text yet:
 // the Habitat heading and the range map (if there is one), and a line saying more is coming.
-export function backPage(card) {
+export function backPage(card, { onMap } = {}) {
   if (!hasBack(card)) return h('div', { class: 'cpage cpage--back' }, blank(card));
   const soon = !hasFactText(card) && h('p', { class: 'ff__soon' },
     h('span', { class: 'ff__soon-icon', 'aria-hidden': 'true' }, groupById(card.group)?.emoji), tx(comingSoonKey(card)));
@@ -316,7 +329,8 @@ export function backPage(card) {
     if (!paras.length && !map) return null;
     return h('section', { class: 'csection ff__section', 'data-section': key },
       pageTitle(`ff.${key}`, icon),
-      map && worldMap(card, { detail: true, label: label('card.where') }),
+      map && (mapButton(card, worldMap(card, { detail: true, label: label('card.where') }), onMap, 'ff__map')
+        ?? worldMap(card, { detail: true, label: label('card.where') })),
       paras.map(glossed));
   });
   const dyk = didYouKnow(card);

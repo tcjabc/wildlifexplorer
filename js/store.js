@@ -30,6 +30,19 @@ export const state = {
 // grants or opens a pack, collects a card or earns a badge (db.js refuses those writes
 // too). Its explorers' settings can still be changed, and new explorers added.
 export const watching = () => state.role === 'watch';
+
+// Debug overlays for grown-ups in preview: ?debug=<name> in the address turns one on for
+// this tab (gestures: the card's gesture zones; fps: the globe's frame rate), ?debug=off
+// turns them all off.
+export function debugOn(name) {
+  try {
+    const q = new URLSearchParams(location.search).get('debug');
+    if (q === 'off') {
+      for (const k of Object.keys(sessionStorage)) if (k.startsWith('we-debug-')) sessionStorage.removeItem(k);
+    } else if (q) sessionStorage.setItem(`we-debug-${q}`, '1');
+    return Boolean(state.profile?.parent.preview) && sessionStorage.getItem(`we-debug-${name}`) === '1';
+  } catch { return false; }
+}
 // After this device's role changed (cloud/sync.js): read it again.
 export async function loadRole() {
   state.role = await db.getRole();

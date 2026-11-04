@@ -1,14 +1,16 @@
 // Service worker: makes the whole app work offline.
 //  - App files and data: network first (so updates show up), cache as fallback.
 //  - Images: cache first (their file names change when the picture changes).
-//  - Globe map layers: cache first, only once a layer is first shown (own LAYERS_VERSION).
+//  - The globe's own data (land, home outline) and its map layers: cache first, only once
+//    the globe or a layer is first shown (own LAYERS_VERSION).
 // Bump VERSION to throw away the app and image caches.
-const VERSION = 'v33';
+const VERSION = 'v34';
 const SHELL_CACHE = `shell-${VERSION}`;
 const IMAGE_CACHE = `images-${VERSION}`;
-// Globe map layers (assets/layers/): big, so only cached once a layer is first shown, and
-// kept across releases. Bump LAYERS_VERSION when scripts/make-layers.mjs is re-run.
-const LAYERS_VERSION = 'l1';
+// The globe's files (assets/globe.json, assets/home.json, assets/layers/): big, so only
+// cached once the globe (or a layer) is first shown, and kept across releases. Bump
+// LAYERS_VERSION when scripts/make-layers.mjs or scripts/make-globe.mjs is re-run.
+const LAYERS_VERSION = 'l2';
 const LAYER_CACHE = `layers-${LAYERS_VERSION}`;
 const NETWORK_TIMEOUT_MS = 3000;
 
@@ -37,6 +39,7 @@ const SHELL = [
   'js/gesture.js',
   'js/gesture-release.js',
   'js/card-layout.js',
+  'js/card-return.js',
   'js/glossary.js',
   'js/viewer.js',
   'js/cardparts.js',
@@ -92,8 +95,6 @@ const SHELL = [
   'icons/icon-512.png',
   'icons/apple-touch-icon.png',
   'assets/world.svg',
-  'assets/globe.json',
-  'assets/home.json',
   'assets/child.svg',
 ];
 
@@ -164,6 +165,9 @@ async function networkFirst(request) {
   }
 }
 
+// The globe's own files, kept across releases (see LAYERS_VERSION).
+const GLOBE_FILE = /\/assets\/(layers\/|globe\.json$|home\.json$)/;
+
 async function cacheFirst(request, name = IMAGE_CACHE) {
   const cache = await caches.open(name);
   const cached = await cache.match(request, { ignoreSearch: true });
@@ -178,7 +182,7 @@ self.addEventListener('fetch', event => {
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
-  if (url.pathname.includes('/assets/layers/')) event.respondWith(cacheFirst(request, LAYER_CACHE));
+  if (GLOBE_FILE.test(url.pathname)) event.respondWith(cacheFirst(request, LAYER_CACHE));
   else if (url.pathname.includes('/img/')) event.respondWith(cacheFirst(request));
   else event.respondWith(networkFirst(request));
 });

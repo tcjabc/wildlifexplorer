@@ -20,6 +20,7 @@
 //           scrolls up and down when it is taller
 //   lead: an element for the start of the bar in place of the "Field Notes" title (beside a
 //         card: the panel's "Collapse ›", so the panel has one bar)
+//   start: { view, scope, pageId } from where(): open there (coming back from the globe)
 import { h, mount, reducedMotion } from './dom.js';
 import { bi, t, tx, label, plain, getMode, dateText } from './i18n.js';
 import { state, updateProfile, isCollected, groupById } from './store.js';
@@ -46,7 +47,7 @@ const inLang = pair => {
   return m === 'en' ? pair.en || pair.zh : m === 'zh' ? pair.zh || pair.en : [pair.en, pair.zh].filter(Boolean).join('  ');
 };
 
-export function notebook({ cardId = null, beside = false, lead = null, onMaximise = null, onClose = null } = {}) {
+export function notebook({ cardId = null, beside = false, lead = null, start = null, onMaximise = null, onClose = null } = {}) {
   // view: 'pages' (one page at a time) or 'contents'. scope: whose pages the arrows step
   // through: { kind: 'animal', id } or { kind: 'free' }. draft: the page isn't saved yet.
   const nb = {
@@ -943,12 +944,17 @@ export function notebook({ cardId = null, beside = false, lead = null, onMaximis
   queueMicrotask(async () => {
     await notes.loadIndex();
     // All pages: the newest. One animal's pages: the first (or "start a page" if none).
-    if (nb.home) await openHome(); else await openContents();
+    if (start?.view === 'contents') await openContents();
+    else if (start?.scope && start.pageId) await openPage(start.scope, start.pageId);
+    else if (nb.home) await openHome();
+    else await openContents();
     fit();
   });
 
   return {
     el,
+    // Where the notebook is, to open there again: the contents, or a page in a list.
+    where: () => ({ view: nb.view, scope: nb.scope, pageId: nb.view === 'pages' && !nb.draft ? nb.page?.id ?? null : null }),
     async destroy() {
       ro.disconnect();
       toolsRo.disconnect();

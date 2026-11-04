@@ -491,6 +491,12 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
 }
 .globe__hint .bi { align-items: center; }
 .globe.has-layer .globe__hint { display: none; }
+/* ?debug=fps (grown-up preview): frame rate and drawing time. */
+.globe__fps {
+  position: absolute; right: var(--s-2); bottom: calc(var(--s-2) + env(safe-area-inset-bottom)); margin: 0;
+  padding: var(--s-1) var(--s-2); border-radius: var(--r-sm); background: var(--c-veil); color: var(--c-ink);
+  font-size: var(--fs-xs); font-variant-numeric: tabular-nums; pointer-events: none;
+}
 
 /* Map layer chips along the top, scrolling sideways on narrow screens. */
 .glayers {
@@ -499,6 +505,20 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
   overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;
 }
 .glayers::-webkit-scrollbar { display: none; }
+/* Opened from a card: "Back to card" above the layer chips. */
+.globe__back { position: absolute; z-index: 2; top: var(--s-2); left: var(--s-3); min-height: var(--tap-sm); }
+.globe__back .bi { flex-direction: row; gap: 0.4em; }
+.globe.has-back .glayers { top: calc(var(--s-2) * 2 + var(--tap-sm)); }
+/* Offline the first time: the globe's land can't load yet. */
+.globe__offline {
+  position: absolute; z-index: 2; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: min(90%, var(--sheet-w)); display: grid; justify-items: center; gap: var(--s-3);
+  padding: var(--s-4) var(--s-5); border-radius: var(--r-lg); background: var(--c-surface); box-shadow: var(--shadow-3);
+  text-align: center;
+}
+.globe__offline[hidden] { display: none; }
+.globe__offline p { margin: 0; font-weight: var(--fw-semi); }
+.globe__offline .bi { align-items: center; }
 .glayer {
   flex: none; display: inline-flex; align-items: center; gap: var(--s-1);
   min-height: var(--tap-sm); padding: var(--s-1) var(--s-3) var(--s-1) var(--s-2);

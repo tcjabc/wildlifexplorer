@@ -9,11 +9,16 @@
 //
 // Pins that overlap merge into a stack with a count; tapping a stack zooms in and fans
 // the pins out. Tapping a pin lights up that species' range and opens its card sheet.
+//
+// #/globe/<card id> (from a card's map): that animal's range lit up and in view, and a
+// "Back to card" button (Esc, or the device's back button, does the same) that returns to
+// the card as it was (js/card-return.js). #/globe on its own is the Globe tab as always.
 import { h, mount, reducedMotion } from '../dom.js';
 import { bi, t, tx, label, plain } from '../i18n.js';
-import { state, isVisible, groupById, thumbOf, mainImage } from '../store.js';
+import { state, isVisible, groupById, thumbOf, mainImage, debugOn } from '../store.js';
 import { picture, groupTitle, cardNo } from '../components.js';
-import { createGlobe, toVec } from '../globe.js';
+import { createGlobe, toVec, rangeFit } from '../globe.js';
+import { cameFromMap } from '../card-return.js';
 import { loadRange, rangePolygons } from '../worldmap.js';
 import { track, haptic } from '../gesture.js';
 import { nameBi } from '../zhuyin.js';
@@ -30,6 +35,7 @@ let sheet = null;          // { el, scrim, pin }
 let shownLayer = null;
 let shownFilter = null;   // { key: 'continents' | 'biomes', id }: only show pins with that tag
 let tempMonth = new Date().getMonth() + 1;
+let goBack = null;         // "Back to card", while the globe was opened from a card
 
 // ---------- where pins go ----------
 
@@ -99,15 +105,25 @@ function pinEl(card, onTap) {
   h('span', { class: 'gpin__count', 'aria-hidden': 'true' }));
 }
 
-export function render(main) {
+export function render(main, [cardId] = []) {
+  const from = cardId && state.byId.get(cardId);
+  const card = from && isVisible(from) ? from : null;
   const layer = h('div', { class: 'globe__pins' });
   const hint = h('p', { class: 'globe__hint' }, tx('globe.hint'));
   const stage = h('div', { class: 'globe__stage' }, layer);
   const bar = h('div', { class: 'glayers', role: 'toolbar', 'aria-label': label('globe.layers') });
   const legend = h('div', { class: 'glegend', hidden: true });
   const filterPanel = h('div', { class: 'gfilter', hidden: true });
-  const view = h('section', { class: 'globe', 'aria-label': label('nav.globe') },
-    stage, bar, filterPanel, h('div', { class: 'globe__foot' }, legend, hint));
+  // Back to the card: in history when the globe was opened from it, else to its address.
+  goBack = card ? () => { if (cameFromMap(card.id)) history.back(); else location.hash = `#/card/${encodeURIComponent(card.id)}`; } : null;
+  const back = card && h('button', { class: 'btn btn--primary globe__back', type: 'button', onclick: () => goBack?.() },
+    h('span', { 'aria-hidden': 'true' }, '‹ '), tx('globe.backToCard'));
+  // The first time, the land has to come from the internet.
+  const offline = h('div', { class: 'globe__offline', role: 'status', hidden: true },
+    h('p', null, h('span', { 'aria-hidden': 'true' }, '📡 '), tx('globe.offline')),
+    h('button', { class: 'btn btn--soft', type: 'button', onclick: () => globe?.retry() }, tx('globe.retry')));
+  const view = h('section', { class: ['globe', card && 'has-back'], 'aria-label': label('nav.globe') },
+    stage, back, bar, filterPanel, offline, h('div', { class: 'globe__foot' }, legend, hint));
   mount(main, view);
 
   const pins = [];          // { card, lon, lat, v, el, x, y, z, stack }
@@ -174,9 +190,15 @@ export function render(main) {
     if (fanning) globe.redraw();
   }
 
+  const debug = debugOn('fps');
   globe = createGlobe(stage, {
+    debug,
+    onLand: ok => { offline.hidden = ok; },
     onFrame: layout,
-    onInteract: () => { if (fan) { fan = null; globe.redraw(); } },
+    onInteract: () => {
+      if (fan) { fan = null; globe.redraw(); }
+      if (holding) { holding = false; globe.pause(false); } // touched: it may turn by itself again
+    },
     onTap: () => { fan = null; select(null); },
   });
 
@@ -298,7 +320,25 @@ export function render(main) {
   })).then(() => {
     if (!placed) hint.replaceChildren(tx('globe.empty'));
     pins.sort((a, b) => a.card.number - b.card.number);
+    // From a card: its pin is the selected one (its range is already lit).
+    const own = card && pins.find(p => p.card === card);
+    if (own && !selected) { selected = own; own.el.classList.add('is-selected'); }
   });
+
+  // From a card's map: light up its range and turn to it, zoomed to fit (js/globe.js rangeFit),
+  // and stay there (no slow turning away) until the child touches the globe.
+  let holding = false;
+  if (card?.range) {
+    holding = true;
+    globe.pause(true);
+    loadRange(card.range).then(geo => {
+      const polys = rangePolygons(geo);
+      const fit = rangeFit(polys);
+      if (!globe || !fit) return;
+      globe.setRange(polys, card.group);
+      globe.flyTo(fit.lon, fit.lat, fit.k, { duration: 900 });
+    });
+  }
 
   // ---------- region filter: continents and habitats, from the cards' tags ----------
   function matchesFilter(card) {
@@ -433,20 +473,28 @@ export function render(main) {
   }
   if (shownLayer) choose(shownLayer);
 
+  // ?debug=fps: the globe on window too, to put it at an exact view for comparing pictures.
+  if (debug) window.wfGlobe = globe;
   const onResize = () => { measure(); fitGlobe(); };
+  const onOnline = () => globe?.retry();
   window.addEventListener('resize', onResize);
+  window.addEventListener('online', onOnline);
   return () => {
     clearInterval(ticker);
     window.removeEventListener('resize', onResize);
+    window.removeEventListener('online', onOnline);
+    goBack = null;
     closeSheet({ animate: false });
     globe.destroy();
     globe = null;
+    if (debug) delete window.wfGlobe;
   };
 }
 
 export function onKey(e) {
   if (!globe) return;
   if (e.key === 'Escape' && sheet) { e.preventDefault(); sheet.el.querySelector('.gsheet__close')?.click(); return; }
+  if (e.key === 'Escape' && goBack) { e.preventDefault(); goBack(); return; }
   if (sheet) return;
   const moves = { ArrowLeft: [-15, 0], ArrowRight: [15, 0], ArrowUp: [0, 10], ArrowDown: [0, -10] };
   if (moves[e.key]) { e.preventDefault(); globe.spinBy(...moves[e.key]); }

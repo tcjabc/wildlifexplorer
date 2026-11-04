@@ -163,8 +163,21 @@
 .cover__side .cpage__label { align-self: stretch; text-align: right; }
 .cover__side .cpage__label .bi { justify-content: flex-end; }
 .cover__map { position: relative; width: 100%; }
-/* Kept free for the map's expand button (next prompt). */
+/* The corner of the front map kept free for the small globe (cardparts.js mapButton). */
 .cover__map-slot { position: absolute; top: var(--s-hair); right: var(--s-hair); width: var(--map-slot); height: var(--map-slot); }
+/* A map that opens the globe: the whole map is the button. */
+.map-open {
+  position: relative; display: block; width: 100%; padding: 0; border: 0; border-radius: var(--r-sm);
+  background: none; font: inherit; color: inherit; text-align: inherit; cursor: pointer;
+}
+.map-open__icon {
+  position: absolute; top: var(--s-hair); right: var(--s-hair); width: var(--map-slot); height: var(--map-slot);
+  display: grid; place-items: center; border-radius: 50%;
+  background: var(--c-veil); box-shadow: var(--shadow-1); font-size: var(--card-fs-sm); line-height: 1;
+}
+.map-open:hover .map-open__icon { background: var(--c-surface); }
+.ff__map { margin-bottom: var(--s-1); }
+.ff__map .map { margin-bottom: 0; }
 .cover__badges { display: flex; flex-direction: column; align-items: flex-end; gap: var(--s-1); }
 .cover__badges:empty { display: none; } /* e.g. a plant with no IUCN status */
 

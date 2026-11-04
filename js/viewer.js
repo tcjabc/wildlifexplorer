@@ -23,8 +23,9 @@
 // and the cover / open spread / back is drawn flat, so text and photos stay crisp.
 import { h, mount, reducedMotion } from './dom.js';
 import { tx, label, getMode } from './i18n.js';
-import { state, cardsIn, isVisible, groupById, speechRate, watching, updateProfile } from './store.js';
+import { state, cardsIn, isVisible, groupById, speechRate, watching, updateProfile, debugOn } from './store.js';
 import { dockMode, cardLayout, fitScale, spreadRange, panDrag, clipLeftOf } from './card-layout.js';
+import { sideOf } from './card-return.js';
 import {
   coverPage, profilePage, insidePage, backPage, cardCredits,
   hasInside, hasBack, readOrder,
@@ -46,14 +47,14 @@ export const openCardId = () => v?.card.id ?? null;
 
 // ---------- building the card ----------
 
-function buildBook(card, onCredit) {
+function buildBook(card, onCredit, onMap) {
   const leaf = h('div', { class: 'leaf' },
-    h('div', { class: 'face face--front' }, coverPage(card, { onCredit })),
+    h('div', { class: 'face face--front' }, coverPage(card, { onCredit, onMap })),
     h('div', { class: 'face face--back face--y' }, profilePage(card)));
   const inside = insidePage(card);
   const base = h('div', { class: 'base' },
     h('div', { class: 'face face--front' }, inside.el),
-    h('div', { class: 'face face--back face--x' }, backPage(card)));
+    h('div', { class: 'face face--back face--x' }, backPage(card, { onMap })));
   const flipper = h('div', { class: 'flipper' }, base, leaf);
   const root = h('div', { class: 'card3d' }, flipper);
   return { pos: h('div', { class: 'card-pos' }, root), root, flipper, leaf, inside };
@@ -296,16 +297,8 @@ function gestureZones() {
 }
 const inBox = (b, x, y) => Boolean(b && b.right > b.left && x >= b.left && x <= b.right && y >= b.top && y <= b.bottom);
 
-// Debug overlay of the gesture zones, for grown-ups in preview: add ?debug=gestures to the
-// address (kept for this tab), ?debug=off to stop.
-function gestureDebugOn() {
-  try {
-    const q = new URLSearchParams(location.search).get('debug');
-    if (q === 'gestures') sessionStorage.setItem('we-debug-gestures', '1');
-    if (q === 'off') sessionStorage.removeItem('we-debug-gestures');
-    return Boolean(state.profile?.parent.preview) && sessionStorage.getItem('we-debug-gestures') === '1';
-  } catch { return false; }
-}
+// Debug overlay of the gesture zones, for grown-ups in preview: ?debug=gestures (store.js).
+const gestureDebugOn = () => debugOn('gestures');
 function drawZones() {
   if (!gestureDebugOn()) { v.zones?.remove(); v.zones = null; return; }
   const z = gestureZones();
@@ -490,7 +483,7 @@ function buildBar(card) {
 function setCard(card) {
   closePopover();
   v.card = card;
-  v.built = buildBook(card, openCredits);
+  v.built = buildBook(card, openCredits, openGlobe);
   mount(v.zoomer, v.built.pos);
   v.zoom = 0;
   const bar = buildBar(card);
@@ -504,7 +497,9 @@ function setCard(card) {
 
 // fromEl: the binder tile to zoom out of. onDismiss: called when the child closes the
 // card themselves (swipe down or ←), so the app can update the address.
-export function open(card, { fromEl, main, onDismiss } = {}) {
+// restore: what js/card-return.js kept when this card was left for the globe (its side and
+// the notebook), to come back to exactly that.
+export function open(card, { fromEl, main, onDismiss, restore = null } = {}) {
   if (v) teardown();
   const scrim = h('div', { class: 'viewer__scrim' });
   const zoomer = h('div', { class: 'viewer__zoomer' });
@@ -528,8 +523,12 @@ export function open(card, { fromEl, main, onDismiss } = {}) {
 
   v = { el, pane, scrim, zoomer, stage, hint, hintRow, bar, sheet, dock, main, fromEl, onDismiss, p: 0, f: 0, z: 0, cancel: null };
   setCard(card);
-  // Collapsed or expanded, as this explorer left it last time (kept on this device).
-  if (dock && state.profile?.notesPanel === 'expanded') setNotebook(true, { remember: false, layout: false });
+  // Collapsed or expanded, as this explorer left it last time (kept on this device), or as it
+  // was when the card was left for the globe (and on the same page).
+  const notes = restore?.notes;
+  if (dock && (notes ? notes.expanded : state.profile?.notesPanel === 'expanded')) setNotebook(true, { remember: false, layout: false, start: notes });
+  if (restore?.side === 'back') v.f = 1;
+  else if (restore?.side === 'inside') v.p = 1;
   if (main && fromEl) {
     const m = main.getBoundingClientRect(), r = fromEl.getBoundingClientRect();
     main.style.setProperty('transform-origin', `${r.left + r.width / 2 - m.left}px ${r.top + r.height / 2 - m.top}px`);
@@ -598,14 +597,15 @@ function buildDock() {
 
 // remember: keep the choice for this explorer (on this device). layout: re-measure the card
 // (it shrinks beside the panel, or grows back); the open spread keeps its scale either way.
-function setNotebook(open, { remember = true, layout = true } = {}) {
+// start: where the notebook opens ({ view, scope, pageId } from its where()), else its usual place.
+function setNotebook(open, { remember = true, layout = true, start = null } = {}) {
   const d = v?.dock;
   if (!d || open === d.expanded) return;
   d.expanded = open;
   d.el.dataset.state = open ? 'expanded' : 'collapsed';
   v.el.dataset.notebook = open ? 'expanded' : 'collapsed';
   if (open) {
-    d.book = notebook({ cardId: v.card.id, beside: true, lead: d.collapse });
+    d.book = notebook({ cardId: v.card.id, beside: true, lead: d.collapse, start });
     mount(d.body, d.book.el);
   } else {
     d.book?.destroy();
@@ -619,6 +619,24 @@ function setNotebook(open, { remember = true, layout = true } = {}) {
 }
 
 export function openNotes() { setNotebook(true); }
+
+// What to come back to (js/card-return.js): the side showing and the notebook's place.
+export function snapshot() {
+  if (!v) return null;
+  return {
+    cardId: v.card.id, side: sideOf(v), viaMap: Boolean(v.toGlobe),
+    notes: v.dock ? { expanded: v.dock.expanded, ...(v.dock.book?.where() ?? {}) } : null,
+  };
+}
+
+// The card's map: the globe, at this animal's range. The router keeps snapshot() as the
+// viewer closes, and Back to card (or the device's back button) comes back to it.
+function openGlobe(card) {
+  if (!v) return;
+  haptic(8);
+  v.toGlobe = true;
+  location.hash = `#/globe/${encodeURIComponent(card.id)}`;
+}
 export function toggleNotes(open = !v?.dock?.expanded) { setNotebook(open); }
 
 // Close with the zoom running backwards into the tile.

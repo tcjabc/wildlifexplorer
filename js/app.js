@@ -27,6 +27,7 @@ import * as packs from './views/packs.js';
 import * as globe from './views/globe.js';
 import * as notesView from './views/notes.js';
 import { loadIndex as loadNotesIndex } from './notes-store.js';
+import * as cardReturn from './card-return.js';
 import * as quiz from './views/quiz.js';
 import * as badges from './views/badges.js';
 import * as more from './views/more.js';
@@ -81,10 +82,13 @@ function route() {
   if (next.name === 'card') {
     const card = store.state.byId.get(next.args[0]);
     if (!card || !store.isVisible(card)) { location.replace('#/binder'); return; }
+    // Straight back from the globe: the same side and notebook as when the card was left.
+    // (Asked before the binder is drawn behind the card, which changes what is shown.)
+    const restore = shown.name === 'globe' ? cardReturn.take(card.id) : null;
     if (binderGroup() !== card.group) renderMain({ name: 'binder', args: [card.group] });
     setNav('binder');
     if (viewer.isOpen()) viewer.show(card);
-    else viewer.open(card, { main, fromEl: tileFor(card.id), onDismiss: () => { location.hash = `#/binder/${card.group}`; } });
+    else viewer.open(card, { main, fromEl: tileFor(card.id), onDismiss: () => { location.hash = `#/binder/${card.group}`; }, restore });
     if (next.args[1] === 'notes') viewer.openNotes();
     return;
   }
@@ -92,6 +96,7 @@ function route() {
   const sameBinder = next.name === 'binder' && binderGroup() && (next.args[0] ?? binderGroup()) === binderGroup();
   if (viewer.isOpen()) {
     if (sameBinder) { viewer.close(); setNav('binder'); return; }
+    cardReturn.remember(viewer.snapshot()); // e.g. off to the globe from the card's map
     viewer.close({ animate: false });
   }
   // Coming back from a card to the same binder page: keep it as it is (and its scroll).

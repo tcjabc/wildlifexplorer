@@ -214,12 +214,17 @@ async function depth() {
   const keep = [200, 2000, 4000, 6000];
   const files = [];
   for (const d of keep) files.push(await find(dir, new RegExp(`_${d}\\.shp$`)));
-  // Two levels of detail, like assets/globe.json: "far" while the whole globe shows.
+  // Two levels of detail, like assets/globe.json: "far" while the whole globe shows. The
+  // source has no stair-steps (it is drawn from contours, every segment under 0.5°), so it goes
+  // straight to mapshaper's weighted simplification, kept at the forests' density: near about
+  // 0.23° between points (99% of segments under 1°, none over 2°), far about 0.7° (none over
+  // 4°). Keeping fewer points left long straight edges across the oceans; tests/layers.test.mjs
+  // holds the files to these numbers.
   const out = path.join(OUT, 'depth.topo.json'), far = path.join(OUT, 'depth-far.topo.json');
   await ms(`-i combine-files ${files.map(f => `"${f}"`).join(' ')} -merge-layers force name=depth ` +
-    `-filter-fields depth -simplify 1% keep-shapes -filter-islands min-area=8000km2 -filter-slivers min-area=8000km2 ` +
+    `-filter-fields depth -simplify 12% keep-shapes -filter-islands min-area=8000km2 -filter-slivers min-area=8000km2 ` +
     `-filter remove-empty -o "${out}" format=topojson quantization=8000 ` +
-    `-simplify 0.1% keep-shapes -filter-islands min-area=60000km2 -filter-slivers min-area=60000km2 -filter remove-empty -o "${far}" format=topojson quantization=4000`);
+    `-simplify 2% keep-shapes -filter-islands min-area=60000km2 -filter-slivers min-area=60000km2 -filter remove-empty -o "${far}" format=topojson quantization=4000`);
   console.log(`  depth.topo.json ${await kb(out)}, depth-far.topo.json ${await kb(far)}`);
 }
 

@@ -343,7 +343,23 @@ Cards with none of these (topics, most microscopic life) are left off. The build
 `fossilSite` and `place` from `data/locations.json` (keyed by card id); like every build field,
 if you change them in `animals.json` your values are kept. The globe's land
 (`assets/globe.json`) is made by `node scripts/make-globe.mjs`: simplified coastlines for the
-whole-globe view, full 1:50m detail when zoomed in.
+whole-globe view, full 1:50m detail when zoomed in. It is fetched the first time the globe
+opens (not installed with the app); the very first time that needs the internet, and offline
+the globe says so ("The globe needs the internet the first time…") with Try again.
+
+### From a card to the globe
+
+A card's map (on the front, and the Habitat map on the Fact File) opens the globe at that
+animal's range: the whole map is the button, with a small 🌏 in its corner. It is a tap only: a
+drag that starts on the map still opens, flips or puts away the card. Only cards with a range
+file have it (`opensGlobe` in `js/card-return.js`), and not in pack reveals.
+
+- `#/globe/<card id>` lights the range up, turns to it and zooms so it fills about 40% of the
+  view, but never past zoom 8 (`FIT_K_MAX`, `rangeFit` in `js/globe.js`), so a Taiwan-only animal
+  still shows the coasts around it. The globe holds still there until it is touched.
+- "‹ Back to card" (Esc, or the device's back button) returns to the card as it was: the same
+  side (front, open or Fact File) and the notebook collapsed or expanded, on the same page
+  (`js/card-return.js`, kept in memory only). `#/globe` on its own is the Globe tab as always.
 
 ### Globe map layers
 
@@ -355,13 +371,24 @@ above every layer.
 - Picture layers (topography, night lights, temperature) are drawn with WebGL 2 by
   `js/globegl.js`, on a canvas between the land and the pins. It is only created when such
   a layer is first switched on. Shape layers (forests, depth, reefs) are drawn like the land.
+- The ocean depth bands are Natural Earth's 1:10m bathymetry, simplified to the forests'
+  density: about 0.23° between points in the detailed file (99% of segments under 1°) and 0.7°
+  in the far one (none over 4°); `tests/globe-path.test.mjs` keeps them there. They are drawn
+  with light curves (`DEPTH_CURVE`), which never cross a clip point (the horizon, the map's
+  edges, where outlines meet), and the bands still nest. The detailed file is used from zoom 5
+  (`DEPTH_NEAR_K`). Outline points far off the screen are left out (`traceRing`), which changes
+  nothing on screen but saves drawing when zoomed in.
 - Phones load 2048×1024 pictures, tablets and computers 4096×2048.
 - Nothing is downloaded until a layer is first switched on; the service worker then keeps it
-  (`layers-…` cache), so it works offline from then on.
+  (`layers-…` cache, which also holds `assets/globe.json` and `assets/home.json`), so it works
+  offline from then on.
 - To rebuild the files: `node scripts/make-layers.mjs` (all) or name some, e.g.
   `node scripts/make-layers.mjs temp depth`. It downloads the raw datasets into `data-raw/`
   the first time (about 300 MB), needs only Node (sharp and mapshaper), and writes
-  `assets/layers/` and `assets/home.json`. After re-running it, bump `LAYERS_VERSION` in `sw.js`.
+  `assets/layers/` and `assets/home.json`. After re-running it (or `make-globe.mjs`), bump
+  `LAYERS_VERSION` in `sw.js`.
+- Frame rate: grown-ups in preview can add `?debug=fps` to the address to see the globe's frames
+  per second and drawing time while it turns (`?debug=off` to stop).
 - Colours live in `css/tokens.css` (`--c-depth-*`, `--c-forest-*`, `--c-temp-scale` …). The
   temperature pictures are painted with `--c-temp-scale`, so re-run `make-layers.mjs temp` if you change it.
 - Sources and licences: [CREDITS.md](CREDITS.md).

@@ -21,7 +21,8 @@ function getJson(url) {
   return jsonCache.get(url);
 }
 
-// TopoJSON (as written by mapshaper) → [{ props, polys: [[ [lon, lat]… ]…] }].
+// TopoJSON (as written by mapshaper) → [{ props, polys: [[ [lon, lat]… ]…] }]. A ring made
+// of several arcs lists where each one starts (ring.joins): there it meets another outline.
 export function decodeTopo(topo) {
   const { scale: [sx, sy], translate: [tx, ty] } = topo.transform;
   const arcs = topo.arcs.map(arc => {
@@ -29,11 +30,15 @@ export function decodeTopo(topo) {
     return arc.map(([dx, dy]) => { x += dx; y += dy; return [x * sx + tx, y * sy + ty]; });
   });
   const ring = ids => {
-    const out = [];
+    const out = [], joins = [];
     for (const id of ids) {
       const a = id < 0 ? arcs[~id].slice().reverse() : arcs[id];
+      if (ids.length > 1) joins.push(out.length ? out.length - 1 : 0);
       out.push(...(out.length ? a.slice(1) : a));
     }
+    // A closed ring repeats its first point at the end; the joins point into the open ring.
+    if (out.length > 1 && out[0][0] === out[out.length - 1][0] && out[0][1] === out[out.length - 1][1]) out.pop();
+    out.joins = joins.filter(i => i < out.length);
     return out;
   };
   const geoms = Object.values(topo.objects)[0].geometries;
@@ -69,12 +74,18 @@ export const tempStops = col => col('--c-temp-scale').split(',').map(s => {
 });
 
 // <name>-far.topo.json and <name>.topo.json, split by a property into one fill each:
-// [{ polys (far), near, fill }] for globe.setLayer().
-async function shapesBy(name, prop, values, fill) {
+// [{ polys (far), near, fill, curve }] for globe.setLayer(). curve > 0 draws the outlines as
+// gentle curves (js/globe.js traceRing).
+async function shapesBy(name, prop, values, fill, { curve = 0, nearK } = {}) {
   const [far, near] = (await Promise.all([`${DIR}${name}-far.topo.json`, `${DIR}${name}.topo.json`].map(getJson))).map(decodeTopo);
-  const pick = (shapes, v) => prepare(shapes.filter(s => s.props[prop] === v).flatMap(s => s.polys));
-  return values.map((v, i) => ({ polys: pick(far, v), near: pick(near, v), fill: fill(v, i) }));
+  const pick = (shapes, v) => prepare(shapes.filter(s => s.props[prop] === v).flatMap(s => s.polys), { edges: curve > 0 });
+  return values.map((v, i) => ({ polys: pick(far, v), near: pick(near, v), fill: fill(v, i), curve, nearK }));
 }
+// The depth bands' curves: light, a third of each segment at a corner. Their detailed file
+// (four times the points of the far one) only from zoom 5: before that the far one's curves
+// look the same and cost far less to draw.
+export const DEPTH_CURVE = 0.33;
+export const DEPTH_NEAR_K = 5;
 
 // Where each layer's data comes from, for the Credits page (CREDITS.md has the details).
 const NE = { license: 'Public domain', licenseUrl: 'https://www.naturalearthdata.com/about/terms-of-use/' };
@@ -151,7 +162,7 @@ export const LAYERS = [
     id: 'depth', emoji: '🌊',
     legend: [['--c-map-sea', 'layer.depth.0'], ...DEPTHS.map((_, i) => [`--c-depth-${i + 1}`, `layer.depth.${i + 1}`])],
     async load({ col }) {
-      return { sea: await shapesBy('depth', 'depth', DEPTHS, (d, i) => col(`--c-depth-${i + 1}`)) };
+      return { sea: await shapesBy('depth', 'depth', DEPTHS, (d, i) => col(`--c-depth-${i + 1}`), { curve: DEPTH_CURVE, nearK: DEPTH_NEAR_K }) };
     },
   },
 ];
