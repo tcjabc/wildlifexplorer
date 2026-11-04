@@ -59,3 +59,18 @@ test('drawn over the picture layers only, in a token colour, sharper lines zoome
   assert.match(globe, /coast: v\('--c-map-coast'\)/);
   assert.match(src('css/tokens.css'), /--c-map-coast: rgb\([^)]*\/ 0\.\d+\);/);
 });
+
+test('a clear line: 1.5 px for the whole globe to 2.5 px zoomed in, dark, on a light halo', async () => {
+  const { coastWidth, COAST_HALO } = await import('../js/globe.js');
+  assert.equal(coastWidth(1), 1.5);
+  assert.ok(coastWidth(2) > 1.5 && coastWidth(4) < 2.5);
+  assert.equal(coastWidth(8), 2.5);
+  assert.equal(coastWidth(40), 2.5);
+  assert.ok(COAST_HALO > 0);
+  const tokens = src('css/tokens.css');
+  const dark = tokens.match(/--c-map-coast: rgb\((\d+) (\d+) (\d+) \/ ([\d.]+)\)/).slice(1).map(Number);
+  assert.ok(Math.max(...dark.slice(0, 3)) < 60 && dark[3] >= 0.8, 'near black, nearly opaque: shows on red and on blue');
+  assert.match(tokens, /--c-map-coast-halo: rgb\(255 255 255 \/ 0\.\d+\)/);
+  const globe = src('js/globe.js');
+  assert.match(globe, /ctx\.strokeStyle = col\.coastHalo; ctx\.lineWidth = w \+ COAST_HALO;\n\s*ctx\.stroke\(\);\n\s*ctx\.strokeStyle = col\.coast; ctx\.lineWidth = w;/, 'the halo first, then the line');
+});

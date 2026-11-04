@@ -76,6 +76,12 @@ export const NIGHT_ALPHA = 0.66;
 const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 export const nightShade = sunDot => ({ alpha: NIGHT_ALPHA * smooth(0.06, -0.22, sunDot), dark: smooth(0.02, -0.3, sunDot) });
 export const lightsOn = sunDot => smooth(0.03, -0.12, sunDot);
+
+// The coastline over the picture layers: 1.5 px for the whole globe, thickening to 2.5 px by
+// zoom 8 (CSS px: the canvas is scaled for the device pixel ratio, so 3–5 device px on an
+// iPad), with a halo COAST_HALO px wider underneath.
+export const COAST_HALO = 2;
+export const coastWidth = k => 1.5 + clamp(Math.log2(Math.max(1, k)) / 3, 0, 1);
 // How many lights (the brightest first) are drawn at zoom k: 1,500 for the whole globe, more as
 // it zooms in, all of them from zoom 4.
 export const LIGHTS_FAR = 1500;
@@ -180,7 +186,7 @@ function tokens(el) {
   const v = name => s.getPropertyValue(name).trim();
   return {
     sea: v('--c-map-sea'), land: v('--c-map-land'), grid: v('--c-shine'), glow: v('--c-map-glow'),
-    home: v('--c-map-home'), homeEdge: v('--c-shade-strong'), coast: v('--c-map-coast'),
+    home: v('--c-map-home'), homeEdge: v('--c-shade-strong'), coast: v('--c-map-coast'), coastHalo: v('--c-map-coast-halo'),
     group: g => v(`--g-${g}`),
   };
 }
@@ -535,12 +541,13 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
     onFrame?.({ project, ctx, k: view.k, radius: r });
   }
 
-  // The coastline: sharp lines over a picture layer (whose own coasts blur when zoomed in).
-  // Lines stop at the horizon.
+  // The coastline: a clear dark line over a picture layer (whose own coasts blur when zoomed
+  // in), on a faint light halo so it reads on dark mountains and light deserts, on red and on
+  // blue. Lines stop at the horizon.
   function drawCoast(lines) {
-    ctx.strokeStyle = col.coast;
-    ctx.lineWidth = clamp(0.6 * Math.sqrt(view.k), 0.7, 1.4);
+    const w = coastWidth(view.k);
     ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
     ctx.beginPath();
     for (const p of lines) {
       if (!inSight(p)) continue;
@@ -554,6 +561,10 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
         pen = true;
       }
     }
+    // One path, stroked twice: the halo, then the line.
+    ctx.strokeStyle = col.coastHalo; ctx.lineWidth = w + COAST_HALO;
+    ctx.stroke();
+    ctx.strokeStyle = col.coast; ctx.lineWidth = w;
     ctx.stroke();
   }
 
