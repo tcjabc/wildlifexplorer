@@ -63,7 +63,7 @@ function buildBook(card, onCredit) {
 
 // The card's space (js/card-layout.js): the stage less what the notebook takes; the closed
 // card fits it (s0), the open spread stays at card scale (s1) and pans when it doesn't fit.
-function measure() {
+function measure(again = true) {
   const r = v.stage.getBoundingClientRect();
   const P = cssNum('--card-w'), H = cssNum('--card-h');
   const W = r.width, Hs = r.height;
@@ -74,7 +74,8 @@ function measure() {
     : { visibleW: W, s0: fitScale(W, Hs, P, H), s1: fitScale(W, Hs, P, H) };
   const s0 = lay.s0, s1 = hasInside(v.card) ? lay.s1 : s0;
   v.L = { P, H, W, Hs, s0, s1, visibleW: lay.visibleW, cx: lay.visibleW / 2, cy: Hs / 2, left: r.left, top: r.top, mode };
-  v.el.dataset.dock = mode;
+  // A new mode can show or hide the hint row (and so change the stage's height): measure again.
+  if (v.el.dataset.dock !== mode) { v.el.dataset.dock = mode; if (again) { measure(false); return; } }
   v.range = spreadRange({ visibleW: lay.visibleW, P, s: s1 });
   v.pan = clamp(v.pan ?? v.range.max, v.range.min, v.range.max);
   // Where the zoom starts: the tapped tile, or a small card in the middle.
@@ -587,13 +588,12 @@ function buildDock() {
   const tab = h('button', { class: 'nbdock__tab', type: 'button', 'aria-label': label('notes.expand'), onclick: expand },
     h('span', { 'aria-hidden': 'true' }, '📓'), tx('notes.tab'));
   const body = h('div', { class: 'nbdock__body' });
-  // The head row: "Collapse ›", and the notebook's "All pages / Only this animal" chip, which
-  // leaves the notebook's own bar room for the page buttons in a narrow panel.
-  const head = h('div', { class: 'nbdock__head' },
-    h('button', { class: 'btn nbdock__collapse', type: 'button', onclick: () => setNotebook(false) }, tx('notes.collapse')));
-  const panel = h('section', { class: 'nbdock__panel', 'aria-label': label('notes.spine') }, head, body);
+  // "Collapse ›" goes at the start of the notebook's own bar (in place of its title: the spine
+  // already says Field Notes), so the panel has a single bar.
+  const collapse = h('button', { class: 'btn nbdock__collapse', type: 'button', onclick: () => setNotebook(false) }, tx('notes.collapse'));
+  const panel = h('section', { class: 'nbdock__panel', 'aria-label': label('notes.spine') }, body);
   const el = h('div', { class: 'nbdock', 'data-state': 'collapsed' }, spine, panel);
-  return { el, spine, tab, panel, head, body, book: null, expanded: false };
+  return { el, spine, tab, panel, collapse, body, book: null, expanded: false };
 }
 
 // remember: keep the choice for this explorer (on this device). layout: re-measure the card
@@ -605,7 +605,7 @@ function setNotebook(open, { remember = true, layout = true } = {}) {
   d.el.dataset.state = open ? 'expanded' : 'collapsed';
   v.el.dataset.notebook = open ? 'expanded' : 'collapsed';
   if (open) {
-    d.book = notebook({ cardId: v.card.id, beside: true, chipHost: d.head });
+    d.book = notebook({ cardId: v.card.id, beside: true, lead: d.collapse });
     mount(d.body, d.book.el);
   } else {
     d.book?.destroy();

@@ -12,7 +12,8 @@
 //   cardId: show only that animal's pages (with "All pages" one tap away)
 //   beside: the notebook is open next to that card, so pages drawn on link to it. The page
 //           then fills the panel's width and scrolls up and down when it is taller
-//   chipHost: where the "All pages / Only this animal" chip goes (default: the notebook's bar)
+//   lead: an element for the start of the bar in place of the "Field Notes" title (beside a
+//         card: the panel's "Collapse ›", so the panel has one bar)
 import { h, mount, reducedMotion } from './dom.js';
 import { bi, t, tx, label, plain, getMode, dateText } from './i18n.js';
 import { state, updateProfile, isCollected, groupById } from './store.js';
@@ -38,7 +39,7 @@ const inLang = pair => {
   return m === 'en' ? pair.en || pair.zh : m === 'zh' ? pair.zh || pair.en : [pair.en, pair.zh].filter(Boolean).join('  ');
 };
 
-export function notebook({ cardId = null, beside = false, chipHost = null, onMaximise = null, onClose = null } = {}) {
+export function notebook({ cardId = null, beside = false, lead = null, onMaximise = null, onClose = null } = {}) {
   const nb = {
     filter: cardId, showAll: !cardId, ids: [], pos: 0, page: null,
     tool: 'pencil', colour: 'graphite', size: 'thin', foot: 'paw', stampCard: null,
@@ -75,15 +76,17 @@ export function notebook({ cardId = null, beside = false, chipHost = null, onMax
     d.addEventListener('keydown', e => e.stopPropagation());
   });
 
+  // One row: the title (or the lead), the chip, and the page buttons, which stay together. When
+  // the row is too narrow it wraps between those groups; the chip never shrinks below its text.
   const bar = h('header', { class: 'nb__bar' },
-    h('h2', { class: 'nb__title' }, h('span', { 'aria-hidden': 'true' }, '📓 '), tx('notes.title')),
-    !chipHost && filterChip,
-    h('span', { class: 'spacer' }),
-    prev, counter, next,
-    h('button', { class: 'btn btn--icon', type: 'button', 'aria-label': label('notes.newPage'), onclick: () => newPage() }, '＋'),
-    h('button', { class: 'btn btn--icon', type: 'button', 'aria-label': label('notes.menu'), onclick: () => openMenu() }, '⋯'),
-    onMaximise && h('button', { class: 'btn btn--icon nb__max', type: 'button', 'aria-label': label('notes.maximise'), onclick: () => onMaximise('toggle') }, '⤢'),
-    onClose && h('button', { class: 'btn btn--icon', type: 'button', 'aria-label': label('notes.close'), onclick: () => onClose() }, '✕'));
+    lead ?? h('h2', { class: 'nb__title' }, h('span', { 'aria-hidden': 'true' }, '📓 '), tx('notes.title')),
+    h('span', { class: 'nb__chipwrap' }, filterChip),
+    h('span', { class: 'nb__pages' },
+      prev, counter, next,
+      h('button', { class: 'btn btn--icon', type: 'button', 'aria-label': label('notes.newPage'), onclick: () => newPage() }, '＋'),
+      h('button', { class: 'btn btn--icon', type: 'button', 'aria-label': label('notes.menu'), onclick: () => openMenu() }, '⋯'),
+      onMaximise && h('button', { class: 'btn btn--icon nb__max', type: 'button', 'aria-label': label('notes.maximise'), onclick: () => onMaximise('toggle') }, '⤢'),
+      onClose && h('button', { class: 'btn btn--icon', type: 'button', 'aria-label': label('notes.close'), onclick: () => onClose() }, '✕')));
   // Double-tap the bar to fill the screen (or come back).
   bar.addEventListener('dblclick', e => { if (onMaximise && !e.target.closest('button')) onMaximise('toggle'); });
 
@@ -118,7 +121,6 @@ export function notebook({ cardId = null, beside = false, chipHost = null, onMax
 
   const el = h('section', { class: ['nb', beside && 'nb--beside'], 'aria-label': label('notes.title') },
     bar, tools, colourPick.box, footPick.box, deskWrap, fileInput, importInput, menuSheet, pickSheet);
-  if (chipHost) chipHost.append(filterChip);
 
   // ---------- toolbar layout ----------
   // One row if all of it fits (measured at its widest, with the roller's footprint button),
@@ -777,7 +779,6 @@ export function notebook({ cardId = null, beside = false, chipHost = null, onMax
       toolsRo.disconnect();
       closePicker();
       stopNudge();
-      filterChip.remove();
       document.removeEventListener('keydown', onKey, true);
       await flushSave();
       for (const bmp of nb.assets.photos.values()) bmp?.close?.();

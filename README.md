@@ -500,8 +500,10 @@ One notebook per profile (📓 in the nav, or beside every card). Code: `js/note
   `js/card-layout.js`) and the card is centred and scaled in the other half. Always in landscape;
   in portrait only while the card stays at least 340 px wide, otherwise (and on phones, under
   600 px) the panel covers the card. The open spread keeps its scale and pans behind the notebook,
-  so any part of it can be brought out. "Collapse ›" folds it back, next to the "All pages / Only
-  this animal" chip. The state is kept per profile on the device (`notesPanel`).
+  so any part of it can be brought out. The panel has one bar: "Collapse ›" (which folds it
+  back), the "All pages / Only this animal" chip and the page buttons; where it is too narrow it
+  wraps between them rather than clip anything. The state is kept per profile on the device
+  (`notesPanel`).
 - **The page beside a card** fills the panel's width (less a 16 px kraft margin) and scrolls up and
   down when it is taller: with the wheel, two fingers, one finger on the kraft margin, or one
   finger on the page in *Pen only*. A slim indicator on its right edge shows there is more, and
