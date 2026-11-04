@@ -72,6 +72,16 @@ export const INFO = {
     what: ['info.temp.what.1', 'info.temp.what.2'], art: 'thermometer',
     more: ['info.temp.more.1', 'info.temp.more.year'],
   },
+  plates: {
+    key: [
+      { line: 'apart', label: 'info.plates.key.apart' },
+      { line: 'crash', label: 'info.plates.key.crash' },
+      { line: 'slide', label: 'info.plates.key.slide' },
+      { line: 'arrow', label: 'info.plates.key.arrow' },
+    ],
+    what: ['info.plates.what.1', 'info.plates.what.2'], art: 'plates',
+    more: ['info.plates.more.speed'],
+  },
   depth: {
     // Lightest at the top: going down the key is going deeper.
     key: [

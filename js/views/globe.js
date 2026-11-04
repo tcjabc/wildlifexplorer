@@ -17,7 +17,7 @@ import { h, mount, reducedMotion } from '../dom.js';
 import { bi, t, tx, label, plain } from '../i18n.js';
 import { state, isVisible, groupById, thumbOf, mainImage, debugOn, updateProfile } from '../store.js';
 import { INFO, panelMode } from '../globe-info.js';
-import { ART, animal, tree } from '../globe-art.js';
+import { ART, animal, tree, plateKey } from '../globe-art.js';
 import { picture, groupTitle, cardNo } from '../components.js';
 import { createGlobe, toVec, rangeFit, nightShade } from '../globe.js';
 import { cameFromMap } from '../card-return.js';
@@ -143,8 +143,29 @@ export function render(main, [cardId] = []) {
   const measure = () => { pinSize = parseFloat(getComputedStyle(view).getPropertyValue('--gpin')) || pinSize; };
   measure();
 
+  // Plates & volcanoes: the major plates' names, where each plate is widest (plates-motion.json),
+  // only when the name fits inside its plate and never on top of a pin.
+  let plateLabels = [];
+  function setPlateLabels(motion) {
+    for (const l of plateLabels) l.el.remove();
+    plateLabels = (motion ?? []).map(m => ({ m, el: h('span', { class: 'gplate', 'aria-hidden': 'true' }, tx(`plate.${m.name}`)), w: 0, h: 0 }));
+    for (const l of plateLabels) layer.append(l.el);
+  }
+  function layoutPlateLabels(project, radius) {
+    const shown = pins.filter(p => !p.el.classList.contains('is-off'));
+    for (const l of plateLabels) {
+      const [x, y, z] = project(l.m.v);
+      if (!l.w) { l.w = l.el.offsetWidth; l.h = l.el.offsetHeight; }
+      const room = radius * (l.m.reach * Math.PI / 180) * z; // px from the name's point to the plate's edge, about
+      const clash = shown.some(p => Math.abs(p.x - x) < (l.w + pinSize) / 2 && Math.abs(p.y - y) < (l.h + pinSize) / 2);
+      const on = z > 0.3 && room > l.w / 2 + 8 && !clash;
+      l.el.classList.toggle('is-off', !on);
+      if (on) l.el.style.setProperty('transform', `translate3d(${(x - l.w / 2).toFixed(1)}px, ${(y - l.h / 2).toFixed(1)}px, 0)`);
+    }
+  }
+
   // Lay the pins out over the globe: hide the far side, stack the ones that overlap.
-  function layout({ project, ctx }) {
+  function layout({ project, ctx, radius }) {
     const D = pinSize * TOUCH;
     const stacks = [];
     for (const p of pins) {
@@ -195,6 +216,7 @@ export function render(main, [cardId] = []) {
       p.el.style.setProperty('transform', `translate3d(${(x - pinSize / 2).toFixed(1)}px, ${(y - pinSize / 2).toFixed(1)}px, 0) scale(${(0.55 + 0.45 * depth).toFixed(3)})`);
       p.el.style.setProperty('opacity', depth.toFixed(2));
     }
+    if (plateLabels.length) layoutPlateLabels(project, radius);
     if (fanning) globe.redraw();
   }
 
@@ -434,7 +456,7 @@ export function render(main, [cardId] = []) {
       : h('span', { class: 'gzone__animal' }, inner);
   }
   const keyItem = (k, zone) => h('li', { class: 'gkey__item' },
-    k.icon ? keyIcon(k.icon) : swatch(k),
+    k.icon ? keyIcon(k.icon) : k.line ? h('span', { class: 'gkey__line', 'aria-hidden': 'true' }, plateKey(k.line)) : swatch(k),
     k.short && h('span', { class: 'gkey__short', 'aria-hidden': 'true' }, k.short),
     h('span', { class: 'gkey__label' }, tx(k.label), zone && h('span', { class: 'gkey__sci' }, sciName(k, zone))),
     zone && animalChip(zone.animal));
@@ -541,6 +563,7 @@ export function render(main, [cardId] = []) {
       const spec = await L.load({ col, month: tempMonth });
       if (wanted !== L || !globe) return;
       await globe.setLayer(spec);
+      setPlateLabels(spec.plates?.motion);
       if (L.tick && !ticker) ticker = setInterval(() => globe?.updateLayer(L.tick()), 60000);
     } catch {
       if (wanted !== L || !globe) return;
@@ -559,6 +582,7 @@ export function render(main, [cardId] = []) {
     view.classList.toggle('has-layer', Boolean(id));
     chips.forEach(c => { c.setAttribute('aria-pressed', String(c.dataset.layer === id)); c.classList.remove('is-failed'); });
     const L = LAYERS.find(l => l.id === id);
+    setPlateLabels(null);
     if (!L) { wanted = null; drawPanel(null, false); globe.setLayer(null).catch(() => {}); return; }
     drawPanel(L, false);
     show(L);

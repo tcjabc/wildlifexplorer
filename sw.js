@@ -4,13 +4,13 @@
 //  - The globe's own data (land, home outline) and its map layers: cache first, only once
 //    the globe or a layer is first shown (own LAYERS_VERSION).
 // Bump VERSION to throw away the app and image caches.
-const VERSION = 'v35';
+const VERSION = 'v36';
 const SHELL_CACHE = `shell-${VERSION}`;
 const IMAGE_CACHE = `images-${VERSION}`;
 // The globe's files (assets/globe.json, assets/home.json, assets/layers/): big, so only
 // cached once the globe (or a layer) is first shown, and kept across releases. Bump
 // LAYERS_VERSION when scripts/make-layers.mjs or scripts/make-globe.mjs is re-run.
-const LAYERS_VERSION = 'l3';
+const LAYERS_VERSION = 'l4';
 const LAYER_CACHE = `layers-${LAYERS_VERSION}`;
 // Topography zoom tiles (assets/layers/relief-tiles/): only those looked at, in their own cache,
 // the oldest let go once it holds more than TILE_CAP bytes.

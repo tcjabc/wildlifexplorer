@@ -68,6 +68,10 @@
   --c-reef: #ff6f91;
   --c-reef-fill: rgb(255 111 145 / 0.6); /* reefs on the globe: --c-reef, see-through */
   --c-reef-edge: #c2365e;               /* and their edge */
+  --c-plate: #b3261e;                   /* plate boundaries on the globe */
+  --c-plate-halo: rgb(255 255 255 / 0.7); /* the light edge round them */
+  --c-plate-arrow: #fff6e0;             /* plate motion arrows */
+  --c-plate-arrow-edge: #3b2f2a;        /* and their outline */
   /* The topography picture's own colours (Natural Earth, sampled from relief-4k.webp: the
      Amazon and Congo lowlands, the Sahara, the Tibetan plateau), for its key and drawings. */
   --c-relief-low: #acc9ae;

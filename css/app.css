@@ -680,6 +680,23 @@ a.gzone__animal { text-decoration: underline; }
 .art__glass { fill: var(--c-surface); stroke: var(--c-line); stroke-width: 1.5; }
 .art__mercury { fill: var(--c-bad); }
 .art__snow { stroke: var(--c-depth-2); stroke-width: 2; stroke-linecap: round; }
+/* The major plates' names over the globe (views/globe.js), readable on land and sea. */
+.gplate {
+  position: absolute; left: 0; top: 0; pointer-events: none; white-space: nowrap; text-align: center;
+  color: var(--c-plate-arrow-edge); font-size: var(--fs-sm); font-weight: var(--fw-bold); line-height: 1.15;
+  text-shadow: 0 0 3px var(--c-surface), 0 0 3px var(--c-surface), 0 0 6px var(--c-surface);
+}
+.gplate .bi { align-items: center; }
+.gplate.is-off { visibility: hidden; }
+/* The plate key and drawings, in the plate colours (globe.js drawPlates). */
+.gkey__line { display: grid; place-items: center; width: var(--legend-sw); height: var(--legend-sw); border-radius: var(--r-sm); background: var(--c-map-land); box-shadow: inset 0 0 0 var(--bw-thin) var(--c-shade-faint); }
+.gkey__line .art { display: block; width: 100%; height: 100%; }
+.art__plate, .art__plate-move { fill: none; stroke: var(--c-plate); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.art__plate--double { stroke-width: 6; }
+.art__plate-gap { fill: none; stroke: var(--c-map-land); stroke-width: 2; stroke-linecap: round; }
+.art__plate--dash { stroke-dasharray: 4 3; stroke-linecap: butt; }
+.art__plate-teeth, .art__volcano { fill: var(--c-plate); }
+.art__plate-arrow { fill: var(--c-plate-arrow); stroke: var(--c-plate-arrow-edge); stroke-width: 1.5; stroke-linejoin: round; }
 .art__zone--1 { fill: var(--c-depth-1); }
 .art__zone--2 { fill: var(--c-depth-2); }
 .art__zone--3 { fill: var(--c-depth-3); }

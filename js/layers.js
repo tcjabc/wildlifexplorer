@@ -3,7 +3,7 @@
 // switched on; the service worker keeps them after that.
 //
 // layer.load({ col, month }) resolves to a spec for globe.setLayer() (see js/globe.js).
-import { prepare, toVec } from './globe.js';
+import { prepare, toVec, prepareLines } from './globe.js';
 import { RELIEF_TILES } from './globe-tiles.js';
 
 const DIR = 'assets/layers/';
@@ -107,6 +107,8 @@ export const LAYER_CREDITS = [
     sourceUrl: 'https://worldview.earthdata.nasa.gov/' },
   { layer: 'depth', author: 'Natural Earth, 1:10m Bathymetry', ...NE,
     sourceUrl: 'https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-bathymetry/' },
+  { layer: 'plates', author: 'Peter Bird (2003), PB2002 plate boundaries (doi:10.1029/2001GC000252), GIS version by Hugo Ahlenius, Nordpil; plate motion from its poles', license: 'ODC-By 1.0', licenseUrl: 'https://opendatacommons.org/licenses/by/1-0/',
+    sourceUrl: 'https://github.com/fraxen/tectonicplates' },
   { layer: 'home', author: 'Natural Earth, 1:10m Admin 0 countries (home outline)', ...NE,
     sourceUrl: 'https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-0-countries/' },
 ];
@@ -166,4 +168,38 @@ export const LAYERS = [
       return { sea: await shapesBy('depth', 'depth', DEPTHS, (d, i) => col(`--c-depth-${i + 1}`), { curve: DEPTH_CURVE, nearK: DEPTH_NEAR_K }) };
     },
   },
+  {
+    id: 'plates', emoji: '🌋',
+    // scripts/make-layers.mjs plates: PB2002 boundaries (far and near) and each major plate's
+    // motion; drawn by js/globe.js (drawPlates), the names by js/views/globe.js.
+    async load({ col }) {
+      const [far, near, motion] = await Promise.all(['plates-far.json', 'plates.json', 'plates-motion.json'].map(f => getJson(`${DIR}${f}`)));
+      return { plates: { far: plateLines(far), near: plateLines(near), motion: plateMotion(motion), colour: col('--c-plate'), halo: col('--c-plate-halo'), arrow: col('--c-plate-arrow'), arrowEdge: col('--c-plate-arrow-edge') } };
+    },
+  },
 ];
+
+// plates.json: [kind letter, side, lon, lat, then steps from the point before] in 0.01°.
+export function plateLines(d) {
+  const runs = [], meta = [];
+  for (const l of d.lines) {
+    const pts = [];
+    let x = l[2], y = l[3];
+    pts.push([x * d.unit, y * d.unit]);
+    for (let i = 4; i < l.length; i += 2) { x += l[i]; y += l[i + 1]; pts.push([x * d.unit, y * d.unit]); }
+    runs.push(pts);
+    meta.push({ kind: d.kinds[l[0]], side: l[1] });
+  }
+  return prepareLines(runs).map((p, i) => ({ ...p, ...meta[i] }));
+}
+// plates-motion.json: each major plate's label point and its motion (mm/yr east, north).
+export function plateMotion(d) {
+  return d.plates.map(m => {
+    const v = toVec(m.lon, m.lat), l = m.lon * DEG, p = m.lat * DEG, speed = Math.hypot(m.east, m.north);
+    const e = [-Math.sin(l), Math.cos(l), 0], n = [-Math.sin(p) * Math.cos(l), -Math.sin(p) * Math.sin(l), Math.cos(p)];
+    // A point a little ahead along the motion, to find its direction on screen.
+    const a = v.map((c, k) => c + 0.01 * (e[k] * m.east + n[k] * m.north) / (speed || 1));
+    const len = Math.hypot(...a);
+    return { ...m, v, ahead: a.map(c => c / len), speed };
+  });
+}

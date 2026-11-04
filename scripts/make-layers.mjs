@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Makes the Globe's map layers (assets/layers/) and the home outline (assets/home.json)
 // from big public datasets. Run: node scripts/make-layers.mjs [relief tiles night temp depth
-// forests reefs home] (no names = all).
+// forests reefs plates home] (no names = all).
 //
 // Raw downloads go into data-raw/ (git-ignored) and are reused. Only the small processed
 // files are committed. Sources and licences: CREDITS.md.
@@ -310,6 +310,186 @@ async function reefs() {
   console.log(`  reefs.topo.json ${await kb(out)}, reefs-far.topo.json ${await kb(far)}`);
 }
 
+// ---------- plates (PB2002) ----------
+
+// Peter Bird's PB2002 (GIS version by Hugo Ahlenius, Nordpil; ODC-By 1.0) and Bird's plate
+// motion poles. Steps (about 45 km each) are joined into runs of one boundary and one kind:
+//   apart: spreading ridges and rifts (OSR, CRB); crash: subduction and collision (SUB, OCB,
+//   CCB); slide: transforms (OTF, CTF).
+// side (crash only): which side of the run, walking along it, the plate that stays on top is
+// on: 1 left, -1 right, 0 both (a collision with no plate diving). In PB2002's names "A/B" means
+// B dives under A, "A\B" that A dives under B.
+const PB = 'https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/';
+const POLES = 'http://peterbird.name/oldFTP/PB2002/PB2002_poles.dat.txt';
+const KIND = { OSR: 'apart', CRB: 'apart', SUB: 'crash', OCB: 'crash', CCB: 'crash', OTF: 'slide', CTF: 'slide' };
+// The major plates that get a name and an arrow. Eurasia's pieces next to Taiwan (Yangtze,
+// Sunda) are named as the Eurasian Plate too (Bird splits them off; school maps don't).
+const MAJOR = ['PA', 'NA', 'EU', 'AF', 'AN', 'IN', 'AU', 'SA', 'NZ', 'PS', 'AR', 'CA', 'CO', 'SC', 'JF', 'SO'];
+const LABEL_AS = { YA: 'EU', SU: 'EU' };
+const PLATES_FAR_TOL = 0.6; // degrees: the far file, for the whole globe
+
+// Point in polygon (rings of [lon, lat]), even-odd.
+function inRings(rings, lon, lat) {
+  let inside = false;
+  for (const r of rings) {
+    for (let i = 0, j = r.length - 1; i < r.length; j = i++) {
+      const [xi, yi] = r[i], [xj, yj] = r[j];
+      if ((yi > lat) !== (yj > lat) && lon < ((xj - xi) * (lat - yi)) / (yj - yi) + xi) inside = !inside;
+    }
+  }
+  return inside;
+}
+const ringsOf = g => (g.type === 'Polygon' ? [g.coordinates] : g.coordinates).flat();
+
+// Douglas-Peucker on [lon, lat] points (degrees), keeping both ends.
+function simplify(pts, tol) {
+  if (pts.length < 3) return pts;
+  const keep = new Uint8Array(pts.length); keep[0] = keep[pts.length - 1] = 1;
+  const stack = [[0, pts.length - 1]];
+  while (stack.length) {
+    const [a, b] = stack.pop();
+    const [ax, ay] = pts[a], [bx, by] = pts[b], dx = bx - ax, dy = by - ay, L = Math.hypot(dx, dy) || 1e-9;
+    let worst = -1, at = -1;
+    for (let i = a + 1; i < b; i++) { const d = Math.abs((pts[i][0] - ax) * dy - (pts[i][1] - ay) * dx) / L; if (d > worst) { worst = d; at = i; } }
+    if (worst > tol) { keep[at] = 1; stack.push([a, at], [at, b]); }
+  }
+  // No segment longer than LONGEST: on the globe a straight segment between two far points
+  // would cut the corner.
+  const LONGEST = 3;
+  // Walking along, keep a point whenever skipping it would make the segment from the last
+  // kept point to the next one too long.
+  const far = (a, b) => Math.hypot(pts[b][0] - pts[a][0], pts[b][1] - pts[a][1]) > LONGEST;
+  let last = 0;
+  for (let i = 1; i < pts.length - 1; i++) {
+    if (!keep[i] && far(last, i + 1)) keep[i] = 1;
+    if (keep[i]) last = i;
+  }
+  return pts.filter((_, i) => keep[i]);
+}
+
+async function plates() {
+  const get = async name => JSON.parse(await readFile(await download(`${PB}${name}.json`, path.join(RAW, `${name}.json`)), 'utf8'));
+  const steps = await get('PB2002_steps'), platesGeo = await get('PB2002_plates');
+  const shapes = new Map();
+  for (const f of platesGeo.features) shapes.set(f.properties.Code, [...(shapes.get(f.properties.Code) ?? []), ...ringsOf(f.geometry)]);
+  const inPlate = (code, lon, lat) => inRings(shapes.get(code) ?? [], lon, lat);
+
+  // Runs: consecutive steps of one boundary and kind that join up.
+  const runs = [];
+  let run = null;
+  for (const { properties: p } of steps.features) {
+    const kind = KIND[p.STEPCLASS];
+    if (!kind) throw new Error(`unknown step class ${p.STEPCLASS}`);
+    const a = [p.STARTLONG, p.STARTLAT], b = [p.FINALLONG, p.FINALLAT];
+    const joins = run && run.name === p.PLATEBOUND && run.kind === kind
+      && Math.abs(run.pts.at(-1)[0] - a[0]) < 1e-3 && Math.abs(run.pts.at(-1)[1] - a[1]) < 1e-3;
+    if (!joins) { run = { name: p.PLATEBOUND, kind, pts: [a] }; runs.push(run); }
+    if (Math.abs(a[0] - b[0]) > 180) {
+      // Across 180°: end the run on the line and go on from the other side.
+      const e = a[0] > 0 ? 180 : -180, bx = b[0] + (a[0] > 0 ? 360 : -360);
+      const lat = a[1] + ((b[1] - a[1]) * (e - a[0])) / (bx - a[0]);
+      run.pts.push([e, lat]);
+      run = { name: p.PLATEBOUND, kind, pts: [[-e, lat]] }; runs.push(run);
+    }
+    run.pts.push(b);
+  }
+  // Which side the plate on top is on, from the plate shapes a little off the run's middle.
+  for (const r of runs) {
+    r.side = 0;
+    if (r.kind !== 'crash' || r.name[2] === '-') continue;
+    const top = r.name[2] === '/' ? r.name.slice(0, 2) : r.name.slice(3, 5);
+    // The plate on top, or else the one diving under it on the other side; tried at the
+    // middle segment first, then others (the plate shapes are cut at 180°).
+    const under = r.name[2] === '/' ? r.name.slice(3, 5) : r.name.slice(0, 2);
+    const n = r.pts.length - 1, tries = [...new Set([n >> 1, n >> 2, (3 * n) >> 2, 0, n - 1])];
+    for (const m of tries) {
+      const [x0, y0] = r.pts[m], [x1, y1] = r.pts[m + 1];
+      const L = Math.hypot(x1 - x0, y1 - y0) || 1e-9, nx = -(y1 - y0) / L, ny = (x1 - x0) / L; // to the left
+      const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+      for (const d of [0.25, 0.5, 1, 2]) {
+        if (inPlate(top, cx + nx * d, cy + ny * d) || inPlate(under, cx - nx * d, cy - ny * d)) { r.side = 1; break; }
+        if (inPlate(top, cx - nx * d, cy - ny * d) || inPlate(under, cx + nx * d, cy + ny * d)) { r.side = -1; break; }
+      }
+      if (r.side) break;
+    }
+    if (!r.side) console.warn(`  plates: no side found for ${r.name}`);
+  }
+  // Points in 0.01°, each after the first as the step from the one before (smaller numbers).
+  const flat = pts => {
+    const q = pts.map(([x, y]) => [Math.round(x * 100), Math.round(y * 100)]);
+    return q.flatMap(([x, y], i) => (i ? [x - q[i - 1][0], y - q[i - 1][1]] : [x, y]));
+  };
+  const K = { apart: 'a', crash: 'c', slide: 's' };
+  const write = async (name, list) => {
+    const file = path.join(OUT, name);
+    await writeFile(file, JSON.stringify({ source: 'PB2002, Bird (2003), GIS by Ahlenius / Nordpil (ODC-By 1.0)', unit: 0.01, delta: true, kinds: { a: 'apart', c: 'crash', s: 'slide' }, lines: list }) + '\n');
+    return kb(file);
+  };
+  const near = await write('plates.json', runs.map(r => [K[r.kind], r.side, ...flat(r.pts)]));
+  const far = await write('plates-far.json', runs.map(r => [K[r.kind], r.side, ...flat(simplify(r.pts, PLATES_FAR_TOL))]));
+
+  // Plate motion with no net rotation: Bird's poles are relative to the Pacific; the net
+  // rotation of the whole shell, (3 / 8 pi) sum of the integral of (w - r (r.w)) dA over every
+  // plate, is taken off.
+  const DEG = Math.PI / 180;
+  const poleText = await readFile(await download(POLES, path.join(RAW, 'PB2002_poles.dat.txt')), 'latin1');
+  const omega = new Map();
+  for (const line of poleText.split(/\r?\n/)) {
+    const m = line.match(/^([A-Z]{2})\s+(-?[\d.]+)\s+(-?[\d.]+)\s+(-?[\d.]+)/);
+    if (!m) continue;
+    const [lat, lon, rate] = [Number(m[2]), Number(m[3]), (Number(m[4]) * DEG) / 1e6]; // rad/yr
+    omega.set(m[1], [rate * Math.cos(lat * DEG) * Math.cos(lon * DEG), rate * Math.cos(lat * DEG) * Math.sin(lon * DEG), rate * Math.sin(lat * DEG)]);
+  }
+  const G = 0.5, cellOf = new Map(); // the plate of each 0.5° cell
+  const net = [0, 0, 0];
+  let area = 0;
+  for (let lat = -90 + G / 2; lat < 90; lat += G) {
+    const dA = Math.cos(lat * DEG) * (G * DEG) ** 2;
+    for (let lon = -180 + G / 2; lon < 180; lon += G) {
+      let code = null;
+      for (const [c] of shapes) if (inPlate(c, lon, lat)) { code = c; break; }
+      if (!code || !omega.has(code)) continue;
+      cellOf.set(`${lon},${lat}`, code);
+      const r = [Math.cos(lat * DEG) * Math.cos(lon * DEG), Math.cos(lat * DEG) * Math.sin(lon * DEG), Math.sin(lat * DEG)];
+      const w = omega.get(code), d = w[0] * r[0] + w[1] * r[1] + w[2] * r[2];
+      for (let k = 0; k < 3; k++) net[k] += (w[k] - r[k] * d) * dA;
+      area += dA;
+    }
+  }
+  console.log(`  plates: cells cover ${((area / (4 * Math.PI)) * 100).toFixed(1)} % of the sphere`);
+  for (let k = 0; k < 3; k++) net[k] *= 3 / (8 * Math.PI);
+  const nnr = code => omega.get(code).map((w, k) => w - net[k]);
+  // Each major plate's label: the cell deepest inside it (farthest from its edge).
+  const R = 6371e6; // mm
+  const motion = [];
+  for (const code of [...MAJOR, ...Object.keys(LABEL_AS)]) {
+    const cells = [...cellOf].filter(([, c]) => c === code).map(([k]) => k.split(',').map(Number));
+    const edge = cells.filter(([lon, lat]) => [[G, 0], [-G, 0], [0, G], [0, -G]].some(([dx, dy]) => cellOf.get(`${lon + dx},${lat + dy}`) !== code));
+    let best = null;
+    for (const [lon, lat] of cells) {
+      if (Math.abs(lat) > 75) continue;
+      let d = Infinity;
+      for (const [ex, ey] of edge) {
+        const c = Math.sin(lat * DEG) * Math.sin(ey * DEG) + Math.cos(lat * DEG) * Math.cos(ey * DEG) * Math.cos((lon - ex) * DEG);
+        d = Math.min(d, Math.acos(Math.min(1, c)));
+        if (best && d < best.d) break;
+      }
+      if (!best || d > best.d) best = { lon, lat, d };
+    }
+    const w = nnr(code), { lon, lat } = best;
+    const r = [Math.cos(lat * DEG) * Math.cos(lon * DEG), Math.cos(lat * DEG) * Math.sin(lon * DEG), Math.sin(lat * DEG)];
+    const v = [w[1] * r[2] - w[2] * r[1], w[2] * r[0] - w[0] * r[2], w[0] * r[1] - w[1] * r[0]].map(x => x * R);
+    const east = [-Math.sin(lon * DEG), Math.cos(lon * DEG), 0];
+    const north = [-Math.sin(lat * DEG) * Math.cos(lon * DEG), -Math.sin(lat * DEG) * Math.sin(lon * DEG), Math.cos(lat * DEG)];
+    const ve = v[0] * east[0] + v[1] * east[1], vn = v[0] * north[0] + v[1] * north[1] + v[2] * north[2];
+    motion.push({ code, name: LABEL_AS[code] ?? code, lon, lat, reach: Math.round((best.d / DEG) * 10) / 10, east: Math.round(ve * 10) / 10, north: Math.round(vn * 10) / 10 });
+  }
+  const mfile = path.join(OUT, 'plates-motion.json');
+  await writeFile(mfile, JSON.stringify({ source: 'PB2002 poles (Bird 2003), turned into a no-net-rotation frame here; label points deepest inside each plate', unit: 'mm/yr', plates: motion }) + '\n');
+  for (const m of motion) console.log(`  ${m.code} ${m.lon},${m.lat} reach ${m.reach}° ${Math.hypot(m.east, m.north).toFixed(0)} mm/yr toward ${((Math.atan2(m.east, m.north) / DEG + 360) % 360).toFixed(0)}°`);
+  console.log(`  plates.json ${await near}, plates-far.json ${await far}, plates-motion.json ${await kb(mfile)}, ${runs.length} runs`);
+}
+
 async function home() {
   const shp = await find(await unpacked('countries'), /ne_10m_admin_0_countries\.shp$/);
   const tmp = path.join(RAW, 'home.json');
@@ -327,7 +507,7 @@ async function home() {
 
 // ---------- main ----------
 
-const STEPS = { relief, tiles, night, temp, depth, forests, reefs, home };
+const STEPS = { relief, tiles, night, temp, depth, forests, reefs, plates, home };
 const wanted = process.argv.slice(2);
 for (const w of wanted) if (!STEPS[w]) throw new Error(`Unknown layer "${w}" (have: ${Object.keys(STEPS).join(', ')})`);
 await mkdir(RAW, { recursive: true });

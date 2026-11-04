@@ -125,4 +125,28 @@ const ANIMALS = {
 };
 export const animal = name => ANIMALS[name]?.() ?? null;
 
-export const ART = { pins, mountain, forests, reef, sunEarth, thermometer, oceanZones };
+// The plate key's symbols, as on the map: pulling apart (a double line), crashing together (a
+// line with teeth), sliding past (dashed), a plate's arrow, a volcano.
+export function plateKey(kind) {
+  const f = (...parts) => frame(24, 24, ...parts);
+  if (kind === 'apart') return f(path('M2 6L22 18', 'art__plate art__plate--double'), path('M2 6L22 18', 'art__plate-gap'));
+  if (kind === 'crash') return f(path('M2 16L22 16', 'art__plate'), path('M5 16L7.5 10L10 16ZM14 16L16.5 10L19 16Z', 'art__plate-teeth'));
+  if (kind === 'slide') return f(path('M2 12L22 12', 'art__plate art__plate--dash'));
+  if (kind === 'arrow') return f(path('M3 14.5L14 14.5L14 18.5L21 12L14 5.5L14 9.5L3 9.5Z', 'art__plate-arrow'));
+  return f(path('M12 4L21 20L3 20Z', 'art__volcano')); // volcano
+}
+
+// The Earth's shell in pieces, like a puzzle, with arrows showing them moving.
+export function platesArt() {
+  return frame(160, 96,
+    rect(0, 0, 160, 96, 'art__space', 10),
+    circle(80, 48, 40, 'art__sea'),
+    path('M48 30C58 24 70 28 74 36C78 44 70 52 60 52C52 52 44 46 44 40C44 36 45 33 48 30Z', 'art__land'),
+    path('M86 22C98 20 112 26 116 38C114 48 104 52 94 48C88 44 84 34 86 22Z', 'art__land'),
+    path('M74 60C84 58 98 62 104 72C98 82 84 86 74 80C70 74 70 66 74 60Z', 'art__land'),
+    path('M42 40C56 46 68 44 80 46C92 48 104 42 118 46M80 8C78 22 84 34 80 46C76 58 82 72 80 88', 'art__plate'),
+    path('M24 70L36 62M36 62L34 69M36 62L29 63', 'art__plate-move'),
+    path('M136 26L124 34M124 34L131 33M124 34L126 27', 'art__plate-move'));
+}
+
+export const ART = { pins, mountain, forests, reef, sunEarth, thermometer, oceanZones, plates: platesArt };

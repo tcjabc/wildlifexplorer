@@ -139,7 +139,7 @@ export function coastRuns(ring) {
   return runs;
 }
 // Runs → unit vectors with a bounding cap, as prepare() makes for shapes.
-const prepareLines = runs => prepare(runs.map(run => [run])).map(p => ({ ...p, line: p.rings[0] }));
+export const prepareLines = runs => prepare(runs.map(run => [run])).map(p => ({ ...p, line: p.rings[0] }));
 
 // assets/globe.json stores flat [lon, lat, …] arrays in hundredths of a degree. It is only
 // fetched when a globe is first made (the service worker keeps it from then on), so the very
@@ -508,6 +508,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
     ctx.save();
     ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
     if (layer?.raster && polys?.coast) drawCoast(view.k >= NEAR_K ? polys.coast.near : polys.coast.far);
+    if (layer?.plates) drawPlates(layer.plates);
 
     if (range) {
       ctx.globalAlpha = 0.5;
@@ -566,6 +567,104 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
     ctx.stroke();
     ctx.strokeStyle = col.coast; ctx.lineWidth = w;
     ctx.stroke();
+  }
+
+  // Plates & Volcanoes: the plate boundaries, in three styles, and each major plate's arrow.
+  //   apart (pulling apart): a double line, the middle cut out so the map shows through;
+  //   crash (crashing together): a line with teeth on the side of the plate on top (side 1:
+  //     left walking along the line, -1 right, 0 both);
+  //   slide (sliding past): a dashed line.
+  // Lines go into one path per style, built from the points on the near side and on screen; a
+  // stretch beyond one edge of the screen lifts the pen (as traceRing does for shapes).
+  // plates: { far, near: [{ kind, side, line, c, r }], motion: [{ v, dir, speed }], colour,
+  // halo, arrow }.
+  const TOOTH_GAP = 16, TOOTH = 4; // px between teeth, and their size (times the line width / 1.5)
+  function platePath(list, kind, teeth) {
+    const { w, h: ht } = B, M = 40;
+    const out = (x, y) => (x < -M ? 1 : x > w + M ? 2 : 0) | (y < -M ? 4 : y > ht + M ? 8 : 0);
+    ctx.beginPath();
+    for (const p of list) {
+      if (p.kind !== kind || !inSight(p)) continue;
+      const v = p.line;
+      let px = 0, py = 0, pen = false, po = 0, along = TOOTH_GAP / 2;
+      for (let i = 0; i < v.length; i += 3) {
+        const Z = v[i] * B.c0 + v[i + 1] * B.c1 + v[i + 2] * B.c2;
+        if (Z < 0) { pen = false; continue; }
+        const x = B.cx + B.r * (v[i] * B.e0 + v[i + 1] * B.e1), y = B.cy - B.r * (v[i] * B.n0 + v[i + 1] * B.n1 + v[i + 2] * B.n2);
+        const o = out(x, y);
+        if (pen && (po & o)) { px = x; py = y; po = o; continue; } // both beyond the same edge
+        if (pen) {
+          ctx.lineTo(x, y);
+          if (teeth) {
+            // Teeth every TOOTH_GAP px along the line, on the side of the plate on top.
+            const dx = x - px, dy = y - py, len = Math.hypot(dx, dy);
+            for (; along < len; along += TOOTH_GAP) teeth.push(px + (dx * along) / len, py + (dy * along) / len, dx / len, dy / len, p.side);
+            along -= len;
+          }
+        } else ctx.moveTo(x, y);
+        pen = true; px = x; py = y; po = o;
+      }
+    }
+  }
+  function drawPlates({ far, near, motion, colour, halo, arrow, arrowEdge }) {
+    const list = view.k >= NEAR_K ? near : far, w = coastWidth(view.k);
+    ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    const stroke = (style, width) => { ctx.strokeStyle = style; ctx.lineWidth = width; ctx.stroke(); };
+    // Sliding past: dashed.
+    platePath(list, 'slide');
+    ctx.setLineDash([w * 3, w * 2.5]);
+    stroke(halo, w + COAST_HALO); stroke(colour, w);
+    ctx.setLineDash([]);
+    // Pulling apart: two lines with the map between them.
+    platePath(list, 'apart');
+    stroke(halo, w * 3 + COAST_HALO); stroke(colour, w * 3);
+    ctx.globalCompositeOperation = 'destination-out';
+    stroke('#000', w);
+    ctx.globalCompositeOperation = 'source-over';
+    // Crashing together: a line and its teeth.
+    const teeth = [];
+    platePath(list, 'crash', teeth);
+    stroke(halo, w + COAST_HALO); stroke(colour, w);
+    const s = (TOOTH * w) / 1.5;
+    ctx.beginPath();
+    for (let i = 0; i < teeth.length; i += 5) {
+      const [x, y, ux, uy, side] = teeth.slice(i, i + 5);
+      for (const sd of side ? [side] : [1, -1]) {
+        const nx = uy * sd, ny = -ux * sd; // to the left of the way along, on screen (y down)
+        ctx.moveTo(x - ux * s * 0.6, y - uy * s * 0.6);
+        ctx.lineTo(x + nx * s, y + ny * s);
+        ctx.lineTo(x + ux * s * 0.6, y + uy * s * 0.6);
+        ctx.closePath();
+      }
+    }
+    ctx.fillStyle = colour; ctx.fill();
+    // Each major plate's arrow: which way it moves, the longer the faster.
+    for (const m of motion) {
+      const [x, y, z] = project(m.v);
+      if (z < 0.2) continue;
+      const [x2, y2] = project(m.ahead);
+      const dx = x2 - x, dy = y2 - y, d = Math.hypot(dx, dy);
+      if (d < 1e-6) continue;
+      const L = ARROW_PX * Math.min(1, m.speed / ARROW_TOP) * Math.max(0.35, z), ux = dx / d, uy = dy / d;
+      drawArrow(x - (ux * L) / 2, y - (uy * L) / 2 + ARROW_BELOW, ux, uy, L, arrow, arrowEdge);
+    }
+  }
+  // The longest arrow (px), at ARROW_TOP mm/yr; its middle ARROW_BELOW px under the plate's name.
+  const ARROW_PX = 56, ARROW_TOP = 75, ARROW_BELOW = 44;
+  function drawArrow(x, y, ux, uy, L, fill, edge) {
+    const hw = 3.5, head = 11, hh = 8; // half width of the shaft, head length and half width (px)
+    const nx = -uy, ny = ux, bx = x + ux * (L - head), by = y + uy * (L - head);
+    ctx.beginPath();
+    ctx.moveTo(x + nx * hw, y + ny * hw);
+    ctx.lineTo(bx + nx * hw, by + ny * hw);
+    ctx.lineTo(bx + nx * hh, by + ny * hh);
+    ctx.lineTo(x + ux * L, y + uy * L);
+    ctx.lineTo(bx - nx * hh, by - ny * hh);
+    ctx.lineTo(bx - nx * hw, by - ny * hw);
+    ctx.lineTo(x - nx * hw, y - ny * hw);
+    ctx.closePath();
+    ctx.lineWidth = 2; ctx.strokeStyle = edge; ctx.stroke();
+    ctx.fillStyle = fill; ctx.fill();
   }
 
   // A soft glow: white in the middle, the colour, then clear. One per colour, stamped.
@@ -832,6 +931,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
     //   sea:    [{ polys, near?, fill, edge? }] drawn on the sea, under the land (prepare())
     //   land:   [{ polys, near?, fill }] drawn on the land
     //   night:  { sun, lights, shade, twilight, light }: day & night (drawNight)
+    //   plates: { far, near, motion, colour, halo, arrow }: plate boundaries (drawPlates)
     //   raster: a js/globegl.js spec, drawn above sea and land; with tiles (js/globe-tiles.js
     //           RELIEF_TILES), sharper pictures fetched for the view once zoomed in
     // Resolves when the layer is showing; rejects if its pictures can't be shown.

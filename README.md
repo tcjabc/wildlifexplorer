@@ -404,6 +404,17 @@ The chips along the top of the Globe switch on one map layer at a time: 🏔️ 
   on mountains, deserts, red and blue; the far or detailed
   outline as for the land. The stretches along the map's frame, where Natural Earth cuts its
   shapes (the antimeridian, the South Pole), are left out (`coastRuns`).
+- 🌋 Plates & volcanoes: the plate boundaries are Peter Bird's PB2002 (ODC-By 1.0, see
+  CREDITS.md), made by `node scripts/make-layers.mjs plates` into `assets/layers/plates.json`
+  (detailed, about 0.5° between points) and `plates-far.json` (no segment over 3°). Three kinds:
+  pulling apart (ridges, rifts: a double line), crashing together (subduction, collision: a line
+  with teeth on the side of the plate that stays on top; from PB2002's names, where "A/B" means B
+  dives under A, and the plate shapes; collisions with no plate diving get teeth on both sides),
+  sliding past (transforms: dashed). The coastline's widths and halo (`--c-plate`). Each major
+  plate gets its name (`plate.*` strings), where it is widest and only when it fits and misses
+  the pins, and an arrow (`plates-motion.json`): Bird's poles are relative to the Pacific, so
+  the build takes off the shell's net rotation (no-net-rotation frame); the longer the arrow, the
+  faster. The pieces Bird splits off west of Taiwan (Yangtze, Sunda) are named the Eurasian Plate.
 - Coral reefs are areas made from Natural Earth's reef lines: everything within 8 km of a reef,
   joined where they touch and simplified (25 km for the whole-globe file, so they still show as a
   band), so the Great Barrier Reef reads as one long chain. See-through coral (`--c-reef-fill`) with
