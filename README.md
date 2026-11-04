@@ -428,6 +428,12 @@ The chips along the top of the Globe switch on one map layer at a time: 🏔️ 
   zoom 2.5 and closer all of them. A tap within 22 px of a triangle (a 44 px target) opens its
   card; a tap elsewhere or Esc closes it; a drag that starts on one still turns the globe
   (`tests/volcano-touch.test.mjs`).
+- The Plates & volcanoes panel (`js/globe-info.js` plates): the key (three boundary styles, the
+  arrow, the triangle), "What am I looking at?" with plates drawn as puzzle pieces, and, open, the
+  three kinds of boundary as cross-sections with their kid names and school terms
+  (張裂性 / 聚合性 / 錯動性板塊邊界), the Ring of Fire, and Taiwan's note (why it has tall mountains,
+  earthquakes and hot springs; the Tatun volcanoes). Zoomed in on Taiwan (zoom 2.5 and closer,
+  Taiwan near the middle) the note moves to the top and is marked. Sources: CREDITS.md.
 - Coral reefs are areas made from Natural Earth's reef lines: everything within 8 km of a reef,
   joined where they touch and simplified (25 km for the whole-globe file, so they still show as a
   band), so the Great Barrier Reef reads as one long chain. See-through coral (`--c-reef-fill`) with

@@ -38,6 +38,15 @@ instead.
 The drawings in the Globe's info panel (`js/globe-art.js`) were drawn for WildFile: no
 outside images.
 
+## Facts in the Plates & volcanoes panel
+
+- Plates move about as fast as fingernails grow: USGS, [How fast do tectonic plates move?](https://www.usgs.gov/faqs/how-fast-do-tectonic-plates-move); fingernails about 3.6 cm a year: USGS, [How fast is the hotspot moving under Yellowstone?](https://www.usgs.gov/faqs/how-fast-hotspot-moving-under-yellowstone).
+- More than half of the active volcanoes above sea level circle the Pacific (the Ring of Fire): USGS, [What is the Ring of Fire?](https://www.usgs.gov/media/audio/what-ring-fire).
+- Taiwan: the Philippine Sea Plate converges with Eurasia at about 81.5 ± 1.3 mm a year toward N309° (Yu, Chen and Kuo 1997, GPS), as cited in [an NCU thesis](https://www.gep.ncu.edu.tw/storage/thesis/2016/thesis_1474441282.pdf) and [GSA 2009](https://gsa.confex.com/gsa/2009NE/webprogram/Paper155888.html); the Luzon arc's collision with the Eurasian margin builds Taiwan's mountains. Tatun Volcano Group: [Geoscience Letters 2024](https://geoscienceletters.springeropen.com/articles/10.1186/s40562-024-00358-2) (dating, hot springs and fumaroles; watched by the Taiwan Volcano Observatory at Tatun). The Yangtze and Sunda plates: PB2002.
+- The school terms 張裂性 / 聚合性 / 錯動性板塊邊界, as used in Taiwan's junior-high Earth science (for example [a Taipei 9th-grade test](https://www.htjh.tp.edu.tw/wp-content/uploads/doc/t210/113-1%20%E7%AC%AC%E4%BA%8C%E6%AE%B5%E8%80%83%E4%B9%9D%E5%B9%B4%E7%B4%9A%E5%9C%B0%E7%A7%91.pdf) and [NTU high-school teaching material](https://case.ntu.edu.tw/highscope/wp-content/uploads/2011/08/earth_t02_2.pdf)).
+
+The drawings in this panel (plates as puzzle pieces, the three cross-sections) were drawn for WildFile.
+
 ## Tools
 
 - [mapshaper](https://github.com/mbloch/mapshaper) (MPL 2.0) and [sharp](https://sharp.pixelplumbing.com/) (Apache 2.0): build-time only, nothing at runtime.

@@ -92,3 +92,23 @@ test('drawn as planned: dashes for sliding past, a double line for pulling apart
   assert.match(g, /volcSprite\(7, fill, edge\)/, 'volcanoes stamped too');
   assert.match(g, /const list = view\.k >= NEAR_K \? near : far, w = coastWidth\(view\.k\);/, 'the coastline\'s widths');
 });
+
+test('the panel: the key, three boundary drawings with the school terms, the Ring of Fire, and Taiwan\'s note', async () => {
+  const { INFO } = await import('../js/globe-info.js');
+  const { ART } = await import('../js/globe-art.js');
+  const p = INFO.plates;
+  assert.deepEqual(p.key.map(k => k.line), ['apart', 'crash', 'slide', 'arrow', 'volcano']);
+  assert.deepEqual(p.bounds.map(b => b.art), ['sectionApart', 'sectionCrash', 'sectionSlide']);
+  for (const b of p.bounds) assert.ok(ART[b.art], b.art);
+  assert.deepEqual(p.bounds.map(b => zh[b.name]), ['分開', '碰撞', '擦身而過'], 'the kid names');
+  assert.deepEqual(p.bounds.map(b => zh[b.term]), ['張裂性板塊邊界', '聚合性板塊邊界', '錯動性板塊邊界'], 'the school terms');
+  assert.match(en['info.plates.what.2'], /fingernails grow/, 'USGS: about as fast as fingernails grow');
+  assert.match(en['info.plates.more.ring'], /More than half/, 'USGS wording, not the unconfirmed 75 %');
+  const note = p.taiwan.lines.map(k => en[k]).join(' ');
+  assert.match(note, /Philippine Sea Plate pushes into the Eurasian Plate, about 8 cm a year/);
+  assert.match(note, /mountains.*earthquakes/);
+  assert.match(note, /Tatun Volcano Group: when it last erupted is uncertain/);
+  assert.match(en[p.taiwan.more], /Yangtze and Sunda/);
+  const view = src('js/views/globe.js');
+  assert.match(view, /checkTaiwan\(project, k\);/, 'the note moves up when the globe is zoomed in on Taiwan');
+});

@@ -714,6 +714,25 @@ a.gzone__animal { text-decoration: underline; }
 .art__plate-gap { fill: none; stroke: var(--c-plate-gap); stroke-width: 2; stroke-linecap: round; }
 .art__plate--dash { stroke-dasharray: 4 3; stroke-linecap: butt; }
 .art__plate-teeth { fill: var(--c-plate); }
+.art__mantle { fill: var(--c-art-mantle); }
+.art__crust { fill: var(--c-relief-dry); stroke: var(--c-plate-arrow-edge); stroke-width: 1; }
+.art__rise { fill: none; stroke: var(--c-volcano); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.art__push { fill: none; stroke: var(--c-plate-arrow-edge); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.art__snowcap { fill: none; stroke: var(--c-surface); stroke-width: 2; stroke-linecap: round; }
+.art__fault { fill: none; stroke: var(--c-plate); stroke-width: 3; stroke-dasharray: 6 4; }
+.art__shake { fill: none; stroke: var(--c-plate); stroke-width: 1.5; stroke-linecap: round; }
+/* The open panel's boundary guide and Taiwan's note (Plates & volcanoes). */
+.gbound { margin-bottom: var(--s-3); }
+.gbound p { margin: 0; }
+.gbound__art .art { display: block; width: 100%; max-width: var(--gpanel-art); height: auto; margin: var(--s-1) auto; border-radius: var(--r-sm); }
+.gbound__name { font-weight: var(--fw-bold); }
+.gbound__term { color: var(--c-ink-soft); font-style: italic; }
+.gbound__name .bi, .gbound__term .bi { flex-direction: row; flex-wrap: wrap; column-gap: 0.4em; }
+.gpanel__taiwan p { margin: 0 0 var(--s-1); }
+.gpanel__taiwan.is-here { margin: var(--s-2) 0; padding: var(--s-2) var(--s-3); border-radius: var(--r-md); background: var(--c-art-sky); }
+.gpanel__taiwan.is-here .gpanel__heading { margin-top: 0; }
+.gpanel__aside { color: var(--c-ink-soft); font-size: var(--fs-xs); }
+.gpanel[data-state="collapsed"] :is(.gpanel__bounds, .gpanel__taiwan) { display: none; }
 .art__volcano { fill: var(--c-volcano); stroke: var(--c-volcano-edge); stroke-width: 1.5; stroke-linejoin: round; }
 .art__plate-arrow { fill: var(--c-plate-arrow); stroke: var(--c-plate-arrow-edge); stroke-width: 1.5; stroke-linejoin: round; }
 .art__zone--1 { fill: var(--c-depth-1); }

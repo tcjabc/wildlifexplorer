@@ -75,6 +75,7 @@
   --c-plate-arrow-edge: #3b2f2a;        /* and their outline */
   --c-volcano: #e8590c;                 /* volcano triangles on the globe */
   --c-volcano-edge: #ffffff;            /* and their edge */
+  --c-art-mantle: #f2a65a;              /* hot rock under the plates, in the panel's drawings */
   /* The topography picture's own colours (Natural Earth, sampled from relief-4k.webp: the
      Amazon and Congo lowlands, the Sahara, the Tibetan plateau), for its key and drawings. */
   --c-relief-low: #acc9ae;

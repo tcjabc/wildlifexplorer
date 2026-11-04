@@ -197,7 +197,7 @@ export function render(main, [cardId] = []) {
   }
 
   // Lay the pins out over the globe: hide the far side, stack the ones that overlap.
-  function layout({ project, ctx, radius }) {
+  function layout({ project, ctx, radius, k }) {
     const D = pinSize * TOUCH;
     const stacks = [];
     for (const p of pins) {
@@ -249,6 +249,7 @@ export function render(main, [cardId] = []) {
       p.el.style.setProperty('opacity', depth.toFixed(2));
     }
     if (plateLabels.length) layoutPlateLabels(project, radius);
+    checkTaiwan(project, k);
     placeVolcano(project);
     if (fanning) globe.redraw();
   }
@@ -545,10 +546,32 @@ export function render(main, [cardId] = []) {
         h('h3', { class: 'gpanel__heading' }, tx('info.what')),
         failed ? h('p', null, tx('layer.failed')) : info.what.map(k => h('p', null, tx(k))),
         !failed && h('div', { class: 'gpanel__art' }, ART[info.art]?.())),
+      !failed && info.taiwan && !nearTaiwan && taiwanNote(info.taiwan),
+      !failed && info.bounds && h('section', { class: 'gpanel__bounds' },
+        h('h3', { class: 'gpanel__heading' }, tx('info.plates.bounds')),
+        info.bounds.map(b => h('div', { class: 'gbound' },
+          h('div', { class: 'gbound__art' }, ART[b.art]?.()),
+          h('p', { class: 'gbound__name' }, tx(b.name)),
+          h('p', { class: 'gbound__term' }, tx(b.term)),
+          h('p', null, tx(b.text))))),
       !failed && h('section', { class: 'gpanel__more' },
         h('h3', { class: 'gpanel__heading' }, tx('info.more')),
         info.more.map(k => h('p', null, tx(k, { year: 2024 })))));
+    // Zoomed in on Taiwan: its note comes first, under the title, marked.
+    if (!failed && info.taiwan && nearTaiwan) panelBody.querySelector('.gpanel__title').after(taiwanNote(info.taiwan));
     layoutPanel();
+  }
+  // Taiwan's note (Plates & volcanoes): why it has tall mountains, earthquakes and hot springs,
+  // and the Tatun volcanoes. In the open panel (collapsed, the panel is the key only).
+  const taiwanNote = n => h('section', { class: ['gpanel__taiwan', nearTaiwan && 'is-here'] },
+    h('h3', { class: 'gpanel__heading' }, h('span', { 'aria-hidden': 'true' }, '📍 '), tx('info.plates.taiwan')),
+    n.lines.map(k => h('p', null, tx(k))),
+    h('p', { class: 'gpanel__aside' }, tx(n.more)));
+  let nearTaiwan = false;
+  function checkTaiwan(project, k) {
+    const n = INFO[panelLayer?.id]?.taiwan;
+    const near = Boolean(n) && k >= n.near && project(toVec(...n.at))[2] > 0.985; // within about 10° of the middle
+    if (near !== nearTaiwan) { nearTaiwan = near; drawPanel(); }
   }
   function setPanel(open, { remember = true } = {}) {
     panel.dataset.state = open ? 'expanded' : 'collapsed';

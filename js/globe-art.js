@@ -149,4 +149,36 @@ export function platesArt() {
     path('M136 26L124 34M124 34L131 33M124 34L126 27', 'art__plate-move'));
 }
 
-export const ART = { pins, mountain, forests, reef, sunEarth, thermometer, oceanZones, plates: platesArt };
+// What happens at each kind of boundary, as a slice through the ground (drawn for WildFile).
+// Pulling apart: the sea floor splits and hot rock rises into the gap.
+export function sectionApart() {
+  return frame(160, 72,
+    rect(0, 0, 160, 18, 'art__sea'),
+    rect(0, 18, 160, 54, 'art__mantle'),
+    path('M0 18L72 18L76 30L84 30L88 18L160 18L160 30L92 30L80 46L68 30L0 30Z', 'art__crust'),
+    path('M80 64L80 40M80 40L72 48M80 40L88 48', 'art__rise'),
+    path('M60 24L34 24M34 24L40 20M34 24L40 28M100 24L126 24M126 24L120 20M126 24L120 28', 'art__push'));
+}
+// Crashing together: one plate dives under the other; the plate on top crumples into mountains.
+export function sectionCrash() {
+  return frame(160, 72,
+    rect(0, 0, 160, 72, 'art__sky'),
+    rect(0, 26, 92, 46, 'art__sea'),
+    rect(0, 40, 160, 32, 'art__mantle'),
+    path('M0 32L84 32L130 70L118 72L78 40L0 40Z', 'art__crust'),
+    path('M88 32L104 12L114 22L124 8L140 26L160 28L160 46L96 46Z', 'art__land'),
+    path('M120 8L124 14L128 12', 'art__snowcap'),
+    path('M20 36L46 36M46 36L40 32M46 36L40 40', 'art__push'));
+}
+// Sliding past: two plates scrape sideways (seen from above), and the ground shakes.
+export function sectionSlide() {
+  return frame(160, 72,
+    rect(0, 0, 160, 36, 'art__land'),
+    rect(0, 36, 160, 36, 'art__relief-dry'),
+    path('M0 36L160 36', 'art__fault'),
+    path('M40 18L104 18M104 18L96 12M104 18L96 24', 'art__push'),
+    path('M120 54L56 54M56 54L64 48M56 54L64 60', 'art__push'),
+    path('M74 30L80 36L86 30M74 42L80 36L86 42', 'art__shake'));
+}
+
+export const ART = { pins, mountain, forests, reef, sunEarth, thermometer, oceanZones, plates: platesArt, sectionApart, sectionCrash, sectionSlide };

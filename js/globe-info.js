@@ -81,7 +81,19 @@ export const INFO = {
       { line: 'volcano', label: 'info.plates.key.volcano' },
     ],
     what: ['info.plates.what.1', 'info.plates.what.2'], art: 'plates',
-    more: ['info.plates.more.speed'],
+    more: ['info.plates.more.speed', 'info.plates.more.ring'],
+    // Open: what happens at each kind of boundary, a drawing each, with the school term.
+    bounds: [
+      { art: 'sectionApart', name: 'info.plates.key.apart', term: 'info.plates.term.apart', text: 'info.plates.bound.apart' },
+      { art: 'sectionCrash', name: 'info.plates.key.crash', term: 'info.plates.term.crash', text: 'info.plates.bound.crash' },
+      { art: 'sectionSlide', name: 'info.plates.key.slide', term: 'info.plates.term.slide', text: 'info.plates.bound.slide' },
+    ],
+    // Taiwan: in the open panel, first (and marked) when the globe is zoomed in on Taiwan.
+    taiwan: {
+      at: [120.9, 23.7], near: 2.5, // from this zoom, with Taiwan near the middle
+      lines: ['info.plates.taiwan.1', 'info.plates.taiwan.2', 'info.plates.taiwan.3'],
+      more: 'info.plates.taiwan.more',
+    },
   },
   depth: {
     // Lightest at the top: going down the key is going deeper.
@@ -106,12 +118,14 @@ export const INFO = {
 
 // Every string key the panel uses, for the tests (both languages must have them all).
 export function infoKeys() {
-  const keys = new Set(['info.what', 'info.more', 'info.collapse', 'info.expand', 'info.habitat', 'info.zones', 'info.everywhere.title']);
+  const keys = new Set(['info.what', 'info.more', 'info.collapse', 'info.expand', 'info.habitat', 'info.zones', 'info.everywhere.title', 'info.plates.bounds', 'info.plates.taiwan']);
   for (const info of Object.values(INFO)) {
     if (info.title) keys.add(info.title);
     if (Array.isArray(info.key)) for (const k of info.key) keys.add(k.label);
     for (const k of [...info.what, ...info.more]) keys.add(k);
     for (const z of info.zones ?? []) { keys.add(z.sci); keys.add(z.animal.name); }
+    for (const b of info.bounds ?? []) { keys.add(b.name); keys.add(b.term); keys.add(b.text); }
+    if (info.taiwan) { info.taiwan.lines.forEach(k => keys.add(k)); keys.add(info.taiwan.more); }
   }
   return [...keys];
 }
