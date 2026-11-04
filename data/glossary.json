@@ -121,6 +121,16 @@
         "zh": "動物的身體幾乎完全停止運作，讓牠能撐過非常惡劣環境的狀態。"
       }
     },
+    "deciduous": {
+      "term": {
+        "en": "deciduous",
+        "zh": "落葉"
+      },
+      "def": {
+        "en": "A tree that loses its leaves for part of each year.",
+        "zh": "每年有一段時間會掉光葉子的樹。"
+      }
+    },
     "delayed-implantation": {
       "term": {
         "en": "delayed implantation",
@@ -351,6 +361,16 @@
         "zh": "帶領家族的最年長母親。"
       }
     },
+    "native": {
+      "term": {
+        "en": "native",
+        "zh": "原生"
+      },
+      "def": {
+        "en": "Growing naturally in a place, not brought in by people.",
+        "zh": "自然生長在某個地方，不是人類從別處帶來的。"
+      }
+    },
     "near-threatened": {
       "term": {
         "en": "Near Threatened",
@@ -359,6 +379,16 @@
       "def": {
         "en": "On the IUCN Red List, an animal that could soon be in danger.",
         "zh": "在IUCN紅色名錄中，很快可能面臨危險的動物。"
+      }
+    },
+    "nectar": {
+      "term": {
+        "en": "nectar",
+        "zh": "花蜜"
+      },
+      "def": {
+        "en": "A sweet liquid made by flowers that attracts birds and insects.",
+        "zh": "花朵製造的甜甜汁液，會吸引鳥和昆蟲。"
       }
     },
     "nocturnal": {
@@ -389,6 +419,16 @@
       "def": {
         "en": "Laying eggs that hatch outside the mother's body.",
         "zh": "生下蛋，讓寶寶在媽媽身體外面孵出來。"
+      }
+    },
+    "photosynthesis": {
+      "term": {
+        "en": "photosynthesis",
+        "zh": "光合作用"
+      },
+      "def": {
+        "en": "How green plants make their own food from sunlight, water and air.",
+        "zh": "綠色植物利用陽光、水和空氣製造自己養分的方式。"
       }
     },
     "poaching": {

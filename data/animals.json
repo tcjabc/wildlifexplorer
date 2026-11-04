@@ -5402,38 +5402,38 @@
     "factFile": {
       "habitat": [
         {
-          "en": "",
-          "zh": ""
+          "en": "The Taiwan cherry is [[native]] to Taiwan. This [[deciduous]] tree is common in the low and middle mountains.",
+          "zh": "山櫻花是臺灣[[native|原生]]的植物，這種[[deciduous|落葉]]喬木在中低海拔山區很常見。"
         }
       ],
       "breeding": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Its bell-shaped, deep pink flowers open from about January to February, hanging down from the branches. In summer it grows small fruits that look like tiny cherries.",
+          "zh": "山櫻花大約在1月到2月開花，粉紅到桃紅色、像鐘一樣的花朵從樹枝上垂下來。夏天時，會結出像迷你櫻桃一樣的小果實。"
         }
       ],
       "behaviour": [
         {
-          "en": "",
-          "zh": ""
+          "en": "It is the first cherry to flower in Taiwan each year. At Alishan, it starts the cherry blossom season around Lunar New Year. Warmer or colder weather makes it flower earlier or later.",
+          "zh": "山櫻花是臺灣每年最早開花的櫻花。在阿里山，牠在農曆新年前後最先開花，揭開櫻花季的序幕。天氣比較暖或比較冷，都會讓它提早或延後開花。"
         }
       ],
       "foodAndHunting": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Like all green plants, the cherry tree makes its own food from sunlight, water and air by [[photosynthesis]]. It also feeds others: its sweet [[nectar]] attracts birds such as white-eyes and sibias, some hanging upside down to sip it, and birds love its little fruits.",
+          "zh": "和所有綠色植物一樣，山櫻花靠[[photosynthesis|光合作用]]，用陽光、水和空氣製造自己的養分。它也會餵飽別人：甜甜的[[nectar|花蜜]]會吸引綠繡眼、冠羽畫眉、白耳畫眉等鳥類，有些還會倒掛著吸花蜜；它的小果實也是鳥兒的最愛。"
         }
       ],
       "conservation": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Taiwan's wild cherry trees differ from place to place in when they flower and in their colour. Plant breeders study these differences to choose trees that flower well even in warm lowlands.",
+          "zh": "臺灣野生的山櫻花，在不同地方的開花時間和花色都不太一樣。育種專家研究這些差異，挑選出在溫暖的低海拔地區也能開得很好的樹。"
         }
       ],
       "didYouKnow": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Some birds hang upside down from the branches to sip the Taiwan cherry's nectar.",
+          "zh": "有些鳥會倒掛在樹枝上，吸食山櫻花的花蜜。"
         }
       ]
     },
@@ -5498,7 +5498,35 @@
     ],
     "_draft": [
       "facts",
-      "tags"
+      "tags",
+      "factFile.habitat",
+      "factFile.breeding",
+      "factFile.behaviour",
+      "factFile.foodAndHunting",
+      "factFile.conservation",
+      "factFile.didYouKnow"
+    ],
+    "_sources": [
+      {
+        "title": "MOA: 山櫻花 (native, deciduous, flowers Jan–Feb, fruit in summer, common at low and mid elevations)",
+        "url": "https://www.moa.gov.tw/ws.php?id=2502223"
+      },
+      {
+        "title": "MOA: Taiwan cherry breeding (native populations vary in flowering time and colour)",
+        "url": "https://www.moa.gov.tw/ws.php?id=2512933"
+      },
+      {
+        "title": "MOA / FANCA: birds at Taiwan cherry flowers and fruit (white-eyes, sibias, hanging upside down)",
+        "url": "https://www.moa.gov.tw/ws.php?id=2446918"
+      },
+      {
+        "title": "TCCIP (2018): Taiwan cherry flowering phenology model (temperature and altitude)",
+        "url": "https://tccip.ncdr.nat.gov.tw/upload/activity_agenda/20180330145451.pdf"
+      },
+      {
+        "title": "Future plant database: 山櫻花 (bell-shaped hanging flowers, drupe)",
+        "url": "https://future.url.tw/plant/view/215"
+      }
     ]
   }
 ]

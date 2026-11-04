@@ -10,7 +10,7 @@ Generated 2026-11-04 13:20 UTC. Re-written on every build.
 - Rows not built yet: 183 (run with `--all` or a bigger `--limit`)
 - Cards without a photo: 5
 - Cards with facts still to write: 15
-- Cards with Fact File sections still to write: 4
+- Cards with Fact File sections still to write: 3
 - Cards that open (profile or statistics): 25
 
 ## Drops
@@ -332,7 +332,6 @@ Empty slots in `factFile` (habitat, breeding, behaviour, food, conservation, did
 - Atlas Moth · 皇蛾 (`atlas-moth`): conservation, development (gestation or incubation), number of young
 - Tyrannosaurus rex · 暴龍 (`tyrannosaurus-rex`): development (gestation or incubation), number of young
 - Tardigrade (Water Bear) · 水熊蟲 (`tardigrade-water-bear`): conservation, development (gestation or incubation), number of young
-- Taiwan Cherry · 山櫻花 (`taiwan-cherry`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow
 
 Cards with no related species yet: 30 of 30 species cards.
 
@@ -348,11 +347,11 @@ Only shown in grown-up preview until checked. Delete the `todo` key once a fact 
 
 ## Glossary
 
-- Terms in data/glossary.json: 57; used on cards: 55
+- Terms in data/glossary.json: 61; used on cards: 59
 - Missing: none
 - Not used on any card: `carnivora`, `incubation`
 
-Cards with a sources list (`_sources`): 29 of 30 species cards.
+Cards with a sources list (`_sources`): 30 of 30 species cards.
 
 ## Draft text to check
 
@@ -392,4 +391,4 @@ Written by Claude as a starting point. Check or rewrite it, then remove the fiel
 - How Animals Fly · 動物怎麼飛 (`how-animals-fly`): facts
 - Tyrannosaurus rex · 暴龍 (`tyrannosaurus-rex`): facts, tags, factFile.habitat, factFile.breeding, factFile.behaviour, factFile.foodAndHunting, factFile.conservation, factFile.didYouKnow
 - Tardigrade (Water Bear) · 水熊蟲 (`tardigrade-water-bear`): facts, tags, factFile.habitat, factFile.breeding, factFile.behaviour, factFile.foodAndHunting, factFile.didYouKnow
-- Taiwan Cherry · 山櫻花 (`taiwan-cherry`): facts, tags
+- Taiwan Cherry · 山櫻花 (`taiwan-cherry`): facts, tags, factFile.habitat, factFile.breeding, factFile.behaviour, factFile.foodAndHunting, factFile.conservation, factFile.didYouKnow
