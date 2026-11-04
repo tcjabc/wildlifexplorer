@@ -5085,38 +5085,38 @@
     "factFile": {
       "habitat": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Tyrannosaurus rex lived in western North America at the very end of the age of dinosaurs, about 68 to 66 million years ago. Many of its [[fossil|fossils]] come from the Hell Creek Formation in Montana, USA.",
+          "zh": "暴龍生活在恐龍時代的最末期，大約6,800萬到6,600萬年前，住在北美洲西部。許多暴龍[[fossil|化石]]是在美國蒙大拿州的地獄溪層發現的。"
         }
       ],
       "breeding": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Like other dinosaurs, T. rex hatched from eggs. Growth rings in its bones show that it had a huge teenage growth spurt: between about 14 and 18 years old, it put on around 2 kilograms a day!",
+          "zh": "和其他恐龍一樣，暴龍是從蛋裡孵出來的。骨頭裡的生長輪顯示，牠在青少年時期會突然快速長大：大約在14到18歲之間，每天要增加約2公斤！"
         }
       ],
       "behaviour": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Scientists can work out how old a T. rex was by counting growth rings in its bones, like the rings in a tree trunk. The famous skeleton called Sue was about 28 years old when it died.",
+          "zh": "科學家可以數暴龍骨頭裡的生長輪來推算牠幾歲，就像數樹幹的年輪一樣。著名的暴龍骨骼「蘇」死的時候大約28歲。"
         }
       ],
       "foodAndHunting": [
         {
-          "en": "",
-          "zh": ""
+          "en": "T. rex was a huge [[predator]]. Its bite was one of the strongest of any land animal that has ever lived.",
+          "zh": "暴龍是巨大的[[predator|掠食者]]，牠的咬合力是有史以來所有陸地動物中最強的之一。"
         }
       ],
       "conservation": [
         {
-          "en": "",
-          "zh": ""
+          "en": "T. rex is [[extinct]]: it died out about 66 million years ago, at the end of the age of dinosaurs, long before there were any people.",
+          "zh": "暴龍已經[[extinct|滅絕]]了，牠在大約6,600萬年前、恐龍時代結束時消失，那時候地球上還沒有人類。"
         }
       ],
       "didYouKnow": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Sue, one of the biggest T. rex skeletons ever found, is about 12.3 metres long. It may have weighed around 8 tonnes.",
+          "zh": "「蘇」是目前發現最大的暴龍骨骼之一，大約12.3公尺長，體重可能有8公噸左右。"
         }
       ]
     },
@@ -5189,7 +5189,35 @@
     ],
     "_draft": [
       "facts",
-      "tags"
+      "tags",
+      "factFile.habitat",
+      "factFile.breeding",
+      "factFile.behaviour",
+      "factFile.foodAndHunting",
+      "factFile.conservation",
+      "factFile.didYouKnow"
+    ],
+    "_sources": [
+      {
+        "title": "Britannica: tyrannosaur, Hell Creek discoveries",
+        "url": "https://www.britannica.com/animal/tyrannosaur/Hell-Creek-discoveries"
+      },
+      {
+        "title": "Science News: teenage tyrannosaurs packed on the pounds (growth spurt; Sue died at 28)",
+        "url": "https://www.sciencenews.org/article/growth-spurt-teenage-tyrannosaurs-packed-pounds"
+      },
+      {
+        "title": "NPR: T. rex lived fast and died young (2004)",
+        "url": "https://www.npr.org/2004/08/11/3846647/t-rex-lived-fast-and-died-young"
+      },
+      {
+        "title": "Strange Animals: how big was T. rex (Sue 12.3 m, about 8.4 t; bite force estimates, Bates & Falkingham 2012)",
+        "url": "https://strangeanimals.info/extinct/dinosaurs/t-rex-facts-king-of-the-dinosaurs"
+      },
+      {
+        "title": "Dino Animals: Tyrannosaurus rex (68–66 million years ago)",
+        "url": "https://dinoanimals.com/dinosaurdatabase/tyrannosaurus-rex/"
+      }
     ]
   },
   {

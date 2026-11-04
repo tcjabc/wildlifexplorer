@@ -151,6 +151,26 @@
         "zh": "在全世界只有某個地方才自然生長的物種。"
       }
     },
+    "extinct": {
+      "term": {
+        "en": "extinct",
+        "zh": "滅絕"
+      },
+      "def": {
+        "en": "Gone forever: no living animals of that kind are left anywhere.",
+        "zh": "永遠消失了：世界上再也沒有任何一隻活著。"
+      }
+    },
+    "fossil": {
+      "term": {
+        "en": "fossil",
+        "zh": "化石"
+      },
+      "def": {
+        "en": "The remains or traces of a living thing from long ago, preserved in rock.",
+        "zh": "很久以前的生物留下、保存在岩石裡的遺骸或痕跡。"
+      }
+    },
     "gestation": {
       "term": {
         "en": "gestation",
