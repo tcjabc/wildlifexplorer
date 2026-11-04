@@ -483,6 +483,25 @@ truth; it syncs with Supabase when online.
   from the email (or opens the email's link on this device, which asks before signing in). Signing
   out keeps the explorers on the device. The code is in `js/cloud/auth.js` (plain `fetch`, tests
   in `tests/`, run `npm test`).
+- **What a device is** (asked once, after the first sign-in on it): *the explorers' device* (where
+  packs are granted and opened, the default, also for every device from before) or *a grown-up's
+  phone* (watch mode). Kept in `meta 'device'`, on that device only; changed in For grown-ups →
+  ☁️ Family account. A phone with explorers of its own adds them all to the family account, or is
+  the explorers' device instead: a phone never has local-only explorers. Becoming a phone needs
+  everything from the device saved first (nothing waiting or held back) and no local-only
+  explorers.
+- **Watch mode** (a grown-up's phone): it pulls everything but never grants or opens a pack,
+  collects a card or earns a badge. `db.js` refuses those writes (`WatchOnly`, read inside the
+  writing transaction), and `store.js` doesn't attempt them. No "New pack arrived", no
+  celebrations; the Packs page lists each pack as waiting or opened; Quiz and Field Notes are
+  hidden (they stay on each device); a "👀 Watching" chip shows in the header. Settings, units,
+  pack day and new explorers can be changed and go up; Start over, Delete and Restore are only on
+  the explorers' device.
+- **Signing out:** "Sign out" keeps the explorers on the device (first on the explorers' device).
+  "Sign out and remove the family from this device" (first on a phone) saves everything first,
+  then removes the family's explorers with their packs, cards, badges, quiz scores and Field Notes
+  from this device only, and signs out. Explorers kept on the device only stay. Nothing is sent:
+  the family account keeps everything.
 - **A new device:** the Welcome screen has "Already have a family account? Sign in". Behind the
   grown-ups' sum it is the same email and code (or link); then the family's explorers come down
   (`sync.join()`) and the picker shows them. If the family has no explorers yet, the Welcome form

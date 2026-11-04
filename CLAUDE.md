@@ -49,6 +49,7 @@
 ## LOCAL DATABASE
 - IndexedDB schema and upgrades live in `js/db.js` (`VERSION`). An upgrade runs entirely inside the upgrade transaction, so an interrupted one leaves the old version untouched. Test every upgrade on realistic old data (see `tests/fixtures/v3.mjs`).
 - Version 5 added the `outbox` store: every write to a synced store (`SYNCED` in `db.js`) also puts an outbox entry in the same transaction; `js/cloud/sync.js` sends them. What may leave the device is the allow-list in `toRow` there.
+- `meta 'device'` holds the device role (`'explorers'` by default, or `'watch'` on a grown-up's phone; device-only). In watch mode `db.js` refuses every write to `PROGRESS` (packs, collection, badges) except pulls (`putFromServer`); keep that guard in the db layer, not only in the UI.
 - Version 4 added the `v3backup` store: the version 3 `collection` and `badges` records, kept verbatim as a safety net. Remove it in a later DB version, once sync has been stable for a while.
 
 ## SUPABASE
