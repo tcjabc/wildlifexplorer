@@ -14,13 +14,13 @@ const user = { signedIn: true, userId: 'user-1', email: 'parent@example.test', n
 const auth = { state: async () => user, onChange: () => {}, authFetch: server.authFetch };
 const noTimers = { setTimeout: () => 0, clearTimeout: () => {} };
 
-// A device: its own copy of db.js on its own (fake) IndexedDB.
+// A device: its own copy of db.js on its own (fake) IndexedDB, signed in to a server.
 let n = 0;
-async function device() {
+async function device(deviceAuth = auth) {
   const db = await import(`../js/db.js?device=${++n}`);
   globalThis.indexedDB = new IDBFactory();
   await db.all('profiles'); // opens it: this copy keeps that database from now on
-  const sync = createSync({ db, auth, locks: undefined, timers: noTimers });
+  const sync = createSync({ db, auth: deviceAuth, locks: undefined, timers: noTimers });
   const pulled = [];
   sync.onPulled(ids => pulled.push(ids));
   return { db, sync, pulled };
@@ -265,4 +265,48 @@ test('whatever order two devices sync in, they end up the same', async () => {
   assert.equal(row.timeline_epoch, a.profile.timeline.epoch);
   assert.equal(us(row.client_updated_at), us((await A.db.get('profiles', MIA)).settingsAt));
   for (const d of [A, B]) assert.deepEqual(await d.db.all('outbox'), []);
+});
+
+test('join (Welcome screen): a device with no explorers gets the family\'s straight away', async () => {
+  const D = await device();
+  assert.equal(await D.sync.stage(), 'choose');
+  assert.equal(await D.sync.join(), 'on');
+  assert.deepEqual((await D.db.all('profiles')).filter(p => !p.deletedAt).map(p => p.name), [(await A.db.get('profiles', MIA)).name]);
+  assert.ok((await D.db.all('collection', MIA)).length > 0);
+  assert.deepEqual((await D.db.getMeta('sync')).localOnly, []);
+  assert.equal(await D.sync.join(), 'on'); // again: just another pull
+});
+
+test('join: a family with no explorers yet leaves the device empty, and set up', async () => {
+  const empty = createServer();
+  const E = await device({ ...auth, authFetch: empty.authFetch });
+  assert.equal(await E.sync.join(), 'on');
+  assert.deepEqual(await E.db.all('profiles'), []);
+  assert.equal(await E.sync.stage(), 'on');
+});
+
+test('join: offline, it fails and nothing is set up; another account isn\'t joined', async () => {
+  const F = await device();
+  server.offline = true;
+  try { await assert.rejects(F.sync.join(), { code: 'offline' }); } finally { server.offline = false; }
+  assert.equal(await F.sync.stage(), 'choose');
+  const G = await device();
+  await G.db.setMeta('sync', { userId: 'user-2', email: 'other@example.test', familyId: FAMILY, localOnly: [] });
+  assert.equal(await G.sync.join(), 'other-account');
+  assert.deepEqual(await G.db.all('profiles'), []);
+});
+
+test('run asked while a run is going: another run follows it', async () => {
+  const mia = await A.db.get('profiles', MIA);
+  await A.db.put('profiles', { ...mia, avatar: 8, settingsAt: later(30) });
+  let second;
+  server.during = async () => {
+    // A change lands after this run read its outbox, and someone asks for a run.
+    await A.db.put('profiles', { ...mia, avatar: 1, settingsAt: later(31) });
+    second = A.sync.run();
+  };
+  await A.sync.run();
+  await second;
+  assert.equal(server.rows.profiles.get(MIA).avatar, 1);
+  assert.deepEqual(await A.db.all('outbox'), []);
 });

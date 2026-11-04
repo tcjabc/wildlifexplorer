@@ -136,6 +136,7 @@ export function createSync({ db = defaultDb, auth = defaultAuth, locks = globalT
   const events = new EventTarget();
   const changed = () => events.dispatchEvent(new Event('change'));
   let running = null;
+  let again = null; // the run asked for while one was going
   let timer = null;
   let tries = 0;
   let last = { problem: null, savedAt: null }; // problem: 'offline' | 'needs-sign-in' | 'server'
@@ -214,6 +215,18 @@ export function createSync({ db = defaultDb, auth = defaultAuth, locks = globalT
     });
     changed();
     await run();
+  }
+
+  // A device joining the family from the Welcome screen, with no explorers of its own: set
+  // up (if not done yet) and bring the family's explorers down. Resolves with the stage
+  // ('on' once they are here); throws an AuthError when they couldn't be brought down.
+  async function join() {
+    const where = await stage();
+    if (where === 'choose') await setUp([]);
+    else if (where === 'on') await run();
+    else return where;
+    if (last.problem) throw new AuthError(last.problem === 'server' ? 'unknown' : last.problem);
+    return 'on';
   }
 
   // ---------- Pushing ----------
@@ -373,8 +386,11 @@ export function createSync({ db = defaultDb, auth = defaultAuth, locks = globalT
   }
 
   // Push, then pull (one at a time, in every window). Resolves when done; never throws.
+  // Asked while a run is going: one more run follows it (the one going may have started
+  // before whatever the caller just did, such as setting up), and this resolves after that.
   function run() {
-    running ??= (async () => {
+    if (running) return (again ??= running.then(() => { again = null; return run(); }));
+    running = (async () => {
       try {
         if (await withLock(runOnce)) last = { problem: null, savedAt: new Date().toISOString() };
         tries = 0;
@@ -422,7 +438,7 @@ export function createSync({ db = defaultDb, auth = defaultAuth, locks = globalT
   }
 
   return {
-    stage, candidates, setUp, addToFamily, run, status, start,
+    stage, candidates, setUp, addToFamily, join, run, status, start,
     onChange: fn => events.addEventListener('change', fn),
     // fn(profile ids): records of these explorers changed here in a pull.
     onPulled: fn => events.addEventListener('pulled', e => fn(e.detail)),
