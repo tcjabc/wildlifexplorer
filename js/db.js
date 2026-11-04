@@ -165,7 +165,8 @@ function memoryAccess() {
 
 // Writes to synced stores also put their outbox entry. The entry holds only the key (sync
 // sends the record as it is then) and a new rev, so sync can tell a change that came in
-// while it was sending.
+// while it was sending. putFromServer() is for a record pulled from the family account that
+// is exactly what the server has (cloud/sync.js): sending it back would change nothing.
 function withOutbox(access, queued) {
   const note = async (name, value) => {
     await access.put(OUTBOX, { id: `${name}:${value.id}`, store: name, key: value.id, rev: newId() });
@@ -183,6 +184,7 @@ function withOutbox(access, queued) {
       if (added && SYNCED.includes(name)) await note(name, value);
       return added;
     },
+    putFromServer: (name, value) => access.put(name, value),
   };
 }
 

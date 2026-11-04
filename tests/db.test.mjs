@@ -88,6 +88,20 @@ test('only the synced stores write to the outbox: every other store, now or late
   assert.deepEqual((await db.all('outbox')).map(e => e.id), ['collection:p1:1:emu']);
 });
 
+test('a record that is what the server has is written without an outbox entry; an entry already there stays', async () => {
+  const db = await loadDb();
+  const queued = [];
+  db.events.addEventListener('queued', () => queued.push(1));
+  await db.tx(['badges'], 'readwrite', async a => { await a.putFromServer('badges', { id: 'p1:1:group:birds', profileId: 'p1' }); });
+  assert.deepEqual(await db.all('outbox'), []);
+  assert.equal(queued.length, 0);
+  await db.put('collection', { id: 'p1:1:emu', profileId: 'p1', epoch: 1, cardId: 'emu' });
+  const [entry] = await db.all('outbox');
+  await db.tx(['collection'], 'readwrite', async a => { await a.putFromServer('collection', { id: 'p1:1:emu', profileId: 'p1', epoch: 1, cardId: 'emu', collectedAt: 'x' }); });
+  assert.deepEqual(await db.all('outbox'), [entry]);
+  assert.equal((await db.get('collection', 'p1:1:emu')).collectedAt, 'x');
+});
+
 test('no IndexedDB at all: carries on in memory', async () => {
   globalThis.indexedDB = undefined;
   const db = await loadDb();
