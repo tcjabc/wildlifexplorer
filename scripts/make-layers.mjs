@@ -25,7 +25,7 @@ const big = { limitInputPixels: false };
 const SOURCES = {
   relief: 'https://naciscdn.org/naturalearth/50m/raster/NE1_50M_SR_W.zip',
   height: 'https://eoimages.gsfc.nasa.gov/images/imagerecords/73000/73934/gebco_08_rev_elev_21600x10800.png',
-  night: 'https://eoimages.gsfc.nasa.gov/images/imagerecords/144000/144898/BlackMarble_2016_3km.jpg',
+  night: 'https://assets.science.nasa.gov/content/dam/science/esd/eo/images/imagerecords/144000/144898/BlackMarble_2016_3km.jpg',
   depth: 'https://naciscdn.org/naturalearth/10m/physical/ne_10m_bathymetry_all.zip',
   reefs: 'https://naciscdn.org/naturalearth/10m/physical/ne_10m_reefs.zip',
   countries: 'https://naciscdn.org/naturalearth/10m/cultural/ne_10m_admin_0_countries.zip',
@@ -98,10 +98,38 @@ async function relief() {
   console.log(`  height-2k.webp ${await kb(file)}`);
 }
 
+// City lights as points: the picture (13,500 × 6,750, about 3 km a pixel) in cells of
+// LIGHT_CELL × LIGHT_CELL pixels (0.21°); each cell's light is what its pixels have above
+// the unlit land (LIGHT_BASE). The brightest LIGHTS cells are kept, each at the
+// brightness-weighted middle of its lights, brightest first (the globe shows the first ones
+// zoomed out and more as it zooms in). b: 1–99, the cell's light (square root, so small towns
+// still show).
+const LIGHT_CELL = 8, LIGHT_BASE = 60, LIGHTS = 6000;
 async function night() {
   const jpg = await download(SOURCES.night, path.join(RAW, path.basename(SOURCES.night)));
-  await webp(jpg, 'night-4k.webp', 4096, { quality: 75 });
-  await webp(jpg, 'night-2k.webp', 2048, { quality: 75 });
+  const { data, info: { width: W, height: H } } = await sharp(jpg, big).greyscale().raw().toBuffer({ resolveWithObject: true });
+  const C = LIGHT_CELL, cw = Math.floor(W / C), ch = Math.floor(H / C);
+  const sum = new Float64Array(cw * ch), sx = new Float64Array(cw * ch), sy = new Float64Array(cw * ch);
+  for (let y = 0; y < ch * C; y++) {
+    for (let x = 0; x < cw * C; x++) {
+      const v = data[y * W + x] - LIGHT_BASE;
+      if (v <= 0) continue;
+      const i = ((y / C) | 0) * cw + ((x / C) | 0);
+      sum[i] += v; sx[i] += v * (x + 0.5); sy[i] += v * (y + 0.5);
+    }
+  }
+  const cells = [];
+  for (let i = 0; i < sum.length; i++) if (sum[i] > 0) cells.push(i);
+  cells.sort((a, b) => sum[b] - sum[a]);
+  const kept = cells.slice(0, LIGHTS), top = sum[kept[0]];
+  const points = [];
+  for (const i of kept) {
+    const lon = (sx[i] / sum[i] / W) * 360 - 180, lat = 90 - (sy[i] / sum[i] / H) * 180;
+    points.push(Math.round(lon * 100), Math.round(lat * 100), Math.max(1, Math.round(99 * Math.sqrt(sum[i] / top))));
+  }
+  const file = path.join(OUT, 'lights.json');
+  await writeFile(file, JSON.stringify({ source: 'NASA Earth Observatory, Black Marble 2016 (public domain)', unit: 0.01, points }) + '\n');
+  console.log(`  lights.json ${kept.length} lights (of ${cells.length} lit cells), ${await kb(file)}`);
 }
 
 // GIBS colour maps → a lookup (r, g, b) => °C, null for "no data", undefined if unknown.

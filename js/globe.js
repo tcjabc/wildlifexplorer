@@ -58,6 +58,19 @@ export function roomFit({ w, h, top = 0, bottom = 0, left = 0 }) {
   return { fit: clamp(Math.min(freeW, freeH) / Math.min(w, h), 0.55, 1), dx: left / 2, dy: (top - bottom) / 2 };
 }
 
+// Day & night. sunDot: how high the sun is at a place (the sine of its height: 1 overhead, 0
+// on the horizon, negative below it). The night side is darkened up to NIGHT_ALPHA, starting
+// while the sun is still just up (dusk) and full once it is about 13° down; across that band
+// the colour goes from twilight to night. City lights fade in through the same band.
+export const NIGHT_ALPHA = 0.66;
+const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+export const nightShade = sunDot => ({ alpha: NIGHT_ALPHA * smooth(0.06, -0.22, sunDot), dark: smooth(0.02, -0.3, sunDot) });
+export const lightsOn = sunDot => smooth(0.03, -0.12, sunDot);
+// How many lights (the brightest first) are drawn at zoom k: 1,500 for the whole globe, more as
+// it zooms in, all of them from zoom 4.
+export const LIGHTS_FAR = 1500;
+export const lightCount = (k, n) => Math.min(n, Math.round(LIGHTS_FAR * Math.max(1, k)));
+
 // Where an outline may not be rounded off (edges: true, for shapes drawn with curves): the
 // edges of the data's map (the antimeridian and the poles, where Natural Earth cuts its
 // shapes) and the points where two outlines meet (TopoJSON arc ends, ring.joins).
@@ -434,6 +447,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
 
     if (polys) fillPolys(view.k >= NEAR_K ? polys.near : polys.far, col.land);
     fillAll(layer?.land);
+    if (layer?.night) drawNight(layer.night);
     ctx.restore();
 
     // The picture layer, if any, between the two canvases.
@@ -477,11 +491,11 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
     onFrame?.({ project, ctx, k: view.k, radius: r });
   }
 
-  // Glowing dots (reefs): one soft sprite, stamped at every point on the near side.
-  let sprite = null;
-  function drawPoints({ vecs, colour }) {
-    const d = 24;
-    if (sprite?.colour !== colour) {
+  // A soft glow: white in the middle, the colour, then clear. One per colour, stamped.
+  const sprites = new Map();
+  function glow(colour) {
+    if (!sprites.has(colour)) {
+      const d = 24;
       const c = document.createElement('canvas');
       c.width = c.height = d * 2;
       const g = c.getContext('2d');
@@ -491,13 +505,94 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
       grad.addColorStop(1, `${colour.slice(0, 7)}00`); // the same colour, clear (not black)
       g.fillStyle = grad;
       g.fillRect(0, 0, d * 2, d * 2);
-      sprite = { c, colour };
+      sprites.set(colour, c);
     }
+    return sprites.get(colour);
+  }
+
+  // Glowing dots (reefs): stamped at every point on the near side.
+  function drawPoints({ vecs, colour }) {
+    const sprite = glow(colour);
     const s = clamp(5 * Math.sqrt(view.k), 5, 22); // dot size on screen
     for (let i = 0; i < vecs.length; i += 3) {
       const [x, y, z] = project([vecs[i], vecs[i + 1], vecs[i + 2]]);
-      if (z > 0) ctx.drawImage(sprite.c, x - s, y - s, s * 2, s * 2);
+      if (z > 0) ctx.drawImage(sprite, x - s, y - s, s * 2, s * 2);
     }
+  }
+
+  // Day & night: the night side darkened, with its twilight band, worked out on a small
+  // buffer (one value every NIGHT_PX px, smoothed up to the screen and clipped to the globe),
+  // then the city lights glowing through it, added onto what is below (no WebGL).
+  // night: { sun (unit vector), lights: { vecs, b (0–1), brightest first }, shade, twilight
+  // ([r, g, b] 0–255), light (colour) }.
+  const NIGHT_PX = 4, LUT_N = 1024;
+  let shadeBuf = null, lut = null;
+  // nightShade for sunDot -1…1 in LUT_N steps, as one RGBA pixel each (in the buffer's byte
+  // order), so each buffer pixel is a single write.
+  function shadeLut(shade, twilight) {
+    const key = `${shade}|${twilight}`;
+    if (lut?.key === key) return lut.px;
+    const bytes = new Uint8ClampedArray(LUT_N * 4);
+    for (let i = 0; i < LUT_N; i++) {
+      const { alpha, dark } = nightShade((i / (LUT_N - 1)) * 2 - 1);
+      for (let c = 0; c < 3; c++) bytes[i * 4 + c] = twilight[c] + (shade[c] - twilight[c]) * dark;
+      bytes[i * 4 + 3] = 255 * alpha;
+    }
+    lut = { key, px: new Uint32Array(bytes.buffer) };
+    return lut.px;
+  }
+  function drawNight({ sun, lights, shade, twilight, light }) {
+    const { cx, cy, r, w, h: ht } = B;
+    const x0 = Math.max(0, Math.floor(cx - r)), y0 = Math.max(0, Math.floor(cy - r));
+    const x1 = Math.min(w, Math.ceil(cx + r)), y1 = Math.min(ht, Math.ceil(cy + r));
+    if (x1 <= x0 || y1 <= y0) return;
+    const bw = Math.ceil((x1 - x0) / NIGHT_PX) + 2, bh = Math.ceil((y1 - y0) / NIGHT_PX) + 2;
+    if (shadeBuf?.c.width !== bw || shadeBuf.c.height !== bh) {
+      const c = document.createElement('canvas');
+      c.width = bw; c.height = bh;
+      const g = c.getContext('2d');
+      const img = g.createImageData(bw, bh);
+      shadeBuf = { c, g, img, px: new Uint32Array(img.data.buffer) };
+    }
+    const px = shadeBuf.px, table = shadeLut(shade, twilight), toLut = (LUT_N - 1) / 2;
+    // The sun in screen terms: east, north and towards the viewer.
+    const Se = sun[0] * B.e0 + sun[1] * B.e1;
+    const Sn = sun[0] * B.n0 + sun[1] * B.n1 + sun[2] * B.n2;
+    const Sc = sun[0] * B.c0 + sun[1] * B.c1 + sun[2] * B.c2;
+    for (let j = 0, o = 0; j < bh; j++) {
+      const Y0 = (cy - (y0 + (j - 0.5) * NIGHT_PX)) / r;
+      for (let i = 0; i < bw; i++, o++) {
+        let X = (x0 + (i - 0.5) * NIGHT_PX - cx) / r, Y = Y0, Z = 0;
+        const rr = X * X + Y * Y;
+        if (rr > 1) { const m = 1 / Math.sqrt(rr); X *= m; Y *= m; } // off the rim: as at the rim
+        else Z = Math.sqrt(1 - rr);
+        const dot = X * Se + Y * Sn + Z * Sc;
+        px[o] = table[((dot < -1 ? -1 : dot > 1 ? 1 : dot) + 1) * toLut | 0];
+      }
+    }
+    shadeBuf.g.putImageData(shadeBuf.img, 0, 0);
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(shadeBuf.c, 0, 0, bw, bh, x0 - NIGHT_PX, y0 - NIGHT_PX, bw * NIGHT_PX, bh * NIGHT_PX);
+
+    // The lights: the brightest first, more of them zoomed in; on the near side, on screen,
+    // and only where the sun is down (fading in through the twilight).
+    const sprite = glow(light), { vecs, b } = lights;
+    const n = lightCount(view.k, b.length), s0 = clamp(2.4 * Math.sqrt(view.k), 2.4, 10);
+    ctx.globalCompositeOperation = 'lighter';
+    for (let i = 0, j = 0; i < n; i++, j += 3) {
+      const vx = vecs[j], vy = vecs[j + 1], vz = vecs[j + 2];
+      const Z = vx * B.c0 + vy * B.c1 + vz * B.c2;
+      if (Z <= 0) continue;
+      const on = lightsOn(vx * sun[0] + vy * sun[1] + vz * sun[2]);
+      if (on <= 0) continue;
+      const x = cx + r * (vx * B.e0 + vy * B.e1), y = cy - r * (vx * B.n0 + vy * B.n1 + vz * B.n2);
+      const s = s0 * (0.6 + 0.9 * b[i]);
+      if (x < -s || y < -s || x > w + s || y > ht + s) continue;
+      ctx.globalAlpha = on * (0.35 + 0.65 * b[i]);
+      ctx.drawImage(sprite, x - s, y - s, s * 2, s * 2);
+    }
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
   }
 
   // ---------- the loop ----------
@@ -670,6 +765,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
     //   sea:    [{ polys, near?, fill }] drawn on the sea, under the land (prepared with prepare())
     //   land:   [{ polys, near?, fill }] drawn on the land
     //   points: { vecs, colour } glowing dots above everything (flat unit vectors)
+    //   night:  { sun, lights, shade, twilight, light }: day & night (drawNight)
     //   raster: a js/globegl.js spec, drawn above sea and land
     // Resolves when the layer is showing; rejects if its pictures can't be shown.
     async setLayer(next) {
@@ -685,8 +781,12 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
       await sphere?.set(next?.raster ?? null);
       dirty = true;
     },
-    // Change the picture layer's settings (e.g. where the sun is) without reloading it.
-    updateRaster(patch) { sphere?.update(patch); dirty = true; },
+    // Change the layer's settings (e.g. where the sun is) without reloading it.
+    updateLayer(patch) {
+      if (layer?.night) Object.assign(layer.night, patch);
+      if (layer?.raster) sphere?.update(patch);
+      dirty = true;
+    },
     // Turn (and zoom) to a place.
     flyTo(lon, lat, k = view.k, { duration = 700, onDone } = {}) {
       touched();

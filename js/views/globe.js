@@ -520,7 +520,7 @@ export function render(main, [cardId] = []) {
       const spec = await L.load({ col, month: tempMonth });
       if (wanted !== L || !globe) return;
       await globe.setLayer(spec);
-      if (L.tick && !ticker) ticker = setInterval(() => globe?.updateRaster(L.tick()), 60000);
+      if (L.tick && !ticker) ticker = setInterval(() => globe?.updateLayer(L.tick()), 60000);
     } catch {
       if (wanted !== L || !globe) return;
       chip.classList.add('is-failed');

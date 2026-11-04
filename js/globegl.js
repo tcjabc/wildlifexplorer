@@ -1,4 +1,4 @@
-// Picture layers on the Globe (relief, night lights, temperature): a WebGL canvas between
+// Picture layers on the Globe (relief, temperature): a WebGL canvas between
 // the sea-and-land canvas and the overlay canvas of js/globe.js. One full-screen triangle;
 // the fragment shader turns each pixel into a point on the sphere (the same orthographic
 // view as globe.js) and looks it up in an equirectangular texture.
@@ -16,12 +16,11 @@ precision highp float;
 uniform vec2 uCentre;     // globe centre, CSS px from the top left
 uniform float uR, uDpr, uH;
 uniform vec3 uE, uN, uC;  // east, north and centre of the view, as world vectors
-uniform int uMode;        // 0 relief, 1 night, 2 picture with alpha
+uniform int uMode;        // 0 relief, 2 picture with alpha
 uniform sampler2D uTex, uAux;
 uniform vec2 uAuxStep;    // one texel of uAux
 uniform float uBump;
-uniform vec3 uLight, uSun;
-uniform vec3 uNightTint;
+uniform vec3 uLight;
 out vec4 outColor;
 const float PI = 3.14159265;
 
@@ -54,11 +53,6 @@ void main() {
     vec3 n = normalize(w - uBump * ((hE - hW) * east + (hN - hS) * north));
     float shade = dot(n, uLight) - dot(w, uLight); // only the bumps, not the sphere
     col = vec4(base * (1.0 + 1.6 * shade), 1.0);
-  } else if (uMode == 1) {
-    float night = smoothstep(0.06, -0.10, dot(w, uSun));
-    vec3 lights = look(uTex, uv).rgb;
-    float a = 0.72 * night;
-    col = vec4(uNightTint * a + lights * night * 1.25, max(a, night * dot(lights, vec3(0.33))));
   } else {
     vec4 t = look(uTex, uv);
     col = vec4(t.rgb * t.a, t.a);
@@ -103,7 +97,7 @@ export function createSphere(canvas) {
     gl.enableVertexAttribArray(a);
     gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
     loc = {};
-    for (const n of ['uCentre', 'uR', 'uDpr', 'uH', 'uE', 'uN', 'uC', 'uMode', 'uTex', 'uAux', 'uAuxStep', 'uBump', 'uLight', 'uSun', 'uNightTint']) {
+    for (const n of ['uCentre', 'uR', 'uDpr', 'uH', 'uE', 'uN', 'uC', 'uMode', 'uTex', 'uAux', 'uAuxStep', 'uBump', 'uLight']) {
       loc[n] = gl.getUniformLocation(prog, n);
     }
     gl.uniform1i(loc.uTex, 0);
@@ -136,11 +130,11 @@ export function createSphere(canvas) {
     for (const [url, t] of textures) if (!keep.includes(url)) { gl.deleteTexture(t.tex); textures.delete(url); }
   }
 
-  let spec = null; // { mode, tex, aux, bump, sun, tint }
+  let spec = null; // { mode, tex, aux, bump }
 
   return {
-    // spec: { mode: 'relief' | 'night' | 'picture', tex: url, aux?: url (height map),
-    //         bump?, sun?: [x, y, z], tint?: [r, g, b] } or null. Resolves once loaded.
+    // spec: { mode: 'relief' | 'picture', tex: url, aux?: url (height map), bump? } or null.
+    // Resolves once loaded.
     async set(next) {
       spec = next;
       release(next ? [next.tex, next.aux].filter(Boolean) : []);
@@ -167,7 +161,7 @@ export function createSphere(canvas) {
       gl.uniform3f(loc.uE, B.e0, B.e1, 0);
       gl.uniform3f(loc.uN, B.n0, B.n1, B.n2);
       gl.uniform3f(loc.uC, B.c0, B.c1, B.c2);
-      gl.uniform1i(loc.uMode, { relief: 0, night: 1, picture: 2 }[spec.mode]);
+      gl.uniform1i(loc.uMode, { relief: 0, picture: 2 }[spec.mode]);
       gl.uniform2f(loc.uAuxStep, 1 / aux.w, 1 / aux.h);
       gl.uniform1f(loc.uBump, spec.bump ?? 0);
       // Light from the upper left, a little in front: fixed to the screen, not the Earth.
@@ -176,8 +170,6 @@ export function createSphere(canvas) {
         (L[0] * B.e0 + L[1] * B.n0 + L[2] * B.c0) / m,
         (L[0] * B.e1 + L[1] * B.n1 + L[2] * B.c1) / m,
         (L[1] * B.n2 + L[2] * B.c2) / m);
-      gl.uniform3f(loc.uSun, ...(spec.sun ?? [1, 0, 0]));
-      gl.uniform3f(loc.uNightTint, ...(spec.tint ?? [0.03, 0.05, 0.16]));
       gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, tex.tex);
       gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, aux.tex);
       gl.drawArrays(gl.TRIANGLES, 0, 3);

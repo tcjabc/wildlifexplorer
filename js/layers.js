@@ -140,8 +140,17 @@ export const LAYERS = [
   },
   {
     id: 'night', emoji: '🌙', live: true,
+    // City lights from lights.json (scripts/make-layers.mjs): [lon, lat, b (1–99)] in 0.01°,
+    // brightest first. Drawn by js/globe.js (drawNight), without WebGL.
     async load({ col }) {
-      return { raster: { mode: 'night', tex: `${DIR}night-${size()}.webp`, sun: sunVector(), tint: rgb(col('--c-night')) } };
+      const d = await getJson(`${DIR}lights.json`);
+      const n = d.points.length / 3, vecs = new Float32Array(n * 3), b = new Float32Array(n);
+      for (let i = 0; i < n; i++) {
+        vecs.set(toVec(d.points[i * 3] * d.unit, d.points[i * 3 + 1] * d.unit), i * 3);
+        b[i] = d.points[i * 3 + 2] / 99;
+      }
+      const rgb255 = c => rgb(c).map(x => Math.round(x * 255));
+      return { night: { sun: sunVector(), lights: { vecs, b }, shade: rgb255(col('--c-night')), twilight: rgb255(col('--c-twilight')), light: col('--c-city-lights') } };
     },
     tick: () => ({ sun: sunVector() }),
   },

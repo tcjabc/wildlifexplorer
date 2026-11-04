@@ -382,9 +382,18 @@ The chips along the top of the Globe switch on one map layer at a time: 🏔️ 
   Collapsed it shows the key only (72 px wide in landscape). Open or collapsed is kept per
   profile on the device (`globePanel`); a phone always starts collapsed.
 
-- Picture layers (topography, night lights, temperature) are drawn with WebGL 2 by
-  `js/globegl.js`, on a canvas between the land and the pins. It is only created when such
-  a layer is first switched on. Shape layers (forests, depth, reefs) are drawn like the land.
+- Picture layers (topography, temperature) are drawn with WebGL 2 by `js/globegl.js`, on a
+  canvas between the land and the pins. It is only created when such a layer is first switched
+  on. Shape layers (forests, depth, reefs) are drawn like the land.
+- Day & night has no picture and no WebGL (`drawNight` in `js/globe.js`). The night side is
+  a translucent dark overlay worked out from the sun's height at each point, one value every
+  4 px, smoothed up and clipped to the globe: dusk starts while the sun is just up, the colour
+  goes from twilight (`--c-twilight`) to night (`--c-night`), and it is fully dark once the
+  sun is about 13° down (`nightShade`). The city lights are 6,000 points from NASA's Black
+  Marble (`assets/layers/lights.json`, 79 KB: the brightest 0.21° cells, each with its
+  brightness), drawn as glows added onto the map (`lighter`), fading in through the twilight.
+  The brightest 1,500 show for the whole globe, more as it zooms in, all of them from zoom 4
+  (`lightCount`). The sun moves every minute.
 - The ocean depth bands are Natural Earth's 1:10m bathymetry at 200, 1,000, 4,000 and 6,000 m,
   where the ocean's zones meet (sunlight, twilight, midnight, the abyss, the trenches; NOAA /
   NWS JetStream "Layers of the Ocean"), simplified to the forests'
@@ -394,7 +403,7 @@ The chips along the top of the Globe switch on one map layer at a time: 🏔️ 
   edges, where outlines meet), and the bands still nest. The detailed file is used from zoom 5
   (`DEPTH_NEAR_K`). Outline points far off the screen are left out (`traceRing`), which changes
   nothing on screen but saves drawing when zoomed in.
-- Phones load 2048×1024 pictures, tablets and computers 4096×2048.
+- Phones load 2048×1024 pictures (topography), tablets and computers 4096×2048.
 - Nothing is downloaded until a layer is first switched on; the service worker then keeps it
   (`layers-…` cache, which also holds `assets/globe.json` and `assets/home.json`), so it works
   offline from then on.
