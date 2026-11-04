@@ -8,6 +8,8 @@
   touch-action: none; user-select: none; -webkit-user-select: none;
 }
 .viewer__scrim { position: absolute; inset: 0; background: var(--c-overlay); opacity: 0; }
+/* Pictures never start the browser's own drag (it would cancel a page turn). */
+.viewer img { -webkit-user-drag: none; }
 .viewer__bar {
   position: relative; z-index: 2;
   display: flex; align-items: center; gap: var(--s-2);

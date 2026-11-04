@@ -356,6 +356,9 @@ export function open(card, { fromEl, main, onDismiss } = {}) {
   const el = h('div', { class: 'viewer', role: 'dialog', 'aria-modal': 'true' }, scrim, pane, sheet);
   // The page itself never scrolls; pages inside the card that scroll do.
   el.addEventListener('wheel', e => { if (!e.target.closest?.('[data-scroll]')) e.preventDefault(); }, { passive: false });
+  // A mouse pressed on a picture would start the browser's own image drag, which cancels the
+  // pointer (pointercancel) before a page turn can start. Pictures in the viewer never drag.
+  el.addEventListener('dragstart', e => e.preventDefault());
   document.body.append(el);
 
   v = { el, pane, scrim, zoomer, stage, hint, bar, sheet, main, fromEl, onDismiss, p: 0, f: 0, z: 0, cancel: null, split: null, max: null };
