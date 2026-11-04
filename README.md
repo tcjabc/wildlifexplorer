@@ -496,10 +496,16 @@ One notebook per profile (📓 in the nav, or beside every card). Code: `js/note
 
 - **Beside a card**: the notebook is always there, in one of two states. Collapsed, it is a kraft
   spine with an elastic band in the 60 px strip at the right (on phones, a 📓 tab at the bottom
-  right). Tap it to expand it into a panel beside the card (400 px, 360 px in portrait); the card
-  shrinks to fit, the open spread keeps its scale and goes under the panel. Where the card beside
-  the panel would be under 340 px wide, and on phones (under 600 px), the panel covers the card
-  instead. "Collapse ›" folds it back. The state is kept per profile on the device (`notesPanel`).
+  right). Tap it to expand it: it takes half the stage (`--nb-panel-share`, `PANEL_SHARE` in
+  `js/card-layout.js`) and the card is centred and scaled in the other half. Always in landscape;
+  in portrait only while the card stays at least 340 px wide, otherwise (and on phones, under
+  600 px) the panel covers the card. The open spread keeps its scale and pans behind the notebook,
+  so any part of it can be brought out. "Collapse ›" folds it back, next to the "All pages / Only
+  this animal" chip. The state is kept per profile on the device (`notesPanel`).
+- **The page beside a card** fills the panel's width (less a 16 px kraft margin) and scrolls up and
+  down when it is taller: with the wheel, two fingers, one finger on the kraft margin, or one
+  finger on the page in *Pen only*. A slim indicator on its right edge shows there is more, and
+  the first time each page opens it dips down a little and back (not with reduced motion).
 - **Links**: a page made or drawn on beside a card links to that card; a stamp links its animal.
   The badge on the card's binder tile shows how many pages link to it. New pages get
   the date, the animal's name and an "Observed" stamp in the profile's language.
@@ -507,8 +513,9 @@ One notebook per profile (📓 in the nav, or beside every card). Code: `js/note
   cards' silhouettes, or the group emoji), footprint roller (cat paw, hoof, bird, bear), move
   (drag, the corner handles or a two-finger pinch to resize and turn; ✕ to remove), photos, undo
   and redo (Ctrl/⌘+Z). Swipe across the page with a finger to turn it.
-  In a narrow notebook (the panel beside a card, phones) the toolbar has two rows of 44 px controls
-  and never scrolls: the colours, and the roller's feet, open from one button each in a small picker.
+  The toolbar never scrolls: one row when it all fits (measured, as the labels' width depends on
+  the language), otherwise two rows of 44 px controls with the colours behind a swatch. The
+  roller's feet always open from one button in a small picker.
 - **Pen or finger**: the first time a pen touches the page, the notebook switches to *Pen only*
   so a resting hand doesn't draw. The toggle at the end of the toolbar switches
   back to finger drawing at any time; the choice is kept per profile. Touches wider than a finger

@@ -67,10 +67,10 @@ function measure() {
   const r = v.stage.getBoundingClientRect();
   const P = cssNum('--card-w'), H = cssNum('--card-h');
   const W = r.width, Hs = r.height;
-  const panelW = cssNum('--nb-panel-w');
-  const mode = v.dock ? dockMode({ vw: window.innerWidth, stageH: Hs, panelW, P, H }) : 'none';
+  const share = cssNum('--nb-panel-share') || undefined;
+  const mode = v.dock ? dockMode({ vw: window.innerWidth, W, Hs, P, H, share }) : 'none';
   const lay = v.dock
-    ? cardLayout({ W, Hs, P, H, mode, expanded: v.dock.expanded, panelW })
+    ? cardLayout({ W, Hs, P, H, mode, expanded: v.dock.expanded, share })
     : { visibleW: W, s0: fitScale(W, Hs, P, H), s1: fitScale(W, Hs, P, H) };
   const s0 = lay.s0, s1 = hasInside(v.card) ? lay.s1 : s0;
   v.L = { P, H, W, Hs, s0, s1, visibleW: lay.visibleW, cx: lay.visibleW / 2, cy: Hs / 2, left: r.left, top: r.top, mode };
@@ -587,12 +587,13 @@ function buildDock() {
   const tab = h('button', { class: 'nbdock__tab', type: 'button', 'aria-label': label('notes.expand'), onclick: expand },
     h('span', { 'aria-hidden': 'true' }, '📓'), tx('notes.tab'));
   const body = h('div', { class: 'nbdock__body' });
-  const panel = h('section', { class: 'nbdock__panel', 'aria-label': label('notes.spine') },
-    h('div', { class: 'nbdock__head' },
-      h('button', { class: 'btn nbdock__collapse', type: 'button', onclick: () => setNotebook(false) }, tx('notes.collapse'))),
-    body);
+  // The head row: "Collapse ›", and the notebook's "All pages / Only this animal" chip, which
+  // leaves the notebook's own bar room for the page buttons in a narrow panel.
+  const head = h('div', { class: 'nbdock__head' },
+    h('button', { class: 'btn nbdock__collapse', type: 'button', onclick: () => setNotebook(false) }, tx('notes.collapse')));
+  const panel = h('section', { class: 'nbdock__panel', 'aria-label': label('notes.spine') }, head, body);
   const el = h('div', { class: 'nbdock', 'data-state': 'collapsed' }, spine, panel);
-  return { el, spine, tab, panel, body, book: null, expanded: false };
+  return { el, spine, tab, panel, head, body, book: null, expanded: false };
 }
 
 // remember: keep the choice for this explorer (on this device). layout: re-measure the card
@@ -604,7 +605,7 @@ function setNotebook(open, { remember = true, layout = true } = {}) {
   d.el.dataset.state = open ? 'expanded' : 'collapsed';
   v.el.dataset.notebook = open ? 'expanded' : 'collapsed';
   if (open) {
-    d.book = notebook({ cardId: v.card.id, beside: true });
+    d.book = notebook({ cardId: v.card.id, beside: true, chipHost: d.head });
     mount(d.body, d.book.el);
   } else {
     d.book?.destroy();

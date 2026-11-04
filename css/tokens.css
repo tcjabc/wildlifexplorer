@@ -228,7 +228,9 @@
   /* The notebook on the card screens (js/card-layout.js uses the same numbers). */
   --nb-spine-w: 60px;   /* the collapsed spine: the strip at the screen's right */
   --nb-band-w: 6px;     /* its elastic band */
-  --nb-panel-w: 400px;  /* the expanded panel beside the card (portrait: below) */
+  --nb-panel-share: 0.5; /* the expanded notebook's share of the stage width (PANEL_SHARE) */
+  --nb-page-margin: 16px; /* kraft around the page in the panel (a finger there scrolls it) */
+  --nb-scroll-w: 4px;   /* the page's scroll indicator */
   --map-marker: 8px;    /* range marker on the little world map */
   --gpin: 52px;         /* photo pins on the Globe */
   --gsheet-pic: min(38dvh, 320px); /* photo in the Globe card sheet */
@@ -266,7 +268,3 @@
   --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* Portrait tablets: a narrower notebook panel, so the card still fits beside it. */
-@media (orientation: portrait) {
-  :root { --nb-panel-w: 360px; }
-}

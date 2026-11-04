@@ -31,22 +31,20 @@
 }
 .nb__filter .bi { flex-direction: row; gap: 0.4em; }
 
-/* Wraps rather than scrolls, so every tool (and the pen / finger toggle at the end) stays in view. */
+/* Never scrolls: one row when everything fits (js/notebook.js measures it), otherwise the
+   two-row layout below (data-toolbar="compact"). */
 .nb__tools {
-  display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-1);
+  display: flex; flex-wrap: nowrap; align-items: center; gap: var(--s-1);
   padding: var(--s-1) var(--s-2);
   background: var(--c-veil); color: var(--c-ink);
   touch-action: manipulation;
 }
 .nb__sep { flex: none; width: var(--bw-thin); align-self: stretch; margin: var(--s-1); background: var(--c-line); }
-.nb__feet { display: none; gap: var(--s-1); }
-.nb[data-tool="roller"] .nb__feet { display: flex; }
 .nb-tool {
   flex: none; display: grid; place-items: center;
   width: var(--tap-sm); height: var(--tap-sm); border: var(--bw-thin) solid transparent; border-radius: var(--r-sm);
   background: none; font-size: var(--fs-lg); cursor: pointer; touch-action: manipulation;
 }
-.nb-tool--small { font-size: var(--fs-md); }
 .nb-tool[aria-pressed="true"] { border-color: var(--c-primary); background: var(--c-good-soft); }
 .nb-tool:disabled { opacity: 0.35; cursor: default; }
 .nb-colour {
@@ -74,8 +72,11 @@
 }
 .nb-input .bi { flex-direction: row; gap: 0.3em; }
 .nb-input[aria-pressed="true"] { border-color: var(--c-primary); }
-/* Only in narrow notebooks: the row break, the colour swatch and footprint buttons, and their pickers. */
+/* The footprint button only with the roller; the row break and the colour swatch only in the
+   two-row toolbar. The pickers open under their buttons. */
 .nb__break, .nb-tool--colour, .nb-tool--foot, .nb-pop { display: none; }
+.nb[data-tool="roller"] .nb-tool--foot, .nb[data-measure] .nb-tool--foot { display: grid; }
+.nb-pop:not([hidden]) { display: grid; }
 .nb-swatch {
   display: block; width: var(--s-5); height: var(--s-5); border-radius: 50%;
   border: var(--bw-mid) solid var(--c-surface); box-shadow: var(--shadow-1); background: var(--pencil);
@@ -87,27 +88,42 @@
   background: var(--c-surface); box-shadow: var(--shadow-3);
 }
 .nb-pop .nb-colour { width: var(--tap-xs); height: var(--tap-xs); }
-/* Narrow notebooks (the panel beside a card, phones): two rows that never scroll, every control
-   44 px. Tools and photo on the first; colour, size, footprints (roller), undo / redo and the
-   pen / finger toggle (just its icon) on the second. */
+/* Narrow notebooks: smaller page buttons in the bar. */
 @container (max-width: 520px) {
   .nb__bar { gap: var(--s-1); padding: var(--s-1) var(--s-2); }
   .nb__bar .btn--icon { width: var(--tap-xs); height: var(--tap-xs); min-width: var(--tap-xs); min-height: var(--tap-xs); }
-  .nb__tools { flex-wrap: wrap; }
-  .nb__break { display: block; flex-basis: 100%; height: 0; }
-  .nb__tools > .nb__sep, .nb__tools > .nb-colour, .nb__tools > .spacer,
-  .nb[data-tool="roller"] .nb__feet { display: none; }
-  .nb-tool { width: var(--tap-xs); height: var(--tap-xs); }
-  .nb-tool--colour { display: grid; }
-  .nb[data-tool="roller"] .nb-tool--foot { display: grid; }
-  .nb-pop:not([hidden]) { display: grid; }
-  .nb-undo { margin-left: auto; }
-  .nb-input { justify-content: center; width: var(--tap-xs); min-height: var(--tap-xs); padding: 0; }
-  .nb-input .bi { display: none; }
 }
+/* The two-row toolbar, where one row doesn't fit: every control 44 px. Tools and photo on the
+   first row; colour, size, footprints (roller), undo / redo and the pen / finger toggle (just
+   its icon) on the second. Still wraps rather than clip on the narrowest screens. */
+.nb[data-toolbar="compact"] .nb__tools { flex-wrap: wrap; }
+.nb[data-toolbar="compact"] .nb__break { display: block; flex-basis: 100%; height: 0; }
+.nb[data-toolbar="compact"] .nb__tools > .nb__sep,
+.nb[data-toolbar="compact"] .nb__tools > .nb-colour,
+.nb[data-toolbar="compact"] .nb__tools > .spacer { display: none; }
+.nb[data-toolbar="compact"] .nb-tool { width: var(--tap-xs); height: var(--tap-xs); }
+.nb[data-toolbar="compact"] .nb-tool--colour { display: grid; }
+.nb[data-toolbar="compact"] .nb-undo { margin-left: auto; }
+.nb[data-toolbar="compact"] .nb-input { justify-content: center; width: var(--tap-xs); min-height: var(--tap-xs); padding: 0; }
+.nb[data-toolbar="compact"] .nb-input .bi { display: none; }
 
 /* The desk (kraft) and the page on it. */
-.nb__desk { position: relative; flex: 1; min-height: 0; display: grid; place-items: center; touch-action: none; }
+.nb__deskwrap { position: relative; flex: 1; min-height: 0; }
+.nb__desk { position: absolute; inset: 0; display: grid; place-items: center; touch-action: none; }
+/* Beside a card: the page fills the panel's width and scrolls up and down (js/notebook.js
+   scrolls it for a finger on the kraft; the wheel scrolls it natively). */
+.nb--beside .nb__desk {
+  display: block; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none;
+  padding: var(--nb-page-margin);
+}
+.nb--beside .nb__desk::-webkit-scrollbar { display: none; }
+.nb--beside .nb__empty { width: fit-content; margin: var(--s-6) auto; }
+.nb__scrollbar {
+  position: absolute; top: var(--nb-page-margin); bottom: var(--nb-page-margin);
+  right: calc((var(--nb-page-margin) - var(--nb-scroll-w)) / 2); width: var(--nb-scroll-w);
+  border-radius: var(--r-pill); background: var(--c-shade-faint); pointer-events: none;
+}
+.nb__thumb { display: block; width: 100%; border-radius: inherit; background: var(--nb-kraft-ink); }
 .nb__sheet { position: relative; border-radius: var(--r-sm); box-shadow: var(--shadow-3); overflow: hidden; background: var(--nb-paper); }
 .nb__sheet canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .nb__live { touch-action: none; cursor: crosshair; }
@@ -211,10 +227,14 @@
 
 .nbdock__panel {
   display: none; flex-direction: column;
-  width: var(--nb-panel-w); height: 100%;
+  width: 100%; height: 100%;
   background: var(--nb-kraft); box-shadow: var(--shadow-3);
 }
-.nbdock__head { display: flex; justify-content: flex-start; padding: var(--s-2); background: var(--nb-kraft-deep); }
+.nbdock__head {
+  display: flex; align-items: center; gap: var(--s-2); padding: var(--s-2);
+  background: var(--nb-kraft-deep); color: var(--c-on-primary);
+}
+.nbdock__head .nb__filter { flex: 0 1 auto; min-width: 0; min-height: var(--tap-xs); }
 .nbdock__collapse { min-height: var(--tap-xs); background: var(--c-veil); color: var(--c-ink); font-weight: var(--fw-bold); }
 .nbdock__collapse .bi { flex-direction: row; gap: 0.4em; }
 .nbdock__body { position: relative; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
@@ -222,11 +242,11 @@
 .nbdock[data-state="expanded"] .nbdock__spine { display: none; }
 .nbdock[data-state="expanded"] .nbdock__panel { display: flex; }
 
+/* Beside the card: its share of the stage (the card is centred in the rest). */
+.viewer[data-dock="side"] .nbdock[data-state="expanded"] { width: calc(var(--nb-panel-share) * 100%); }
 /* Over the card: the whole stage. */
 .viewer[data-dock="overlay"] .nbdock[data-state="expanded"],
 .viewer[data-dock="phone"] .nbdock[data-state="expanded"] { left: 0; }
-.viewer[data-dock="overlay"] .nbdock__panel,
-.viewer[data-dock="phone"] .nbdock__panel { width: 100%; }
 
 /* Phones: no spine; a small tab in the hint row instead. */
 .nbdock__tab { display: none; }

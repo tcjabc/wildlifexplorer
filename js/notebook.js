@@ -10,7 +10,9 @@
 //
 // notebook({ cardId, beside, onMaximise, onClose }):
 //   cardId: show only that animal's pages (with "All pages" one tap away)
-//   beside: the notebook is open next to that card, so pages drawn on link to it
+//   beside: the notebook is open next to that card, so pages drawn on link to it. The page
+//           then fills the panel's width and scrolls up and down when it is taller
+//   chipHost: where the "All pages / Only this animal" chip goes (default: the notebook's bar)
 import { h, mount, reducedMotion } from './dom.js';
 import { bi, t, tx, label, plain, getMode, dateText } from './i18n.js';
 import { state, updateProfile, isCollected, groupById } from './store.js';
@@ -36,7 +38,7 @@ const inLang = pair => {
   return m === 'en' ? pair.en || pair.zh : m === 'zh' ? pair.zh || pair.en : [pair.en, pair.zh].filter(Boolean).join('  ');
 };
 
-export function notebook({ cardId = null, beside = false, onMaximise = null, onClose = null } = {}) {
+export function notebook({ cardId = null, beside = false, chipHost = null, onMaximise = null, onClose = null } = {}) {
   const nb = {
     filter: cardId, showAll: !cardId, ids: [], pos: 0, page: null,
     tool: 'pencil', colour: 'graphite', size: 'thin', foot: 'paw', stampCard: null,
@@ -54,7 +56,12 @@ export function notebook({ cardId = null, beside = false, onMaximise = null, onC
   const empty = h('div', { class: 'nb__empty', hidden: true },
     emptyText,
     h('button', { class: 'btn btn--accent btn--big', type: 'button', onclick: () => newPage() }, h('span', { 'aria-hidden': 'true' }, '＋ '), tx('notes.newPage')));
-  const desk = h('div', { class: 'nb__desk' }, sheet, empty);
+  const desk = h('div', { class: 'nb__desk', 'data-scroll': '' }, sheet, empty);
+  // Beside a card the page can be taller than the panel: a slim indicator on its right edge
+  // shows how much more there is, and where.
+  const thumb = h('span', { class: 'nb__thumb' });
+  const scrollbar = h('div', { class: 'nb__scrollbar', 'aria-hidden': 'true', hidden: true }, thumb);
+  const deskWrap = h('div', { class: 'nb__deskwrap' }, desk, scrollbar);
   const counter = h('span', { class: 'nb__count' });
   const filterChip = h('button', { class: 'nb__filter', type: 'button', onclick: () => toggleFilter() });
   const prev = h('button', { class: 'btn btn--icon nb__nav', type: 'button', 'aria-label': label('notes.prev'), onclick: () => turn(-1) }, '‹');
@@ -70,7 +77,7 @@ export function notebook({ cardId = null, beside = false, onMaximise = null, onC
 
   const bar = h('header', { class: 'nb__bar' },
     h('h2', { class: 'nb__title' }, h('span', { 'aria-hidden': 'true' }, '📓 '), tx('notes.title')),
-    filterChip,
+    !chipHost && filterChip,
     h('span', { class: 'spacer' }),
     prev, counter, next,
     h('button', { class: 'btn btn--icon', type: 'button', 'aria-label': label('notes.newPage'), onclick: () => newPage() }, '＋'),
@@ -90,16 +97,12 @@ export function notebook({ cardId = null, beside = false, onMaximise = null, onC
     onclick: () => { nb.colour = id; drawTools(); },
   }));
   const sizeBtn = h('button', { type: 'button', class: 'nb-tool', 'aria-label': label('notes.size'), onclick: () => { nb.size = nb.size === 'thin' ? 'thick' : 'thin'; drawTools(); } });
-  const footBtns = FEET.map(([id, icon]) => h('button', {
-    type: 'button', class: 'nb-tool nb-tool--small', 'data-foot': id, 'aria-pressed': 'false', 'aria-label': label(`notes.foot.${id}`),
-    onclick: () => { nb.foot = id; drawTools(); },
-  }, h('span', { 'aria-hidden': 'true' }, icon)));
   const undoBtn = h('button', { type: 'button', class: 'nb-tool nb-undo', 'aria-label': label('notes.undo'), onclick: () => undo() }, h('span', { 'aria-hidden': 'true' }, '↶'));
   const redoBtn = h('button', { type: 'button', class: 'nb-tool', 'aria-label': label('notes.redo'), onclick: () => redo() }, h('span', { 'aria-hidden': 'true' }, '↷'));
   const inputBtn = h('button', { type: 'button', class: 'nb-input', onclick: () => setInput(input() === 'pen' ? 'finger' : 'pen') });
-  // Narrow notebooks (the panel beside a card, phones) have two rows of 44 px controls and no
-  // room for a row of colours: a swatch opens them in a small picker, and so does the footprint
-  // button for the roller's feet. Wider notebooks show both in the toolbar itself (css/notes.css).
+  // The roller's feet open from one button (shown with the roller) in a small picker. Where one
+  // row doesn't fit (see layoutTools) the toolbar has two rows of 44 px controls and no room for
+  // a row of colours, so they open from a swatch the same way; in one row they sit in it.
   const colourPick = picker('nb-tool--colour', 'notes.colourPick', PENCILS.map(id => h('button', {
     type: 'button', class: 'nb-colour', 'data-colour': id, 'aria-pressed': 'false', 'aria-label': label(`notes.colour.${id}`),
     onclick: () => { nb.colour = id; closePicker(); drawTools(); },
@@ -111,12 +114,31 @@ export function notebook({ cardId = null, beside = false, onMaximise = null, onC
   const tools = h('div', { class: 'nb__tools', role: 'toolbar', 'aria-label': label('notes.tools') },
     toolBtns, photoBtn, h('span', { class: 'nb__break', 'aria-hidden': 'true' }), h('span', { class: 'nb__sep' }),
     colourPick.btn, colourBtns, sizeBtn, footPick.btn,
-    h('span', { class: 'nb__feet' }, footBtns), h('span', { class: 'nb__sep' }), undoBtn, redoBtn, h('span', { class: 'spacer' }), inputBtn);
+    h('span', { class: 'nb__sep' }), undoBtn, redoBtn, h('span', { class: 'spacer' }), inputBtn);
 
-  const el = h('section', { class: 'nb', 'aria-label': label('notes.title') },
-    bar, tools, colourPick.box, footPick.box, desk, fileInput, importInput, menuSheet, pickSheet);
+  const el = h('section', { class: ['nb', beside && 'nb--beside'], 'aria-label': label('notes.title') },
+    bar, tools, colourPick.box, footPick.box, deskWrap, fileInput, importInput, menuSheet, pickSheet);
+  if (chipHost) chipHost.append(filterChip);
 
-  // ---------- pickers (narrow notebooks) ----------
+  // ---------- toolbar layout ----------
+  // One row if all of it fits (measured at its widest, with the roller's footprint button),
+  // otherwise two rows with the colours behind a picker. Measured, not a breakpoint: the pen /
+  // finger label's width depends on the language.
+  let toolbar = '';
+  function layoutTools() {
+    if (!el.isConnected || !tools.clientWidth) return;
+    el.dataset.toolbar = 'wide';
+    el.dataset.measure = '';
+    const fits = tools.scrollWidth <= tools.clientWidth + 1;
+    delete el.dataset.measure;
+    const next = fits ? 'wide' : 'compact';
+    el.dataset.toolbar = next;
+    if (next !== toolbar) { toolbar = next; closePicker(); }
+  }
+  const toolsRo = new ResizeObserver(() => layoutTools());
+  toolsRo.observe(el);
+
+  // ---------- pickers (two-row toolbar) ----------
   // One open at a time, just under its button; a pick, a tap elsewhere, Esc or another tool closes it.
   let openPick = null;
   function picker(cls, key, items) {
@@ -153,8 +175,12 @@ export function notebook({ cardId = null, beside = false, onMaximise = null, onC
   function fit() {
     const r = desk.getBoundingClientRect();
     if (!r.width || !r.height) return;
-    const pad = 16;
-    const k = Math.min((r.width - pad * 2) / PAGE_W, (r.height - pad * 2) / PAGE_H);
+    // Beside a card: the panel's width less a small margin (the page scrolls if it is taller).
+    // On its own: the whole page in view.
+    const pad = beside ? parseFloat(getComputedStyle(el).getPropertyValue('--nb-page-margin')) || 16 : 16;
+    const k = beside
+      ? (desk.clientWidth - pad * 2) / PAGE_W
+      : Math.min((r.width - pad * 2) / PAGE_W, (r.height - pad * 2) / PAGE_H);
     const w = Math.max(10, Math.floor(PAGE_W * k)), hgt = Math.max(10, Math.floor(PAGE_H * k));
     sheet.style.setProperty('width', `${w}px`);
     sheet.style.setProperty('height', `${hgt}px`);
@@ -162,6 +188,39 @@ export function notebook({ cardId = null, beside = false, onMaximise = null, onC
     scale = w / PAGE_W;
     for (const c of [base, live]) { c.width = Math.round(w * dpr); c.height = Math.round(hgt * dpr); }
     redraw();
+    drawScroll();
+    maybeNudge(); // the first fit is the first moment the page's height is known
+  }
+
+  // ---------- scrolling (beside a card) ----------
+  function drawScroll() {
+    const sh = desk.scrollHeight, ch = desk.clientHeight;
+    const over = beside && !sheet.hidden && sh - ch > 1;
+    scrollbar.hidden = !over;
+    if (!over) return;
+    const track = scrollbar.clientHeight;
+    const len = Math.max(track * (ch / sh), Math.min(track, 32));
+    thumb.style.setProperty('height', `${len}px`);
+    thumb.style.setProperty('transform', `translateY(${(track - len) * (desk.scrollTop / (sh - ch))}px)`);
+  }
+  // The first time a page opens beside a card and there is more below, it dips down a little
+  // and comes back, so a child can see the page goes on.
+  const nudged = new Set();
+  let nudge = 0;
+  function stopNudge() { cancelAnimationFrame(nudge); nudge = 0; }
+  function maybeNudge() {
+    const room = desk.scrollHeight - desk.clientHeight;
+    if (!beside || !nb.page || room <= 1 || desk.scrollTop > 0 || nudged.has(nb.page.id) || reducedMotion()) return;
+    nudged.add(nb.page.id);
+    const depth = Math.min(56, room), t0 = performance.now() + 450, dur = 900;
+    const step = now => {
+      const t = (now - t0) / dur;
+      if (t >= 1) { desk.scrollTop = 0; nudge = 0; return; }
+      if (t > 0) desk.scrollTop = depth * Math.sin(Math.PI * t);
+      nudge = requestAnimationFrame(step);
+    };
+    stopNudge();
+    nudge = requestAnimationFrame(step);
   }
   const ctxOf = c => { const x = c.getContext('2d'); x.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0); return x; };
   function headerText(page) {
@@ -225,6 +284,10 @@ export function notebook({ cardId = null, beside = false, onMaximise = null, onC
     loadAssets(nb.page);
     drawBar();
     redraw();
+    stopNudge();
+    desk.scrollTop = 0;
+    drawScroll();
+    maybeNudge();
     if (dir && !reducedMotion()) {
       sheet.animate([{ transform: `translateX(${dir * 40}px)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 220, easing: 'ease-out' });
     }
@@ -259,6 +322,7 @@ export function notebook({ cardId = null, beside = false, onMaximise = null, onC
     inputBtn.setAttribute('aria-pressed', String(pen));
     mount(inputBtn, h('span', { 'aria-hidden': 'true' }, pen ? '🖊️ ' : '☝️ '), tx(pen ? 'notes.penOnly' : 'notes.finger'));
     inputBtn.setAttribute('aria-label', label(pen ? 'notes.penOnlyHint' : 'notes.fingerHint'));
+    layoutTools();
   }
   function setTool(id) {
     closePicker();
@@ -344,7 +408,7 @@ export function notebook({ cardId = null, beside = false, onMaximise = null, onC
       touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (touches.size === 2) { startPinch(); cancelStroke(); return; }
     }
-    if (!draws(e)) { swipe = { id: e.pointerId, x: e.clientX, y: e.clientY }; return; }
+    if (!draws(e)) { startSwipe(e); return; }
     try { live.setPointerCapture(e.pointerId); } catch { /* gone */ }
     const [x, y] = toPage(e);
     if (nb.tool === 'pencil') {
@@ -396,9 +460,9 @@ export function notebook({ cardId = null, beside = false, onMaximise = null, onC
     if (e.pointerType === 'pen') penDown = false;
     if (pinch) { if (touches.size < 2) endPinch(); return; }
     if (swipe?.id === e.pointerId) {
-      const dx = e.clientX - swipe.x, dy = e.clientY - swipe.y;
+      const dx = e.clientX - swipe.x, dy = e.clientY - swipe.y, axis = swipe.axis;
       swipe = null;
-      if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.4) turn(dx < 0 ? 1 : -1);
+      if (axis !== 'y' && Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.4) turn(dx < 0 ? 1 : -1);
       return;
     }
     if (stroke?.id === e.pointerId) {
@@ -442,11 +506,12 @@ export function notebook({ cardId = null, beside = false, onMaximise = null, onC
   const pts = () => [...touches.values()];
   const dist = () => { const [a, b] = pts(); return Math.hypot(a.x - b.x, a.y - b.y); };
   const angle = () => { const [a, b] = pts(); return Math.atan2(b.y - a.y, b.x - a.x); };
+  const midY = () => { const [a, b] = pts(); return (a.y + b.y) / 2; };
   function startPinch() {
     if (nb.tool === 'move' && nb.selected >= 0) {
       const it = nb.page.items[nb.selected];
       pinch = { item: true, d0: dist(), a0: angle(), before: structuredClone(it) };
-    } else pinch = { d0: dist() };
+    } else { stopNudge(); pinch = { d0: dist(), y0: midY(), top: desk.scrollTop }; } // two fingers scroll the page
   }
   function movePinch() {
     if (touches.size < 2) return;
@@ -456,7 +521,10 @@ export function notebook({ cardId = null, beside = false, onMaximise = null, onC
       resizeItem(it, b, k);
       if (it.t !== 'x') it.r = (b.r ?? 0) + angle() - pinch.a0;
       redraw();
-    } else pinch.k = dist() / pinch.d0;
+    } else {
+      pinch.k = dist() / pinch.d0;
+      desk.scrollTop = pinch.top - (midY() - pinch.y0);
+    }
   }
   function endPinch() {
     const p = pinch; pinch = null;
@@ -658,9 +726,25 @@ export function notebook({ cardId = null, beside = false, onMaximise = null, onC
   live.addEventListener('pointermove', move);
   live.addEventListener('pointerup', up);
   live.addEventListener('pointercancel', e => { touches.delete(e.pointerId); if (e.pointerType === 'pen') penDown = false; cancelStroke(); if (pinch && touches.size < 2) pinch = null; });
-  // The kraft margin around the page: a finger swipe there always turns pages.
-  desk.addEventListener('pointerdown', e => { if (e.target === desk) swipe = { id: e.pointerId, x: e.clientX, y: e.clientY }; });
+  // The kraft margin around the page: one finger there turns pages (sideways) or scrolls the
+  // page (up and down). So does a finger on the page itself when only a pen draws.
+  function startSwipe(e) { stopNudge(); swipe = { id: e.pointerId, x: e.clientX, y: e.clientY, top: desk.scrollTop, axis: null }; }
+  desk.addEventListener('pointerdown', e => {
+    stopNudge();
+    if (e.target !== desk) return;
+    startSwipe(e);
+    try { desk.setPointerCapture(e.pointerId); } catch { /* gone */ }
+  });
+  desk.addEventListener('pointermove', e => {
+    if (swipe?.id !== e.pointerId) return;
+    const dx = e.clientX - swipe.x, dy = e.clientY - swipe.y;
+    if (!swipe.axis && Math.hypot(dx, dy) > 8) swipe.axis = Math.abs(dy) > Math.abs(dx) ? 'y' : 'x';
+    if (swipe.axis === 'y') desk.scrollTop = swipe.top - dy;
+  });
   desk.addEventListener('pointerup', e => { if (e.target === desk && swipe?.id === e.pointerId) up(e); });
+  desk.addEventListener('pointercancel', e => { if (swipe?.id === e.pointerId) swipe = null; });
+  desk.addEventListener('wheel', stopNudge, { passive: true });
+  desk.addEventListener('scroll', drawScroll, { passive: true });
   const onKey = e => {
     if (!el.isConnected || e.target.closest?.('textarea, input')) return;
     if (e.key === 'Escape' && openPick) {
@@ -690,7 +774,10 @@ export function notebook({ cardId = null, beside = false, onMaximise = null, onC
     el,
     async destroy() {
       ro.disconnect();
+      toolsRo.disconnect();
       closePicker();
+      stopNudge();
+      filterChip.remove();
       document.removeEventListener('keydown', onKey, true);
       await flushSave();
       for (const bmp of nb.assets.photos.values()) bmp?.close?.();
