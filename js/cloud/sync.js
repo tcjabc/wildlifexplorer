@@ -209,7 +209,7 @@ export function createSync({ db = defaultDb, auth = defaultAuth, locks = globalT
 
   // The parent's choice, the first time: the ticked explorers are queued with all their
   // progress; the rest, and explorers already deleted, stay on this device only. role: what
-  // this device is ('explorers', or 'watch' for a grown-up's phone, which can't keep
+  // this device is ('explorers', or 'watch' for a grown-up's device, which can't keep
   // explorers of its own: every one here must be ticked).
   async function setUp(chosenIds, { role = 'explorers' } = {}) {
     const st = await auth.state();
@@ -222,7 +222,7 @@ export function createSync({ db = defaultDb, auth = defaultAuth, locks = globalT
       const profiles = await a.all('profiles');
       const localOnly = profiles.filter(p => p.deletedAt || !picked.has(p.id)).map(p => p.id);
       if (role === 'watch' && profiles.some(p => !p.deletedAt && !picked.has(p.id))) {
-        throw new Error("A grown-up's phone keeps no explorers of its own");
+        throw new Error("A grown-up's device keeps no explorers of its own");
       }
       await a.put('meta', { id: 'device', value: { role, setAt: new Date().toISOString() } });
       for (const e of await a.all('outbox')) await a.remove('outbox', e.id); // from before: not needed
@@ -264,10 +264,10 @@ export function createSync({ db = defaultDb, auth = defaultAuth, locks = globalT
 
   // ---------- This device's role ----------
 
-  // Make this device the explorers' device, or a grown-up's phone. Becoming a phone needs
+  // Make this device the explorers' device, or a grown-up's device. Becoming one needs
   // the family account set up here, everything from this device saved (a run goes first:
   // nothing waiting, nothing held back) and no explorers kept on this device only (they
-  // would be stuck: a phone can't play). Only meta 'device' changes; nothing is sent.
+  // would be stuck: a grown-up's device can't play). Only meta 'device' changes; nothing is sent.
   // Resolves with null, or why not: 'not-set-up' · 'offline' · 'server' · 'waiting' ·
   // 'held' · 'local-only'.
   async function setRole(role) {
@@ -435,7 +435,7 @@ export function createSync({ db = defaultDb, auth = defaultAuth, locks = globalT
         }
         if (!merged) continue;
         // Exactly what the server has: no outbox entry. Ahead: it goes up again, except
-        // progress on a grown-up's phone, which never sends any.
+        // progress on a grown-up's device, which never sends any.
         const send = merged.ahead && !(watch && db.PROGRESS.includes(store));
         await (send ? a.put : a.putFromServer)(store, merged.record);
         touched.add(pid);

@@ -335,7 +335,7 @@ test('a window focused (side by side) or shown again pulls, once for both', asyn
   assert.equal(pulls(), after);
 });
 
-// ---------- A grown-up's phone (watch mode) ----------
+// ---------- A grown-up's device (watch mode) ----------
 
 // A device's own auth: it counts its uploads and can sign out.
 const ownAuth = () => {
@@ -348,7 +348,7 @@ const ownAuth = () => {
   return me;
 };
 
-test("a grown-up's phone joins: progress comes down, it can't make any, and its settings go up", async () => {
+test("a grown-up's device joins: progress comes down, it can't make any, and its settings go up", async () => {
   const me = ownAuth();
   const P = await device(me.auth);
   assert.equal(await P.sync.join({ role: 'watch' }), 'on');

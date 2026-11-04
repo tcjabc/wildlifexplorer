@@ -126,7 +126,7 @@ test('any other failure is an error, not memory, and the next try opens the data
   assert.deepEqual(await again.get('profiles', 'p1'), { id: 'p1' }); // on disk, not in memory
 });
 
-test("on a grown-up's phone, progress writes are refused (put and add, any window); pulls, profiles and the rest still work", async () => {
+test("on a grown-up's device, progress writes are refused (put and add, any window); pulls, profiles and the rest still work", async () => {
   const db = await loadDb();
   assert.equal(await db.getRole(), 'explorers'); // no role yet: the explorers' device
   await db.setMeta('device', { role: 'watch' });

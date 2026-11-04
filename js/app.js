@@ -55,7 +55,7 @@ function setNav(active, force = false) {
 function parseHash() {
   const [name, ...args] = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
   if (name === 'card' && args[0]) return { name: 'card', args: [decodeURIComponent(args[0]), args[1]] };
-  // Field Notes and the quiz stay on each device: not on a grown-up's phone.
+  // Field Notes and the quiz stay on each device: not on a grown-up's device.
   if (store.watching() && ['notes', 'quiz'].includes(name)) return { name: 'binder', args: [] };
   return VIEWS[name] ? { name, args: args.map(decodeURIComponent) } : { name: 'binder', args: [] };
 }
@@ -205,7 +205,7 @@ async function boot() {
   main.removeAttribute('aria-busy');
 
   store.onChange('profile', applyProfile);
-  // This device became a grown-up's phone, or the explorers' device again.
+  // This device became a grown-up's device, or the explorers' device again.
   store.onChange('role', () => {
     hideArrival();
     setNav(activeNav, true);

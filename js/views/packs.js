@@ -1,5 +1,5 @@
 // Packs: the unopened packs waiting (oldest on top) and when the next one comes.
-// Hoarding is fine; they wait here for as long as the child likes. On a grown-up's phone:
+// Hoarding is fine; they wait here for as long as the child likes. On a grown-up's device:
 // every pack, waiting or opened (and when), with nothing to open.
 import { h, mount } from '../dom.js';
 import { bi, tx, label, dateText } from '../i18n.js';

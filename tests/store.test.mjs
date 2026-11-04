@@ -116,7 +116,7 @@ test('applyPulled: the active explorer\'s progress is read again; deleted elsewh
   assert.equal(events.at(-1), 'profiles');
 });
 
-test("watch mode (a grown-up's phone): no packs granted or opened, no badges; settings and new explorers still work", async () => {
+test("watch mode (a grown-up's device): no packs granted or opened, no badges; settings and new explorers still work", async () => {
   const db = await import('../js/db.js');
   const { restoreProgress } = await import('../js/backup.js');
   await db.setMeta('device', { role: 'watch' });

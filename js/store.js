@@ -23,10 +23,10 @@ export const state = {
   quiz: { best: {} },
   packs: [],        // this profile's packs on its current timeline, in drop order
   legacy: null,     // progress saved before there were profiles, until it moves into one
-  role: 'explorers', // this device (db.getRole): 'explorers', or 'watch' on a grown-up's phone
+  role: 'explorers', // this device (db.getRole): 'explorers', or 'watch' on a grown-up's device
 };
 
-// A grown-up's phone watches: it shows what the family account brings down, and never
+// A grown-up's device watches: it shows what the family account brings down, and never
 // grants or opens a pack, collects a card or earns a badge (db.js refuses those writes
 // too). Its explorers' settings can still be changed, and new explorers added.
 export const watching = () => state.role === 'watch';
@@ -382,7 +382,7 @@ export function nextDrop() {
 }
 
 export async function markNotified(packs) {
-  if (watching()) return; // nothing is announced on a grown-up's phone
+  if (watching()) return; // nothing is announced on a grown-up's device
   const at = nowIso();
   await db.tx(['packs'], 'readwrite', async a => {
     for (const { id } of packs) {

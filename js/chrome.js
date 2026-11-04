@@ -13,7 +13,7 @@ const NAV = [
   { view: 'badges', icon: '🏅', key: 'nav.badges' },
   { view: 'more', icon: '⚙️', key: 'nav.more' },
 ];
-// device: kept on each device only (Field Notes, quiz scores), so not on a grown-up's phone.
+// device: kept on each device only (Field Notes, quiz scores), so not on a grown-up's device.
 const MODES = [['en', 'lang.en', 'lang.enName'], ['zh', 'lang.zh', 'lang.zhName'], ['both', 'lang.bothFace', 'lang.both']];
 
 // Button faces (EN / 中 / EN+中) look the same in every mode so children can always find them.
@@ -60,7 +60,7 @@ export function renderHeader(el, active) {
       h('span', { class: 'nav__label' }, tx(n.key))))),
     langSwitch(),
     langCycle(),
-    // A grown-up's phone, so it is clear why packs can't be opened here.
+    // A grown-up's device, so it is clear why packs can't be opened here.
     watching() && h('span', { class: 'watch-chip' }, h('span', { 'aria-hidden': 'true' }, '👀'), tx('watch.chip')),
     profileButton(state.profile));
 }

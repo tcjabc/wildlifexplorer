@@ -26,7 +26,7 @@ const STORES = ['meta', 'profiles', ...BY_PROFILE, OUTBOX];
 // also puts an outbox entry, in the same transaction, so no change can be missed. Every
 // other store, including any new one, is device-only and never touches the outbox.
 export const SYNCED = ['profiles', 'packs', 'collection', 'badges'];
-// Progress: only the explorers' device makes it. On a grown-up's phone (meta 'device':
+// Progress: only the explorers' device makes it. On a grown-up's device (meta 'device':
 // { role: 'watch' }, device-only) every write to these is refused, except what a pull
 // brings down (putFromServer). The role is read inside the writing transaction itself, so
 // no window, however out of date, can get past it.
@@ -244,7 +244,7 @@ export async function getMeta(id, fallback) {
 export const setMeta = (id, value) => put('meta', { id, value });
 
 // This device's role: 'explorers' (also every device from before there were roles) or
-// 'watch' (a grown-up's phone). Device-only: meta is never synced.
+// 'watch' (a grown-up's device). Device-only: meta is never synced.
 export const getRole = async () => ((await getMeta('device', null))?.role === 'watch' ? 'watch' : 'explorers');
 
 // Progress saved by version 1 (before profiles), or null if there is none.
