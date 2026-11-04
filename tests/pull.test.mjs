@@ -334,3 +334,129 @@ test('a window focused (side by side) or shown again pulls, once for both', asyn
   await new Promise(r => setTimeout(r, 50));
   assert.equal(pulls(), after);
 });
+
+// ---------- A grown-up's phone (watch mode) ----------
+
+// A device's own auth: it counts its uploads and can sign out.
+const ownAuth = () => {
+  const me = { posts: 0, signedOut: false };
+  me.auth = {
+    ...auth,
+    signOut: async () => { me.signedOut = true; },
+    authFetch: (path, init = {}) => { if (init.method === 'POST') me.posts++; return server.authFetch(path, init); },
+  };
+  return me;
+};
+
+test("a grown-up's phone joins: progress comes down, it can't make any, and its settings go up", async () => {
+  const me = ownAuth();
+  const P = await device(me.auth);
+  assert.equal(await P.sync.join({ role: 'watch' }), 'on');
+  assert.equal(await P.db.getRole(), 'watch');
+  assert.ok((await P.db.all('packs', MIA)).length > 0);
+  assert.ok((await P.db.all('collection', MIA)).length > 0);
+  const epoch = (await P.db.get('profiles', MIA)).timeline.epoch;
+  await assert.rejects(P.db.put('collection', card(MIA, epoch, 'tiger', later())), P.db.WatchOnly);
+  await assert.rejects(P.db.put('badges', { id: `${MIA}:${epoch}:group:cats`, profileId: MIA, epoch, badgeId: 'group:cats', earnedAt: later() }), P.db.WatchOnly);
+  me.posts = 0;
+  const mia = await P.db.get('profiles', MIA);
+  await P.db.put('profiles', { ...mia, avatar: 3, settingsAt: iso(Date.now() + 2 * 864e5) });
+  await P.sync.run();
+  assert.equal(server.rows.profiles.get(MIA).avatar, 3);
+  assert.equal(me.posts, 1); // the profile, nothing else
+  assert.deepEqual(await P.db.all('outbox'), []);
+});
+
+test('a phone whose own copy is somehow ahead of the server still pulls, and sends no progress', async () => {
+  const me = ownAuth();
+  const P = await device(me.auth);
+  await P.sync.join({ role: 'watch' });
+  const [k] = await P.db.all('packs', MIA);
+  // An older grant's details with an earlier opening than the server's: merging keeps both.
+  await P.db.tx(['packs'], 'readwrite', a => a.putFromServer('packs', { ...k, cardIds: ['x'], openedAt: '2026-01-01T00:00:00.000Z' }));
+  await P.db.remove('meta', 'syncPull'); // pull everything again
+  me.posts = 0;
+  await P.sync.run();
+  assert.equal((await P.sync.status()).problem, null);
+  assert.notDeepEqual((await P.db.get('packs', k.id)).cardIds, ['x']);
+  assert.deepEqual(await P.db.all('outbox'), []);
+  assert.equal(me.posts, 0);
+});
+
+test('first sign-in as a phone with explorers of its own: all of them go up, or none and nothing is set up', async () => {
+  const Q = await device();
+  const OWN = '66666666-6666-4666-8666-666666666666';
+  await Q.db.put('profiles', explorer(OWN, 'Pip'));
+  await assert.rejects(Q.sync.setUp([], { role: 'watch' }));
+  assert.equal(await Q.sync.stage(), 'choose');
+  assert.equal(await Q.db.getRole(), 'explorers');
+  await Q.sync.setUp([OWN], { role: 'watch' });
+  assert.equal(await Q.db.getRole(), 'watch');
+  assert.ok(server.rows.profiles.has(OWN));
+  assert.deepEqual((await Q.db.getMeta('sync')).localOnly, []);
+});
+
+test('becoming a phone: refused while an explorer is on this device only or something is held back; otherwise only the role changes', async () => {
+  const me = ownAuth();
+  const R = await device(me.auth);
+  const KEPT = '77777777-7777-4777-8777-777777777777';
+  await R.db.put('profiles', explorer(KEPT, 'Kit'));
+  await R.sync.setUp([]); // Kit stays on this device only
+  assert.equal(await R.sync.setRole('watch'), 'local-only');
+  await R.sync.addToFamily(KEPT);
+  server.refuse = (table, r) => table === 'collection' && r.card_id === 'stuck';
+  try {
+    await R.db.put('collection', card(KEPT, 1, 'stuck', later()));
+    assert.equal(await R.sync.setRole('watch'), 'held');
+  } finally { server.refuse = () => false; }
+  await R.db.put('collection', card(KEPT, 1, 'stuck', later(1))); // changed: goes up now
+  server.offline = true;
+  try { assert.equal(await R.sync.setRole('watch'), 'offline'); } finally { server.offline = false; }
+  assert.equal(await R.db.getRole(), 'explorers');
+  assert.equal(await R.sync.setRole('watch'), null);
+  assert.equal(await R.db.getRole(), 'watch');
+  assert.ok(server.rows.collection.has(`${KEPT}:1:stuck`)); // saved before the switch
+  me.posts = 0;
+  await R.sync.run();
+  assert.equal(me.posts, 0); // the switch itself sends nothing
+  assert.deepEqual(await R.db.all('outbox'), []);
+  assert.equal(await R.sync.setRole('explorers'), null); // back: always allowed
+  assert.equal(await R.db.getRole(), 'explorers');
+});
+
+test('"Sign out and remove the family": only the family\'s explorers go, with everything of theirs; nothing is sent', async () => {
+  const me = ownAuth();
+  const S = await device(me.auth);
+  const KEPT = '88888888-8888-4888-8888-888888888888';
+  await S.db.put('profiles', explorer(KEPT, 'Kept'));
+  await S.db.put('quiz', { id: `${KEPT}:pictures`, profileId: KEPT, kind: 'pictures', best: 4 });
+  await S.sync.setUp([]); // Kept stays here only
+  await S.sync.join();
+  await S.db.put('quiz', { id: `${MIA}:pictures`, profileId: MIA, kind: 'pictures', best: 7 });
+  await S.db.put('notes', { id: `${MIA}:page-1`, profileId: MIA, pageId: 'page-1', cardIds: [] });
+  await S.db.setMeta('activeProfile', MIA);
+  const before = new Map(server.rows.profiles);
+  // Something held back: refused, nothing removed.
+  server.refuse = (table, r) => table === 'profiles' && r.id === MIA;
+  try {
+    const mia = await S.db.get('profiles', MIA);
+    await S.db.put('profiles', { ...mia, name: 'Held', settingsAt: iso(Date.now() + 3 * 864e5) });
+    assert.equal(await S.sync.removeFamily(), 'held');
+    assert.ok(await S.db.get('profiles', MIA));
+  } finally { server.refuse = () => false; }
+  const mia = await S.db.get('profiles', MIA);
+  await S.db.put('profiles', { ...mia, name: (before.get(MIA)).name, settingsAt: mia.settingsAt }); // changed back: goes up
+  const files = [];
+  me.posts = 0;
+  assert.equal(await S.sync.removeFamily(async ids => files.push(...ids)), null);
+  const postsDuringRemove = me.posts;
+  assert.deepEqual((await S.db.all('profiles')).map(p => p.id), [KEPT]);
+  assert.deepEqual((await S.db.all('quiz')).map(q => q.profileId), [KEPT]);
+  for (const store of ['packs', 'collection', 'badges', 'notes', 'outbox']) assert.deepEqual(await S.db.all(store), [], store);
+  for (const key of ['sync', 'syncPull', 'device', 'activeProfile']) assert.equal(await S.db.getMeta(key, null), null, key);
+  assert.ok(files.includes(MIA));
+  assert.equal(me.signedOut, true);
+  assert.ok(postsDuringRemove <= 1); // at most the profile changed back, before removing
+  assert.ok(server.rows.profiles.has(MIA) && !server.rows.profiles.get(MIA).deleted_at); // the family keeps everything
+  assert.ok(server.rows.packs.size > 0);
+});

@@ -182,8 +182,10 @@ export function createSync({ db = defaultDb, auth = defaultAuth, locks = globalT
   }
 
   // The parent's choice, the first time: the ticked explorers are queued with all their
-  // progress; the rest, and explorers already deleted, stay on this device only.
-  async function setUp(chosenIds) {
+  // progress; the rest, and explorers already deleted, stay on this device only. role: what
+  // this device is ('explorers', or 'watch' for a grown-up's phone, which can't keep
+  // explorers of its own: every one here must be ticked).
+  async function setUp(chosenIds, { role = 'explorers' } = {}) {
     const st = await auth.state();
     if (!st.signedIn) throw new AuthError('signed-out');
     if (await config()) return;
@@ -193,6 +195,10 @@ export function createSync({ db = defaultDb, auth = defaultAuth, locks = globalT
       if (await a.get('meta', 'sync')) return; // another window chose first
       const profiles = await a.all('profiles');
       const localOnly = profiles.filter(p => p.deletedAt || !picked.has(p.id)).map(p => p.id);
+      if (role === 'watch' && profiles.some(p => !p.deletedAt && !picked.has(p.id))) {
+        throw new Error("A grown-up's phone keeps no explorers of its own");
+      }
+      await a.put('meta', { id: 'device', value: { role, setAt: new Date().toISOString() } });
       for (const e of await a.all('outbox')) await a.remove('outbox', e.id); // from before: not needed
       for (const p of profiles) if (!localOnly.includes(p.id)) await queueExplorer(a, p.id);
       await a.put('meta', { id: 'sync', value: { userId: st.userId, email: st.email, familyId, setUpAt: new Date().toISOString(), localOnly } });
@@ -219,15 +225,74 @@ export function createSync({ db = defaultDb, auth = defaultAuth, locks = globalT
   }
 
   // A device joining the family from the Welcome screen, with no explorers of its own: set
-  // up (if not done yet) and bring the family's explorers down. Resolves with the stage
+  // up (if not done yet, as role) and bring the family's explorers down. Resolves with the stage
   // ('on' once they are here); throws an AuthError when they couldn't be brought down.
-  async function join() {
+  async function join({ role = 'explorers' } = {}) {
     const where = await stage();
-    if (where === 'choose') await setUp([]);
+    if (where === 'choose') await setUp([], { role });
     else if (where === 'on') await run();
     else return where;
     if (last.problem) throw new AuthError(last.problem === 'server' ? 'unknown' : last.problem);
     return 'on';
+  }
+
+  // ---------- This device's role ----------
+
+  // Make this device the explorers' device, or a grown-up's phone. Becoming a phone needs
+  // the family account set up here, everything from this device saved (a run goes first:
+  // nothing waiting, nothing held back) and no explorers kept on this device only (they
+  // would be stuck: a phone can't play). Only meta 'device' changes; nothing is sent.
+  // Resolves with null, or why not: 'not-set-up' · 'offline' · 'server' · 'waiting' ·
+  // 'held' · 'local-only'.
+  async function setRole(role) {
+    const at = new Date().toISOString();
+    if (role !== 'watch') {
+      await db.setMeta('device', { role: 'explorers', setAt: at });
+      return null;
+    }
+    if (await stage() !== 'on') return 'not-set-up';
+    await run();
+    if (last.problem) return last.problem === 'offline' ? 'offline' : 'server';
+    return withLock(() => db.tx(['meta', 'outbox', 'profiles'], 'readwrite', async a => {
+      const cfg = (await a.get('meta', 'sync')).value;
+      if ((await a.all('profiles')).some(p => !p.deletedAt && cfg.localOnly.includes(p.id))) return 'local-only';
+      const outbox = await a.all('outbox');
+      if (outbox.some(e => e.error)) return 'held';
+      if (outbox.length) return 'waiting';
+      await a.put('meta', { id: 'device', value: { role: 'watch', setAt: at } });
+      return null;
+    }));
+  }
+
+  // "Sign out and remove the family from this device": everything saved first (as for
+  // setRole), then this device forgets the family's explorers, with their packs, cards,
+  // badges, quiz scores and Field Notes (removeFiles(ids) for the page files), and signs
+  // out. Explorers kept on this device only stay. Deleting here sends nothing: the family
+  // account keeps everything. Resolves with null, or why not (as setRole).
+  async function removeFamily(removeFiles = async () => {}) {
+    if (await stage() !== 'on') return 'not-set-up';
+    await run();
+    if (last.problem) return last.problem === 'offline' ? 'offline' : 'server';
+    const owned = ['packs', 'collection', 'badges', 'quiz', 'notes', 'notefiles'];
+    const removed = await withLock(() => db.tx(['meta', 'outbox', 'profiles', ...owned], 'readwrite', async a => {
+      const outbox = await a.all('outbox');
+      if (outbox.some(e => e.error)) return 'held';
+      if (outbox.length) return 'waiting';
+      const cfg = (await a.get('meta', 'sync')).value;
+      const ids = (await a.all('profiles')).map(p => p.id).filter(id => !cfg.localOnly.includes(id));
+      for (const id of ids) {
+        for (const store of owned) for (const r of await a.all(store, id)) await a.remove(store, r.id);
+        await a.remove('profiles', id);
+      }
+      for (const key of ['sync', 'syncPull', 'device']) await a.remove('meta', key);
+      if (ids.includes((await a.get('meta', 'activeProfile'))?.value)) await a.remove('meta', 'activeProfile');
+      return ids;
+    }));
+    if (typeof removed === 'string') return removed;
+    await removeFiles(removed);
+    await auth.signOut();
+    changed();
+    return null;
   }
 
   // ---------- Pushing ----------
@@ -319,6 +384,7 @@ export function createSync({ db = defaultDb, auth = defaultAuth, locks = globalT
     await db.tx(['meta', 'quiz', ...ORDER], 'readwrite', async a => {
       const cfg = (await a.get('meta', 'sync'))?.value;
       const localOnly = new Set(cfg?.localOnly ?? []);
+      const watch = (await a.get('meta', 'device'))?.value?.role === 'watch';
       for (const row of rows) {
         const pid = store === 'profiles' ? row.id : row.profile_id;
         if (localOnly.has(pid)) continue;
@@ -334,8 +400,10 @@ export function createSync({ db = defaultDb, auth = defaultAuth, locks = globalT
           continue;
         }
         if (!merged) continue;
-        // Exactly what the server has: no outbox entry. Ahead: it goes up again.
-        await (merged.ahead ? a.put : a.putFromServer)(store, merged.record);
+        // Exactly what the server has: no outbox entry. Ahead: it goes up again, except
+        // progress on a grown-up's phone, which never sends any.
+        const send = merged.ahead && !(watch && db.PROGRESS.includes(store));
+        await (send ? a.put : a.putFromServer)(store, merged.record);
         touched.add(pid);
         // "Start over" on another device: the quiz scores here start over too (store.js).
         if (store === 'profiles' && local && merged.record.timeline.epoch > local.timeline.epoch) {
@@ -448,7 +516,7 @@ export function createSync({ db = defaultDb, auth = defaultAuth, locks = globalT
   }
 
   return {
-    stage, candidates, setUp, addToFamily, join, run, status, start,
+    stage, candidates, setUp, addToFamily, join, setRole, removeFamily, run, status, start,
     onChange: fn => events.addEventListener('change', fn),
     // fn(profile ids): records of these explorers changed here in a pull.
     onPulled: fn => events.addEventListener('pulled', e => fn(e.detail)),
