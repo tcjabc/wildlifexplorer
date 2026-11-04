@@ -4726,26 +4726,30 @@
     "factFile": {
       "habitat": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Atlas moths live in the warm forests of Asia.",
+          "zh": "皇蛾住在亞洲溫暖的森林裡。"
         }
       ],
       "breeding": [
         {
-          "en": "",
-          "zh": ""
+          "en": "The caterpillars are not fussy eaters: they feed on the leaves of many kinds of plants, such as citrus, guava and cinnamon.",
+          "zh": "皇蛾的幼蟲一點也不挑食，會吃很多種植物的葉子，例如柑橘、芭樂和肉桂。"
+        },
+        {
+          "en": "When it is big enough, the caterpillar spins a [[cocoon]] of brown, woolly silk, wrapped in leaves and hung on a twig. About four weeks later, the moth comes out.",
+          "zh": "幼蟲長得夠大時，會吐出褐色、像羊毛一樣的絲做成[[cocoon|繭]]，外面包著葉子，掛在樹枝上。大約四週後，成蛾就會破繭而出。"
         }
       ],
       "behaviour": [
         {
-          "en": "",
-          "zh": ""
+          "en": "A grown-up Atlas moth has no working mouth. It never eats, and lives for only one or two weeks on the fat it stored as a caterpillar.",
+          "zh": "成年的皇蛾沒有可以用的嘴巴，所以一輩子都不吃東西，只靠幼蟲時期存下來的脂肪活一到兩個星期。"
         }
       ],
       "foodAndHunting": [
         {
-          "en": "",
-          "zh": ""
+          "en": "All the eating happens while it is a caterpillar, munching leaves. The adult moth only needs to find a mate and lay eggs.",
+          "zh": "皇蛾只有在幼蟲時期吃東西，大口大口地吃葉子。長大後的成蛾只需要找到伴侶、產下卵。"
         }
       ],
       "conservation": [
@@ -4756,8 +4760,8 @@
       ],
       "didYouKnow": [
         {
-          "en": "",
-          "zh": ""
+          "en": "Atlas moth silk is called fagara. It is brown and woolly, and may be tougher than ordinary silk.",
+          "zh": "皇蛾的絲叫做「法加拉絲」，是褐色、像羊毛一樣的絲，可能比一般的蠶絲還要堅韌。"
         }
       ]
     },
@@ -4845,7 +4849,26 @@
     "_draft": [
       "facts",
       "tags",
-      "stats"
+      "stats",
+      "factFile.habitat",
+      "factFile.breeding",
+      "factFile.behaviour",
+      "factFile.foodAndHunting",
+      "factFile.didYouKnow"
+    ],
+    "_sources": [
+      {
+        "title": "Wikipedia: Attacus atlas (range, cocoon, fagara silk, adults do not feed, 1–2 weeks)",
+        "url": "https://en.wikipedia.org/wiki/Attacus_atlas"
+      },
+      {
+        "title": "Animal Diversity Web: Attacus atlas (generalist larvae, host plants)",
+        "url": "https://animaldiversity.org/accounts/Attacus_atlas"
+      },
+      {
+        "title": "Houston Museum of Natural Science: raising Atlas moths (host plants, emergence)",
+        "url": "https://blog.hmns.org/2014/02/the-butterfly-center-beat-everything-you-ever-wanted-to-know-about-raising-atlas-moths/"
+      }
     ]
   },
   {

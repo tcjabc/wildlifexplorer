@@ -81,6 +81,16 @@
         "zh": "鳥在同一個巢裡、一次生下的所有蛋。"
       }
     },
+    "cocoon": {
+      "term": {
+        "en": "cocoon",
+        "zh": "繭"
+      },
+      "def": {
+        "en": "A silk case a caterpillar spins around itself before it changes into a moth.",
+        "zh": "幼蟲變成蛾之前，用絲把自己包起來的外殼。"
+      }
+    },
     "conifer-forest": {
       "term": {
         "en": "conifer forest",

@@ -329,7 +329,7 @@ Empty slots in `factFile` (habitat, breeding, behaviour, food, conservation, did
 - Mikado Pheasant · 帝雉 (`mikado-pheasant`): number of young
 - Brown-spotted Pit Viper · 龜殼花 (`brown-spotted-pit-viper`): number of young
 - Formosan Landlocked Salmon · 櫻花鉤吻鮭 (`formosan-landlocked-salmon`): development (gestation or incubation), number of young
-- Atlas Moth · 皇蛾 (`atlas-moth`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
+- Atlas Moth · 皇蛾 (`atlas-moth`): conservation, development (gestation or incubation), number of young
 - Tyrannosaurus rex · 暴龍 (`tyrannosaurus-rex`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
 - Tardigrade (Water Bear) · 水熊蟲 (`tardigrade-water-bear`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow, development (gestation or incubation), number of young
 - Taiwan Cherry · 山櫻花 (`taiwan-cherry`): habitat, breeding, behaviour, foodAndHunting, conservation, didYouKnow
@@ -348,11 +348,11 @@ Only shown in grown-up preview until checked. Delete the `todo` key once a fact 
 
 ## Glossary
 
-- Terms in data/glossary.json: 53; used on cards: 51
+- Terms in data/glossary.json: 54; used on cards: 52
 - Missing: none
 - Not used on any card: `carnivora`, `incubation`
 
-Cards with a sources list (`_sources`): 26 of 30 species cards.
+Cards with a sources list (`_sources`): 27 of 30 species cards.
 
 ## Draft text to check
 
@@ -384,7 +384,7 @@ Written by Claude as a starting point. Check or rewrite it, then remove the fiel
 - Taiwan Barbet · 五色鳥 (`taiwan-barbet`): facts, tags, factFile.habitat, factFile.breeding, factFile.behaviour, factFile.foodAndHunting, factFile.conservation, factFile.didYouKnow, stats
 - Brown-spotted Pit Viper · 龜殼花 (`brown-spotted-pit-viper`): facts, tags, stats, factFile.habitat, factFile.breeding, factFile.behaviour, factFile.foodAndHunting, factFile.conservation, factFile.didYouKnow
 - Formosan Landlocked Salmon · 櫻花鉤吻鮭 (`formosan-landlocked-salmon`): facts, tags, factFile.habitat, factFile.breeding, factFile.behaviour, factFile.foodAndHunting, factFile.conservation, factFile.didYouKnow
-- Atlas Moth · 皇蛾 (`atlas-moth`): facts, tags, stats
+- Atlas Moth · 皇蛾 (`atlas-moth`): facts, tags, stats, factFile.habitat, factFile.breeding, factFile.behaviour, factFile.foodAndHunting, factFile.didYouKnow
 - Migration · 遷徙 (`migration`): facts
 - Central Mountain Range · 中央山脈 (`central-mountain-range`): facts, tags
 - Kenting Coral Reefs · 墾丁珊瑚礁 (`kenting-coral-reefs`): facts, tags
