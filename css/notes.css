@@ -1,5 +1,5 @@
-/* Field Notes: the researcher's notebook (js/notebook.js), and the card + notes split in the
-   card viewer. All values come from tokens.css. */
+/* Field Notes: the researcher's notebook (js/notebook.js), and the notebook on the card
+   screens. All values come from tokens.css. */
 
 /* ---------- Notebook ---------- */
 .nb {
@@ -155,55 +155,69 @@
   box-shadow: var(--shadow-1); cursor: pointer;
 }
 
-/* ---------- Card + notes in the viewer ---------- */
+/* ---------- The notebook on the card screens (viewer.js, js/card-layout.js) ----------
+   Collapsed: a kraft spine with an elastic band in the strip at the right (a tab in the hint
+   row on phones). Expanded: a fixed-width panel beside the card; on phones, and where the card
+   would get too small beside it, the panel covers the card instead. */
 .viewer__pane { position: relative; z-index: 1; flex: 1 1 auto; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
-.viewer__notes-n {
-  position: absolute; top: calc(-1 * var(--s-1)); right: calc(-1 * var(--s-1));
-  min-width: var(--hotspot); height: var(--hotspot); padding: 0 var(--s-1); border-radius: var(--r-pill);
-  display: grid; place-items: center; background: var(--nb-kraft-deep); color: var(--c-on-primary); font-size: var(--fs-xs);
-}
-.viewer__bar .viewer__notes { position: relative; }
-.viewer__bar .viewer__notes.is-on { background: var(--nb-kraft); color: var(--c-on-primary); }
-.viewer__tabs { display: none; }
-.viewer__divider, .viewer__notespane { position: relative; z-index: 1; }
-.viewer__notespane { min-width: 0; min-height: 0; }
+.viewer__body { position: relative; z-index: 1; flex: 1 1 auto; min-height: 0; display: flex; }
+.viewer__body > .viewer__stage { flex: 1 1 auto; min-width: 0; }
+.viewer__hintrow { position: relative; z-index: 2; display: flex; align-items: flex-start; }
+.viewer__hintrow > .viewer__hint { flex: 1 1 auto; min-width: 0; }
 
-.viewer.is-split { flex-direction: row; }
-.viewer.is-split .viewer__pane { flex: 0 0 calc(var(--split, 0.5) * 100%); }
-.viewer.is-split .viewer__notespane { flex: 1 1 0; }
-.viewer__divider {
-  flex: none; width: var(--s-4); cursor: col-resize; touch-action: none;
-  background: var(--nb-kraft-deep);
-  display: grid; place-items: center;
+.nbdock { position: absolute; top: 0; right: 0; bottom: 0; z-index: 3; display: flex; }
+.nbdock__spine {
+  position: relative; width: var(--nb-spine-w); height: 100%; padding: 0; border: 0; cursor: pointer;
+  border-radius: var(--r-md) 0 0 var(--r-md);
+  background:
+    repeating-linear-gradient(35deg, var(--c-shade-faint) 0 var(--s-hair), transparent var(--s-hair) var(--s-2)),
+    linear-gradient(90deg, var(--nb-kraft-deep), var(--nb-kraft) 30%, var(--nb-kraft));
+  box-shadow: var(--shadow-2);
+  color: var(--nb-kraft-ink);
 }
-.viewer__divider::after { content: ""; width: var(--s-1); height: var(--s-7); border-radius: var(--r-pill); background: var(--c-shine); }
-.viewer__divider.is-dragging, .viewer__divider:focus-visible { background: var(--nb-kraft); }
-/* One pane fills the screen. */
-.viewer.is-max-card .viewer__divider, .viewer.is-max-card .viewer__notespane,
-.viewer.is-max-notes .viewer__divider, .viewer.is-max-notes .viewer__pane { display: none; }
-.viewer.is-max-card .viewer__pane { flex-basis: 100%; }
+/* The elastic band down the cover. */
+.nbdock__band {
+  position: absolute; top: 0; bottom: 0; left: var(--s-3); width: var(--nb-band-w);
+  background: var(--nb-band); box-shadow: 1px 0 1px var(--c-shade);
+}
+.nbdock__label {
+  position: absolute; top: 50%; left: 50%; transform: translate(-30%, -50%);
+  writing-mode: vertical-rl; white-space: nowrap;
+  font-weight: var(--fw-bold); font-size: var(--fs-sm); letter-spacing: 0.18em; text-transform: uppercase;
+}
+.nbdock__label .bi { display: inline-flex; flex-direction: row; gap: var(--s-2); align-items: center; }
+.nbdock__spine:hover, .nbdock__spine:focus-visible { filter: brightness(1.06); }
 
-/* Portrait tablets: one above the other. */
-@media (orientation: portrait) and (min-width: 700px) {
-  .viewer.is-split { flex-direction: column; }
-  .viewer__divider { width: auto; height: var(--s-4); cursor: row-resize; }
-  .viewer__divider::after { width: var(--s-7); height: var(--s-1); }
+.nbdock__panel {
+  display: none; flex-direction: column;
+  width: var(--nb-panel-w); height: 100%;
+  background: var(--nb-kraft); box-shadow: var(--shadow-3);
 }
-/* Phones: Card | Notes tabs, one pane at a time. */
-@media (max-width: 699px) {
-  .viewer.is-split { flex-direction: column; }
-  .viewer.is-split .viewer__tabs {
-    display: flex; position: relative; z-index: 2; gap: var(--s-1);
-    padding: max(var(--s-1), env(safe-area-inset-top)) var(--s-2) var(--s-1); background: var(--nb-kraft-deep);
-  }
-  .viewer__tab {
-    flex: 1; min-height: var(--tap-sm); border: 0; border-radius: var(--r-md);
-    background: none; color: var(--c-on-primary); font: inherit; font-weight: var(--fw-bold); cursor: pointer;
-    display: inline-flex; align-items: center; justify-content: center; gap: var(--s-1);
-  }
-  .viewer__tab .bi { flex-direction: row; gap: 0.4em; }
-  .viewer__tab[aria-selected="true"] { background: var(--nb-kraft); }
-  .viewer.is-split .viewer__divider, .viewer .nb__max { display: none; }
-  .viewer.is-split .viewer__pane, .viewer.is-split .viewer__notespane { flex: 1 1 0; }
-  .viewer.is-split[data-pane="notes"] .viewer__pane, .viewer.is-split[data-pane="card"] .viewer__notespane { display: none; }
+.nbdock__head { display: flex; justify-content: flex-start; padding: var(--s-2); background: var(--nb-kraft-deep); }
+.nbdock__collapse { min-height: var(--tap-xs); background: var(--c-veil); color: var(--c-ink); font-weight: var(--fw-bold); }
+.nbdock__collapse .bi { flex-direction: row; gap: 0.4em; }
+.nbdock__body { position: relative; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+.nbdock__body > .nb { flex: 1 1 auto; }
+.nbdock[data-state="expanded"] .nbdock__spine { display: none; }
+.nbdock[data-state="expanded"] .nbdock__panel { display: flex; }
+
+/* Over the card: the whole stage. */
+.viewer[data-dock="overlay"] .nbdock[data-state="expanded"],
+.viewer[data-dock="phone"] .nbdock[data-state="expanded"] { left: 0; }
+.viewer[data-dock="overlay"] .nbdock__panel,
+.viewer[data-dock="phone"] .nbdock__panel { width: 100%; }
+
+/* Phones: no spine; a small tab in the hint row instead. */
+.nbdock__tab { display: none; }
+.viewer[data-dock="phone"] .nbdock__spine { display: none; }
+.viewer[data-dock="phone"][data-notebook="collapsed"] .nbdock__tab {
+  display: inline-flex; align-items: center; gap: var(--s-1); flex: none;
+  margin: var(--s-2) max(var(--s-2), env(safe-area-inset-right)) max(var(--s-2), env(safe-area-inset-bottom)) 0;
+  min-height: var(--tap-xs); padding: 0 var(--s-3); border: 0; border-radius: var(--r-md);
+  background: var(--nb-kraft); color: var(--nb-kraft-ink); box-shadow: var(--shadow-2);
+  font: inherit; font-weight: var(--fw-bold); cursor: pointer;
 }
+.nbdock__tab .bi { flex-direction: row; gap: 0.3em; }
+/* The notebook out over the card (phones, overlay): no card to give hints about. */
+.viewer[data-dock="phone"][data-notebook="expanded"] .viewer__hintrow,
+.viewer[data-dock="overlay"][data-notebook="expanded"] .viewer__hintrow { display: none; }

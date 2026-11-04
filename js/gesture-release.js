@@ -10,6 +10,8 @@
 //   { prop: 'p' | 'f' | 'z', target: 0 | 1, velocity }  spring the page turn / flip / zoom there
 //   { dismiss: true }                                    zoom back into the binder
 //   { scroll: true, velocity }                           let the scroll glide (velocity px/s)
+//   { pan, velocity }                                    spring the open spread's left edge there
+//   (a { prop: 'p' } result may also carry pan: where the spread goes if it stays open)
 //   { springBack: true }                                 back to where the gesture started
 
 export const COMMIT = 0.25;        // a quarter of the way is enough
@@ -43,6 +45,21 @@ export function releaseOutcome(mode, s, info = {}) {
     const h = num(s?.stageH, 1) || 1;
     const commit = vy < -DISMISS_FLICK ? false : vy > DISMISS_FLICK || dy > h * DISMISS_SHARE;
     return commit ? { dismiss: true } : { prop: 'z', target: 1, velocity: -vy / (h * 0.6) };
+  }
+  if (mode === 'pan') {
+    // Panning an open spread that doesn't fit (js/card-layout.js panDrag). Dragged on past the
+    // left edge, it was closing (p below 1): commit or spring back like a close. Otherwise the
+    // spread springs to the nearest place inside its edges.
+    const min = num(s?.range?.min), max = num(s?.range?.max);
+    const lo = Math.min(min, max), hi = Math.max(min, max);
+    const closing = 1 - p;
+    if (closing > 0) {
+      const speed = vx / tx; // dragging right is towards closing
+      return decide(closing, speed)
+        ? { prop: 'p', target: 0, velocity: -speed }
+        : { prop: 'p', target: 1, velocity: -speed, pan: hi };
+    }
+    return { pan: Math.min(hi, Math.max(lo, num(s?.panLeft, hi))), velocity: vx };
   }
   if (mode === 'scroll') return { scroll: true, velocity: vy };
   return { springBack: true };

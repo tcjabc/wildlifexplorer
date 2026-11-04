@@ -83,7 +83,7 @@
 .gzones__box--near { background: var(--c-debug-near); }
 .gzones__box--open { background: var(--c-debug-open); border-style: solid; }
 .gzones__box--card { border-style: solid; border-color: var(--c-debug-card); }
-.gzones__box--spine { background: var(--c-debug-spine); border: 0; }
+.gzones__box--notebook { background: var(--c-debug-notebook); border-style: solid; }
 
 /* ---------- Card pages ---------- */
 .cpage {

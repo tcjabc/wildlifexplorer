@@ -129,6 +129,7 @@
   "card.turnOver": "翻面",
   "card.hintBook": "往旁邊滑，把卡片打開",
   "card.hintCloseBook": "把頁面拖回去就能關上",
+  "card.hintPan": "拖曳看整頁",
   "card.hintFlip": "往上滑可以翻面",
   "card.hintBack": "往下滑翻回正面",
   "card.credits": "圖片來源",
@@ -437,6 +438,10 @@
   "compare.seePhoto": "看{name}的照片",
   "nav.notes": "野外筆記",
   "notes.title": "野外筆記",
+  "notes.spine": "野外筆記",
+  "notes.expand": "打開野外筆記",
+  "notes.collapse": "收起 ›",
+  "notes.tab": "筆記",
   "notes.empty": "你的野外筆記本還是空的。開一頁來畫畫、寫字、貼照片吧！",
   "notes.emptyCard": "還沒有關於{name}的筆記。開一頁，把你發現的畫下來吧！",
   "notes.newPage": "新的一頁",
@@ -495,10 +500,6 @@
   "notes.imported.one": "已從備份加入 1 頁。",
   "notes.imported.many": "已從備份加入 {n} 頁。",
   "notes.importFailed": "這個檔案不是野外筆記的備份。",
-  "notes.open": "野外筆記",
   "notes.openCount.one": "野外筆記：1 頁",
-  "notes.openCount.many": "野外筆記：{n} 頁",
-  "notes.divider": "拖曳來分配畫面",
-  "notes.tabCard": "卡片",
-  "notes.tabNotes": "筆記"
+  "notes.openCount.many": "野外筆記：{n} 頁"
 }

@@ -17,6 +17,7 @@ function assertSettled(o, label) {
   assert.ok(o && typeof o === 'object', `${label}: no outcome`);
   if (o.dismiss || o.springBack) return;
   if (o.scroll) { assert.ok(Number.isFinite(o.velocity), `${label}: scroll speed`); return; }
+  if (!o.prop && 'pan' in o) { assert.ok(Number.isFinite(o.pan) && Number.isFinite(o.velocity), `${label}: pan ${o.pan}`); return; }
   assert.ok(['p', 'f', 'z'].includes(o.prop), `${label}: prop ${o.prop}`);
   assert.ok(o.prop === 'z' ? o.target === 1 : o.target === 0 || o.target === 1, `${label}: target ${o.target}`);
   assert.ok(Number.isFinite(o.velocity), `${label}: velocity ${o.velocity}`);
@@ -51,6 +52,11 @@ const CASES = {
   ],
   scroll: [
     ['a flick glides', state(), { vy: -800 }, { scroll: true }],
+  ],
+  pan: [
+    ['panned inside the edges', state({ p: 1, panLeft: -200, range: { min: -600, max: 0 } }), { vx: 0 }, { pan: -200 }],
+    ['past the left edge far enough', state({ p: 0.5, panLeft: 8, range: { min: -600, max: 0 } }), { vx: 30 }, { prop: 'p', target: 0 }],
+    ['past the left edge a little', state({ p: 0.9, panLeft: 8, range: { min: -600, max: 0 } }), { vx: 0 }, { prop: 'p', target: 1 }],
   ],
 };
 

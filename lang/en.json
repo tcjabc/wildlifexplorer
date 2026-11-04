@@ -129,6 +129,7 @@
   "card.turnOver": "Turn over",
   "card.hintBook": "Swipe sideways to open",
   "card.hintCloseBook": "Drag the page back to close",
+  "card.hintPan": "Drag to see the whole page",
   "card.hintFlip": "Swipe up to turn over",
   "card.hintBack": "Swipe down to turn back",
   "card.credits": "Picture credits",
@@ -437,6 +438,10 @@
   "compare.seePhoto": "See a photo of {name}",
   "nav.notes": "Field Notes",
   "notes.title": "Field Notes",
+  "notes.spine": "Field Notes",
+  "notes.expand": "Open Field Notes",
+  "notes.collapse": "Collapse ›",
+  "notes.tab": "Notes",
   "notes.empty": "Your field notebook is empty. Start a page to draw, write and stick in photos.",
   "notes.emptyCard": "No pages about {name} yet. Start one and draw what you notice!",
   "notes.newPage": "New page",
@@ -495,10 +500,6 @@
   "notes.imported.one": "Added 1 page from the backup.",
   "notes.imported.many": "Added {n} pages from the backup.",
   "notes.importFailed": "That file isn’t a Field Notes backup.",
-  "notes.open": "Field notes",
   "notes.openCount.one": "Field notes: 1 page",
-  "notes.openCount.many": "Field notes: {n} pages",
-  "notes.divider": "Drag to share the screen",
-  "notes.tabCard": "Card",
-  "notes.tabNotes": "Notes"
+  "notes.openCount.many": "Field notes: {n} pages"
 }

@@ -48,7 +48,7 @@
   --c-debug-near: rgb(255 201 60 / 0.25);
   --c-debug-open: rgb(60 160 255 / 0.3);
   --c-debug-card: rgb(0 170 90 / 0.9);
-  --c-debug-spine: rgb(220 40 60 / 0.25);
+  --c-debug-notebook: rgb(150 70 200 / 0.3);
   --c-map-sea: #d8eef6;
   --c-map-land: #9ccf8f;
   --c-map-spot: #d7263d;
@@ -116,6 +116,7 @@
   --nb-paper: #fbf7ec;      --nb-dot: #c9bfa8;          --nb-grid: #e6dfcf;
   --nb-ink: #3d3a35;        --nb-stamp: #c0392b;        --nb-tape: rgb(236 222 176 / 0.78);
   --nb-photo-edge: #ffffff; --nb-shadow: rgb(40 30 20 / 0.28);
+  --nb-band: #2b211a;       /* the elastic band down the collapsed notebook's spine */
   /* Coloured pencils */
   --pencil-graphite: #4a4a4a; --pencil-red: #d7263d;   --pencil-orange: #f17105; --pencil-yellow: #e6a800;
   --pencil-green: #2b8f47;    --pencil-blue: #1e78d2;  --pencil-purple: #8e44ad; --pencil-brown: #8b5e3c;
@@ -224,6 +225,10 @@
   --related-pic: 56px;  /* pictures in Related Species */
   --gloss-pop-w: 260px; /* the glossary popover on a card page */
   --map-slot: 28px;     /* corner of the front map kept free for its expand button */
+  /* The notebook on the card screens (js/card-layout.js uses the same numbers). */
+  --nb-spine-w: 60px;   /* the collapsed spine: the strip at the screen's right */
+  --nb-band-w: 6px;     /* its elastic band */
+  --nb-panel-w: 400px;  /* the expanded panel beside the card (portrait: below) */
   --map-marker: 8px;    /* range marker on the little world map */
   --gpin: 52px;         /* photo pins on the Globe */
   --gsheet-pic: min(38dvh, 320px); /* photo in the Globe card sheet */
@@ -259,4 +264,9 @@
   --t-med: 260ms;
   --t-slow: 700ms;
   --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Portrait tablets: a narrower notebook panel, so the card still fits beside it. */
+@media (orientation: portrait) {
+  :root { --nb-panel-w: 360px; }
 }

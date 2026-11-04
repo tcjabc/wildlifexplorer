@@ -239,6 +239,8 @@ export async function updateProfile(id, patch) {
       ...('notesInput' in patch && { notesInput: patch.notesInput }),
       // Set once, the first time a pen draws: the switch to pen-only happens only then.
       ...('notesPenSeen' in patch && { notesPenSeen: Boolean(patch.notesPenSeen) }),
+      // The notebook on the card screens: 'collapsed' (the default) or 'expanded'. Device-only.
+      ...('notesPanel' in patch && { notesPanel: patch.notesPanel === 'expanded' ? 'expanded' : 'collapsed' }),
       parent: { ...prev.parent, ...patch.parent },
     }, now);
     if (!sameSettings(prev, rec)) rec.settingsAt = now;

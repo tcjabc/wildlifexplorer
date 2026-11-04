@@ -3,7 +3,7 @@
 //  - Images: cache first (their file names change when the picture changes).
 //  - Globe map layers: cache first, only once a layer is first shown (own LAYERS_VERSION).
 // Bump VERSION to throw away the app and image caches.
-const VERSION = 'v30';
+const VERSION = 'v31';
 const SHELL_CACHE = `shell-${VERSION}`;
 const IMAGE_CACHE = `images-${VERSION}`;
 // Globe map layers (assets/layers/): big, so only cached once a layer is first shown, and
@@ -36,6 +36,7 @@ const SHELL = [
   'js/offline.js',
   'js/gesture.js',
   'js/gesture-release.js',
+  'js/card-layout.js',
   'js/glossary.js',
   'js/viewer.js',
   'js/cardparts.js',

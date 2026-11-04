@@ -19,8 +19,8 @@ It runs at https://wildfile.app/ (Cloudflare) and works fully offline once it ha
 - **Creature comparison**: You (the animal against your own size) or Animal (lookalikes side by
   side, with how to tell them apart). **Globe**: filter the pins by continent or habitat.
 - **Field Notes**: a researcher's notebook per profile. Draw with a pencil (pen pressure and
-  palm rejection), write, stamp collected animals, roll footprints and tape in photos, beside the
-  card or on its own page. Back it up to a zip.
+  palm rejection), write, stamp collected animals, roll footprints and tape in photos, in the
+  notebook beside every card or on its own page. Back it up to a zip.
 - **Read aloud** (Web Speech API): English in an en-GB voice, Chinese in a zh-TW voice.
 - **Language**: EN / 中 / Both, per profile.
 - **For grown-ups** (behind a sum): pack day and time, units, preview, start over, delete.
@@ -369,12 +369,18 @@ above every layer.
 In the app, gestures on a card are decided by direction, from anywhere on the card or a 40 px
 margin around it. To the right of a closed card, an open zone about half a card wide (where the
 right page will appear) also opens it with a sideways drag, and the open spread can be closed from
-an 80 px margin around it. All of this stays below the top bar and out of the rightmost 60 px of
-the screen (the notebook spine); on narrow screens the zones shrink to fit. A drag that starts at
+an 80 px margin around it. All of this stays below the top bar and never reaches the notebook
+(its spine, its panel or, on phones, its tab), so drawing never moves the card; on narrow screens
+the zones shrink to fit. A drag that starts at
 an in-between angle waits a few more pixels before deciding its direction. Grown-ups in preview can
-see these areas: add `?debug=gestures` to the address (`?debug=off` to stop). On the front: sideways opens the card, up turns it over, down puts it back in the binder. On the
+see these areas (the notebook's in purple): add `?debug=gestures` to the address (`?debug=off` to stop).
+On the front: sideways opens the card, up turns it over, down puts it back in the binder. On the
 back: down from the top of the Fact File turns it back to the front (otherwise a vertical drag
-scrolls). On the open spread: sideways closes it (vertical drags scroll the pages). Every gesture
+scrolls). The open spread stays at the card's scale. When it fits beside the notebook, a sideways
+drag closes it. When it doesn't, a sideways drag pans it, stopping at its edges; once the left page
+is fully shown, dragging on past that edge (24 px with a little rubber-band resistance, then the
+usual quarter of the way) closes it. 📖 closes it in every case. Vertical drags scroll the pages.
+The layout rules are pure functions in `js/card-layout.js` (tested in `tests/card-layout.test.mjs`). Every gesture
 ends settled: it commits, springs back or dismisses, also when the pointer is cancelled, the
 capture is lost or the window loses focus. A quarter of the way or
 a quick flick is enough; less springs back, and a touch that hardly moves is a tap. On pages that
@@ -484,16 +490,18 @@ a photo is a derivative of it: give it the photo's author and licence, add
 
 ## Field Notes
 
-One notebook per profile (📓 in the nav, or 📓 on a card). Code: `js/notebook.js` (the UI),
+One notebook per profile (📓 in the nav, or beside every card). Code: `js/notebook.js` (the UI),
 `js/notes-render.js` (drawing a page), `js/notes-store.js` (storage), `js/notes-io.js` (backup),
 `js/zip.js`, styles in `css/notes.css`.
 
-- **Beside a card**: tablets in landscape show the card and the notebook side by side; drag the
-  divider (kept on the device, separately for side by side and stacked). Portrait tablets stack
-  them; phones have Card / Notes tabs. Double-tap a pane's bar, or pinch out, to fill the screen
-  with it; pinch in to come back.
+- **Beside a card**: the notebook is always there, in one of two states. Collapsed, it is a kraft
+  spine with an elastic band in the 60 px strip at the right (on phones, a 📓 tab at the bottom
+  right). Tap it to expand it into a panel beside the card (400 px, 360 px in portrait); the card
+  shrinks to fit, the open spread keeps its scale and goes under the panel. Where the card beside
+  the panel would be under 340 px wide, and on phones (under 600 px), the panel covers the card
+  instead. "Collapse ›" folds it back. The state is kept per profile on the device (`notesPanel`).
 - **Links**: a page made or drawn on beside a card links to that card; a stamp links its animal.
-  The card's 📓 (and the badge on its binder tile) shows how many pages link to it. New pages get
+  The badge on the card's binder tile shows how many pages link to it. New pages get
   the date, the animal's name and an "Observed" stamp in the profile's language.
 - **Tools**: pencil in 8 colours and two sizes, eraser (whole marks), text, stamps (collected
   cards' silhouettes, or the group emoji), footprint roller (cat paw, hoof, bird, bear), move
