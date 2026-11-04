@@ -20,6 +20,9 @@
 // nothing: these explorers belong to the first account's family.
 import * as defaultDb from '../db.js';
 import { auth as defaultAuth, AuthError } from './auth.js';
+import { CARD, DROP, BADGE, HHMM, iso, isoOrNull, epochOk, Invalid, check } from './merge.js';
+
+export { Invalid };
 
 const BATCH = 500;
 const DEBOUNCE_MS = 2000;
@@ -37,18 +40,7 @@ const ORDER = Object.keys(TABLES);
 
 // ---------- Records to rows ----------
 
-// The server's own checks (supabase/migrations), so a record it would refuse is held back here.
-const CARD = /^[a-z0-9][a-z0-9_-]{0,79}$/;
-const DROP = /^[a-z0-9][a-z0-9_-]{0,39}$/;
-const BADGE = /^[a-z0-9][a-z0-9:_-]{0,79}$/;
-const HHMM = /^([01][0-9]|2[0-3]):[0-5][0-9]$/;
-const iso = v => typeof v === 'string' && !Number.isNaN(Date.parse(v));
-const isoOrNull = v => v == null || iso(v);
-const epochOk = v => Number.isInteger(v) && v >= 1;
-
-export class Invalid extends Error {}
-function check(ok, what) { if (!ok) throw new Invalid(what); }
-
+// The server's own checks (merge.js) hold back a record it would refuse.
 // The row for one record: exactly the server's columns, nothing else. null when the record
 // isn't sent (old reset history). Throws Invalid when the server would refuse it.
 export function toRow(store, r, familyId) {

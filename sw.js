@@ -69,6 +69,7 @@ const SHELL = [
   'js/zip.js',
   'js/config.js',
   'js/cloud/auth.js',
+  'js/cloud/merge.js',
   'js/cloud/sync.js',
   'js/account.js',
   'js/backup.js',
