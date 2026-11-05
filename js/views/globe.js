@@ -135,6 +135,12 @@ export function render(main, [cardId] = []) {
   const view = h('section', { class: ['globe', card && 'has-back'], 'aria-label': label('nav.globe') },
     stage, back, bar, panel, filterPanel, offline, h('div', { class: 'globe__foot' }, hint));
   mount(main, view);
+  // Any touch on this screen stops the slow turn, not only one on the globe.
+  view.addEventListener('pointerdown', () => globe?.noteTouch(), { capture: true });
+
+  // What is keeping the globe from turning by itself: a card sheet, the drawer, a held view.
+  const holds = new Set();
+  const hold = (why, on) => { if (on) holds.add(why); else holds.delete(why); globe.pause(holds.size > 0); };
 
   const pins = [];          // { card, lon, lat, v, el, x, y, z, stack }
   let pinSize = 44;
@@ -261,7 +267,7 @@ export function render(main, [cardId] = []) {
     onFrame: layout,
     onInteract: () => {
       if (fan) { fan = null; globe.redraw(); }
-      if (holding) { holding = false; globe.pause(false); } // touched: it may turn by itself again
+      hold('card', false); // touched: it may turn by itself again
     },
     onTap: (ll, at) => { fan = null; select(null); closePanel?.(); tapVolcano(at); },
   });
@@ -324,7 +330,7 @@ export function render(main, [cardId] = []) {
     const scrim = h('div', { class: 'gsheet__scrim', onclick: () => closeSheet() });
     view.append(scrim, el);
     sheet = { el, scrim, pin: p };
-    globe.pause(true);
+    hold('sheet', true);
     globe.setOffset(Math.min(el.offsetHeight, view.clientHeight * 0.6));
     globe.flyTo(p.lon, p.lat);
 
@@ -356,7 +362,7 @@ export function render(main, [cardId] = []) {
     if (!sheet) return;
     const { el, scrim, pin } = sheet;
     sheet = null;
-    globe.pause(false);
+    hold('sheet', false);
     globe.setOffset(0);
     fitGlobe();
     if (animate && !reducedMotion()) {
@@ -391,10 +397,8 @@ export function render(main, [cardId] = []) {
 
   // From a card's map: light up its range and turn to it, zoomed to fit (js/globe.js rangeFit),
   // and stay there (no slow turning away) until the child touches the globe.
-  let holding = false;
   if (card?.range) {
-    holding = true;
-    globe.pause(true);
+    hold('card', true);
     loadRange(card.range).then(geo => {
       const polys = rangePolygons(geo);
       const fit = rangeFit(polys);

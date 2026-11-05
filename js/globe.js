@@ -16,10 +16,18 @@ const DEG = Math.PI / 180;
 const MIN_K = 1, MAX_K = 40;
 const NEAR_K = 2.2;      // detailed coastlines from this zoom
 const RADIUS = 0.42;     // globe radius at zoom 1, as a share of the smaller side
-const IDLE_MS = 3500;    // start turning after this long without a touch
+const IDLE_MS = 20000;   // start turning after this long without a touch
+const SPIN_IN_MS = 1500; // and ease into the turn over this long
 const SPIN = 4;          // degrees per second when turning by itself
 const GLIDE = 420;       // ms: how long a flick keeps spinning
 const MAX_LAT = 80;
+
+// How much of its slow turn the globe is doing, 0 to 1: only fully zoomed out, and only after
+// idle ms without a touch.
+export function spinEase(idle, k) {
+  if (k > MIN_K + 0.001 || idle <= IDLE_MS) return 0;
+  return Math.min(1, (idle - IDLE_MS) / SPIN_IN_MS);
+}
 
 // Where the globe was left, so it is still there after visiting another tab.
 const saved = { lon: 121, lat: 18, k: 1 };
@@ -835,11 +843,12 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
       const f = Math.exp(-dt / GLIDE);
       glide.vx *= f; glide.vy *= f;
       if (Math.hypot(glide.vx, glide.vy) < 0.005) glide = null;
-    } else if (!flight && !paused && !reduced && t - lastTouch > IDLE_MS) {
-      // Ease into the slow turn.
-      const ease = Math.min(1, (t - lastTouch - IDLE_MS) / 1500);
-      view.lon = wrap(view.lon - (SPIN * dt * ease) / 1000);
-      dirty = true;
+    } else if (!flight && !paused && !reduced) {
+      const ease = spinEase(t - lastTouch, view.k);
+      if (ease) {
+        view.lon = wrap(view.lon - (SPIN * dt * ease) / 1000);
+        dirty = true;
+      }
     }
     if (Math.abs(offset - view.dy) > 0.5) { view.dy += (offset - view.dy) * Math.min(1, dt / 90); dirty = true; }
     if (Math.abs(offsetX - view.dx) > 0.5) { view.dx += (offsetX - view.dx) * Math.min(1, dt / 90); dirty = true; }
@@ -987,6 +996,8 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
       },
     }),
     pause(on) { paused = on; if (!on) lastTouch = performance.now(); },
+    // A touch somewhere else on the Globe screen (the toolbar, a chip): stop turning, for now.
+    noteTouch() { lastTouch = performance.now(); },
     // Room at the bottom (px) for the card sheet: the globe slides up to stay in view.
     setOffset(px) { held = px > 0; offset = -px / 2; dirty = true; },
     // Space the globe keeps clear: top (the chips), bottom (a sheet), left (the side panel), px.
