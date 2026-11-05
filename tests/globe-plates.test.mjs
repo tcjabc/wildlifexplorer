@@ -76,7 +76,7 @@ test('the layer: one chip, its names and key in both languages, credited (ODC-By
   assert.equal(c.license, 'ODC-By 1.0');
   assert.match(src('CREDITS.md'), /PB2002.*ODC-By 1\.0/);
   const sw = src('sw.js');
-  assert.match(sw, /const VERSION = 'v36';/);
+  assert.ok(Number(/const VERSION = 'v(\d+)';/.exec(sw)[1]) >= 36);
   assert.match(sw, /const LAYERS_VERSION = 'l4';/);
 });
 

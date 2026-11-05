@@ -101,7 +101,7 @@ must not count as a tap (on iPad, drags used to act like taps).
    - `scientific_name` empty → a **topic card** (behaviour, places, conservation…): you write it all by hand.
    - `taiwan`: `Y` shows the "Found in Taiwan 臺灣在地" badge.
    - `zhuyin`: one syllable per Chinese character, separated by spaces, Taiwan (教育部) readings. First tone unmarked,
-     neutral tone in front (`˙ㄉㄜ`). Shown beside the Chinese name on cards (tap the name, or set the default in More).
+     neutral tone in front (`˙ㄉㄜ`). Shown beside the Chinese name on cards (tap the name, or set the default in the Parents area).
      The build reports a syllable count that doesn't match. Readings still to check are listed in `data/zhuyin-review.md`.
    - `name_en` becomes the card's id (`Taiwan Blue Magpie` → `taiwan-blue-magpie`). Names must be unique.
 
@@ -313,7 +313,7 @@ card with none of them doesn't open.
   animation: **length** (silhouettes side by side), **weight** (a balance; the lighter side fills with
   copies until it levels out, with a counter and "= Elephant × n" for huge numbers), **lifespan**
   (birthday timelines) and **diet** (a plate filling up). "You" is 120 cm, 23 kg and 6 years old
-  unless the profile has its own height, weight and age (Welcome form, or More → Edit profile).
+  unless the profile has its own height, weight and age (Welcome form, or For grown-ups → Edit profile).
 - **compare**: how big the animal's silhouette is in cm, either `width` (nose to tail tip) or
   `height`. Leave it out to use `lengthCm`. The silhouette itself is found by the build (from
   PhyloPic, CC0/PD/CC BY/CC BY-SA only) and stored in `silhouette`. If there is none for the exact
@@ -541,8 +541,9 @@ only the dates differ.
   that moment. Then flick each card up into the binder (or tap "Next card"), and see all three at
   the end. Completing every card in a group earns that group's badge.
 
-**For grown-ups**: More → "For grown-ups" (answer the sum). Settings are per profile: pack day and
-time, metric/imperial, °C/°F, *Preview* (shows every card without counting them as collected,
+**For grown-ups**: the ⚙️ tab (answer the sum on its number pad; the system keyboard never opens). Adding an explorer on the
+picker asks the sum too; switching explorers from the avatar does not. Settings are per profile: pack day and
+time, metric/imperial, °C/°F, Chinese names on cards, reading speed, *Preview* (shows every card without counting them as collected,
 handy for checking your facts, and lets packs arrive as soon as their cards are built, so you can
 try pack opening before the facts are done; use *Start over* afterwards), edit, *Start over from Series 1, Week 1*, and delete.
 A new profile copies the pack day/time and units of the existing ones. To add a setting, add a
@@ -752,7 +753,7 @@ truth; it syncs with Supabase when online.
   device's quiz scores. A pulled pack that isn't opened yet shows "New pack arrived" once on
   each device. Runs on start, sign-in, coming back online, showing the app or focusing its window
   (two windows side by side never hide), after changes, and every 5 minutes while the app is shown
-  (no Realtime). The picker, the header, the Parents page's explorers and the More page redraw
+  (no Realtime). The picker, the header and the Parents page's explorers redraw
   with what came down. Tests: `tests/pull.test.mjs`, with two
   devices and a fake server that merges like the triggers (`tests/fixtures/server.mjs`).
 - **Clocks:** which settings win is decided by the devices' clocks (`client_updated_at`), so a
@@ -836,5 +837,5 @@ The icon is drawn in `scripts/make-icons.mjs`; run `npm run icons` after changin
 
 Names, classification and conservation status: [Wikidata](https://www.wikidata.org/) (CC0).
 Pictures: [Wikimedia Commons](https://commons.wikimedia.org/) and [iNaturalist](https://www.inaturalist.org/)
-contributors. Every picture's author, licence and source are listed in the app under More → Picture credits.
+contributors. Every picture's author, licence and source are listed in the app under For grown-ups → Picture credits.
 Map and Globe layer datasets: [CREDITS.md](CREDITS.md).
