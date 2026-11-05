@@ -218,40 +218,78 @@ function drawHeader(ctx, page, text) {
 
 // ---------- the whole page ----------
 
+// Pencil work goes on a layer of its own so the grain only roughens pencil, not photos. One
+// layer for every page drawn: a new one per redraw is a full-page allocation.
+let layer = null, layerCtx = null, layerGrain = null;
+function pencilLayer(ctx) {
+  layer ??= document.createElement('canvas');
+  const { width, height } = ctx.canvas;
+  if (layer.width < width || layer.height < height) {
+    layer.width = Math.max(layer.width, width);
+    layer.height = Math.max(layer.height, height);
+    layerCtx = null;
+  }
+  layerCtx ??= layer.getContext('2d');
+  layerGrain ??= grainPattern(layerCtx);
+  layerCtx.setTransform(ctx.getTransform());
+  return layerCtx;
+}
+
+// Roughen what is on the layer inside box (device pixels), put it on the page and clear it.
+function flushPencil(ctx, l, { x, y, w, h }) {
+  l.save();
+  l.setTransform(1, 0, 0, 1, 0, 0);
+  l.globalCompositeOperation = 'destination-out';
+  l.fillStyle = layerGrain;
+  l.fillRect(x, y, w, h);
+  l.restore();
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.drawImage(layer, x, y, w, h, x, y, w, h);
+  ctx.restore();
+  l.save(); l.setTransform(1, 0, 0, 1, 0, 0); l.clearRect(x, y, w, h); l.restore();
+}
+
 // headerText: { date, name, stamp } already in the profile's language.
 // skip: an item index not to draw (the one being moved, drawn on the live layer instead).
 export function renderPage(ctx, page, { assets, headerText, skip = -1 }) {
   drawPaper(ctx, page);
   drawHeader(ctx, page, headerText);
-  // Pencil work goes on its own layer so the grain only roughens pencil, not photos.
-  const layer = document.createElement('canvas');
-  layer.width = ctx.canvas.width; layer.height = ctx.canvas.height;
-  const l = layer.getContext('2d');
-  l.setTransform(ctx.getTransform());
-  const flush = () => {
-    l.save();
-    l.setTransform(1, 0, 0, 1, 0, 0);
-    l.globalCompositeOperation = 'destination-out';
-    l.fillStyle = grainPattern(l);
-    l.fillRect(0, 0, layer.width, layer.height);
-    l.restore();
-    ctx.save();
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.drawImage(layer, 0, 0);
-    ctx.restore();
-    l.save(); l.setTransform(1, 0, 0, 1, 0, 0); l.clearRect(0, 0, layer.width, layer.height); l.restore();
-  };
+  const l = pencilLayer(ctx);
+  const all = { x: 0, y: 0, w: ctx.canvas.width, h: ctx.canvas.height };
   let pending = false;
   page.items.forEach((item, i) => {
     if (i === skip) return;
     if (item.t === 's') { drawStroke(l, item); pending = true; return; }
-    if (pending) { flush(); pending = false; }
-    if (item.t === 'x') drawText(ctx, item);
-    else if (item.t === 'm') drawStamp(ctx, item, assets);
-    else if (item.t === 'f') drawRoller(ctx, item);
-    else if (item.t === 'p') drawPhoto(ctx, item, assets);
+    if (pending) { flushPencil(ctx, l, all); pending = false; }
+    renderItem(ctx, item, assets);
   });
-  if (pending) flush();
+  if (pending) flushPencil(ctx, l, all);
+}
+
+// The box a stroke fills on the canvas, in device pixels.
+function strokeBox(ctx, item) {
+  const m = ctx.getTransform(), p = item.p, reach = item.w * 1.3 + 2;
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (let i = 0; i < p.length; i += 3) {
+    if (p[i] < x0) x0 = p[i];
+    if (p[i] > x1) x1 = p[i];
+    if (p[i + 1] < y0) y0 = p[i + 1];
+    if (p[i + 1] > y1) y1 = p[i + 1];
+  }
+  const left = Math.max(0, Math.floor((x0 - reach) * m.a + m.e)), top = Math.max(0, Math.floor((y0 - reach) * m.d + m.f));
+  const right = Math.min(ctx.canvas.width, Math.ceil((x1 + reach) * m.a + m.e)), bottom = Math.min(ctx.canvas.height, Math.ceil((y1 + reach) * m.d + m.f));
+  return { x: left, y: top, w: right - left, h: bottom - top };
+}
+
+// A new item on top of an already drawn page, without painting the page again.
+export function appendItem(ctx, item, assets) {
+  if (item.t !== 's') { renderItem(ctx, item, assets); return; }
+  const box = strokeBox(ctx, item);
+  if (box.w <= 0 || box.h <= 0) return;
+  const l = pencilLayer(ctx);
+  drawStroke(l, item);
+  flushPencil(ctx, l, box);
 }
 
 // Draw one item on its own (the live layer while moving it).
