@@ -294,6 +294,7 @@ async function openOne(ui, record) {
 
 // Every card from the pack. Tapping one opens it; more packs can be opened from here.
 function summary(ui, cards) {
+  ui.scrim.classList.remove('is-faint'); // a badge flying to its tab leaves it faint
   const left = unopenedPacks().length;
   return new Promise(resolve => {
     const done = h('button', { class: ['btn btn--big', left ? 'btn--soft' : 'btn--accent'], type: 'button', onclick: () => resolve('done') }, tx('pack.done'));
