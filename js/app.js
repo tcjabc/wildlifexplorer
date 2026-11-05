@@ -30,13 +30,12 @@ import { loadIndex as loadNotesIndex } from './notes-store.js';
 import * as cardReturn from './card-return.js';
 import * as quiz from './views/quiz.js';
 import * as badges from './views/badges.js';
-import * as more from './views/more.js';
 import * as parents from './views/parents.js';
 import * as credits from './views/credits.js';
 
-const VIEWS = { binder, packs, globe, notes: notesView, quiz, badges, more, parents, credits };
+const VIEWS = { binder, packs, globe, notes: notesView, quiz, badges, parents, credits };
 // Which nav item is highlighted for each view.
-const NAV_FOR = { binder: 'binder', packs: 'packs', globe: 'globe', notes: 'notes', quiz: 'quiz', badges: 'badges', more: 'more', parents: 'more', credits: 'more' };
+const NAV_FOR = { binder: 'binder', packs: 'packs', globe: 'globe', notes: 'notes', quiz: 'quiz', badges: 'badges', parents: 'parents', credits: 'parents' };
 
 const main = $('#main');
 const header = $('#header');
@@ -55,6 +54,7 @@ function setNav(active, force = false) {
 
 function parseHash() {
   const [name, ...args] = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
+  if (name === 'more') return { name: 'parents', args: [] }; // its settings moved there
   if (name === 'card' && args[0]) return { name: 'card', args: [decodeURIComponent(args[0]), args[1]] };
   // Field Notes and the quiz stay on each device: not on a grown-up's device.
   if (store.watching() && ['notes', 'quiz'].includes(name)) return { name: 'binder', args: [] };
@@ -63,7 +63,7 @@ function parseHash() {
 
 function renderMain(next, { keepScroll = false } = {}) {
   const y = main.scrollTop;
-  cleanup?.();
+  cleanup?.({ staying: next.name === shown.name });
   stop();
   shown = next;
   setNav(NAV_FOR[next.name]);
@@ -249,13 +249,11 @@ async function boot() {
 
   registerOffline();
   // Changes from the family account's other devices: show them, and say if a pack arrived.
-  // (The header, picker and Parents page follow the store's events themselves; the More page
-  // shows the active explorer's name and avatar.)
+  // (The header, picker and Parents page follow the store's events themselves.)
   sync.onPulled(ids => store.applyPulled(ids)
     .then(() => {
       const p = store.state.profile;
       if (!p || choosing) return undefined;
-      if (shown.name === 'more' && ids.includes(p.id) && !viewer.isOpen()) refresh();
       return checkDrops();
     })
     .catch(err => console.error(err)));

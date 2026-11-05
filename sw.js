@@ -61,7 +61,6 @@ const SHELL = [
   'js/views/globe.js',
   'js/views/quiz.js',
   'js/views/badges.js',
-  'js/views/more.js',
   'js/views/credits.js',
   'js/views/packs.js',
   'js/views/parents.js',

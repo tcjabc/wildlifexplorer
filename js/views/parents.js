@@ -1,9 +1,11 @@
-// For grown-ups: settings behind a simple sum. Settings are per profile; pick whose at
+// For grown-ups: every setting, behind a simple sum. Settings are per profile; pick whose at
 // the top. Each panel is one entry in SECTIONS, so adding a setting means adding a section:
 //   { id, icon, title: string key, render: (profile, redraw) => node }
 import { $, h, mount } from '../dom.js';
-import { bi, tx, label, plain, dateText } from '../i18n.js';
-import { state, updateProfile, createProfile, deleteProfile, resetProfile, reload, onChange, watching } from '../store.js';
+import { bi, t, tx, label, plain, dateText } from '../i18n.js';
+import { state, updateProfile, createProfile, deleteProfile, resetProfile, reload, onChange, watching, speechRate } from '../store.js';
+import { speak, speechSupported } from '../speech.js';
+import { offlineStatus } from '../offline.js';
 import { avatar, profileForm } from '../profiles.js';
 import { nextDropText, checkDrops } from '../packs.js';
 import { accountPanel } from '../account.js';
@@ -13,14 +15,16 @@ import { backupProgress, restoreProgress, restoreText, restoreError } from '../b
 let gateOpen = false;
 let selectedId = null;
 
-// Radio buttons for one of the profile's parent settings.
-function seg(p, key, options, labelKey, redraw) {
+// Radio buttons for one setting: its current value, and how to save a new one.
+function seg(current, save, options, labelKey, redraw) {
   return h('div', { class: 'seg', role: 'radiogroup', 'aria-label': label(labelKey) },
     options.map(([value, textKey]) => h('button', {
-      type: 'button', role: 'radio', class: 'seg__btn', 'aria-checked': String(p.parent[key] === value),
-      onclick: async () => { await updateProfile(p.id, { parent: { [key]: value } }); redraw(); },
+      type: 'button', role: 'radio', class: 'seg__btn', 'aria-checked': String(current === value),
+      onclick: async () => { await save(value); redraw(); },
     }, tx(textKey))));
 }
+const parentSeg = (p, key, ...rest) => seg(p.parent[key], value => updateProfile(p.id, { parent: { [key]: value } }), ...rest);
+const ownSeg = (p, key, ...rest) => seg(p[key], value => updateProfile(p.id, { [key]: value }), ...rest);
 
 const field = (id, key, control) => h('div', { class: 'field' },
   h('label', { class: 'field__label', for: id }, tx(key)), h('div', { class: 'field__control' }, control));
@@ -48,10 +52,28 @@ function scheduleSection(p, redraw) {
 function unitsSection(p, redraw) {
   return [
     h('div', { class: 'field' }, h('span', { class: 'field__label' }, tx('parents.length')),
-      seg(p, 'length', [['metric', 'parents.metric'], ['imperial', 'parents.imperial']], 'parents.length', redraw)),
+      parentSeg(p, 'length', [['metric', 'parents.metric'], ['imperial', 'parents.imperial']], 'parents.length', redraw)),
     h('div', { class: 'field' }, h('span', { class: 'field__label' }, tx('parents.temp')),
-      seg(p, 'temp', [['C', 'parents.celsius'], ['F', 'parents.fahrenheit']], 'parents.temp', redraw)),
+      parentSeg(p, 'temp', [['C', 'parents.celsius'], ['F', 'parents.fahrenheit']], 'parents.temp', redraw)),
   ];
+}
+
+// How Chinese names first show on cards (a tap on a name switches it for this visit).
+function namesSection(p, redraw) {
+  return [
+    ownSeg(p, 'zhuyin', [[false, 'more.zhPlain'], [true, 'more.zhZhuyin']], 'more.zhNames', redraw),
+    h('p', { class: 'muted' }, tx('more.zhNote')),
+  ];
+}
+
+function speechSection(p, redraw) {
+  if (!speechSupported) return h('p', null, tx('more.noSpeech'));
+  return h('div', { class: 'row-actions' },
+    ownSeg(p, 'rate', [['slow', 'more.slow'], ['normal', 'more.normal']], 'more.speech', redraw),
+    h('button', {
+      class: 'btn btn--soft', type: 'button',
+      onclick: () => speak([t('more.testText')], { mode: p.lang, rate: speechRate(p) }),
+    }, h('span', { 'aria-hidden': 'true' }, '🔊'), tx('more.test')));
 }
 
 function previewSection(p) {
@@ -97,6 +119,8 @@ function profileSection(p, redraw) {
 const SECTIONS = [
   { id: 'packs', icon: '🎁', title: 'parents.packs', render: scheduleSection },
   { id: 'units', icon: '📏', title: 'parents.units', render: unitsSection },
+  { id: 'names', icon: '🔤', title: 'more.zhNames', render: namesSection },
+  { id: 'speech', icon: '🗣️', title: 'more.speech', render: speechSection },
   { id: 'preview', icon: '👀', title: 'parents.preview', render: previewSection },
   { id: 'profile', icon: '🧒', title: 'parents.profile', render: profileSection },
 ];
@@ -148,12 +172,17 @@ function backupPanel(redraw) {
     msg);
 }
 
+// This device: whether it works offline, and how to install it.
+const devicePanel = () => h('div', { class: 'panel', 'data-section': 'device' },
+  h('h2', { class: 'panel__title' }, h('span', { 'aria-hidden': 'true' }, '📱 '), tx('parents.device')),
+  h('p', { 'data-offline': true }, offlineStatus()),
+  h('p', { class: 'muted' }, tx('more.install')));
+
 // ---------- Page ----------
 
 function renderGate(main) {
   const gate = sumGate(() => { gateOpen = true; draw(main); });
   mount(main, h('section', { class: 'page parents' }, title(), h('div', { class: 'panel' }, gate)));
-  gate.querySelector('input').focus();
 }
 
 const title = () => h('h1', { class: 'page__title' }, h('span', { 'aria-hidden': 'true' }, '🔒'), tx('parents.title'));
@@ -192,7 +221,10 @@ function draw(main) {
     SECTIONS.map(s => h('div', { class: 'panel', 'data-section': s.id },
       h('h2', { class: 'panel__title' }, h('span', { 'aria-hidden': 'true' }, `${s.icon} `), tx(s.title, { name: p.name })),
       s.render(p, redraw))),
-    backupPanel(redraw)));
+    backupPanel(redraw),
+    devicePanel(),
+    h('a', { class: 'panel panel--link', href: '#/credits' },
+      h('span', { 'aria-hidden': 'true' }, '📷'), tx('more.credits'), h('span', { 'aria-hidden': 'true' }, '›'))));
 }
 
 // The explorers changed (here, or pulled from the family account). Only the selected
@@ -206,8 +238,12 @@ function explorersChanged(main) {
 }
 
 export function render(main) {
-  selectedId = state.profile?.id ?? null;
-  if (gateOpen) draw(main); else renderGate(main);
+  if (gateOpen) draw(main);
+  else {
+    selectedId = state.profile?.id ?? null;
+    renderGate(main);
+  }
   const stops = [onChange('profiles', () => explorersChanged(main)), onChange('role', () => { if (gateOpen) draw(main); })];
-  return () => { gateOpen = false; stops.forEach(stop => stop()); };
+  // Drawn again in place (the language changed, a pack sheet closed): the sum stays passed.
+  return ({ staying }) => { if (!staying) gateOpen = false; stops.forEach(stop => stop()); };
 }

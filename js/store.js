@@ -492,4 +492,4 @@ export async function saveQuizScore(kind, score) {
 // Image helpers. Thumbnails sit in img/thumbs/ with the same base name, as .webp.
 export const thumbOf = file => 'img/thumbs/' + file.split('/').pop().replace(/\.[^.]+$/, '') + '.webp';
 export const mainImage = c => c.photo ?? c.illustration ?? null;
-export const speechRate = () => (state.profile?.rate === 'slow' ? 0.7 : 0.95);
+export const speechRate = (p = state.profile) => (p?.rate === 'slow' ? 0.7 : 0.95);

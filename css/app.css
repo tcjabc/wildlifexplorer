@@ -874,12 +874,10 @@ a.gzone__animal { text-decoration: underline; }
 .stars { font-size: var(--emoji-lg); letter-spacing: var(--s-2); color: var(--c-line); }
 .stars .is-on { color: var(--c-accent); text-shadow: 0 3px 0 var(--c-accent-deep); }
 
-/* ---------- More / Parents ---------- */
+/* ---------- Parents ---------- */
 .gate { display: grid; gap: var(--s-3); }
 .gate__row { display: flex; gap: var(--s-3); }
 .parent { display: grid; gap: var(--s-4); justify-items: start; }
-.me { display: flex; align-items: center; gap: var(--s-4); }
-.me__name { font-size: var(--fs-lg); font-weight: var(--fw-bold); line-height: 1.2; }
 /* Whose settings: one avatar button per profile. */
 .who { display: flex; flex-wrap: wrap; gap: var(--s-3); }
 .who__btn {

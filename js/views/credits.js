@@ -19,7 +19,7 @@ export function render(main) {
   items.push(...entries);
 
   mount(main, h('section', { class: 'page' },
-    h('a', { class: 'btn btn--soft', href: '#/more' }, '← ', tx('nav.more')),
+    h('a', { class: 'btn btn--soft', href: '#/parents' }, '← ', tx('parents.title')),
     h('h1', { class: 'page__title' }, h('span', { 'aria-hidden': 'true' }, '📷'), tx('credits.title')),
     h('p', null, tx('credits.intro')),
     h('p', { class: 'muted' }, tx('credits.data')),
