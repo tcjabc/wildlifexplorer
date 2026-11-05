@@ -277,6 +277,8 @@
   --gpanel-strip: 72px; /* the same panel collapsed to its key */
   --gpanel-art: 280px;  /* the drawings in the panel (at most; they fill its width) */
   --gzone-art: 64px;    /* the example animal of each ocean zone */
+  --gdrawer-w: 390px;   /* the Globe's filter drawer */
+  --gopt-min: 150px;    /* an option in it */
   --gvolc-w: 260px;     /* a volcano's card on the globe */
   --gpanel-scale: 180px; /* the temperature scale in the panel, open */
   --gpanel-sheet: 60%;  /* the portrait sheet, open: at most this much of the globe's height */

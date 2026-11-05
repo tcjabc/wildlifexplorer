@@ -25,6 +25,7 @@ import { loadRange, rangePolygons } from '../worldmap.js';
 import { track, haptic } from '../gesture.js';
 import { nameBi } from '../zhuyin.js';
 import { LAYERS, tempStops } from '../layers.js';
+import { matches, noFilters, filterCount, optionCount, onGlobe } from '../globe-filter.js';
 import { tempText } from '../units.js';
 import { countryName } from '../countries.js';
 
@@ -36,11 +37,12 @@ let globe = null;
 let sheet = null;          // { el, scrim, pin }
 // The map layer and month, kept while visiting other tabs.
 let shownLayer = null;
-let shownFilter = null;   // { key: 'continents' | 'biomes', id }: only show pins with that tag
+let shownFilter = noFilters(); // js/globe-filter.js: only show the pins that match
 let tempMonth = new Date().getMonth() + 1;
 let goBack = null;         // "Back to card", while the globe was opened from a card
 let closePanel = null;     // folds the info panel back when it is open over the globe
 let closeVolc = null;      // closes a volcano's card, while one is open
+let closeDrawer = null;    // closes the filter drawer, while it is open
 
 // ---------- where pins go ----------
 
@@ -123,7 +125,16 @@ export function render(main, [cardId] = []) {
   const panelBody = h('div', { class: 'gpanel__body', 'data-scroll': '' });
   const panelToggle = h('button', { class: 'gpanel__toggle', type: 'button', onclick: () => setPanel(panel.dataset.state !== 'expanded') });
   const panel = h('aside', { class: 'gpanel', 'aria-label': label('info.what') }, panelToggle, panelBody);
-  const filterPanel = h('div', { class: 'gfilter', hidden: true });
+  // The filter drawer: places, habitats and groups, each option with what it would show.
+  const drawerBody = h('div', { class: 'gdrawer__body', 'data-scroll': '' });
+  const clearAll = h('button', { class: 'btn btn--soft', type: 'button', onclick: () => clearFilters() }, tx('globe.filter.clear'));
+  const drawer = h('aside', { class: 'gdrawer', 'aria-label': label('globe.filter.title') },
+    h('div', { class: 'gdrawer__head' },
+      h('h2', { class: 'gdrawer__title' }, tx('globe.filter.title')),
+      h('button', { class: 'btn btn--icon', type: 'button', 'aria-label': label('card.close'), onclick: () => openDrawer(false) },
+        h('span', { 'aria-hidden': 'true' }, '✕'))),
+    drawerBody,
+    h('div', { class: 'gdrawer__foot' }, clearAll));
   // Back to the card: in history when the globe was opened from it, else to its address.
   goBack = card ? () => { if (cameFromMap(card.id)) history.back(); else location.hash = `#/card/${encodeURIComponent(card.id)}`; } : null;
   const back = card && h('button', { class: 'btn btn--primary globe__back', type: 'button', onclick: () => goBack?.() },
@@ -133,7 +144,7 @@ export function render(main, [cardId] = []) {
     h('p', null, h('span', { 'aria-hidden': 'true' }, '📡 '), tx('globe.offline')),
     h('button', { class: 'btn btn--soft', type: 'button', onclick: () => globe?.retry() }, tx('globe.retry')));
   const view = h('section', { class: ['globe', card && 'has-back'], 'aria-label': label('nav.globe') },
-    stage, back, bar, panel, filterPanel, offline, h('div', { class: 'globe__foot' }, hint));
+    stage, back, bar, panel, drawer, offline, h('div', { class: 'globe__foot' }, hint));
   mount(main, view);
   // Any touch on this screen stops the slow turn, not only one on the globe.
   view.addEventListener('pointerdown', () => globe?.noteTouch(), { capture: true });
@@ -269,7 +280,7 @@ export function render(main, [cardId] = []) {
       if (fan) { fan = null; globe.redraw(); }
       hold('card', false); // touched: it may turn by itself again
     },
-    onTap: (ll, at) => { fan = null; select(null); closePanel?.(); tapVolcano(at); },
+    onTap: (ll, at) => { fan = null; select(null); closePanel?.(); closeDrawer?.(); tapVolcano(at); },
   });
 
   // Tapping a stack zooms in far enough to pull its pins apart (and fans them if needed).
@@ -310,6 +321,7 @@ export function render(main, [cardId] = []) {
   // ---------- card sheet ----------
   function openSheet(p) {
     closeSheet({ animate: false });
+    closeDrawer?.();
     const card = p.card;
     const g = groupById(card.group);
     const fact = (card.facts ?? []).find(f => f?.en || f?.zh);
@@ -393,6 +405,7 @@ export function render(main, [cardId] = []) {
     // From a card: its pin is the selected one (its range is already lit).
     const own = card && pins.find(p => p.card === card);
     if (own && !selected) { selected = own; own.el.classList.add('is-selected'); }
+    if (placed) showFiltered();
   });
 
   // From a card's map: light up its range and turn to it, zoomed to fit (js/globe.js rangeFit),
@@ -408,51 +421,91 @@ export function render(main, [cardId] = []) {
     });
   }
 
-  // ---------- region filter: continents and habitats, from the cards' tags ----------
-  function matchesFilter(card) {
-    return !shownFilter || (card[shownFilter.key] ?? []).includes(shownFilter.id);
-  }
-  const regionOf = f => f && state.regions[f.key].find(r => r.id === f.id);
-  const filterChip = h('button', {
-    class: 'glayer glayer--filter', type: 'button', 'aria-expanded': 'false', 'aria-haspopup': 'true',
-    onclick: () => openFilter(filterPanel.hidden),
+  // ---------- filters: places, habitats and groups (js/globe-filter.js) ----------
+  function matchesFilter(card) { return matches(card, shownFilter); }
+  // Groups with nothing that can have a pin (topics, say) are left out.
+  const FILTERS = [
+    { key: 'continents', title: 'globe.filter.places', options: state.regions.continents },
+    { key: 'biomes', title: 'badge.biomes', options: state.regions.biomes },
+    { key: 'groups', title: 'globe.filter.groups', options: state.groups.filter(g => state.cards.some(c => c.group === g.id && onGlobe(c))) },
+  ];
+  const filterBtn = h('button', {
+    class: 'glayer glayer--filter', type: 'button', 'aria-expanded': 'false', 'aria-haspopup': 'dialog',
+    onclick: () => openDrawer(!closeDrawer),
   });
-  function drawFilterChip() {
-    const r = regionOf(shownFilter);
-    filterChip.setAttribute('aria-pressed', String(Boolean(r)));
-    mount(filterChip, h('span', { class: 'glayer__emoji', 'aria-hidden': 'true' }, r?.emoji ?? '🔎'), r ? bi(r.name) : tx('globe.filterAll'));
+  const activeChips = h('div', { class: 'gactive' });
+  const options = []; // { key, id, name, el, count }
+  mount(drawerBody, FILTERS.map(({ key, title, options: list }) => h('section', { class: 'gdrawer__section' },
+    h('h3', { class: 'gdrawer__heading' }, tx(title)),
+    h('div', { class: 'gdrawer__options' }, list.map(o => {
+      const count = h('span', { class: 'gopt__count', 'aria-hidden': 'true' });
+      const el = h('button', { class: 'gopt', type: 'button', 'aria-pressed': 'false', onclick: () => toggleFilter(key, o.id) },
+        h('span', { class: 'gopt__emoji', 'aria-hidden': 'true' }, o.emoji), bi(o.name), count);
+      options.push({ key, id: o.id, name: o.name, el, count });
+      return el;
+    })))));
+
+  // Each option: chosen or not, and what it would show given the other sections. One that
+  // would show nothing is greyed out, so the globe can't be filtered empty; one already
+  // chosen can always be taken off.
+  function drawOptions() {
+    const shownCards = pins.map(p => p.card);
+    for (const o of options) {
+      const on = shownFilter[o.key].has(o.id);
+      const n = optionCount(shownCards, shownFilter, o.key, o.id);
+      o.count.textContent = String(n);
+      o.el.setAttribute('aria-pressed', String(on));
+      o.el.setAttribute('aria-label', `${plain(o.name)}: ${n}`);
+      o.el.disabled = !n && !on;
+    }
+    clearAll.disabled = !filterCount(shownFilter);
   }
-  function openFilter(open) {
-    filterPanel.hidden = !open;
-    filterChip.setAttribute('aria-expanded', String(open));
-    if (!open) return;
-    const chip = (f, emoji, name) => h('button', {
-      class: 'glayer', type: 'button',
-      'aria-pressed': String(f ? shownFilter?.key === f.key && shownFilter?.id === f.id : !shownFilter),
-      onclick: () => applyFilter(f),
-    }, h('span', { class: 'glayer__emoji', 'aria-hidden': 'true' }, emoji), bi(name));
-    mount(filterPanel,
-      h('div', { class: 'gfilter__row' }, chip(null, '🌐', t('globe.filterAll'))),
-      ...[['continents', 'badge.continents'], ['biomes', 'badge.biomes']].map(([key, titleKey]) => h('div', { class: 'gfilter__group' },
-        h('p', { class: 'gfilter__title' }, tx(titleKey)),
-        h('div', { class: 'gfilter__row' }, state.regions[key].map(r => chip({ key, id: r.id }, r.emoji, r.name))))));
+  function drawFilters() {
+    const n = filterCount(shownFilter);
+    filterBtn.setAttribute('aria-pressed', String(n > 0));
+    mount(filterBtn, h('span', { class: 'glayer__emoji', 'aria-hidden': 'true' }, '🔎'),
+      tx(n === 0 ? 'globe.filterAll' : n === 1 ? 'globe.filters.one' : 'globe.filters.many', { n }));
+    mount(activeChips, FILTERS.flatMap(({ key, options: list }) => list.filter(o => shownFilter[key].has(o.id)).map(o => h('button', {
+      class: 'gchip', type: 'button', 'aria-label': label('globe.filter.remove', { name: o.name }), onclick: () => toggleFilter(key, o.id),
+    }, h('span', { 'aria-hidden': 'true' }, o.emoji), bi(o.name), h('span', { class: 'gchip__x', 'aria-hidden': 'true' }, '✕')))));
+    drawOptions();
   }
-  // Show only the pins with that tag, and turn the globe towards a continent.
-  function applyFilter(f) {
-    shownFilter = f;
-    openFilter(false);
-    drawFilterChip();
+  function openDrawer(open) {
+    const was = Boolean(closeDrawer);
+    drawer.classList.toggle('is-open', open);
+    filterBtn.setAttribute('aria-expanded', String(open));
+    closeDrawer = open ? () => openDrawer(false) : null;
+    hold('drawer', open);
+    if (open) drawOptions();
+    if (was && !open) filterBtn.focus({ preventScroll: true });
+  }
+  // Show only the pins that match.
+  function showFiltered() {
     let shown = 0;
     for (const p of pins) { p.off = !matchesFilter(p.card); if (!p.off) shown++; }
-    fan = null;
-    select(null);
-    say(pins.length && !shown ? tx('globe.filterNone') : null);
-    const r = regionOf(f);
-    if (r?.center) globe.flyTo(r.center[0], r.center[1], globe.k, { duration: 650 });
+    if (pins.length) say(shown ? null : tx('globe.filterNone'));
+    drawFilters();
     globe.redraw();
   }
-  drawFilterChip();
-  bar.append(filterChip);
+  function changedFilters() {
+    fan = null;
+    select(null);
+    showFiltered();
+  }
+  function toggleFilter(key, id) {
+    const set = shownFilter[key];
+    if (set.has(id)) set.delete(id); else set.add(id);
+    changedFilters();
+    // One place chosen: turn the globe towards it.
+    const place = key === 'continents' && set.size === 1 && FILTERS[0].options.find(r => set.has(r.id));
+    if (place?.center) globe.flyTo(place.center[0], place.center[1], globe.k, { duration: 650 });
+  }
+  function clearFilters() {
+    shownFilter = noFilters();
+    changedFilters();
+  }
+  drawFilters();
+  bar.append(filterBtn, activeChips);
 
   // ---------- map layers ----------
   const col = name => getComputedStyle(view).getPropertyValue(name).trim();
@@ -663,6 +716,7 @@ export function render(main, [cardId] = []) {
     goBack = null;
     closePanel = null;
     closeVolc = null;
+    closeDrawer = null;
     closeSheet({ animate: false });
     globe.destroy();
     globe = null;
@@ -673,6 +727,7 @@ export function render(main, [cardId] = []) {
 export function onKey(e) {
   if (!globe) return;
   if (e.key === 'Escape' && sheet) { e.preventDefault(); sheet.el.querySelector('.gsheet__close')?.click(); return; }
+  if (e.key === 'Escape' && closeDrawer) { e.preventDefault(); closeDrawer(); return; }
   if (e.key === 'Escape' && closeVolc) { e.preventDefault(); closeVolc(); return; }
   if (e.key === 'Escape' && closePanel) { e.preventDefault(); closePanel(); return; }
   if (e.key === 'Escape' && goBack) { e.preventDefault(); goBack(); return; }

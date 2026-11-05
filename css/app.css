@@ -531,16 +531,59 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
 .glayer.is-failed { border-color: var(--c-bad); }
 .glayer--filter { border-color: var(--c-primary); }
 
-/* Region filter: continents and habitats, opened from the first chip. */
-.gfilter {
-  position: absolute; z-index: 2; top: calc(var(--gpanel-top, calc(var(--tap-sm) + var(--s-2))) + var(--s-2)); left: var(--edge-l); right: var(--edge-r);
-  max-width: var(--sheet-w); max-height: 60%; overflow-y: auto;
-  display: grid; gap: var(--s-2); padding: var(--s-3);
-  border-radius: var(--r-md); background: var(--c-veil); box-shadow: var(--shadow-2);
+/* Active filters: small chips over the globe. A tap anywhere on one takes it off. */
+.gactive { display: flex; gap: var(--s-2); overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.gactive::-webkit-scrollbar { display: none; }
+.gactive:empty { display: none; }
+.gchip {
+  flex: none; display: inline-flex; align-items: center; gap: var(--s-1);
+  min-height: var(--tap-xs); padding: var(--s-1) var(--s-3);
+  border: var(--bw-thin) solid var(--c-primary); border-radius: var(--r-pill);
+  background: var(--c-surface); color: var(--c-ink); box-shadow: var(--shadow-1);
+  font: inherit; font-size: var(--fs-xs); font-weight: var(--fw-bold); cursor: pointer; touch-action: manipulation;
 }
-.gfilter__title { margin: 0; font-size: var(--fs-xs); font-weight: var(--fw-bold); color: var(--c-ink-soft); }
-.gfilter__group { display: grid; gap: var(--s-1); }
-.gfilter__row { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.gchip .bi { flex-direction: row; gap: 0.35em; }
+.gchip__x { margin-left: var(--s-1); color: var(--c-ink-soft); }
+
+/* The filter drawer: from the right, or from the bottom on a phone. The globe stays in view,
+   and pins change as options are tapped. */
+.gdrawer {
+  position: absolute; z-index: 4; top: 0; right: 0; bottom: 0; width: min(100%, var(--gdrawer-w));
+  display: flex; flex-direction: column; padding-right: var(--safe-r);
+  background: var(--c-surface); box-shadow: var(--shadow-3);
+  visibility: hidden; transform: translateX(100%);
+  transition: transform var(--t-med), visibility 0s linear var(--t-med);
+}
+.gdrawer.is-open { visibility: visible; transform: none; transition: transform var(--t-med); }
+.gdrawer__head { flex: none; display: flex; align-items: center; justify-content: space-between; gap: var(--s-2); padding: var(--s-2) var(--s-2) var(--s-2) var(--s-4); }
+.gdrawer__title { font-size: var(--fs-lg); }
+.gdrawer__title .bi { flex-direction: row; gap: 0.4em; }
+.gdrawer__body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; padding: 0 var(--s-4) var(--s-3); display: grid; gap: var(--s-4); align-content: start; }
+.gdrawer__section { display: grid; gap: var(--s-2); }
+.gdrawer__heading { margin: 0; font-size: var(--fs-sm); color: var(--c-ink-soft); }
+.gdrawer__heading .bi { flex-direction: row; gap: 0.4em; }
+.gdrawer__options { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--gopt-min), 1fr)); gap: var(--s-2); }
+.gdrawer__foot { flex: none; padding: var(--s-2) var(--s-4) max(var(--s-3), var(--safe-b)); border-top: var(--bw-thin) solid var(--c-line); }
+.gdrawer__foot .btn { width: 100%; min-height: var(--tap-sm); }
+.gopt {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--s-2);
+  min-height: var(--tap-sm); padding: var(--s-1) var(--s-3) var(--s-1) var(--s-2);
+  border: var(--bw-thin) solid var(--c-line); border-radius: var(--r-md);
+  background: var(--c-surface); color: var(--c-ink);
+  font: inherit; font-size: var(--fs-xs); font-weight: var(--fw-bold); text-align: left; cursor: pointer; touch-action: manipulation;
+}
+.gopt .bi { min-width: 0; line-height: 1.15; }
+.gopt__emoji { font-size: var(--fs-lg); line-height: 1; }
+.gopt__count { font-variant-numeric: tabular-nums; color: var(--c-ink-soft); }
+.gopt[aria-pressed="true"] { background: var(--c-primary); border-color: var(--c-primary); color: var(--c-on-primary); }
+.gopt[aria-pressed="true"] .gopt__count { color: var(--c-on-primary); }
+/* Would leave the globe empty: still there, so it is clear it exists. */
+.gopt:disabled { background: var(--c-bg-deep); border-color: var(--c-bg-deep); color: var(--c-ink-faint); cursor: default; }
+.gopt:disabled .gopt__count { color: var(--c-ink-faint); }
+.gopt:disabled .gopt__emoji { opacity: 0.4; }
+@media (max-width: 599px) {
+  .gdrawer { top: auto; left: 0; width: 100%; max-height: 80%; border-radius: var(--r-lg) var(--r-lg) 0 0; transform: translateY(100%); }
+}
 
 /* The legend for the layer that is on. */
 /* The info panel (views/globe.js, js/globe-info.js): the key, "What am I looking at?" and more.
