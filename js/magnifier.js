@@ -82,7 +82,7 @@ export function magnifier(pic, file, callouts) {
     const b = { x: lens.x - ux * (LENS / 2), y: lens.y - (uy * (LENS / 2)) / ratio };
     const line = svg('line', {
       x1: a.x * 100, y1: a.y * 100, x2: b.x * 100, y2: b.y * 100,
-      pathLength: 1, 'vector-effect': 'non-scaling-stroke',
+      'vector-effect': 'non-scaling-stroke',
     });
     const edge = line.cloneNode();
     edge.setAttribute('class', 'loupe__edge');
@@ -107,9 +107,9 @@ export function magnifier(pic, file, callouts) {
     layer.replaceChildren(wire, ring, glass);
     layer.classList.add('is-on');
 
-    // Ring fades in, the line draws, the lens grows out of the ring.
+    // Ring fades in, then the line, and the lens grows out of the ring.
     play(ring, [{ opacity: 0, transform: 'scale(.6)' }, { opacity: 1, transform: 'none' }], { duration: 200 });
-    play(line, [{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], { duration: 220, delay: 140, easing: 'ease-out' });
+    play(wire, [{ opacity: 0 }, { opacity: 1 }], { duration: 220, delay: 140, easing: 'ease-out' });
     const fromX = (f.x - lens.x) * 100 / LENS, fromY = ((f.y - lens.y) * ratio) * 100 / LENS;
     play(glass, [
       { transform: `translate(${fromX}%, ${fromY}%) scale(${(ringR * 2) / LENS})`, opacity: 0.3 },

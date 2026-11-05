@@ -242,7 +242,6 @@
 .loupe__wire { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .loupe__wire line {
   stroke: var(--c-surface); stroke-width: var(--bw-thin); stroke-linecap: round;
-  stroke-dasharray: 1; stroke-dashoffset: 0;
 }
 /* A darker line under it, so it shows on pale photos. */
 .loupe__wire .loupe__edge { stroke: var(--c-shade-strong); stroke-width: calc(var(--bw-thin) + 2 * var(--bw-hair)); }
