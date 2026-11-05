@@ -282,7 +282,7 @@
 /* The elastic band down the cover. */
 .nbdock__band {
   position: absolute; top: 0; bottom: 0; left: var(--s-3); width: var(--nb-band-w);
-  background: var(--nb-band); box-shadow: 1px 0 1px var(--c-shade);
+  background: var(--nb-band); box-shadow: var(--bw-hair) 0 0 var(--c-shade);
 }
 .nbdock__label {
   position: absolute; top: 50%; left: 50%; transform: translate(-30%, -50%);

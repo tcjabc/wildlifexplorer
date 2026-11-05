@@ -84,7 +84,9 @@ export function magnifier(pic, file, callouts) {
       x1: a.x * 100, y1: a.y * 100, x2: b.x * 100, y2: b.y * 100,
       pathLength: 1, 'vector-effect': 'non-scaling-stroke',
     });
-    const wire = svg('svg', { class: 'loupe__wire', viewBox: '0 0 100 100', preserveAspectRatio: 'none' }, line);
+    const edge = line.cloneNode();
+    edge.setAttribute('class', 'loupe__edge');
+    const wire = svg('svg', { class: 'loupe__wire', viewBox: '0 0 100 100', preserveAspectRatio: 'none' }, edge, line);
 
     // The lens: the full-size image, enlarged so the feature's circle fills it.
     const scale = 1 / (2 * f.r);                    // image width in lens widths

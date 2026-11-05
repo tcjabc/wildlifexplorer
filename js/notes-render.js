@@ -152,7 +152,6 @@ function drawPhoto(ctx, item, assets) {
   ctx.rotate(item.r ?? 0);
   const edge = Math.min(item.w, item.h) * 0.04;
   ctx.shadowColor = css('--nb-shadow');
-  ctx.shadowBlur = 14;
   ctx.shadowOffsetY = 5;
   ctx.fillStyle = css('--nb-photo-edge');
   ctx.fillRect(-item.w / 2 - edge, -item.h / 2 - edge, item.w + 2 * edge, item.h + 2 * edge);

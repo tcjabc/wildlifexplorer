@@ -43,6 +43,10 @@
   --c-shade-faint: rgb(0 0 0 / 0.12);
   --c-shade: rgb(0 0 0 / 0.22);
   --c-shade-strong: rgb(0 0 0 / 0.4);
+  /* Warm shade under things on the cream paper: the --shadow-* below. */
+  --c-shade-warm-faint: rgb(60 40 10 / 0.12);
+  --c-shade-warm: rgb(60 40 10 / 0.18);
+  --c-shade-warm-strong: rgb(60 40 10 / 0.35);
 
   /* Card pages, maps and packs */
   --c-paper: #fffdf6;
@@ -189,6 +193,7 @@
   --r-pill: 999px;
 
   /* Border widths */
+  --bw-hair: 1px;
   --bw-thin: 2px;
   --bw-mid: 3px;
   --bw-focus: 3px;
@@ -295,11 +300,10 @@
   --tile-min-lg: 190px;
   --content-max: 1200px;
 
-  /* Elevation */
-  --shadow-1: 0 2px 6px rgb(60 40 10 / 0.12);
-  --shadow-2: 0 6px 18px rgb(60 40 10 / 0.18);
-  --shadow-3: 0 16px 40px rgb(20 20 20 / 0.35);
-  --shadow-up: 0 -2px 10px rgb(60 40 10 / 0.1);
+  /* Elevation: flat, hard-edged shadows. No blur: it is slow on the baseline tablet. */
+  --shadow-1: 0 var(--s-hair) 0 var(--c-shade-warm-faint);
+  --shadow-2: 0 var(--s-1) 0 var(--c-shade-warm);
+  --shadow-3: 0 0 0 var(--bw-thin) var(--c-shade-warm), 0 var(--s-2) 0 var(--c-shade-warm-strong);
 
   /* Motion */
   --t-fast: 120ms;

@@ -14,6 +14,32 @@ test('no backdrop-filter', () => {
   for (const { f, css } of sheets) assert.doesNotMatch(css, /backdrop-filter/, f);
 });
 
+// One shadow value per item, splitting on commas outside brackets (color-mix has its own).
+function layers(value) {
+  const out = [''];
+  let depth = 0;
+  for (const ch of value) {
+    if (ch === '(') depth++;
+    if (ch === ')') depth--;
+    if (ch === ',' && depth === 0) out.push('');
+    else out[out.length - 1] += ch;
+  }
+  return out.map(s => s.trim());
+}
+
+test('shadows are flat: no blur, no drop-shadow filter', () => {
+  for (const { f, css } of sheets) {
+    assert.doesNotMatch(css, /drop-shadow/, f);
+    for (const [, value] of css.matchAll(/(?:box-shadow|text-shadow|--shadow-\d)\s*:\s*([^;]+);/g)) {
+      for (const layer of layers(value)) {
+        if (layer === 'none' || layer.startsWith('var(--shadow-')) continue;
+        const parts = layer.replace(/^inset\s+/, '').match(/calc\([^)]*\)\)?|var\([^)]*\)|[^\s]+/g);
+        assert.equal(parts[2], '0', `${f}: ${layer}`); // offset x, offset y, blur
+      }
+    }
+  }
+});
+
 test('screen height and safe areas come from the tokens', () => {
   for (const { f, css } of sheets) {
     if (f === 'tokens.css') continue;

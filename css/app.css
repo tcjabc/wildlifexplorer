@@ -410,7 +410,7 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
   background: radial-gradient(circle at 35% 30%, var(--c-shine), transparent 45%), var(--g);
   border-color: var(--c-accent); box-shadow: 0 0 0 var(--bw-thick) var(--c-accent-deep), var(--shadow-2);
 }
-.medal--earned > span { filter: drop-shadow(0 3px 0 var(--c-shade)); opacity: 1; }
+.medal--earned > span { filter: none; text-shadow: 0 3px 0 var(--c-shade); opacity: 1; }
 .medal--huge { width: var(--size-medal-lg); height: var(--size-medal-lg); font-size: var(--emoji-xl); animation: pop-in var(--t-slow) var(--ease-bounce) both; }
 
 /* Continent and habitat medals take their tier's metal (data-tier). */
@@ -700,7 +700,8 @@ a.gzone__animal { text-decoration: underline; }
 .gplate {
   position: absolute; left: 0; top: 0; pointer-events: none; white-space: nowrap; text-align: center;
   color: var(--c-plate-arrow-edge); font-size: var(--fs-sm); font-weight: var(--fw-bold); line-height: 1.15;
-  text-shadow: 0 0 3px var(--c-surface), 0 0 3px var(--c-surface), 0 0 6px var(--c-surface);
+  text-shadow: var(--bw-hair) 0 0 var(--c-surface), calc(-1 * var(--bw-hair)) 0 0 var(--c-surface),
+    0 var(--bw-hair) 0 var(--c-surface), 0 calc(-1 * var(--bw-hair)) 0 var(--c-surface);
 }
 .gplate .bi { align-items: center; }
 .gplate.is-off { visibility: hidden; }

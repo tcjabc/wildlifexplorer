@@ -243,8 +243,9 @@
 .loupe__wire line {
   stroke: var(--c-surface); stroke-width: var(--bw-thin); stroke-linecap: round;
   stroke-dasharray: 1; stroke-dashoffset: 0;
-  filter: drop-shadow(0 0 1px var(--c-shade-strong));
 }
+/* A darker line under it, so it shows on pale photos. */
+.loupe__wire .loupe__edge { stroke: var(--c-shade-strong); stroke-width: calc(var(--bw-thin) + 2 * var(--bw-hair)); }
 .loupe__ring, .loupe__lens { position: absolute; aspect-ratio: 1; border-radius: 50%; transform-origin: 50% 50%; }
 .loupe__ring {
   border: var(--bw-thin) solid var(--c-surface);
