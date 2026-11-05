@@ -12,7 +12,6 @@
 .reveal.is-open { opacity: 1; }
 .reveal__scrim {
   position: absolute; inset: 0; background: var(--c-overlay);
-  backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
   transition: opacity var(--t-slow);
 }
 /* While the card flies to its tab, the binder shows through. */
