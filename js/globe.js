@@ -63,16 +63,17 @@ export function rangeFit(polys, { cap = FIT_K_MAX } = {}) {
 // so on a wide screen it sits in the spare width beside the panel instead of leaving margins.
 // Beside the side panel, with width to spare, the globe grows past its usual size: up to
 // WIDE_SHARE of the free height as its radius (RADIUS normally), as the free space gets wider
-// than it is tall, never wider than the free width allows.
+// than it is tall, never wider than the free width allows. Taller than wide, it fills the width.
 export const WIDE_SHARE = 0.47;
+const FULL_WIDTH = 0.46; // beside the toolbar: the most of the free width its radius may take
 export function roomFit({ w, h, top = 0, bottom = 0, left = 0 }) {
   if (w < 2 || h < 2) return { fit: 1, dx: 0, dy: 0 };
   const freeW = Math.max(1, w - left), freeH = Math.max(1, h - top - bottom);
   let r = RADIUS * Math.min(freeW, freeH);
   if (left > 0 && freeW > freeH) {
     const share = RADIUS + (WIDE_SHARE - RADIUS) * clamp((freeW / freeH - 1) / 0.25, 0, 1);
-    r = Math.min(share * freeH, 0.46 * freeW);
-  }
+    r = Math.min(share * freeH, FULL_WIDTH * freeW);
+  } else if (left > 0) r = FULL_WIDTH * freeW; // a narrow window: height to spare, so fill the width
   return { fit: clamp(r / (RADIUS * Math.min(w, h)), 0.55, WIDE_SHARE / RADIUS), dx: left / 2, dy: (top - bottom) / 2 };
 }
 

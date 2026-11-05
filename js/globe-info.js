@@ -13,14 +13,13 @@
 // Depth also has zones: each step's scientific name and an example animal (its card when one
 // is built, otherwise its name and a drawing).
 //
-// Where the panel goes (panelMode): on a landscape screen, a column on the left with the
-// globe beside it; on a portrait tablet, a short sheet under the globe that opens upwards; on
-// a phone, a slim strip that opens over the lower half. Collapsed it shows the key only.
+// Where the panel goes (panelMode): on a tablet, a card of one fixed width at the top left,
+// growing downwards when open; on a phone, a slim strip that opens over the lower half.
+// Collapsed it shows the key only.
 
 export const PHONE_MAX = 600;
-export function panelMode(w, h) {
-  if (w < PHONE_MAX) return 'strip';
-  return w >= h ? 'side' : 'sheet';
+export function panelMode(w) {
+  return w < PHONE_MAX ? 'strip' : 'side';
 }
 
 export const INFO = {

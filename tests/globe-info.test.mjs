@@ -56,7 +56,7 @@ test('the key colours are design tokens', () => {
       assert.ok(tokens.includes(`${k.token}:`), `${id}: ${k.token} is in css/tokens.css`);
     }
   }
-  for (const t of ['--gpanel-w', '--gpanel-strip', '--gpanel-art', '--gpanel-sheet', '--c-twilight']) assert.ok(tokens.includes(`${t}:`), t);
+  for (const t of ['--gpanel-w', '--gpanel-art', '--gpanel-sheet', '--c-twilight']) assert.ok(tokens.includes(`${t}:`), t);
 });
 
 test('depth: the key goes from the lightest (top) to the darkest, one step per zone, each with a name and an animal', () => {
@@ -83,11 +83,11 @@ test('every drawing class the panel uses has a style (coloured by tokens)', () =
   assert.ok(!/#[0-9a-f]{3,6}\b/i.test(art), 'no colours in the drawings themselves');
 });
 
-test('where the panel goes: a column in landscape, a sheet on a portrait tablet, a strip on a phone', () => {
+test('where the toolbar goes: down the left on a tablet either way up, a strip on a phone', () => {
   assert.equal(panelMode(1180, 820), 'side');
   assert.equal(panelMode(1366, 1024), 'side');
-  assert.equal(panelMode(820, 1180), 'sheet');
-  assert.equal(panelMode(768, 1024), 'sheet');
+  assert.equal(panelMode(820, 1180), 'side');
+  assert.equal(panelMode(768, 1024), 'side');
   assert.equal(panelMode(375, 812), 'strip');
   assert.equal(panelMode(PHONE_MAX - 1, 400), 'strip', 'a phone held sideways too');
 });
@@ -104,18 +104,39 @@ test('roomFit: beside the side panel the globe moves right and fits the free spa
   assert.equal(side.dy, 30);
   // A narrow window: the width left over decides, and the globe never shrinks below 55 %.
   const narrow = roomFit({ w: 700, h: 600, top: 60, left: 324 });
-  assert.ok(Math.abs(narrow.fit - (700 - 324) / 600) < 1e-9, 'the width right of the panel decides');
+  assert.ok(Math.abs(narrow.fit * RADIUS_K * 600 - 0.46 * (700 - 324)) < 1e-9, 'the width right of the panel decides');
   assert.ok(roomFit({ w: 700, h: 600, left: 650 }).fit >= 0.55);
   // Nothing in the way: the whole view.
   assert.deepEqual(roomFit({ w: 800, h: 600 }), { fit: 1, dx: 0, dy: 0 });
 });
 
-test('the panel never covers the chips, and the expanded sheet leaves part of the globe showing', () => {
-  assert.match(css, /\.gpanel\[data-mode="side"\][^}]*top: calc\(var\(--gpanel-top/);
+test('roomFit: portrait keeps the globe at full size, the toolbar floating over its corner', () => {
+  const portrait = roomFit({ w: 800, h: 1196, top: 60 });
+  assert.equal(portrait.fit, 1);
+  assert.equal(portrait.dx, 0);
+  assert.match(src('js/views/globe.js'), /const left = panel\.dataset\.over === 'true' \? 0 : room;/);
+});
+
+test('the toolbar keeps clear of Back to card and the filters, and a phone\'s open strip leaves part of the globe showing', () => {
+  assert.match(css, /\.gpanel\[data-mode="side"\][^}]*top: calc\(var\(--gtool-top/);
+  assert.match(css, /\.gtop \{[^}]*left: max\(var\(--edge-l\), var\(--gtool-room/);
   assert.match(css, /max-height: min\(var\(--gpanel-sheet\)/);
   const view = src('js/views/globe.js');
-  assert.match(view, /--gpanel-top/, 'the view sets the panel\'s top below the chips');
+  assert.match(view, /--gtool-room/, 'the view moves the top row clear of the toolbar');
+  assert.match(view, /--gpanel-top/, 'and keeps a phone\'s strip below it');
   assert.match(view, /globePanel/, 'the open / collapsed choice is remembered');
+});
+
+test('the toolbar: hero, key, and the button at the bottom; rows on one fixed icon column', () => {
+  const view = src('js/views/globe.js');
+  assert.match(view, /'aria-label': label\('info\.what'\) \}, hero, panelBody, panelToggle\)/);
+  assert.match(css, /\.gkey__item \{[^}]*grid-template-columns: var\(--legend-sw\) minmax\(0, 1fr\)/);
+  assert.match(css, /\.gpanel__body \{[^}]*flex: 0 1 auto/, 'the card is as tall as what it shows, and scrolls inside');
+  assert.doesNotMatch(css, /\.gpanel\[data-mode="side"\]\[data-state/, 'one width, open or not');
+  assert.doesNotMatch(css, /\.gpanel\[data-mode="side"\] \{[^}]*bottom:/, 'no full-height column');
+  assert.doesNotMatch(view, /glayers/, 'the ribbon is gone');
+  assert.match(css, /\.gpanel__toggle \{[^}]*width: 100%; height: var\(--tap-xs\)/, 'the whole bottom row is the button');
+  assert.match(view, /const up = open === \(panel\.dataset\.mode === 'side'\);/, 'the chevron points the way the panel will move');
 });
 
 test('the key swatches are 24 px, in the map\'s own colours, with their marks inside', async () => {
@@ -148,7 +169,7 @@ test('the open depth guide shows a zone\'s name once when the kid name and the s
 test('the panel reads at about 16 px, with headings to match and bigger drawings', () => {
   assert.match(css, /\.gpanel \{[^}]*font-size: var\(--fs-sm\);/);
   assert.match(tokens, /--fs-sm: 1rem;/);
-  assert.match(css, /\.gpanel__title \{[^}]*font-size: var\(--fs-md\);/);
+  assert.match(css, /\.gtile--hero \{[^}]*font-size: var\(--fs-sm\);/);
   assert.match(css, /\.gpanel__heading \{[^}]*font-size: var\(--fs-sm\);/);
   assert.match(tokens, /--gpanel-art: 280px;/, 'drawings over twice as big as before (132 px)');
 });

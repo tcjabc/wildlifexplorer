@@ -273,8 +273,9 @@
   --nb-tags-w: 56%;
   --map-marker: 8px;    /* range marker on the little world map */
   --gpin: 52px;         /* photo pins on the Globe */
-  --gpanel-w: 300px;    /* the Globe's info panel, open (landscape: a column on the left) */
-  --gpanel-strip: 72px; /* the same panel collapsed to its key */
+  --gpanel-w: 256px;    /* the Globe's toolbar: one width, open or not */
+  --gpick-w: 420px;     /* the layer picker */
+  --gtile-min: 120px;   /* a tile in it */
   --gpanel-art: 280px;  /* the drawings in the panel (at most; they fill its width) */
   --gzone-art: 64px;    /* the example animal of each ocean zone */
   --gdrawer-w: 390px;   /* the Globe's filter drawer */

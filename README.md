@@ -374,12 +374,12 @@ file have it (`opensGlobe` in `js/card-return.js`), and not in pack reveals.
 
 ### Globe map layers
 
-The chips along the top of the Globe switch on one map layer at a time: 🏔️ topography,
+The hero button at the top of the Globe's toolbar opens a picker that switches on one map layer at a time: 🏔️ topography,
 🌳 forests, 🪸 coral reefs, 🌙 day & night (live, from the device clock), 🌡️ temperature
 (with a month slider) and 🌊 ocean depth. Taiwan's outline glows above every layer.
 
 - **The info panel** (`js/globe-info.js` says what it holds, `js/views/globe.js` draws it) has
-  the same three parts for every layer, and for Everywhere (pins and clusters, how to filter):
+  the same three parts for every layer, and for the plain map (pins and clusters, how to filter):
   a vertical key (24 px swatches in the colour the map shows, with an emoji or a tree inside;
   short labels, never sentences), "What am I looking
   at?" (one or two short lines and a drawing), and "Did you know?" for older children. Depth's
@@ -387,12 +387,14 @@ The chips along the top of the Globe switch on one map layer at a time: 🏔️ 
   one is built, otherwise its name and a drawing). Opened from a card, the animal's name and
   habitat sit above the key. The drawings (`js/globe-art.js`) are SVG drawn for WildFile,
   coloured with tokens; there are no image files.
-- Where it goes (`panelMode`): in landscape a 300 px column on the left, the globe moved right
-  and sized to the space beside it, growing into spare width up to 47 % of the free height as
-  its radius (`roomFit` in `js/globe.js`); on a portrait tablet a short
-  sheet under the globe that opens upwards (to at most 60 % of the height); on a phone (under
-  600 px) a slim strip that opens over the globe. It never covers the chips or Back to card.
-  Collapsed it shows the key only (72 px wide in landscape). Open or collapsed is kept per
+- Where it goes (`panelMode`): on a tablet a card at the top left, 256 px wide open or not and
+  as tall as what it shows; open, it grows downwards and scrolls inside. In landscape the globe
+  moves right and is sized to the space beside it, growing into spare width up to 47 % of the
+  free height as its radius (`roomFit` in `js/globe.js`). In portrait the card floats over the
+  globe's corner and the globe keeps its full size. On a phone (under 600 px) a slim strip that
+  opens over the globe. Top to bottom: the hero (the layer in use, as a tile), the key, and the
+  full-width row that opens it, whose chevron points the way the card will move. The filter button and active filters sit along the top beside it.
+  Open or collapsed is kept per
   profile on the device (`globePanel`); a phone always starts collapsed.
 
 - Picture layers (topography, temperature) are drawn with WebGL 2 by `js/globegl.js`, on a

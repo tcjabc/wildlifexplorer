@@ -43,6 +43,7 @@ let goBack = null;         // "Back to card", while the globe was opened from a 
 let closePanel = null;     // folds the info panel back when it is open over the globe
 let closeVolc = null;      // closes a volcano's card, while one is open
 let closeDrawer = null;    // closes the filter drawer, while it is open
+let closePicker = null;    // closes the layer picker, while it is open
 
 // ---------- where pins go ----------
 
@@ -120,11 +121,15 @@ export function render(main, [cardId] = []) {
   const hint = h('p', { class: 'globe__hint', hidden: true });
   const say = content => { hint.hidden = !content; mount(hint, content); };
   const stage = h('div', { class: 'globe__stage' }, layer);
-  const bar = h('div', { class: 'glayers', role: 'toolbar', 'aria-label': label('globe.layers') });
-  // The info panel (js/globe-info.js): a key, "What am I looking at?", and more when open.
+  // Along the top of the globe: the filter button and the active filters.
+  const topRow = h('div', { class: 'gtop' });
+  // The toolbar (the info panel, js/globe-info.js): the layer in use, its key, and "What am I
+  // looking at?" and more when open; the button to open it stays at the bottom.
+  const hero = h('button', { class: 'gtile gtile--hero', type: 'button', 'aria-expanded': 'false', 'aria-haspopup': 'dialog', onclick: () => openPicker(!closePicker) });
   const panelBody = h('div', { class: 'gpanel__body', 'data-scroll': '' });
   const panelToggle = h('button', { class: 'gpanel__toggle', type: 'button', onclick: () => setPanel(panel.dataset.state !== 'expanded') });
-  const panel = h('aside', { class: 'gpanel', 'aria-label': label('info.what') }, panelToggle, panelBody);
+  const panel = h('aside', { class: 'gpanel', 'aria-label': label('info.what') }, hero, panelBody, panelToggle);
+  const picker = h('div', { class: 'gpick', role: 'dialog', 'aria-label': label('globe.layers'), hidden: true });
   // The filter drawer: places, habitats and groups, each option with what it would show.
   const drawerBody = h('div', { class: 'gdrawer__body', 'data-scroll': '' });
   const clearAll = h('button', { class: 'btn btn--soft', type: 'button', onclick: () => clearFilters() }, tx('globe.filter.clear'));
@@ -144,7 +149,7 @@ export function render(main, [cardId] = []) {
     h('p', null, h('span', { 'aria-hidden': 'true' }, '📡 '), tx('globe.offline')),
     h('button', { class: 'btn btn--soft', type: 'button', onclick: () => globe?.retry() }, tx('globe.retry')));
   const view = h('section', { class: ['globe', card && 'has-back'], 'aria-label': label('nav.globe') },
-    stage, back, bar, panel, drawer, offline, h('div', { class: 'globe__foot' }, hint));
+    stage, back, topRow, panel, picker, drawer, offline, h('div', { class: 'globe__foot' }, hint));
   mount(main, view);
   // Any touch on this screen stops the slow turn, not only one on the globe.
   view.addEventListener('pointerdown', () => globe?.noteTouch(), { capture: true });
@@ -280,7 +285,7 @@ export function render(main, [cardId] = []) {
       if (fan) { fan = null; globe.redraw(); }
       hold('card', false); // touched: it may turn by itself again
     },
-    onTap: (ll, at) => { fan = null; select(null); closePanel?.(); closeDrawer?.(); tapVolcano(at); },
+    onTap: (ll, at) => { fan = null; select(null); closePanel?.(); closeDrawer?.(); closePicker?.(); tapVolcano(at); },
   });
 
   // Tapping a stack zooms in far enough to pull its pins apart (and fans them if needed).
@@ -322,6 +327,7 @@ export function render(main, [cardId] = []) {
   function openSheet(p) {
     closeSheet({ animate: false });
     closeDrawer?.();
+    closePicker?.();
     const card = p.card;
     const g = groupById(card.group);
     const fact = (card.facts ?? []).find(f => f?.en || f?.zh);
@@ -472,6 +478,7 @@ export function render(main, [cardId] = []) {
   }
   function openDrawer(open) {
     const was = Boolean(closeDrawer);
+    if (open) closePicker?.();
     drawer.classList.toggle('is-open', open);
     filterBtn.setAttribute('aria-expanded', String(open));
     closeDrawer = open ? () => openDrawer(false) : null;
@@ -505,23 +512,35 @@ export function render(main, [cardId] = []) {
     changedFilters();
   }
   drawFilters();
-  bar.append(filterBtn, activeChips);
+  topRow.append(filterBtn, activeChips);
 
   // ---------- map layers ----------
   const col = name => getComputedStyle(view).getPropertyValue(name).trim();
   let ticker = 0;
   let wanted = null;
-  const chips = LAYERS.map(L => h('button', {
-    class: 'glayer', type: 'button', 'aria-pressed': 'false', 'data-layer': L.id,
-    onclick: () => choose(shownLayer === L.id ? null : L.id),
-  }, h('span', { class: 'glayer__emoji', 'aria-hidden': 'true' }, L.emoji), tx(`layer.${L.id}`)));
-  bar.append(...chips);
+  // The layer picker: a tile for each layer, and the plain map.
+  const tiles = [null, ...LAYERS].map(L => h('button', {
+    class: 'gtile', type: 'button', 'aria-pressed': 'false', 'data-layer': L?.id ?? 'none',
+    onclick: () => { openPicker(false); if ((L?.id ?? null) !== shownLayer) choose(L?.id ?? null); },
+  }, h('span', { class: 'gtile__emoji', 'aria-hidden': 'true' }, L?.emoji ?? INFO.everywhere.emoji), tx(L ? `layer.${L.id}` : INFO.everywhere.title)));
+  mount(picker, tiles);
+  function openPicker(open) {
+    const was = Boolean(closePicker);
+    if (open) closeDrawer?.();
+    picker.hidden = !open;
+    hero.setAttribute('aria-expanded', String(open));
+    closePicker = open ? () => openPicker(false) : null;
+    hold('picker', open);
+    if (open) tiles.find(el => el.getAttribute('aria-pressed') === 'true')?.focus({ preventScroll: true });
+    else if (was) hero.focus({ preventScroll: true });
+  }
 
   // ---------- the info panel ----------
-  // Landscape: a column on the left, the globe beside it. Portrait tablet: a sheet under the
-  // globe that opens upwards. Phone: a strip that opens over the lower half. Collapsed it shows
-  // the key only; open, also "What am I looking at?" and more. Open or not is kept per explorer
-  // on this device (globePanel); on a phone it always starts as the strip.
+  // Tablets: a card of one fixed width at the top left, as tall as what it shows: in landscape
+  // the globe sits beside it, in portrait it floats over the globe's corner. Phone: a strip that
+  // opens over the lower half. Collapsed it shows the key only; open, also "What am I looking
+  // at?" and more. Open or not is kept per explorer on this device (globePanel). A phone always
+  // starts as the strip, and portrait starts collapsed until it has been left open.
   let panelLayer = null, panelFailed = false, peek = 0;
   // A key swatch in the colour the map shows (globe-info.js: token, paint), with its mark or
   // tree inside.
@@ -594,10 +613,10 @@ export function render(main, [cardId] = []) {
     panelLayer = L; panelFailed = failed;
     const info = INFO[L?.id ?? 'everywhere'];
     panel.dataset.layer = L?.id ?? 'everywhere';
+    mount(hero, h('span', { class: 'gtile__emoji', 'aria-hidden': 'true' }, L?.emoji ?? info.emoji),
+      tx(L ? `layer.${L.id}` : info.title));
     mount(panelBody,
       cardNote(),
-      h('h2', { class: 'gpanel__title' }, h('span', { class: 'gpanel__emoji', 'aria-hidden': 'true' }, L?.emoji ?? info.emoji),
-        h('span', { class: 'gpanel__titletext' }, tx(L ? `layer.${L.id}` : info.title))),
       info.key === 'temp' ? tempKey() : h('ul', { class: 'gkey' }, info.key.map((k, i) => keyItem(k, info.zones?.[i]))),
       h('section', { class: 'gpanel__what' },
         h('h3', { class: 'gpanel__heading' }, tx('info.what')),
@@ -614,8 +633,8 @@ export function render(main, [cardId] = []) {
       !failed && h('section', { class: 'gpanel__more' },
         h('h3', { class: 'gpanel__heading' }, tx('info.more')),
         info.more.map(k => h('p', null, tx(k, { year: 2024 })))));
-    // Zoomed in on Taiwan: its note comes first, under the title, marked.
-    if (!failed && info.taiwan && nearTaiwan) panelBody.querySelector('.gpanel__title').after(taiwanNote(info.taiwan));
+    // Zoomed in on Taiwan: its note comes first, above the key, marked.
+    if (!failed && info.taiwan && nearTaiwan) panelBody.querySelector('.gkey, .gtemp').before(taiwanNote(info.taiwan));
     layoutPanel();
   }
   // Taiwan's note (Plates & volcanoes): why it has tall mountains, earthquakes and hot springs,
@@ -634,35 +653,43 @@ export function render(main, [cardId] = []) {
     panel.dataset.state = open ? 'expanded' : 'collapsed';
     panelToggle.setAttribute('aria-expanded', String(open));
     panelToggle.setAttribute('aria-label', label(open ? 'info.collapse' : 'info.expand'));
-    mount(panelToggle, h('span', { 'aria-hidden': 'true' }, open ? (panel.dataset.mode === 'side' ? '‹' : '⌄') : (panel.dataset.mode === 'side' ? '›' : '⌃')));
+    // The way it will move: a card grows down, a phone's strip grows up.
+    const up = open === (panel.dataset.mode === 'side');
+    mount(panelToggle, h('span', { class: 'gpanel__chevron', 'data-dir': up ? 'up' : 'down', 'aria-hidden': 'true' }));
     if (remember && panel.dataset.mode !== 'strip' && state.profile) updateProfile(state.profile.id, { globePanel: open ? 'expanded' : 'collapsed' }).catch(() => {});
-    closePanel = open && panel.dataset.mode !== 'side' ? () => setPanel(false) : null;
     layoutPanel();
   }
   // Where the panel sits, and the room it leaves the globe.
   function layoutPanel() {
-    const mode = panelMode(view.clientWidth, view.clientHeight);
+    const mode = panelMode(view.clientWidth);
+    const over = mode === 'side' && view.clientWidth < view.clientHeight; // it floats over the globe
+    panel.dataset.over = String(over);
     if (panel.dataset.mode !== mode) {
       panel.dataset.mode = mode;
-      // A phone starts with the strip; a tablet as this explorer left it.
-      setPanel(mode === 'strip' ? false : state.profile?.globePanel !== 'collapsed', { remember: false });
+      // A phone starts with the strip; a tablet as this explorer left it, portrait collapsed.
+      const left = state.profile?.globePanel;
+      setPanel(mode === 'strip' ? false : over ? left === 'expanded' : left !== 'collapsed', { remember: false });
       return;
     }
+    closePanel = panel.dataset.state === 'expanded' && (mode !== 'side' || over) ? () => setPanel(false) : null;
     fitGlobe();
   }
-  // The globe moves into the space the chips and the panel leave (and shrinks if it must).
+  // The globe moves into the space the top row and the toolbar leave (and shrinks if it must).
   function fitGlobe() {
     if (!globe || sheet) return;
     const vb = view.getBoundingClientRect();
-    const top = bar.getBoundingClientRect().bottom - vb.top;
-    view.style.setProperty('--gpanel-top', `${Math.round(top)}px`);
     const css = n => parseFloat(getComputedStyle(view).getPropertyValue(n)) || 0;
-    if (panel.dataset.mode === 'side') {
-      const w = panel.dataset.state === 'expanded' ? css('--gpanel-w') : css('--gpanel-strip');
-      globe.setRoom(top, 0, w + 2 * css('--s-3'));
-      return;
-    }
-    // Sheet and strip: the globe keeps clear of the collapsed panel; open, it goes over it.
+    const side = panel.dataset.mode === 'side';
+    // The top row and the picker sit just right of the toolbar. The globe does too in
+    // landscape; in portrait the toolbar floats over its corner and it keeps its full size.
+    const room = side ? css('--gpanel-w') + 2 * css('--s-3') : 0;
+    const left = panel.dataset.over === 'true' ? 0 : room;
+    view.style.setProperty('--gtool-room', `${Math.round(room)}px`);
+    view.style.setProperty('--gtool-top', `${Math.round(back ? back.getBoundingClientRect().bottom - vb.top : 0)}px`);
+    const top = topRow.getBoundingClientRect().bottom - vb.top;
+    view.style.setProperty('--gpanel-top', `${Math.round(top)}px`);
+    if (side) { globe.setRoom(top, 0, left); return; }
+    // Phones: the globe keeps clear of the collapsed strip; open, it goes over it.
     if (panel.dataset.state !== 'expanded') peek = vb.bottom - panel.getBoundingClientRect().top;
     globe.setRoom(top, peek, 0);
   }
@@ -670,8 +697,7 @@ export function render(main, [cardId] = []) {
   // Load a layer's data and show it on the globe (also used when the month changes).
   async function show(L) {
     wanted = L;
-    const chip = chips.find(c => c.dataset.layer === L.id);
-    chip.classList.add('is-loading');
+    hero.classList.add('is-loading');
     try {
       const spec = await L.load({ col, month: tempMonth });
       if (wanted !== L || !globe) return;
@@ -680,11 +706,11 @@ export function render(main, [cardId] = []) {
       if (L.tick && !ticker) ticker = setInterval(() => globe?.updateLayer(L.tick()), 60000);
     } catch {
       if (wanted !== L || !globe) return;
-      chip.classList.add('is-failed');
+      hero.classList.add('is-failed');
       drawPanel(L, true);
       globe.setLayer(null).catch(() => {});
     } finally {
-      chip.classList.remove('is-loading');
+      if (wanted === L) hero.classList.remove('is-loading');
     }
   }
 
@@ -693,7 +719,8 @@ export function render(main, [cardId] = []) {
     clearInterval(ticker);
     ticker = 0;
     view.classList.toggle('has-layer', Boolean(id));
-    chips.forEach(c => { c.setAttribute('aria-pressed', String(c.dataset.layer === id)); c.classList.remove('is-failed'); });
+    tiles.forEach(el => el.setAttribute('aria-pressed', String(el.dataset.layer === (id ?? 'none'))));
+    hero.classList.remove('is-failed', 'is-loading');
     const L = LAYERS.find(l => l.id === id);
     setPlateLabels(null);
     closeVolcano();
@@ -717,6 +744,7 @@ export function render(main, [cardId] = []) {
     closePanel = null;
     closeVolc = null;
     closeDrawer = null;
+    closePicker = null;
     closeSheet({ animate: false });
     globe.destroy();
     globe = null;
@@ -727,6 +755,7 @@ export function render(main, [cardId] = []) {
 export function onKey(e) {
   if (!globe) return;
   if (e.key === 'Escape' && sheet) { e.preventDefault(); sheet.el.querySelector('.gsheet__close')?.click(); return; }
+  if (e.key === 'Escape' && closePicker) { e.preventDefault(); closePicker(); return; }
   if (e.key === 'Escape' && closeDrawer) { e.preventDefault(); closeDrawer(); return; }
   if (e.key === 'Escape' && closeVolc) { e.preventDefault(); closeVolc(); return; }
   if (e.key === 'Escape' && closePanel) { e.preventDefault(); closePanel(); return; }

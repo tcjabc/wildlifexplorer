@@ -55,7 +55,8 @@ async function openGlobe(type) {
   await page.evaluate(() => { location.hash = '#/globe'; });
   await page.waitForFunction(() => window.wfGlobe);
   await page.waitForTimeout(1000);
-  await page.locator('.glayer[data-layer=plates]').click();
+  await page.locator('.gtile--hero').click();
+  await page.locator('.gtile[data-layer=plates]').click();
   await page.waitForFunction(() => wfGlobe.volcanoesShown().length > 0, null, { timeout: 15000 });
   await page.evaluate(() => { wfGlobe.pause(true); wfGlobe.flyTo(121.6, 25.0, 6, { duration: 0 }); });
   await page.waitForTimeout(1200);

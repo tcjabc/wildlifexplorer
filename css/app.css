@@ -496,17 +496,15 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
   font-size: var(--fs-xs); font-variant-numeric: tabular-nums; pointer-events: none;
 }
 
-/* Map layer chips along the top, scrolling sideways on narrow screens. */
-.glayers {
-  position: absolute; top: var(--s-2); left: 0; right: 0;
-  display: flex; gap: var(--s-2); padding: 0 var(--edge-r) var(--s-1) var(--edge-l);
-  overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+/* Over the globe, right of the toolbar: the filter button and the active filters. */
+.gtop {
+  position: absolute; z-index: 1; top: var(--s-2); left: max(var(--edge-l), var(--gtool-room, 0px)); right: var(--edge-r);
+  display: flex; align-items: center; gap: var(--s-2);
 }
-.glayers::-webkit-scrollbar { display: none; }
-/* Opened from a card: "Back to card" above the layer chips. */
+/* Opened from a card: "Back to card" above the toolbar and the filters. */
 .globe__back { position: absolute; z-index: 2; top: var(--s-2); left: var(--edge-l); min-height: var(--tap-sm); }
 .globe__back .bi { flex-direction: row; gap: 0.4em; }
-.globe.has-back .glayers { top: calc(var(--s-2) * 2 + var(--tap-sm)); }
+.globe.has-back .gtop { top: calc(var(--s-2) * 2 + var(--tap-sm)); }
 /* Offline the first time: the globe's land can't load yet. */
 .globe__offline {
   position: absolute; z-index: 2; left: 50%; top: 50%; transform: translate(-50%, -50%);
@@ -527,12 +525,10 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
 .glayer .bi { line-height: 1.1; text-align: left; }
 .glayer__emoji { font-size: var(--fs-lg); line-height: 1; }
 .glayer[aria-pressed="true"] { background: var(--c-primary); border-color: var(--c-primary); color: var(--c-on-primary); }
-.glayer.is-loading .glayer__emoji { animation: pulse 0.8s ease-in-out infinite; }
-.glayer.is-failed { border-color: var(--c-bad); }
 .glayer--filter { border-color: var(--c-primary); }
 
 /* Active filters: small chips over the globe. A tap anywhere on one takes it off. */
-.gactive { display: flex; gap: var(--s-2); overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.gactive { flex: 1; min-width: 0; display: flex; gap: var(--s-2); overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
 .gactive::-webkit-scrollbar { display: none; }
 .gactive:empty { display: none; }
 .gchip {
@@ -582,42 +578,68 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
 .gopt:disabled .gopt__count { color: var(--c-ink-faint); }
 .gopt:disabled .gopt__emoji { opacity: 0.4; }
 @media (max-width: 599px) {
+  .gpick { top: auto; left: var(--edge-l); right: var(--edge-r); bottom: calc(var(--s-3) + var(--safe-b)); width: auto; }
   .gdrawer { top: auto; left: 0; width: 100%; max-height: 80%; border-radius: var(--r-lg) var(--r-lg) 0 0; transform: translateY(100%); }
 }
 
-/* The legend for the layer that is on. */
-/* The info panel (views/globe.js, js/globe-info.js): the key, "What am I looking at?" and more.
-   data-mode: side (a column on the left), sheet (under the globe, opening upwards), strip (a
-   phone: a strip that opens over the lower half). data-state: collapsed (the key only) or
-   expanded. It never covers the chips (it starts below them, at --gpanel-top) or Back to card. */
+/* The toolbar (views/globe.js, js/globe-info.js): the layer in use, its key, "What am I looking
+   at?" and more. data-mode: side (a card at the top left) or strip (a phone: along the bottom,
+   opening over the lower half). data-state: collapsed (the key only) or expanded. data-over:
+   it floats over the globe (portrait). It starts below Back to card (--gtool-top). */
 .gpanel {
   position: absolute; z-index: 1; display: flex; flex-direction: column;
   border-radius: var(--r-md); background: var(--c-veil); box-shadow: var(--shadow-2);
   color: var(--c-ink); font-size: var(--fs-sm);
 }
-.gpanel__body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: var(--s-2) var(--s-3) var(--s-3); }
-.gpanel__toggle {
-  position: absolute; z-index: 1; display: grid; place-items: center;
-  width: var(--tap-xs); height: var(--tap-xs); padding: 0; border: 0; border-radius: 50%;
-  background: var(--c-surface); box-shadow: var(--shadow-1); color: var(--c-ink);
-  font: inherit; font-size: var(--fs-md); font-weight: var(--fw-bold); cursor: pointer;
+.gpanel__body { flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: var(--s-2) var(--s-3) var(--s-3); }
+/* The layer picker: a grid beside the toolbar, or along the bottom on a phone. */
+.gpick {
+  position: absolute; z-index: 3; top: calc(var(--gtool-top, 0px) + var(--s-2)); left: max(var(--edge-l), var(--gtool-room, 0px));
+  width: min(var(--gpick-w), calc(100% - var(--gtool-room, 0px) - var(--s-3)));
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--gtile-min), 1fr)); gap: var(--s-2); padding: var(--s-2);
+  border-radius: var(--r-lg); background: var(--c-surface); box-shadow: var(--shadow-3);
 }
-.gpanel__title { display: flex; align-items: center; gap: var(--s-2); margin: 0 var(--tap-xs) var(--s-2) 0; font-size: var(--fs-md); }
+.gtile {
+  display: grid; justify-items: center; align-content: center; gap: var(--s-1);
+  min-height: var(--tap-lg); padding: var(--s-2) var(--s-1);
+  border: var(--bw-thin) solid var(--c-line); border-radius: var(--r-md);
+  background: var(--c-surface); color: var(--c-ink);
+  font: inherit; font-size: var(--fs-xs); font-weight: var(--fw-bold); line-height: 1.15; text-align: center; cursor: pointer; touch-action: manipulation;
+}
+.gtile .bi { align-items: center; }
+.gtile__emoji { font-size: var(--fs-xl); line-height: 1; }
+.gtile[aria-pressed="true"], .gtile--hero { background: var(--c-primary); border-color: var(--c-primary); color: var(--c-on-primary); }
+/* The hero: the layer in use, as the picker's chosen tile, the toolbar's full width. A tap
+   opens the picker. */
+.gtile--hero { flex: none; margin: var(--s-2) var(--s-2) 0; font-size: var(--fs-sm); }
+.gtile--hero.is-loading .gtile__emoji { animation: pulse 0.8s ease-in-out infinite; }
+.gtile--hero.is-failed { background: var(--c-bad); border-color: var(--c-bad); }
+/* Expand and collapse: the whole bottom row of the toolbar. */
+.gpanel__toggle {
+  flex: none; display: grid; place-items: center; width: 100%; height: var(--tap-xs); padding: 0;
+  border: 0; border-top: var(--bw-thin) solid var(--c-line); border-radius: 0 0 var(--r-md) var(--r-md);
+  background: none; color: var(--c-primary); cursor: pointer; touch-action: manipulation;
+}
+.gpanel__toggle:active { background: var(--c-bg-deep); }
+/* Drawn, not typed: the arrow characters are missing from some devices' fonts. */
+.gpanel__chevron { width: var(--s-3); height: var(--s-3); border: solid currentColor; border-width: 0 var(--bw-mid) var(--bw-mid) 0; transform: translateY(-25%) rotate(45deg); }
+.gpanel__chevron[data-dir="up"] { transform: translateY(25%) rotate(-135deg); }
 /* Each language keeps its words together; the Chinese moves under the English when short of room. */
-.gpanel__title .bi, .gpanel__heading .bi { flex-direction: row; flex-wrap: wrap; column-gap: 0.4em; }
-.gpanel__title .bi > *, .gpanel__heading .bi > * { white-space: nowrap; }
+.gpanel__heading .bi { flex-direction: row; flex-wrap: wrap; column-gap: 0.4em; }
+.gpanel__heading .bi > * { white-space: nowrap; }
 .gpanel__heading { margin: var(--s-4) 0 var(--s-1); font-size: var(--fs-sm); color: var(--c-ink-soft); }
 .gpanel__what p, .gpanel__more p { margin: 0 0 var(--s-1); }
 .gpanel__art { margin-top: var(--s-2); }
 .gpanel__art .art { display: block; width: 100%; max-width: var(--gpanel-art); height: auto; margin: 0 auto; }
-.gpanel__card { margin: 0 var(--tap-xs) var(--s-2) 0; padding-bottom: var(--s-2); border-bottom: var(--bw-thin) solid var(--c-line); }
+.gpanel__card { margin: 0 0 var(--s-2); padding-bottom: var(--s-2); border-bottom: var(--bw-thin) solid var(--c-line); }
 .gpanel__name { margin: 0; font-size: var(--fs-md); font-weight: var(--fw-bold); }
 .gpanel__habitat { margin: var(--s-1) 0 0; color: var(--c-ink-soft); }
 .gpanel__habitat-label { font-weight: var(--fw-bold); }
 
 /* The key: one step a row, top to bottom. */
 .gkey { display: grid; gap: var(--s-2); margin: 0; padding: 0; list-style: none; }
-.gkey__item { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: var(--s-2); }
+/* Rows line up: one fixed column of icons, the text left-aligned beside it. */
+.gkey__item { display: grid; grid-template-columns: var(--legend-sw) minmax(0, 1fr); align-items: center; column-gap: var(--s-2); }
 /* A swatch: the colour as the map shows it, its mark (or a tree) inside. */
 .gkey__sw {
   display: grid; place-items: center; flex: none;
@@ -659,41 +681,36 @@ a.gzone__animal { text-decoration: underline; }
 .gpanel[data-state="expanded"][data-layer="depth"] .gzone__animal { display: flex; }
 .gpanel[data-state="expanded"][data-layer="depth"] .gkey__label { display: grid; }
 
-/* Side: a column on the left, under the chips. */
+/* Tablets: a card at the top left, one width, as tall as what it shows. Open, it grows down
+   and scrolls inside if it reaches the bottom of the screen. */
 .gpanel[data-mode="side"] {
-  top: calc(var(--gpanel-top, var(--tap-sm)) + var(--s-2)); left: var(--edge-l);
-  bottom: calc(var(--s-3) + var(--safe-b)); width: var(--gpanel-w);
-  transition: width 0.2s ease;
+  top: calc(var(--gtool-top, 0px) + var(--s-2)); left: var(--edge-l); width: var(--gpanel-w);
+  max-height: calc(100% - var(--gtool-top, 0px) - var(--s-2) - var(--s-3) - var(--safe-b));
 }
-.gpanel[data-mode="side"] .gpanel__toggle { top: var(--s-1); right: var(--s-1); }
-.gpanel[data-mode="side"][data-state="collapsed"] { width: var(--gpanel-strip); font-size: var(--fs-xs); }
-.gpanel[data-mode="side"][data-state="collapsed"] .gpanel__body { padding: calc(var(--tap-xs) + var(--s-2)) var(--s-2) var(--s-2); }
+/* Over the globe in portrait: solid, so pins behind it don't show through the text. */
+.gpanel[data-over="true"] { background: var(--c-surface); }
 
-/* Sheet: under the globe, as wide as the screen allows; open, it grows upwards over it. */
-.gpanel[data-mode="sheet"], .gpanel[data-mode="strip"] {
+/* Phones: a strip along the bottom; open, it grows upwards over the globe. */
+.gpanel[data-mode="strip"] {
   left: var(--edge-l); right: var(--edge-r); bottom: calc(var(--s-3) + var(--safe-b));
   max-height: min(var(--gpanel-sheet), calc(100% - var(--gpanel-top, var(--tap-sm)) - var(--s-4)));
 }
-.gpanel[data-mode="sheet"] { margin: 0 auto; max-width: var(--sheet-w); }
-.gpanel[data-mode="sheet"] .gpanel__toggle, .gpanel[data-mode="strip"] .gpanel__toggle { top: var(--s-1); right: var(--s-1); }
-.gpanel[data-mode="sheet"][data-state="collapsed"] .gkey,
+.gpanel[data-mode="strip"] .gtile--hero { grid-auto-flow: column; justify-content: start; align-items: center; gap: var(--s-2); margin-right: calc(var(--tap-xs) + var(--s-2)); min-height: var(--tap-xs); padding: var(--s-1) var(--s-2); }
+.gpanel[data-mode="strip"] .gtile--hero .gtile__emoji { font-size: var(--fs-lg); }
+.gpanel[data-mode="strip"] .gtile--hero .bi { align-items: flex-start; text-align: left; }
+.gpanel[data-mode="strip"] .gpanel__toggle { position: absolute; top: var(--s-1); right: var(--s-1); width: var(--tap-xs); border: 0; border-radius: 50%; background: var(--c-surface); box-shadow: var(--shadow-1); }
 .gpanel[data-mode="strip"][data-state="collapsed"] .gkey { display: flex; flex-wrap: wrap; gap: var(--s-1) var(--s-3); margin-right: var(--tap-xs); }
-.gpanel[data-mode="sheet"][data-state="collapsed"] .gkey__item,
 .gpanel[data-mode="strip"][data-state="collapsed"] .gkey__item { display: flex; gap: var(--s-1); }
 
-/* Collapsed: the key only. In the side column and on phones, just the colours and their
-   short marks; the sheet has room for the labels too. */
+/* Collapsed: the key only. On phones, just the colours and their short marks. */
 .gpanel[data-state="collapsed"] :is(.gpanel__card, .gpanel__what, .gpanel__more, .gtemp__month) { display: none; }
-.gpanel[data-state="collapsed"]:is([data-mode="side"], [data-mode="strip"]) :is(.gkey__label, .gpanel__titletext) { display: none; }
-.gpanel[data-state="collapsed"]:is([data-mode="side"], [data-mode="strip"]) .gkey__short { display: inline; }
-.gpanel[data-state="collapsed"][data-mode="side"] .gkey__item { grid-template-columns: 1fr; justify-items: center; row-gap: 2px; }
-.gpanel[data-state="collapsed"][data-mode="side"] .gpanel__title { justify-content: center; margin-right: 0; }
+.gpanel[data-state="collapsed"][data-mode="strip"] .gkey__label { display: none; }
+.gpanel[data-state="collapsed"][data-mode="strip"] .gkey__short { display: inline; }
 .gpanel[data-state="collapsed"] .gtemp__scale { height: 96px; }
 .gpanel[data-state="collapsed"][data-mode="strip"] .gtemp__scale { height: auto; }
 .gpanel[data-state="collapsed"][data-mode="strip"] .gtemp__scale { align-items: center; }
 .gpanel[data-state="collapsed"][data-mode="strip"] .gtemp__bar { width: 96px; height: var(--legend-sw); background: var(--gtemp-h); }
 .gpanel[data-state="collapsed"][data-mode="strip"] .gtemp__ticks { flex-direction: row; gap: var(--s-2); }
-.gpanel[data-state="collapsed"][data-mode="strip"] .gpanel__title { margin-bottom: var(--s-1); }
 
 /* The drawings (js/globe-art.js), coloured with tokens. */
 .art__sea, .art__shallow, .art__zone--0 { fill: var(--c-map-sea); }
