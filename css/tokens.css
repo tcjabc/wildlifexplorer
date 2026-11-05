@@ -1,6 +1,16 @@
 /* Design tokens: the only place colours, type, spacing and sizes are defined.
    Components in app.css use these variables, never raw values. */
 :root {
+  /* The screen. --dvh is 1% of the visible height: use calc(N * var(--dvh)), never dvh or vh,
+     so browsers without dvh fall back in this one place (see @supports at the end). */
+  --dvh: 1vh;
+  --safe-t: env(safe-area-inset-top, 0px);
+  --safe-r: env(safe-area-inset-right, 0px);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-l: env(safe-area-inset-left, 0px);
+  --edge-l: max(var(--s-3), var(--safe-l)); /* controls floating near the sides of the screen */
+  --edge-r: max(var(--s-3), var(--safe-r));
+
   /* Surfaces & text */
   --c-bg: #fff8ec;
   --c-bg-deep: #fdecd2;
@@ -262,7 +272,7 @@
   --gvolc-w: 260px;     /* a volcano's card on the globe */
   --gpanel-scale: 180px; /* the temperature scale in the panel, open */
   --gpanel-sheet: 60%;  /* the portrait sheet, open: at most this much of the globe's height */
-  --gsheet-pic: min(38dvh, 320px); /* photo in the Globe card sheet */
+  --gsheet-pic: min(calc(38 * var(--dvh)), 320px); /* photo in the Globe card sheet */
   --cmp-icon: 44px;     /* figures on the weight balance */
   --cmp-icon-sm: 18px;  /* … when there are many */
   --life-bar: 22px;
@@ -271,14 +281,13 @@
   --compare-look-h: 110px; /* … and of the lookalike scene, which also lists differences */
 
   /* Foil packs */
-  --pack-w: min(72vw, 300px, 46dvh);
+  --pack-w: min(72vw, 300px, calc(46 * var(--dvh)));
   --pack-strip: 15%;    /* top strip you cut off, as a share of pack height */
-  --pack-w-sm: min(46vw, 210px, 32dvh); /* sealed packs waiting on the Packs page */
+  --pack-w-sm: min(46vw, 210px, calc(32 * var(--dvh))); /* sealed packs waiting on the Packs page */
   --summary-tile: 170px; /* cards in the after-the-pack summary */
 
-  /* Zoom into a card: how much the binder grows and blurs behind it */
+  /* Zoom into a card: how much the binder grows behind it */
   --zoom-bg-scale: 0.4;
-  --zoom-bg-blur: 4px;
   --tabs-w: 176px;      /* binder tab column in landscape */
   --tile-min: 150px;
   --tile-min-lg: 190px;
@@ -297,3 +306,6 @@
   --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+@supports (height: 1dvh) {
+  :root { --dvh: 1dvh; }
+}

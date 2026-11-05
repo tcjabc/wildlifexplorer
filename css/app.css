@@ -11,7 +11,7 @@ html, body { height: 100%; }
 html { overflow: hidden; }
 body {
   margin: 0;
-  height: 100dvh;
+  height: calc(100 * var(--dvh));
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   overflow: hidden;
@@ -102,7 +102,7 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
   font-weight: var(--fw-bold); font-size: var(--fs-sm);
   text-decoration: none; text-align: center;
   cursor: pointer; box-shadow: var(--shadow-1);
-  transition: transform var(--t-fast), box-shadow var(--t-fast), background var(--t-fast);
+  transition: transform var(--t-fast), background var(--t-fast);
   touch-action: manipulation;
 }
 .btn:active { transform: scale(0.96); box-shadow: none; }
@@ -165,7 +165,7 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
   position: relative; z-index: 20;
   display: flex; align-items: center; gap: var(--s-3);
   min-height: var(--header-h);
-  padding: max(var(--s-2), env(safe-area-inset-top)) max(var(--s-4), env(safe-area-inset-right)) var(--s-2) max(var(--s-4), env(safe-area-inset-left));
+  padding: max(var(--s-2), var(--safe-t)) max(var(--s-4), var(--safe-r)) var(--s-2) max(var(--s-4), var(--safe-l));
   background: var(--c-surface);
   box-shadow: var(--shadow-1);
 }
@@ -203,8 +203,8 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   /* Content is centred up to --content-max; the scroll area itself is full width. */
-  padding: var(--s-4) max(var(--s-4), env(safe-area-inset-right), calc((100% - var(--content-max)) / 2))
-           calc(var(--s-6) + env(safe-area-inset-bottom)) max(var(--s-4), env(safe-area-inset-left), calc((100% - var(--content-max)) / 2));
+  padding: var(--s-4) max(var(--s-4), var(--safe-r), calc((100% - var(--content-max)) / 2))
+           calc(var(--s-6) + var(--safe-b)) max(var(--s-4), var(--safe-l), calc((100% - var(--content-max)) / 2));
 }
 .empty { padding: var(--s-7) var(--s-4); text-align: center; color: var(--c-ink-soft); font-size: var(--fs-md); }
 .empty .bi { align-items: center; }
@@ -278,7 +278,7 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
   border: var(--border-card) solid var(--g);
   border-radius: 0 var(--r-lg) var(--r-lg) var(--r-lg);
   box-shadow: var(--shadow-2);
-  min-height: 60vh;
+  min-height: calc(60 * var(--dvh));
 }
 /* binder ring holes down the left edge */
 .binder__page::before {
@@ -379,7 +379,7 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
 .sheet__title { font-size: var(--fs-lg); margin-bottom: var(--s-4); display: flex; gap: var(--s-2); align-items: center; }
 .sheet__actions { display: flex; flex-wrap: wrap; gap: var(--s-2); margin-top: var(--s-5); }
 /* A lookalike's photo (Animal comparison). */
-.look-card__img { width: 100%; max-height: 50dvh; object-fit: contain; border-radius: var(--r-md); background: var(--c-bg-deep); }
+.look-card__img { width: 100%; max-height: calc(50 * var(--dvh)); object-fit: contain; border-radius: var(--r-md); background: var(--c-bg-deep); }
 .look-card__credit { margin-top: var(--s-3); color: var(--c-ink-soft); font-size: var(--fs-xs); }
 .look-card .sheet__title { margin-bottom: var(--s-3); }
 .facts-list { display: grid; grid-template-columns: auto 1fr; gap: var(--s-2) var(--s-4); margin: 0; }
@@ -481,7 +481,7 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
 .globe__canvas--gl, .globe__canvas--over { pointer-events: none; }
 .globe__pins { position: absolute; inset: 0; pointer-events: none; }
 .globe__foot {
-  position: absolute; left: var(--s-3); right: var(--s-3); bottom: calc(var(--s-3) + env(safe-area-inset-bottom));
+  position: absolute; left: var(--edge-l); right: var(--edge-r); bottom: calc(var(--s-3) + var(--safe-b));
   display: flex; flex-direction: column; align-items: center; gap: var(--s-2); pointer-events: none;
 }
 .globe__hint {
@@ -493,7 +493,7 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
 .globe.has-layer .globe__hint { display: none; }
 /* ?debug=fps (grown-up preview): frame rate and drawing time. */
 .globe__fps {
-  position: absolute; right: var(--s-2); bottom: calc(var(--s-2) + env(safe-area-inset-bottom)); margin: 0;
+  position: absolute; right: var(--s-2); bottom: calc(var(--s-2) + var(--safe-b)); margin: 0;
   padding: var(--s-1) var(--s-2); border-radius: var(--r-sm); background: var(--c-veil); color: var(--c-ink);
   font-size: var(--fs-xs); font-variant-numeric: tabular-nums; pointer-events: none;
 }
@@ -501,12 +501,12 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
 /* Map layer chips along the top, scrolling sideways on narrow screens. */
 .glayers {
   position: absolute; top: var(--s-2); left: 0; right: 0;
-  display: flex; gap: var(--s-2); padding: 0 var(--s-3) var(--s-1);
+  display: flex; gap: var(--s-2); padding: 0 var(--edge-r) var(--s-1) var(--edge-l);
   overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;
 }
 .glayers::-webkit-scrollbar { display: none; }
 /* Opened from a card: "Back to card" above the layer chips. */
-.globe__back { position: absolute; z-index: 2; top: var(--s-2); left: var(--s-3); min-height: var(--tap-sm); }
+.globe__back { position: absolute; z-index: 2; top: var(--s-2); left: var(--edge-l); min-height: var(--tap-sm); }
 .globe__back .bi { flex-direction: row; gap: 0.4em; }
 .globe.has-back .glayers { top: calc(var(--s-2) * 2 + var(--tap-sm)); }
 /* Offline the first time: the globe's land can't load yet. */
@@ -535,7 +535,7 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
 
 /* Region filter: continents and habitats, opened from the first chip. */
 .gfilter {
-  position: absolute; z-index: 2; top: calc(var(--gpanel-top, calc(var(--tap-sm) + var(--s-2))) + var(--s-2)); left: var(--s-3); right: var(--s-3);
+  position: absolute; z-index: 2; top: calc(var(--gpanel-top, calc(var(--tap-sm) + var(--s-2))) + var(--s-2)); left: var(--edge-l); right: var(--edge-r);
   max-width: var(--sheet-w); max-height: 60%; overflow-y: auto;
   display: grid; gap: var(--s-2); padding: var(--s-3);
   border-radius: var(--r-md); background: var(--c-veil); box-shadow: var(--shadow-2);
@@ -620,8 +620,8 @@ a.gzone__animal { text-decoration: underline; }
 
 /* Side: a column on the left, under the chips. */
 .gpanel[data-mode="side"] {
-  top: calc(var(--gpanel-top, var(--tap-sm)) + var(--s-2)); left: var(--s-3);
-  bottom: calc(var(--s-3) + env(safe-area-inset-bottom)); width: var(--gpanel-w);
+  top: calc(var(--gpanel-top, var(--tap-sm)) + var(--s-2)); left: var(--edge-l);
+  bottom: calc(var(--s-3) + var(--safe-b)); width: var(--gpanel-w);
   transition: width 0.2s ease;
 }
 .gpanel[data-mode="side"] .gpanel__toggle { top: var(--s-1); right: var(--s-1); }
@@ -630,7 +630,7 @@ a.gzone__animal { text-decoration: underline; }
 
 /* Sheet: under the globe, as wide as the screen allows; open, it grows upwards over it. */
 .gpanel[data-mode="sheet"], .gpanel[data-mode="strip"] {
-  left: var(--s-3); right: var(--s-3); bottom: calc(var(--s-3) + env(safe-area-inset-bottom));
+  left: var(--edge-l); right: var(--edge-r); bottom: calc(var(--s-3) + var(--safe-b));
   max-height: min(var(--gpanel-sheet), calc(100% - var(--gpanel-top, var(--tap-sm)) - var(--s-4)));
 }
 .gpanel[data-mode="sheet"] { margin: 0 auto; max-width: var(--sheet-w); }
@@ -779,7 +779,7 @@ a.gzone__animal { text-decoration: underline; }
   position: absolute; z-index: 3; left: 0; right: 0; bottom: 0; margin: 0 auto;
   width: min(100%, var(--sheet-w)); max-height: calc(100% - var(--s-5));
   display: flex; flex-direction: column; overflow: hidden;
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-bottom: var(--safe-b);
   background: var(--c-surface); border-radius: var(--r-lg) var(--r-lg) 0 0; box-shadow: var(--shadow-3);
   touch-action: none; outline: none;
 }
@@ -827,13 +827,13 @@ a.gzone__animal { text-decoration: underline; }
 .quiz__q { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); }
 .quiz__prompt { font-size: var(--fs-xl); line-height: 1.2; }
 .quiz__pic {
-  width: 100%; aspect-ratio: 4 / 3; max-height: 46dvh;
+  width: 100%; aspect-ratio: 4 / 3; max-height: calc(46 * var(--dvh));
   border-radius: var(--r-lg); overflow: hidden; background: var(--c-bg-deep);
   box-shadow: var(--shadow-1);
 }
 .quiz__pic .pic { object-fit: contain; }
 .quiz__tf { display: grid; gap: var(--s-4); align-items: center; }
-.quiz__pic--small { max-height: 30dvh; }
+.quiz__pic--small { max-height: calc(30 * var(--dvh)); }
 .quiz__fact {
   margin: 0; padding: var(--s-4) var(--s-5);
   border-left: var(--bw-heavy) solid var(--c-accent); border-radius: var(--r-md);
@@ -906,7 +906,7 @@ a.gzone__animal { text-decoration: underline; }
 .input--wide { width: 100%; text-align: left; font-size: var(--fs-md); }
 .input--code { width: 10em; letter-spacing: 0.2em; font-variant-numeric: tabular-nums; }
 .input[aria-invalid="true"] { border-color: var(--c-bad); }
-.sheet--form { max-height: calc(100dvh - var(--s-6)); overflow-y: auto; }
+.sheet--form { max-height: calc(100 * var(--dvh) - var(--s-6) - var(--safe-t) - var(--safe-b)); overflow-y: auto; }
 
 /* ---------- Profiles ---------- */
 /* A round letter avatar. Colours: --avatar-N in tokens.css. */
@@ -933,7 +933,7 @@ a.gzone__animal { text-decoration: underline; }
 .picker {
   position: fixed; inset: 0; z-index: 90;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--s-5);
-  padding: max(var(--s-5), env(safe-area-inset-top)) var(--s-4) max(var(--s-5), env(safe-area-inset-bottom));
+  padding: max(var(--s-5), var(--safe-t)) max(var(--s-4), var(--safe-r)) max(var(--s-5), var(--safe-b)) max(var(--s-4), var(--safe-l));
   background: var(--c-bg); overflow-y: auto;
   opacity: 0; transition: opacity var(--t-med);
 }
@@ -986,9 +986,9 @@ dialog.picker::backdrop { background: var(--c-bg); }
 
 /* "New pack arrived!": a bottom sheet that leaves the app usable. */
 .notice {
-  position: fixed; z-index: 80; left: 0; right: 0; margin: 0 auto;
-  bottom: calc(var(--s-4) + env(safe-area-inset-bottom));
-  width: min(calc(100% - 2 * var(--s-4)), var(--sheet-w));
+  position: fixed; z-index: 80; left: var(--safe-l); right: var(--safe-r); margin: 0 auto;
+  bottom: calc(var(--s-4) + var(--safe-b));
+  width: min(calc(100% - 2 * var(--s-4) - var(--safe-l) - var(--safe-r)), var(--sheet-w));
   display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-3);
   padding: var(--s-3) var(--s-4); border-radius: var(--r-lg);
   background: var(--c-surface); box-shadow: var(--shadow-3);
@@ -1018,7 +1018,7 @@ dialog.picker::backdrop { background: var(--c-bg); }
 @media (min-width: 700px) {
   .grid { grid-template-columns: repeat(auto-fill, minmax(var(--tile-min-lg), 1fr)); }
   .quiz__tf { grid-template-columns: minmax(var(--quiz-pic-min), 2fr) 3fr; }
-  .quiz__pic--small { max-height: 40dvh; }
+  .quiz__pic--small { max-height: calc(40 * var(--dvh)); }
 }
 
 /* Wide/landscape: binder tabs stand up along the right edge, like a real binder. */
@@ -1029,7 +1029,7 @@ dialog.picker::backdrop { background: var(--c-bg); }
     flex: none; flex-direction: column; gap: var(--s-1);
     /* Sticks inside the scrolling <main> and scrolls on its own if it is taller than the screen. */
     position: sticky; top: 0;
-    max-height: calc(100dvh - var(--header-h) - var(--s-6) - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    max-height: calc(100 * var(--dvh) - var(--header-h) - var(--s-6) - var(--safe-t) - var(--safe-b));
     overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain;
     padding: var(--s-4) var(--s-2) var(--s-2) 0; margin: 0;
     width: var(--tabs-w);
@@ -1049,7 +1049,7 @@ dialog.picker::backdrop { background: var(--c-bg); }
   .tab.is-active { transform: none; }
 
   .answers--4 { grid-template-columns: repeat(4, 1fr); }
-  .quiz__pic { max-height: 42dvh; }
+  .quiz__pic { max-height: calc(42 * var(--dvh)); }
 }
 
 /* Short landscape phones: keep the header compact. */
@@ -1062,15 +1062,15 @@ dialog.picker::backdrop { background: var(--c-bg); }
 
 @media (max-width: 520px) {
   /* Phones: the main nav moves to a tab bar along the bottom, so the header fits. */
-  body { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom)); }
+  body { padding-bottom: calc(var(--nav-h) + var(--safe-b)); }
   .nav {
-    position: fixed; left: 0; right: 0; bottom: 0; height: calc(var(--nav-h) + env(safe-area-inset-bottom));
+    position: fixed; left: 0; right: 0; bottom: 0; height: calc(var(--nav-h) + var(--safe-b));
     justify-content: space-around; gap: 0;
-    padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    padding: 0 var(--safe-r) var(--safe-b) var(--safe-l);
     background: var(--c-surface); box-shadow: var(--shadow-1);
   }
   .nav__item { flex: 1; min-width: 0; border-radius: 0; }
-  .notice { bottom: calc(var(--nav-h) + var(--s-3) + env(safe-area-inset-bottom)); }
+  .notice { bottom: calc(var(--nav-h) + var(--s-3) + var(--safe-b)); }
   .bi--brand > .t-en, .bi--brand > .t-zh { font-size: var(--fs-sm); }
   .brand__icon { width: var(--size-brand-sm); height: var(--size-brand-sm); }
   .seg--lang .seg__btn { padding: var(--s-1) var(--s-2); min-width: var(--tap-xs); }

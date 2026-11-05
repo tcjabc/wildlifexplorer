@@ -1,7 +1,7 @@
 // WildFile — app start-up and hash router.
 // Every launch starts at the profile picker (or the Welcome form on the very first run).
 // <main> shows one view (binder, quiz, …). A card opens in the viewer layer on top of
-// the binder, so the binder can zoom and blur behind it and is still there on close.
+// the binder, so the binder can zoom behind it and is still there on close.
 // Packs are never opened for the child: a sheet says when one arrives, and they wait in
 // Packs until the child opens them.
 import { $, h, on, mount } from './dom.js';

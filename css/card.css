@@ -13,7 +13,7 @@
 .viewer__bar {
   position: relative; z-index: 2;
   display: flex; align-items: center; gap: var(--s-2);
-  padding: max(var(--s-2), env(safe-area-inset-top)) max(var(--s-3), env(safe-area-inset-right)) var(--s-2) max(var(--s-3), env(safe-area-inset-left));
+  padding: max(var(--s-2), var(--safe-t)) max(var(--s-3), var(--safe-r)) var(--s-2) max(var(--s-3), var(--safe-l));
   min-height: var(--header-h);
   background: var(--g, var(--c-primary)); /* its own header: covers the app header completely */
   color: var(--g-ink, var(--c-on-primary));
@@ -24,7 +24,7 @@
 @media (max-width: 600px) { .viewer__bar > .viewer__group { display: none; } }
 /* Phones: squeeze the buttons so the bar never pushes the page wider than the screen. */
 @media (max-width: 520px) {
-  .viewer__bar { gap: var(--s-1); padding-left: max(var(--s-2), env(safe-area-inset-left)); padding-right: max(var(--s-2), env(safe-area-inset-right)); }
+  .viewer__bar { gap: var(--s-1); padding-left: max(var(--s-2), var(--safe-l)); padding-right: max(var(--s-2), var(--safe-r)); }
   .viewer__bar > .btn { min-width: var(--tap-xs); min-height: var(--tap-xs); }
   .viewer__bar > .viewer__no { display: none; }
 }
@@ -39,7 +39,7 @@
 .viewer__stage.is-3d .viewer__zoomer, .viewer__stage.is-3d .card-pos { transform-style: preserve-3d; }
 .viewer__hint {
   position: relative; z-index: 2; min-height: var(--tap);
-  padding: var(--s-2) var(--s-4) max(var(--s-4), env(safe-area-inset-bottom));
+  padding: var(--s-2) max(var(--s-4), var(--safe-r)) max(var(--s-4), var(--safe-b)) max(var(--s-4), var(--safe-l));
   color: var(--c-on-primary); font-weight: var(--fw-semi); text-align: center;
 }
 .viewer__hint .bi { align-items: center; }

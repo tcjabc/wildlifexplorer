@@ -1,5 +1,5 @@
 // The card viewer: a full-screen layer over the binder.
-// - Opens by zooming from the tapped binder tile (the binder grows and blurs behind it).
+// - Opens by zooming from the tapped binder tile (the binder grows behind it).
 // - The card is a bi-fold: cover (Card), inside spread (Profile), back (Fact File).
 // - Gestures are decided by direction, from anywhere on the card (or a margin around it, never
 //   the screen's right edge, where the notebook spine goes): sideways opens or closes the card
@@ -100,11 +100,10 @@ function draw() {
   const reduced = reducedMotion();
   const rest = atRest();
 
-  // Binder behind: grows faster than the card and blurs (parallax), unless motion is reduced.
+  // Binder behind: grows faster than the card (parallax), unless motion is reduced.
   const bg = 1 - (1 - z) ** 2;
   if (!reduced) {
     v.main.style.setProperty('transform', `scale(${1 + cssNum('--zoom-bg-scale') * bg})`);
-    v.main.style.setProperty('filter', `blur(${cssNum('--zoom-bg-blur') * bg}px)`);
   }
   v.scrim.style.setProperty('opacity', String(bg));
   v.chrome.forEach(el => el.style.setProperty('opacity', String(clamp((z - 0.6) / 0.4))));
@@ -567,7 +566,7 @@ function teardown() {
   stopZoom();
   stop();
   window.removeEventListener('resize', v.onResize);
-  ['transform', 'filter', 'transform-origin'].forEach(p => v.main?.style.removeProperty(p));
+  ['transform', 'transform-origin'].forEach(p => v.main?.style.removeProperty(p));
   v.el.remove();
   v = null;
 }

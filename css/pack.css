@@ -3,7 +3,7 @@
 .reveal {
   position: fixed; inset: 0; z-index: 100;
   display: flex; align-items: center; justify-content: center;
-  padding: max(var(--s-4), env(safe-area-inset-top)) var(--s-4) max(var(--s-4), env(safe-area-inset-bottom));
+  padding: max(var(--s-4), var(--safe-t)) max(var(--s-4), var(--safe-r)) max(var(--s-4), var(--safe-b)) max(var(--s-4), var(--safe-l));
   opacity: 0; transition: opacity var(--t-med);
   overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
 }
@@ -20,7 +20,7 @@
 .reveal__scene { position: relative; display: flex; flex-direction: column; align-items: center; gap: var(--s-3); }
 .reveal__title {
   color: var(--c-accent); font-weight: var(--fw-bold); text-align: center; line-height: 1.15;
-  font-size: clamp(var(--fs-lg), 5dvh, var(--fs-xxl));
+  font-size: clamp(var(--fs-lg), calc(5 * var(--dvh)), var(--fs-xxl));
   text-shadow: 0 3px 0 var(--c-shade);
   animation: pop-in var(--t-slow) var(--ease-bounce) both;
 }

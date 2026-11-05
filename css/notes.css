@@ -234,7 +234,7 @@
 .nb-menu__list { display: grid; gap: var(--s-2); }
 .nb-menu__list .btn { justify-content: flex-start; }
 .nb-menu__list .bi { flex-direction: row; gap: 0.4em; }
-.nb-pick__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--size-medal), 1fr)); gap: var(--s-2); max-height: 50dvh; overflow-y: auto; }
+.nb-pick__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--size-medal), 1fr)); gap: var(--s-2); max-height: calc(50 * var(--dvh)); overflow-y: auto; }
 .nb-pick__item {
   display: grid; justify-items: center; gap: var(--s-1); padding: var(--s-2);
   border: var(--bw-thin) solid var(--g, var(--c-line)); border-radius: var(--r-md);
@@ -246,6 +246,9 @@
 
 /* Field Notes as a page of the app */
 .main[data-view="notes"] { padding: 0; overflow: hidden; }
+.main[data-view="notes"] .nb { padding: 0 var(--safe-r) var(--safe-b) var(--safe-l); }
+/* Phones: the tab bar under it already keeps clear of the bottom edge. */
+@media (max-width: 520px) { .main[data-view="notes"] .nb { padding-bottom: 0; } }
 
 /* Tile: Field Notes pages linked to the card */
 .tile__notes {
@@ -312,7 +315,7 @@
 .viewer[data-dock="phone"] .nbdock__spine { display: none; }
 .viewer[data-dock="phone"][data-notebook="collapsed"] .nbdock__tab {
   display: inline-flex; align-items: center; gap: var(--s-1); flex: none;
-  margin: var(--s-2) max(var(--s-2), env(safe-area-inset-right)) max(var(--s-2), env(safe-area-inset-bottom)) 0;
+  margin: var(--s-2) max(var(--s-2), var(--safe-r)) max(var(--s-2), var(--safe-b)) 0;
   min-height: var(--tap-xs); padding: 0 var(--s-3); border: 0; border-radius: var(--r-md);
   background: var(--nb-kraft); color: var(--nb-kraft-ink); box-shadow: var(--shadow-2);
   font: inherit; font-weight: var(--fw-bold); cursor: pointer;
