@@ -41,6 +41,7 @@ const main = $('#main');
 const header = $('#header');
 let cleanup = null;
 let shown = { name: null, args: [] }; // what <main> currently shows
+let cameFrom = null; // the view before it, if there was one: where "back" can go
 let activeNav = null;
 let choosing = false;
 
@@ -65,9 +66,11 @@ function renderMain(next, { keepScroll = false } = {}) {
   const y = main.scrollTop;
   cleanup?.({ staying: next.name === shown.name });
   stop();
+  if (next.name !== shown.name) cameFrom = shown.name;
   shown = next;
   setNav(NAV_FOR[next.name]);
-  cleanup = VIEWS[next.name].render(main, next.args) ?? null;
+  document.body.classList.toggle('is-immersive', next.name === 'notes');
+  cleanup = VIEWS[next.name].render(main, next.args, { from: cameFrom }) ?? null;
   main.dataset.view = next.name;
   main.scrollTop = keepScroll ? y : 0;
 }

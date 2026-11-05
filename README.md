@@ -606,9 +606,32 @@ a photo is a derivative of it: give it the photo's author and licence, add
 ## Field Notes
 
 One notebook per profile (📓 in the nav, or beside every card). Code: `js/notebook.js` (the UI),
-`js/notes-render.js` (drawing a page), `js/notes-model.js` (tags, contents, migration; pure, tested in
-`tests/notes-model.test.mjs`), `js/notes-store.js` (storage), `js/notes-io.js` (backup), `js/zip.js`,
-styles in `css/notes.css`.
+`js/notes-render.js` (drawing a page), `js/notes-view.js` (open pages, zoom limits, what a gesture
+means; pure, tested in `tests/notes-view.test.mjs`), `js/notes-model.js` (tags, contents, migration;
+pure, tested in `tests/notes-model.test.mjs`), `js/notes-store.js` (storage), `js/notes-io.js`
+(backup), `js/zip.js`, styles in `css/notes.css`. `tests/notes-touch.test.mjs` drives the notebook
+with real touches in Chromium.
+
+- **On its own** (`#/notes`): the whole screen, with no app header or tab bar. One back button goes
+  to the screen before (or the binder, when opened directly). Tool rails stand at the left and right
+  of the page (`--nb-rail`), or as bands above and below it in portrait, where side rails would leave
+  the page short of the full height; for now the left rail holds the tools and the right one new page
+  and ⋯. A ribbon on the book's edge marks the place and opens the contents; tabs at its bottom
+  corners turn the pages.
+- **Spread**: landscape lies open at two pages, paired in list order (1–2, 3–4, …), and either can be
+  drawn on. Undo goes back through both in the order things were done, and the ⋯ menu says which page
+  its page actions are for. An odd page out has a blank page beside it, saved only at its first mark;
+  a first mark on the right of two blanks keeps the left one too. Portrait shows one page, and
+  rotating keeps that page open.
+- **Gestures**: one finger draws. Two fingers pan and pinch-zoom, up to 4×: the page moves by CSS
+  transform during the gesture, and when it ends a screen-sized canvas redraws the view sharply, so
+  zooming never needs a bigger page bitmap. At the fitted size a two-finger swipe turns the page, only
+  when it is clearly sideways, at least 80 px, and the fingers' distance never changed by 5%: a pinch
+  can't turn the page. A second finger within 200 ms of the first makes a gesture and drops what the
+  first had started; later, the line carries on. With a mouse, the wheel pans and ctrl + wheel zooms.
+- **Canvas**: at most 1.5 device pixels per CSS pixel. Each page is a cached bitmap: the mark being
+  made is on a live layer, and a finished one is added to the bitmap on its own. Eraser redraws go by
+  the frame.
 
 - **Beside a card**: the notebook is always there, in one of two states. Collapsed, it is a kraft
   spine with an elastic band in the 60 px strip at the right (on phones, a 📓 tab at the bottom
@@ -622,7 +645,7 @@ styles in `css/notes.css`.
   (`notesPanel`).
 - **The page beside a card** fills the panel's width (less a 16 px kraft margin) and scrolls up and
   down when it is taller: with the wheel, two fingers, one finger on the kraft margin, or one
-  finger on the page in *Pen only*. A slim indicator on its right edge shows there is more, and
+  finger on the page in *Pen only*. It zooms like the page on its own. A slim indicator on its right edge shows there is more, and
   the first time each page opens it dips down a little and back (not with reduced motion).
 - **Animal tags**: a page has zero or more animals, shown as chips under its OBSERVED stamp
   (✕ removes one, "＋" adds an animal this explorer has collected). Placing a stamp adds its animal;
@@ -638,14 +661,16 @@ styles in `css/notes.css`.
   pages and "＋ New free page". Pages never move; the contents is a view of their tags. From a card's
   notebook, "‹ <animal>" goes back to it.
 - **Tools**: pencil in 8 colours and two sizes, eraser (whole marks), text, stamps (collected
-  cards' silhouettes, or the group emoji), footprint roller (cat paw, hoof, bird, bear), move
-  (drag, the corner handles or a two-finger pinch to resize and turn; ✕ to remove), photos, undo
-  and redo (Ctrl/⌘+Z). Swipe across the page with a finger to turn it.
-  The toolbar never scrolls: one row when it all fits (measured, as the labels' width depends on
-  the language), otherwise two rows of 44 px controls with the colours behind a swatch. The
+  cards' silhouettes, or the group emoji), footprint roller (cat paw, hoof, bird, bear), photos, undo
+  and redo (Ctrl/⌘+Z). There is no move tool: with the pencil or roller, one tap on a photo, stamp or
+  text selects it (so a tap there leaves no dot). Drag it inside its box, use the handles outside the
+  box or a two-finger pinch on it to resize and turn it, ✕ to remove it; a tap elsewhere lets go.
+  Beside a card the toolbar never scrolls: one row when it all fits (measured, as the labels' width
+  depends on the language), otherwise two rows of 44 px controls with the colours behind a swatch. In
+  a rail the colours are always behind the swatch, and it scrolls where the screen is too short. The
   roller's feet always open from one button in a small picker.
 - **Pen or finger**: the first time a pen touches the page, the notebook switches to *Pen only*
-  so a resting hand doesn't draw. The toggle at the end of the toolbar switches
+  so a resting hand doesn't draw, and one finger turns pages. The toggle at the end of the toolbar switches
   back to finger drawing at any time; the choice is kept per profile. Touches wider than a finger
   are ignored, and so are touches while the pen is down.
 - **Backup** (⋯ menu): *Back up all my notes* makes a zip (`manifest.json`, `pages/*.json`,

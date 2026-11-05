@@ -1,10 +1,23 @@
-// Field Notes: a researcher's notebook. Kraft cover, dotted (or grid) paper, one page at a
-// time; swipe to turn pages. Tools: pencil (pressure), eraser (whole marks), coloured
-// pencils, text, creature stamps, footprint roller, taped-in photos (move / resize / turn),
-// undo and redo.
+// Field Notes: a researcher's notebook. Kraft cover, dotted (or grid) paper. Tools: pencil
+// (pressure), eraser (whole marks), coloured pencils, text, creature stamps, footprint roller,
+// taped-in photos, undo and redo.
+//
+// On its own (#/notes) the notebook fills the screen: no app header, one back button, rails for
+// the tools at the left and right (bands above and below the page in portrait), a ribbon marking
+// the place, and tabs to turn pages. Landscape lies open at a two-page spread, portrait shows one
+// page; both pages of a spread are live. Beside a card it stays a panel: one page, with its bar
+// and toolbar on top.
+//
+// One finger draws. Two fingers pan and pinch-zoom; a clear sideways two-finger swipe at the
+// fitted size turns the page (js/notes-view.js has the rules). During a gesture the page moves
+// by CSS transform; when it ends, a canvas the size of the screen redraws what is in view
+// sharply, so zooming in never needs a bigger page bitmap. The wheel pans, ctrl + wheel zooms.
+//
+// One tap on a photo, stamp or text selects it: drag it inside its box, use the handles, or
+// pinch on it to resize and turn it. A tap elsewhere lets go.
 //
 // Pen and fingers: in "finger" mode fingers draw; in "pen" mode only a pen (or mouse) draws
-// and fingers turn pages. The first time a pen draws, the notebook switches to pen mode
+// and one finger turns pages. The first time a pen draws, the notebook switches to pen mode
 // (palm rejection); the toggle in the toolbar switches back at any time. Remembered per
 // profile. While a pen is touching the page, other touches never draw.
 //
@@ -12,33 +25,35 @@
 // collected animal, ✕ to remove one; a stamp adds its animal's tag. A page with no tags is a
 // free page (隨手記).
 //
-// notebook({ cardId, beside, lead, onMaximise, onClose }):
+// notebook({ cardId, beside, lead, start, onBack }):
 //   cardId: open on that animal's pages (its most recently edited one; a draft page tagged
 //           with it when it has none, saved at its first mark). "All pages" shows the
 //           contents, and from there "‹ <animal>" comes back. Without a card: the contents.
 //   beside: the notebook is open next to a card. The page then fills the panel's width and
-//           scrolls up and down when it is taller
-//   lead: an element for the start of the bar in place of the "Field Notes" title (beside a
-//         card: the panel's "Collapse ›", so the panel has one bar)
+//           pans up and down when it is taller
+//   lead: an element for the start of the bar beside a card (the panel's "Collapse ›")
 //   start: { view, scope, pageId } from where(): open there (coming back from the globe)
+//   onBack: leave the notebook (on its own)
 import { h, mount, reducedMotion } from './dom.js';
-import { bi, t, tx, label, plain, getMode, dateText } from './i18n.js';
+import { bi, t, tx, label, getMode, dateText } from './i18n.js';
 import { state, updateProfile, isCollected, groupById } from './store.js';
 import * as notes from './notes-store.js';
 import { PAGE_W, PAGE_H } from './notes-store.js';
 import { titleOf, withTag, withoutTag, tagsAfterStamp, freePages, openFor, contents as contentsOf } from './notes-model.js';
-import { renderPage, renderItem, drawStroke, hitItem, boundsOf, PENCILS, pencilColour } from './notes-render.js';
+import { renderPage, renderItem, appendItem, drawStroke, hitItem, boundsOf, PENCILS, pencilColour } from './notes-render.js';
+import { slotsFor, fitScale, clampView, pinchView, settleView, swipeTurn, secondFingerCounts, isTap, pixelRatio } from './notes-view.js';
 import { exportPageImage, exportAll, importBackup, saveToFolder, folderSupported } from './notes-io.js';
 import { haptic, clamp } from './gesture.js';
 
 const TOOLS = [
-  ['pencil', '✏️'], ['eraser', '🧽'], ['text', '🔤'], ['stamp', '🐾'], ['roller', '👣'], ['move', '✋'],
+  ['pencil', '✏️'], ['eraser', '🧽'], ['text', '🔤'], ['stamp', '🐾'], ['roller', '👣'],
 ];
 const FEET = [['paw', '🐈'], ['hoof', '🦌'], ['bird', '🐦'], ['bear', '🐻']];
 const SIZES = { thin: 5, thick: 12 };
 const TEXT_SIZE = 40;
 const STAMP_SIZE = 180;
 const ERASE_R = 14;
+const SETTLE_MS = 400; // after selecting, before ✕ counts
 
 // The card's name and dates in the profile's language, for text drawn on the canvas.
 const inLang = pair => {
@@ -47,39 +62,60 @@ const inLang = pair => {
   return m === 'en' ? pair.en || pair.zh : m === 'zh' ? pair.zh || pair.en : [pair.en, pair.zh].filter(Boolean).join('  ');
 };
 
-export function notebook({ cardId = null, beside = false, lead = null, start = null, onMaximise = null, onClose = null } = {}) {
-  // view: 'pages' (one page at a time) or 'contents'. scope: whose pages the arrows step
-  // through: { kind: 'animal', id } or { kind: 'free' }. draft: the page isn't saved yet.
+export function notebook({ cardId = null, beside = false, lead = null, start = null, onBack = null } = {}) {
+  // Each side of the book: its page (none when not showing), and whether that page is a draft
+  // (not saved until its first mark) or has unsaved changes.
+  const makeSide = i => {
+    const base = h('canvas', { class: 'nb__base' });
+    // The page's animal tags, under the OBSERVED stamp (positioned in page units, css/notes.css).
+    const tagsBox = h('div', { class: 'nb__tags', role: 'group', 'aria-label': label('notes.tags') });
+    // The selection handles and the text box being typed go on a layer of their own.
+    const selLayer = h('div', { class: 'nb__sel-layer' });
+    return {
+      i, base, tagsBox, selLayer, sheet: h('div', { class: 'nb__sheet' }, base), overlay: h('div', { class: 'nb__overlay' }, selLayer, tagsBox),
+      page: null, draft: false, dirty: false,
+    };
+  };
+  const sides = [makeSide(0), makeSide(1)];
+  sides[1].sheet.hidden = sides[1].overlay.hidden = true;
+
+  // view: 'pages' or 'contents'. scope: whose pages are turned through: { kind: 'animal', id } or
+  // { kind: 'free' }. pos: the list index of the first page open. active: the side being worked
+  // on (the last one touched); nb.page and nb.draft are that side's.
   const nb = {
-    home: cardId, view: cardId ? 'pages' : 'contents', scope: cardId ? { kind: 'animal', id: cardId } : null, draft: false,
-    ids: [], pos: 0, page: null,
+    home: cardId, view: cardId ? 'pages' : 'contents', scope: cardId ? { kind: 'animal', id: cardId } : null,
+    ids: [], pos: 0, active: 0, spread: false,
     tool: 'pencil', colour: 'graphite', size: 'thin', foot: 'paw', stampCard: null,
     undo: [], redo: [], selected: -1, saveTimer: 0,
     assets: { photos: new Map(), stamps: new Map() },
+    get page() { return sides[this.active].page; },
+    get draft() { return sides[this.active].draft; },
   };
   const input = () => state.profile.notesInput ?? 'finger';
+  const open = () => (nb.spread ? sides : sides.slice(0, 1));
 
   // ---------- DOM ----------
-  const base = h('canvas', { class: 'nb__base' });
-  const live = h('canvas', { class: 'nb__live' });
-  // The page's animal tags, under the OBSERVED stamp (positioned in page units, css/notes.css).
-  const tagsBox = h('div', { class: 'nb__tags', role: 'group', 'aria-label': label('notes.tags') });
-  // The selection handles and the text box being typed go on a layer of their own.
-  const selLayer = h('div', { class: 'nb__sel-layer' });
-  const overlay = h('div', { class: 'nb__overlay' }, selLayer, tagsBox);
-  const sheet = h('div', { class: 'nb__sheet' }, base, live, overlay);
-  const desk = h('div', { class: 'nb__desk', 'data-scroll': '' }, sheet);
+  // Two books with the same transform: the pages under the canvases, what sits on them over.
+  const book = h('div', { class: 'nb__book' }, sides[0].sheet, sides[1].sheet);
+  const over = h('div', { class: 'nb__book nb__book--over' }, sides[0].overlay, sides[1].overlay, h('span', { class: 'nb__fold', 'aria-hidden': 'true' }));
+  const detail = h('canvas', { class: 'nb__detail', hidden: true }); // the sharp view when zoomed in
+  const live = h('canvas', { class: 'nb__live' });                   // the mark being made
+  const desk = h('div', { class: 'nb__desk', 'data-scroll': '' }, book, detail, live, over);
   const contentsBox = h('div', { class: 'nb__contents', 'data-scroll': '', hidden: true });
   // Beside a card the page can be taller than the panel: a slim indicator on its right edge
   // shows how much more there is, and where.
   const thumb = h('span', { class: 'nb__thumb' });
   const scrollbar = h('div', { class: 'nb__scrollbar', 'aria-hidden': 'true', hidden: true }, thumb);
-  const deskWrap = h('div', { class: 'nb__deskwrap' }, desk, scrollbar);
   const counter = h('span', { class: 'nb__count' });
   // "All pages" (to the contents), or in the contents of a card's notebook "‹ <animal>".
   const filterChip = h('button', { class: 'nb__filter', type: 'button', onclick: () => (nb.view === 'pages' ? openContents() : openHome()) });
-  const prev = h('button', { class: 'btn btn--icon nb__nav', type: 'button', 'aria-label': label('notes.prev'), onclick: () => turn(-1) }, '‹');
-  const next = h('button', { class: 'btn btn--icon nb__nav', type: 'button', 'aria-label': label('notes.next'), onclick: () => turn(1) }, '›');
+  const prev = h('button', { class: 'btn btn--icon nb__nav nb__nav--prev', type: 'button', 'aria-label': label('notes.prev'), onclick: () => turn(-1) }, '‹');
+  const next = h('button', { class: 'btn btn--icon nb__nav nb__nav--next', type: 'button', 'aria-label': label('notes.next'), onclick: () => turn(1) }, '›');
+  const newBtn = h('button', { class: 'btn btn--icon nb__new', type: 'button', 'aria-label': label('notes.newPage'), onclick: () => newPage() }, '＋');
+  const menuBtn = h('button', { class: 'btn btn--icon', type: 'button', 'aria-label': label('notes.menu'), onclick: () => openMenu() }, '⋯');
+  // The ribbon marks the place in the book; tapping it opens the contents.
+  const ribbon = h('button', { class: 'nb__ribbon', type: 'button', onclick: () => openContents() });
+  const deskWrap = h('div', { class: 'nb__deskwrap' }, desk, scrollbar, !beside && ribbon, !beside && prev, !beside && next);
   const fileInput = h('input', { type: 'file', accept: 'image/*', hidden: true, onchange: e => addPhoto(e.target.files?.[0]) });
   const importInput = h('input', { type: 'file', accept: '.zip,application/zip', hidden: true, onchange: e => doImport(e.target.files?.[0]) });
   const menuSheet = h('dialog', { class: 'sheet nb-menu' });
@@ -88,20 +124,6 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     d.addEventListener('click', e => { if (e.target === d) d.close(); });
     d.addEventListener('keydown', e => e.stopPropagation());
   });
-
-  // One row: the title (or the lead), the chip, and the page buttons, which stay together. When
-  // the row is too narrow it wraps between those groups; the chip never shrinks below its text.
-  const bar = h('header', { class: 'nb__bar' },
-    lead ?? h('h2', { class: 'nb__title' }, h('span', { 'aria-hidden': 'true' }, '📓 '), tx('notes.title')),
-    h('span', { class: 'nb__chipwrap' }, filterChip),
-    h('span', { class: 'nb__pages' },
-      prev, counter, next,
-      h('button', { class: 'btn btn--icon nb__new', type: 'button', 'aria-label': label('notes.newPage'), onclick: () => newPage() }, '＋'),
-      h('button', { class: 'btn btn--icon', type: 'button', 'aria-label': label('notes.menu'), onclick: () => openMenu() }, '⋯'),
-      onMaximise && h('button', { class: 'btn btn--icon nb__max', type: 'button', 'aria-label': label('notes.maximise'), onclick: () => onMaximise('toggle') }, '⤢'),
-      onClose && h('button', { class: 'btn btn--icon', type: 'button', 'aria-label': label('notes.close'), onclick: () => onClose() }, '✕')));
-  // Double-tap the bar to fill the screen (or come back).
-  bar.addEventListener('dblclick', e => { if (onMaximise && !e.target.closest('button')) onMaximise('toggle'); });
 
   const toolBtns = TOOLS.map(([id, icon]) => h('button', {
     type: 'button', class: 'nb-tool', 'data-tool': id, 'aria-pressed': 'false', 'aria-label': label(`notes.tool.${id}`),
@@ -132,8 +154,20 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     colourPick.btn, colourBtns, sizeBtn, footPick.btn,
     h('span', { class: 'nb__sep' }), undoBtn, redoBtn, h('span', { class: 'spacer' }), inputBtn);
 
-  const el = h('section', { class: ['nb', beside && 'nb--beside'], 'aria-label': label('notes.title') },
-    bar, tools, colourPick.box, footPick.box, deskWrap, contentsBox, fileInput, importInput, menuSheet, pickSheet);
+  // Beside a card, one row: the lead, the chip, and the page buttons, which stay together. When
+  // the row is too narrow it wraps between those groups; the chip never shrinks below its text.
+  const bar = beside && h('header', { class: 'nb__bar' },
+    lead,
+    h('span', { class: 'nb__chipwrap' }, filterChip),
+    h('span', { class: 'nb__pages' }, prev, counter, next, newBtn, menuBtn));
+  // On its own, the rails: back and the tools; and room for more tools, with new page and the
+  // menu at its ends.
+  const backBtn = !beside && h('button', { class: 'btn btn--icon nb__back', type: 'button', 'aria-label': label('notes.back'), onclick: () => onBack?.() }, '‹');
+  const railStart = !beside && h('aside', { class: 'nb__rail nb__rail--start' }, backBtn, tools);
+  const railEnd = !beside && h('aside', { class: 'nb__rail nb__rail--end' }, newBtn, h('span', { class: 'spacer' }), menuBtn);
+
+  const el = h('section', { class: ['nb', beside ? 'nb--beside' : 'nb--immersive'], 'aria-label': label('notes.title') },
+    bar, beside && tools, railStart, colourPick.box, footPick.box, deskWrap, contentsBox, railEnd, fileInput, importInput, menuSheet, pickSheet);
 
   // ---------- toolbar layout ----------
   // One row if all of it fits (measured at its widest, with the roller's footprint button),
@@ -141,6 +175,7 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
   // finger label's width depends on the language.
   let toolbar = '';
   function layoutTools() {
+    if (!beside) { el.dataset.toolbar = 'compact'; return; } // the rail: one control after another
     if (!el.isConnected || !tools.clientWidth) return;
     el.dataset.toolbar = 'wide';
     el.dataset.measure = '';
@@ -153,8 +188,9 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
   const toolsRo = new ResizeObserver(() => layoutTools());
   toolsRo.observe(el);
 
-  // ---------- pickers (two-row toolbar) ----------
-  // One open at a time, just under its button; a pick, a tap elsewhere, Esc or another tool closes it.
+  // ---------- pickers (two-row toolbar, rails) ----------
+  // One open at a time, just under its button (beside it in a side rail); a pick, a tap
+  // elsewhere, Esc or another tool closes it.
   let openPick = null;
   function picker(cls, key, items) {
     const box = h('div', { class: 'nb-pop', role: 'group', 'aria-label': label(key), hidden: true }, items);
@@ -169,9 +205,12 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     closePicker();
     openPick = p;
     p.box.hidden = false;
-    const left = Math.max(0, Math.min(p.btn.offsetLeft, el.clientWidth - p.box.offsetWidth));
+    const b = p.btn.getBoundingClientRect(), e = el.getBoundingClientRect();
+    const rail = !beside && el.dataset.orient === 'landscape';
+    const left = rail ? b.right - e.left : Math.max(0, Math.min(b.left - e.left, e.width - p.box.offsetWidth));
+    const top = rail ? Math.max(0, Math.min(b.top - e.top, e.height - p.box.offsetHeight)) : b.bottom - e.top;
     p.box.style.setProperty('left', `${left}px`);
-    p.box.style.setProperty('top', `${p.btn.offsetTop + p.btn.offsetHeight}px`);
+    p.box.style.setProperty('top', `${top}px`);
     p.btn.setAttribute('aria-expanded', 'true');
     document.addEventListener('pointerdown', onOutside, true);
     p.box.querySelector('[aria-pressed="true"]')?.focus({ preventScroll: true });
@@ -185,38 +224,89 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
   }
   const onOutside = e => { if (openPick && !openPick.box.contains(e.target) && !openPick.btn.contains(e.target)) closePicker(); };
 
-  // ---------- drawing the page ----------
-  let scale = 1, dpr = 1;
-  function fit() {
-    const r = desk.getBoundingClientRect();
-    if (!r.width || !r.height) return;
-    // Beside a card: the panel's width less a small margin (the page scrolls if it is taller).
-    // On its own: the whole page in view.
-    const pad = beside ? parseFloat(getComputedStyle(el).getPropertyValue('--nb-page-margin')) || 16 : 16;
-    const k = beside
-      ? (desk.clientWidth - pad * 2) / PAGE_W
-      : Math.min((r.width - pad * 2) / PAGE_W, (r.height - pad * 2) / PAGE_H);
-    const w = Math.max(10, Math.floor(PAGE_W * k)), hgt = Math.max(10, Math.floor(PAGE_H * k));
-    sheet.style.setProperty('width', `${w}px`);
-    sheet.style.setProperty('height', `${hgt}px`);
-    dpr = Math.min(2, window.devicePixelRatio || 1);
-    scale = w / PAGE_W;
-    for (const c of [base, live]) { c.width = Math.round(w * dpr); c.height = Math.round(hgt * dpr); }
-    redraw();
+  // ---------- the view: fitting, zoom and pan ----------
+  let scale = 1, dpr = 1;       // CSS px per page unit at the fitted size; canvas px per CSS px
+  let sheetW = 0, sheetH = 0;   // one page at the fitted size, CSS px
+  let frame = { w: 0, h: 0 };   // the desk
+  let rect = { left: 0, top: 0 }; // where it is on screen: read once per press, not per point
+  let view = { k: 1, x: 0, y: 0 };
+  const margin = () => (beside ? parseFloat(getComputedStyle(el).getPropertyValue('--nb-page-margin')) || 16 : 0);
+  const bookSize = () => ({ w: sheetW * open().length, h: sheetH });
+
+  function place() {
+    const k = view.k, tr = `translate(${view.x}px, ${view.y}px) scale(${k})`;
+    book.style.setProperty('transform', tr);
+    over.style.setProperty('transform', tr);
+    over.style.setProperty('--nb-unzoom', String(1 / k));
     drawScroll();
+  }
+  function setView(next) { view = clampView(next, frame, bookSize(), margin()); place(); }
+  // The fitted page; beside a card, from its top.
+  function resetView() { setView({ k: 1, x: 0, y: margin() }); paintDetail(); }
+
+  // Landscape or portrait, the layout and the size of everything in it.
+  function layout() {
+    if (!beside && !document.activeElement?.classList.contains('nb-text')) { // a keyboard is no rotation
+      const land = el.clientWidth > el.clientHeight;
+      el.dataset.orient = land ? 'landscape' : 'portrait';
+      if (land !== nb.spread) {
+        nb.spread = land;
+        sides[1].sheet.hidden = sides[1].overlay.hidden = !land;
+        fit();
+        if (nb.view === 'pages' && nb.page) show(nb.pos + nb.active);
+        return;
+      }
+    }
+    fit();
+  }
+
+  function fit() {
+    const w = desk.clientWidth, hgt = desk.clientHeight;
+    if (!w || !hgt) return;
+    const pad = margin(), widthChanged = w !== frame.w;
+    const k = fitScale({ w, h: hgt, pages: open().length, pad, pageW: PAGE_W, pageH: PAGE_H, byWidth: beside });
+    sheetW = Math.max(10, Math.floor(PAGE_W * k));
+    sheetH = Math.max(10, Math.floor(PAGE_H * k));
+    scale = sheetW / PAGE_W;
+    dpr = pixelRatio(window.devicePixelRatio);
+    frame = { w, h: hgt };
+    const showing = open();
+    for (const s of sides) {
+      for (const box of [s.sheet, s.overlay]) { box.style.setProperty('width', `${sheetW}px`); box.style.setProperty('height', `${sheetH}px`); }
+      s.base.width = showing.includes(s) ? Math.round(sheetW * dpr) : 1;
+      s.base.height = showing.includes(s) ? Math.round(sheetH * dpr) : 1;
+    }
+    clipped = false; // resizing a canvas resets it
+    for (const c of [live, detail]) { c.width = Math.round(w * dpr); c.height = Math.round(hgt * dpr); }
+    // The tabs and the ribbon follow the book's edge.
+    const b = bookSize();
+    deskWrap.style.setProperty('--nb-edge-x', `${Math.max(0, (w - b.w) / 2)}px`);
+    deskWrap.style.setProperty('--nb-edge-y', `${Math.max(0, (hgt - b.h) / 2)}px`);
+    if (widthChanged) view = { k: 1, x: 0, y: pad };
+    setView(view);
+    redraw();
     maybeNudge(); // the first fit is the first moment the page's height is known
+  }
+
+  // After a gesture: the sharp view of what ended up on screen.
+  let settleTimer = 0;
+  function settle() {
+    clearTimeout(settleTimer);
+    view = settleView(view, frame, bookSize(), margin());
+    place();
+    paintDetail();
   }
 
   // ---------- scrolling (beside a card) ----------
   function drawScroll() {
-    const sh = desk.scrollHeight, ch = desk.clientHeight;
-    const over = beside && !sheet.hidden && sh - ch > 1;
-    scrollbar.hidden = !over;
-    if (!over) return;
+    const pad = margin(), sh = sheetH * view.k + pad * 2, ch = frame.h;
+    const tall = beside && nb.view === 'pages' && sh - ch > 1;
+    scrollbar.hidden = !tall;
+    if (!tall) return;
     const track = scrollbar.clientHeight;
     const len = Math.max(track * (ch / sh), Math.min(track, 32));
     thumb.style.setProperty('height', `${len}px`);
-    thumb.style.setProperty('transform', `translateY(${(track - len) * (desk.scrollTop / (sh - ch))}px)`);
+    thumb.style.setProperty('transform', `translateY(${(track - len) * ((pad - view.y) / (sh - ch))}px)`);
   }
   // The first time a page opens beside a card and there is more below, it dips down a little
   // and comes back, so a child can see the page goes on.
@@ -224,20 +314,29 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
   let nudge = 0;
   function stopNudge() { cancelAnimationFrame(nudge); nudge = 0; }
   function maybeNudge() {
-    const room = desk.scrollHeight - desk.clientHeight;
-    if (!beside || !nb.page || room <= 1 || desk.scrollTop > 0 || nudged.has(nb.page.id) || reducedMotion()) return;
+    const pad = margin(), room = sheetH * view.k + pad * 2 - frame.h;
+    if (!beside || !nb.page || room <= 1 || view.y < pad || nudged.has(nb.page.id) || reducedMotion()) return;
     nudged.add(nb.page.id);
     const depth = Math.min(56, room), t0 = performance.now() + 450, dur = 900;
-    const step = now => {
+    const frameStep = now => {
       const t = (now - t0) / dur;
-      if (t >= 1) { desk.scrollTop = 0; nudge = 0; return; }
-      if (t > 0) desk.scrollTop = depth * Math.sin(Math.PI * t);
-      nudge = requestAnimationFrame(step);
+      if (t >= 1) { setView({ ...view, y: pad }); nudge = 0; return; }
+      if (t > 0) setView({ ...view, y: pad - depth * Math.sin(Math.PI * t) });
+      nudge = requestAnimationFrame(frameStep);
     };
     stopNudge();
-    nudge = requestAnimationFrame(step);
+    nudge = requestAnimationFrame(frameStep);
   }
-  const ctxOf = c => { const x = c.getContext('2d'); x.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0); return x; };
+
+  // ---------- drawing the pages ----------
+  // A side's own bitmap, in page units.
+  const ctxOf = s => { const x = s.base.getContext('2d'); x.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0); return x; };
+  // A canvas the size of the desk, in the page units of a side, as the view shows it.
+  const onView = (c, i) => {
+    const a = dpr * view.k * scale;
+    c.setTransform(a, 0, 0, a, dpr * (view.x + i * sheetW * view.k), dpr * view.y);
+  };
+  const clipPage = c => { c.beginPath(); c.rect(0, 0, PAGE_W, PAGE_H); c.clip(); };
   // The title: the first tag's name, "+ N more" when there are several; none on a free page.
   function headerText(page) {
     const title = titleOf(page.tags ?? [], known);
@@ -246,16 +345,70 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     const name = card && (more ? { en: `${card.name.en} ${more.en}`, zh: `${card.name.zh || card.name.en} ${more.zh}` } : card.name);
     return { date: inLang(dateText(page.header.date, { year: 'numeric', month: 'long', day: 'numeric' })), name: inLang(name), stamp: inLang(t('notes.observed')) };
   }
+  function renderSide(c, s) {
+    renderPage(c, s.page, { assets: nb.assets, headerText: headerText(s.page), skip: drag?.side === s.i ? drag.index : -1 });
+  }
+  function paintDetail() {
+    const on = view.k > 1.001 && !gest && !swipe?.panned;
+    detail.hidden = !on;
+    if (!on) return;
+    const c = detail.getContext('2d');
+    c.setTransform(1, 0, 0, 1, 0, 0);
+    c.clearRect(0, 0, detail.width, detail.height);
+    for (const s of open()) {
+      if (!s.page) continue;
+      c.save();
+      onView(c, s.i);
+      clipPage(c);
+      renderSide(c, s);
+      c.restore();
+    }
+  }
+  // Every page open, from its data.
   function redraw() {
-    if (!nb.page) return;
-    const c = ctxOf(base);
-    c.clearRect(0, 0, PAGE_W, PAGE_H);
-    renderPage(c, nb.page, { assets: nb.assets, headerText: headerText(nb.page), skip: drag?.index ?? -1 });
+    for (const s of open()) {
+      if (!s.page) continue;
+      const c = ctxOf(s);
+      c.clearRect(0, 0, PAGE_W, PAGE_H);
+      renderSide(c, s);
+    }
+    paintDetail();
     clearLive();
-    if (drag) renderItem(ctxOf(live), nb.page.items[drag.index], nb.assets);
+    if (drag) renderItem(liveCtx(drag.side), sides[drag.side].page.items[drag.index], nb.assets);
+    if (stroke?.item) renderItem(liveCtx(stroke.side), stroke.item, nb.assets);
     drawSelection();
   }
-  function clearLive() { const c = live.getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, live.width, live.height); }
+  // Rubbing out goes by the frame, however many marks one move takes off.
+  let redrawFrame = 0;
+  function redrawSoon() { redrawFrame ||= requestAnimationFrame(() => { redrawFrame = 0; redraw(); }); }
+  // A new item on top: on the bitmaps as they are, with no redrawing of the rest.
+  function addToPage(s, item) {
+    appendItem(ctxOf(s), item, nb.assets);
+    if (detail.hidden) return;
+    const c = detail.getContext('2d');
+    c.save();
+    onView(c, s.i);
+    clipPage(c);
+    appendItem(c, item, nb.assets);
+    c.restore();
+  }
+  // The live layer is the size of the desk; a mark being made stays on its own page.
+  let clipped = false;
+  function clearLive() {
+    const c = live.getContext('2d');
+    if (clipped) { c.restore(); clipped = false; }
+    c.setTransform(1, 0, 0, 1, 0, 0);
+    c.clearRect(0, 0, live.width, live.height);
+  }
+  function liveCtx(i) {
+    const c = live.getContext('2d');
+    if (clipped) c.restore();
+    c.save();
+    clipped = true;
+    onView(c, i);
+    clipPage(c);
+    return c;
+  }
 
   // Photos and stamp pictures load on demand; the page redraws when they arrive.
   async function loadAssets(page) {
@@ -284,51 +437,62 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     const recs = nb.scope.kind === 'animal' ? notes.pagesFor(nb.scope.id) : freePages(state.notes, known);
     return recs.map(r => r.pageId);
   }
-  function setView(view) {
-    nb.view = view;
-    el.dataset.view = view;
-    contentsBox.hidden = view !== 'contents';
-    if (view === 'contents') closePicker();
+  function setPane(name) {
+    nb.view = name;
+    el.dataset.view = name;
+    contentsBox.hidden = name !== 'contents';
+    if (name === 'contents') closePicker();
   }
+  // A page not saved yet in a slot with nothing in it. On the right it dates from just after the
+  // left, so the two keep their places in the list.
+  function blankSlot(i) {
+    const page = notes.blankPage({ tags: nb.scope?.kind === 'animal' ? [nb.scope.id] : [] });
+    if (i) page.createdAt = new Date(Date.parse(page.createdAt) + i).toISOString();
+    return page;
+  }
+  async function loadSlot(id) {
+    const page = await notes.loadPage(id);
+    if (page) return page;
+    // The file is missing (e.g. storage was cleared): show a blank page in its place.
+    const rec = state.notes.find(r => r.pageId === id);
+    return { ...notes.blankPage({ tags: rec?.tags ?? [] }), id, createdAt: rec?.createdAt, header: { date: rec?.createdAt ?? new Date().toISOString() } };
+  }
+  function clearSides() { for (const s of sides) { s.page = null; s.draft = false; s.dirty = false; mount(s.tagsBox); } }
+  let showing = 0;
   async function show(pos, dir = 0) {
+    const mine = ++showing;
     await flushSave();
     nb.ids = listIds();
     if (!nb.ids.length && nb.scope?.kind !== 'animal') { await openContents(); return; }
-    setView('pages');
-    if (!nb.ids.length) {
-      // This animal has no pages: a new one tagged with it, saved at its first mark.
-      nb.pos = 0;
-      nb.draft = true;
-      nb.page = notes.blankPage({ tags: [nb.scope.id] });
-    } else {
-      nb.draft = false;
-      nb.pos = Math.max(0, Math.min(pos, nb.ids.length - 1));
-      const id = nb.ids[nb.pos];
-      nb.page = await notes.loadPage(id);
-      if (!nb.page) {
-        // The file is missing (e.g. storage was cleared): show a blank page in its place.
-        const rec = state.notes.find(r => r.pageId === id);
-        nb.page = { ...notes.blankPage({ tags: rec?.tags ?? [] }), id, createdAt: rec?.createdAt, header: { date: rec?.createdAt ?? new Date().toISOString() } };
-      }
-    }
+    const { start, at, slots } = slotsFor(nb.ids, pos, nb.spread);
+    const loaded = await Promise.all(slots.map((id, i) => (id ? loadSlot(id) : blankSlot(i))));
+    if (mine !== showing) return;
+    setPane('pages');
+    clearSides();
+    slots.forEach((id, i) => { sides[i].page = loaded[i]; sides[i].draft = !id; });
+    nb.pos = start;
+    nb.active = at;
     nb.undo = []; nb.redo = []; nb.selected = -1;
-    drawTags();
-    loadAssets(nb.page);
+    for (const s of open()) { drawTags(s); loadAssets(s.page); }
     drawBar();
-    redraw();
+    drawTools();
     stopNudge();
-    desk.scrollTop = 0;
-    drawScroll();
+    resetView();
+    redraw();
     maybeNudge();
     if (dir && !reducedMotion()) {
-      sheet.animate([{ transform: `translateX(${dir * 40}px)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 220, easing: 'ease-out' });
+      for (const s of open()) for (const box of [s.sheet, s.overlay]) box.animate([{ transform: `translateX(${dir * 40}px)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 220, easing: 'ease-out' });
     }
   }
-  const turn = d => { if (!nb.draft && nb.pos + d >= 0 && nb.pos + d < nb.ids.length) { haptic(8); show(nb.pos + d, d); } };
+  const step = () => (nb.spread ? 2 : 1);
+  const canTurn = d => nb.pos + d * step() >= 0 && nb.pos + d * step() < nb.ids.length;
+  const turn = d => { if (nb.view === 'pages' && canTurn(d)) { haptic(8); show(nb.pos + d * step(), d); } };
   // ＋: a new page tagged with the animal whose pages these are (on the free pages: a free page).
   async function newPage(scope = nb.scope) {
     await flushSave();
-    if (nb.draft && scope === nb.scope) return; // the empty new page is already showing
+    // An empty new page is already showing.
+    const blank = scope === nb.scope && nb.view === 'pages' && open().find(s => s.draft);
+    if (blank) { setActive(blank); return; }
     nb.scope = scope ?? { kind: 'free' };
     const page = await notes.createPage({ tags: nb.scope.kind === 'animal' ? [nb.scope.id] : [] });
     nb.ids = listIds();
@@ -348,13 +512,15 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
   }
 
   function drawBar() {
-    const pages = nb.view === 'pages';
-    counter.textContent = !pages ? '' : nb.draft ? '1 / 1' : nb.ids.length ? `${nb.pos + 1} / ${nb.ids.length}` : '';
-    prev.disabled = !pages || nb.draft || nb.pos <= 0;
-    next.disabled = !pages || nb.draft || nb.pos >= nb.ids.length - 1;
+    const pages = nb.view === 'pages', n = nb.ids.length;
+    counter.textContent = !pages ? '' : n ? `${nb.pos + 1} / ${n}` : '1 / 1';
+    prev.disabled = !pages || !canTurn(-1);
+    next.disabled = !pages || !canTurn(1);
     const home = nb.home && state.byId.get(nb.home);
     filterChip.hidden = !pages && !home;
     mount(filterChip, pages ? tx('notes.allPages') : home ? tx('notes.backTo', { name: home.name }) : null);
+    deskWrap.style.setProperty('--nb-place', String(n > 1 ? nb.pos / (n - 1) : 0));
+    ribbon.setAttribute('aria-label', label('notes.ribbon', { n: Math.min(nb.pos + 1, Math.max(n, 1)), total: Math.max(n, 1) }));
   }
   function drawTools() {
     toolBtns.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tool === nb.tool)));
@@ -375,7 +541,8 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
   function setTool(id) {
     closePicker();
     nb.tool = id;
-    if (id !== 'move') { nb.selected = -1; drawSelection(); }
+    nb.selected = -1;
+    drawSelection();
     if (id === 'stamp' && !nb.stampCard) openStampPicker();
     drawTools();
   }
@@ -385,94 +552,104 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
   }
 
   // ---------- history ----------
-  // Ops: add { index, item }, remove { entries: [{ index, item }] }, change { index, before, after },
-  // tags (only the tags). Any op may also carry tags: { before, after } (a stamp adds its animal).
+  // One list for both pages of a spread, in the order things were done. Each op says which side
+  // it is on. Ops: add { index, item }, remove { entries: [{ index, item }] }, change { index,
+  // before, after }, tags (only the tags). Any op may also carry tags: { before, after } (a stamp
+  // adds its animal).
   function apply(op, back) {
-    const items = nb.page.items;
+    const page = sides[op.side].page, items = page.items;
     if (op.kind === 'add') { if (back) items.splice(op.index, 1); else items.splice(op.index, 0, op.item); }
     else if (op.kind === 'remove') {
       if (back) [...op.entries].sort((a, b) => a.index - b.index).forEach(e => items.splice(e.index, 0, e.item));
       else [...op.entries].sort((a, b) => b.index - a.index).forEach(e => items.splice(e.index, 1));
     } else if (op.kind === 'change') items[op.index] = structuredClone(back ? op.before : op.after);
-    if (op.tags) { nb.page.tags = [...(back ? op.tags.before : op.tags.after)]; nb.tagsChanged = true; }
+    if (op.tags) { page.tags = [...(back ? op.tags.before : op.tags.after)]; nb.tagsChanged = true; }
   }
+  // A plain new item goes on top of what is drawn. Anything else redraws.
+  const onTop = op => (op.kind === 'add' && !op.tags ? op.item : null);
   function commit(op) {
+    op.side ??= nb.active;
     apply(op, false);
     nb.undo.push(op);
     nb.redo = [];
-    touched();
+    touched(sides[op.side], onTop(op));
   }
-  function undo() { const op = nb.undo.pop(); if (!op) return; apply(op, true); nb.redo.push(op); touched(); }
-  function redo() { const op = nb.redo.pop(); if (!op) return; apply(op, false); nb.undo.push(op); touched(); }
-  // After any change: redraw and save soon (a draft page is saved for the first time). A tag
+  function undo() { const op = nb.undo.pop(); if (!op) return; apply(op, true); nb.redo.push(op); nb.selected = -1; touched(sides[op.side]); }
+  function redo() { const op = nb.redo.pop(); if (!op) return; apply(op, false); nb.undo.push(op); nb.selected = -1; touched(sides[op.side], onTop(op)); }
+  // After any change: draw it and save soon (a draft page is saved for the first time). A tag
   // change is saved straight away, since it moves the page in or out of the list in view.
-  function touched() {
-    if (nb.selected >= nb.page.items.length) nb.selected = -1;
-    nb.dirty = true;
-    redraw();
+  function touched(s, added = null) {
+    if (nb.selected >= (nb.page?.items.length ?? 0)) nb.selected = -1;
+    s.dirty = true;
+    if (added) { clearLive(); addToPage(s, added); drawSelection(); } else redraw();
     drawTools();
     clearTimeout(nb.saveTimer);
-    if (nb.tagsChanged) { nb.tagsChanged = false; drawTags(); afterTags(); return; }
+    if (nb.tagsChanged) { nb.tagsChanged = false; drawTags(s); afterTags(s); return; }
     nb.saveTimer = setTimeout(() => flushSave(), 400);
   }
   async function flushSave() {
     clearTimeout(nb.saveTimer);
     nb.saveTimer = 0;
-    if (nb.page && nb.dirty) {
-      nb.dirty = false;
-      await notes.savePage(nb.page);
-      if (nb.draft) { nb.draft = false; nb.ids = listIds(); nb.pos = Math.max(0, nb.ids.indexOf(nb.page.id)); drawBar(); }
+    // A first mark on the right of two blank pages keeps the left one, as in a paper notebook.
+    if (sides[1].dirty && sides[1].draft && sides[0].draft) sides[0].dirty = true;
+    let first = false;
+    for (const s of sides) {
+      if (!s.page || !s.dirty) continue;
+      s.dirty = false;
+      await notes.savePage(s.page);
+      if (s.draft) { s.draft = false; first = true; }
     }
+    if (first) { nb.ids = listIds(); nb.pos = Math.max(0, nb.ids.indexOf(sides[0].page?.id)); drawBar(); }
   }
-  // The page left the list in view (its animal's tag removed, a free page tagged): the arrows
-  // now step through the list it is in, its first animal's or the free pages.
-  async function afterTags() {
+  // The page left the list in view (its animal's tag removed, a free page tagged): the page tabs
+  // now go through the list it is in, its first animal's or the free pages.
+  async function afterTags(s) {
     await flushSave();
-    const tags = (nb.page.tags ?? []).filter(known);
+    const tags = (s.page.tags ?? []).filter(known);
     const inScope = nb.scope?.kind === 'animal' ? tags.includes(nb.scope.id) : !tags.length;
     if (!inScope) nb.scope = tags.length ? { kind: 'animal', id: tags[0] } : { kind: 'free' };
     nb.ids = listIds();
-    nb.pos = Math.max(0, nb.ids.indexOf(nb.page.id));
+    nb.pos = Math.max(0, nb.ids.indexOf(s.page.id) - s.i);
     drawBar();
   }
-  function setTags(after) {
-    const before = [...(nb.page.tags ?? [])];
+  function setTags(s, after) {
+    const before = [...(s.page.tags ?? [])];
     if (after.length === before.length && after.every((id, i) => id === before[i])) return;
-    commit({ kind: 'tags', tags: { before, after } });
+    commit({ kind: 'tags', side: s.i, tags: { before, after } });
   }
 
   // ---------- tag chips ----------
   // One chip per animal (its name and ✕), and "＋" for another collected animal.
-  function drawTags() {
-    if (!nb.page) { mount(tagsBox); return; }
-    const chips = (nb.page.tags ?? []).filter(known).map(id => {
+  function drawTags(s) {
+    if (!s.page) { mount(s.tagsBox); return; }
+    const chips = (s.page.tags ?? []).filter(known).map(id => {
       const card = state.byId.get(id);
       return h('span', { class: 'nb-tag' },
         h('span', { class: 'nb-tag__name' }, bi(card.name)),
-        h('button', { class: 'nb-tag__x', type: 'button', 'aria-label': label('notes.removeTag', { name: card.name }), onclick: () => setTags(withoutTag(nb.page.tags, id)) },
+        h('button', { class: 'nb-tag__x', type: 'button', 'aria-label': label('notes.removeTag', { name: card.name }), onclick: () => setTags(s, withoutTag(s.page.tags, id)) },
           h('span', { 'aria-hidden': 'true' }, '✕')));
     });
-    mount(tagsBox, chips, h('button', { class: 'nb-tag nb-tag--add', type: 'button', 'aria-label': label('notes.addTag'), onclick: () => openTagPicker() },
+    mount(s.tagsBox, chips, h('button', { class: 'nb-tag nb-tag--add', type: 'button', 'aria-label': label('notes.addTag'), onclick: () => openTagPicker(s) },
       h('span', { 'aria-hidden': 'true' }, '＋')));
   }
 
   // ---------- pointers ----------
-  const toPage = e => { const r = sheet.getBoundingClientRect(); return [((e.clientX - r.left) / r.width) * PAGE_W, ((e.clientY - r.top) / r.height) * PAGE_H]; };
+  const fromFrame = (e, i) => [((e.clientX - rect.left - view.x) / view.k - i * sheetW) / scale, (e.clientY - rect.top - view.y) / view.k / scale];
   const pressureOf = e => (e.pointerType === 'pen' && e.pressure > 0 ? e.pressure : 0.5);
-  let stroke = null;   // the pencil line or footprint trail being drawn
-  let erasing = null;  // { entries } removed so far
-  let drag = null;     // moving an item: { index, before, start, from, mode }
-  let swipe = null;    // a finger turning the page: { id, x, y }
+  const palm = e => e.pointerType === 'touch' && (e.width > 60 || e.height > 60);
+  let stroke = null;   // the mark being made, or a press that may be a tap: { id, side, t0, x, y, travel, item | tap }
+  let erasing = null;  // { id, side, t0, entries } removed so far
+  let drag = null;     // moving an item: { id, side, index, before, from, mode, t0 }
+  let swipe = null;    // one finger not drawing: { id, x, y, t0, start, axis, panned }
+  let gest = null;     // two fingers: zoom and pan, or resizing the selected item
+  let gestFrame = 0;
   const touches = new Map();
   let penDown = false;
-  let pinch = null;
 
-  // Should this pointer draw? Pens and mice always; fingers only in finger mode, never while
-  // a pen is on the page, and never a large contact (a palm).
+  // Should this pointer draw? Pens and mice always; fingers only in finger mode, and never
+  // while a pen is on the page.
   function draws(e) {
-    if (e.pointerType !== 'touch') return true;
-    if (penDown || input() === 'pen') return false;
-    return !(e.width > 60 || e.height > 60);
+    return e.pointerType !== 'touch' || !(penDown || input() === 'pen');
   }
 
   async function firstPen() {
@@ -482,141 +659,245 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     toast(tx('notes.penFound'));
   }
 
+  // The side under a press, or null on the kraft around the book.
+  function sideAt(e) {
+    const x = (e.clientX - rect.left - view.x) / view.k, y = (e.clientY - rect.top - view.y) / view.k;
+    if (x < 0 || y < 0 || y > sheetH) return null;
+    const s = open()[Math.floor(x / sheetW)];
+    return s?.page ? s : null;
+  }
+  // The page being worked on is the one last touched.
+  function setActive(s) {
+    if (s.i === nb.active) return;
+    nb.selected = -1;
+    drawSelection();
+    nb.active = s.i;
+  }
+  const itemAt = (s, x, y) => hitItem(ctxOf(s), s.page, x, y, 10, { movable: true });
+  // The handles appear under the finger: the click ending this very tap (or a quick second tap
+  // on a small item) must not land on ✕.
+  let selectedAt = 0;
+  function select(i) { nb.selected = i; selectedAt = performance.now(); drawSelection(); }
+  // A tap on a photo, stamp or text.
+  function tapSelect(s, x, y) {
+    const i = itemAt(s, x, y);
+    if (i < 0) return false;
+    setActive(s);
+    haptic(4);
+    select(i);
+    return true;
+  }
+
   function down(e) {
-    if (!nb.page) return;
+    if (nb.view !== 'pages' || e.target.closest('button, textarea') || (e.pointerType === 'mouse' && e.button)) return;
+    stopNudge();
+    rect = desk.getBoundingClientRect();
     if (e.pointerType === 'pen') { penDown = true; firstPen(); }
     if (e.pointerType === 'touch') {
+      if (palm(e)) return;
       touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
-      if (touches.size === 2) { startPinch(); cancelStroke(); return; }
+      if (touches.size === 2) secondFinger();
+      if (touches.size > 1) return;
     }
-    if (!draws(e)) { startSwipe(e); return; }
-    try { live.setPointerCapture(e.pointerId); } catch { /* gone */ }
-    const [x, y] = toPage(e);
-    if (nb.tool === 'pencil') {
-      stroke = { id: e.pointerId, item: { t: 's', c: pencilColour(nb.colour), w: SIZES[nb.size], p: [x, y, pressureOf(e)] } };
-      const c = ctxOf(live); drawStroke(c, stroke.item);
-    } else if (nb.tool === 'roller') {
-      stroke = { id: e.pointerId, item: { t: 'f', c: pencilColour(nb.colour), k: nb.foot, p: [x, y] } };
-    } else if (nb.tool === 'eraser') {
-      erasing = { id: e.pointerId, entries: [] };
-      eraseAt(x, y);
-    } else if (nb.tool === 'move') {
-      const i = hitItem(ctxOf(base), nb.page, x, y, 10, { movable: true });
-      // A finger that misses may be the first half of a pinch: deselect only when it lifts.
-      if (i < 0 && e.pointerType === 'touch' && nb.selected >= 0) { stroke = { id: e.pointerId, deselect: true }; return; }
-      nb.selected = i;
-      if (i >= 0) drag = { id: e.pointerId, index: i, before: structuredClone(nb.page.items[i]), from: [x, y], mode: 'move' };
+    try { desk.setPointerCapture(e.pointerId); } catch { /* gone */ }
+    const s = sideAt(e);
+    if (!s || !draws(e)) { startSwipe(e); return; }
+    setActive(s);
+    const [x, y] = fromFrame(e, s.i), now = performance.now();
+    if (nb.selected >= 0 && itemAt(s, x, y) === nb.selected) {
+      drag = { id: e.pointerId, side: s.i, index: nb.selected, before: structuredClone(s.page.items[nb.selected]), from: [x, y], mode: 'move', t0: now };
       redraw();
-    } else if (nb.tool === 'text' || nb.tool === 'stamp') {
-      stroke = { id: e.pointerId, tap: [x, y] };
+      return;
+    }
+    const press = { id: e.pointerId, side: s.i, t0: now, x: e.clientX, y: e.clientY, travel: 0 };
+    if (nb.tool === 'pencil') {
+      stroke = { ...press, item: { t: 's', c: pencilColour(nb.colour), w: SIZES[nb.size], p: [x, y, pressureOf(e)] } };
+      drawStroke(liveCtx(s.i), stroke.item);
+    } else if (nb.tool === 'roller') {
+      stroke = { ...press, item: { t: 'f', c: pencilColour(nb.colour), k: nb.foot, p: [x, y] } };
+    } else if (nb.tool === 'eraser') {
+      select(-1);
+      erasing = { id: e.pointerId, side: s.i, t0: now, entries: [] };
+      eraseAt(x, y);
+    } else {
+      stroke = { ...press, tap: [x, y] };
     }
   }
 
   function move(e) {
     if (touches.has(e.pointerId)) touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (pinch) { movePinch(); return; }
-    if (swipe?.id === e.pointerId) return;
-    const events = e.getCoalescedEvents?.() ?? [e];
-    if (stroke?.id === e.pointerId && stroke.item?.t === 's') {
-      const from = stroke.item.p.length;
-      for (const ev of events.length ? events : [e]) { const [x, y] = toPage(ev); stroke.item.p.push(x, y, pressureOf(ev)); }
-      drawStroke(ctxOf(live), stroke.item, from);
-    } else if (stroke?.id === e.pointerId && stroke.item?.t === 'f') {
-      const [x, y] = toPage(e);
-      const p = stroke.item.p;
-      if (Math.hypot(x - p[p.length - 2], y - p[p.length - 1]) > 6) {
-        p.push(x, y);
-        clearLive(); renderItem(ctxOf(live), stroke.item, nb.assets);
+    // Fingers report one at a time: read them together, once a frame, or the first to report
+    // looks like a change in their distance.
+    if (gest) { gestFrame ||= requestAnimationFrame(moveGesture); return; }
+    if (swipe?.id === e.pointerId) { moveSwipe(e); return; }
+    const events = e.getCoalescedEvents?.() ?? [];
+    const points = events.length ? events : [e];
+    if (stroke?.id === e.pointerId) {
+      stroke.travel = Math.max(stroke.travel, Math.hypot(e.clientX - stroke.x, e.clientY - stroke.y));
+      const item = stroke.item, i = stroke.side;
+      if (item?.t === 's') {
+        const from = item.p.length;
+        for (const ev of points) { const [x, y] = fromFrame(ev, i); item.p.push(x, y, pressureOf(ev)); }
+        drawStroke(liveCtx(i), item, from);
+      } else if (item?.t === 'f') {
+        const [x, y] = fromFrame(e, i), p = item.p;
+        if (Math.hypot(x - p[p.length - 2], y - p[p.length - 1]) > 6) {
+          p.push(x, y);
+          clearLive(); renderItem(liveCtx(i), item, nb.assets);
+        }
       }
     } else if (erasing?.id === e.pointerId) {
-      for (const ev of events.length ? events : [e]) { const [x, y] = toPage(ev); eraseAt(x, y); }
+      for (const ev of points) eraseAt(...fromFrame(ev, erasing.side));
     } else if (drag?.id === e.pointerId) {
-      const [x, y] = toPage(e);
-      transformDrag(x, y);
+      transformDrag(...fromFrame(e, drag.side));
     }
   }
 
   function up(e) {
     touches.delete(e.pointerId);
     if (e.pointerType === 'pen') penDown = false;
-    if (pinch) { if (touches.size < 2) endPinch(); return; }
-    if (swipe?.id === e.pointerId) {
-      const dx = e.clientX - swipe.x, dy = e.clientY - swipe.y, axis = swipe.axis;
-      swipe = null;
-      if (axis !== 'y' && Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.4) turn(dx < 0 ? 1 : -1);
-      return;
-    }
-    if (stroke?.id === e.pointerId) {
-      const s = stroke; stroke = null;
-      clearLive();
-      if (s.item?.t === 's' || (s.item?.t === 'f' && s.item.p.length >= 4)) commit({ kind: 'add', index: nb.page.items.length, item: s.item });
-      else if (s.tap && nb.tool === 'text') editText(...s.tap);
-      else if (s.tap && nb.tool === 'stamp') placeStamp(...s.tap);
-      else if (s.deselect) { nb.selected = -1; redraw(); }
-      return;
-    }
-    if (erasing?.id === e.pointerId) {
-      const entries = erasing.entries; erasing = null;
-      // The marks are already gone from the page; record them so undo brings them back.
-      if (entries.length) { nb.undo.push({ kind: 'remove', entries }); nb.redo = []; touched(); }
-      return;
-    }
+    if (gest) { if (touches.size < 2) endGesture(); return; }
+    if (swipe?.id === e.pointerId) { endSwipe(e); return; }
+    if (stroke?.id === e.pointerId) { endStroke(); return; }
+    if (erasing?.id === e.pointerId) { endErase(); return; }
     if (drag?.id === e.pointerId) endDrag();
   }
 
-  function cancelStroke() {
+  function cancelled(e) {
+    touches.delete(e.pointerId);
+    if (e.pointerType === 'pen') penDown = false;
+    if (gest && touches.size < 2) { if (gest.item) endDrag(); gest = null; delete desk.dataset.gesture; settle(); }
+    if (swipe?.id === e.pointerId) { swipe = null; settle(); }
+    if (stroke?.id === e.pointerId || drag?.id === e.pointerId) dropPress();
+    if (erasing?.id === e.pointerId) endErase();
+  }
+
+  function endStroke() {
+    const s = stroke; stroke = null;
+    const side = sides[s.side], tap = isTap(s.travel, performance.now() - s.t0), had = nb.selected >= 0;
+    clearLive();
+    if (s.tap) {
+      if (had) select(-1);
+      else if (nb.tool === 'text') editText(side, ...s.tap);
+      else if (nb.tool === 'stamp') placeStamp(side, ...s.tap);
+      return;
+    }
+    if (tap && tapSelect(side, s.item.p[0], s.item.p[1])) return;
+    if (had) select(-1);
+    if (tap && had) return; // the tap let go of the selection: no dot
+    if (s.item.t === 's' || s.item.p.length >= 4) commit({ kind: 'add', side: s.side, index: side.page.items.length, item: s.item });
+  }
+
+  // What the first finger was doing, undone: a second one has made this a gesture.
+  function dropPress() {
     if (stroke) { stroke = null; clearLive(); }
+    if (erasing) {
+      const { side, entries } = erasing; erasing = null;
+      if (entries.length) { apply({ kind: 'remove', side, entries }, true); redraw(); }
+    }
+    if (drag) {
+      const d = drag; drag = null;
+      sides[d.side].page.items[d.index] = d.before;
+      redraw();
+    }
+  }
+  function secondFinger() {
+    const press = stroke ?? erasing ?? drag;
+    if (press && !secondFingerCounts(performance.now() - press.t0)) return; // a brush of the hand
+    dropPress();
     swipe = null;
+    startGesture();
   }
 
   // Whole marks: anything the eraser touches goes, in one undo step per rub.
   function eraseAt(x, y) {
-    const i = hitItem(ctxOf(base), nb.page, x, y, ERASE_R);
+    const s = sides[erasing.side];
+    const i = hitItem(ctxOf(s), s.page, x, y, ERASE_R);
     if (i < 0) return;
     // Its index in the page as it was before this rub started, for undo.
-    const item = nb.page.items[i];
+    const item = s.page.items[i];
     let orig = i;
     for (const en of [...erasing.entries].sort((a, b) => a.index - b.index)) if (en.index <= orig) orig++;
     erasing.entries.push({ index: orig, item });
-    nb.page.items.splice(i, 1);
+    s.page.items.splice(i, 1);
     haptic(4);
-    redraw();
+    redrawSoon();
+  }
+  function endErase() {
+    const { side, entries } = erasing; erasing = null;
+    // The marks are already gone from the page; record them so undo brings them back.
+    if (entries.length) { nb.undo.push({ kind: 'remove', side, entries }); nb.redo = []; touched(sides[side]); }
   }
 
-  // ---------- pinch: fill the screen / come back; or resize & turn a selected item ----------
+  // ---------- two fingers: zoom and pan; or resize & turn a selected item ----------
   const pts = () => [...touches.values()];
   const dist = () => { const [a, b] = pts(); return Math.hypot(a.x - b.x, a.y - b.y); };
   const angle = () => { const [a, b] = pts(); return Math.atan2(b.y - a.y, b.x - a.x); };
-  const midY = () => { const [a, b] = pts(); return (a.y + b.y) / 2; };
-  function startPinch() {
-    if (nb.tool === 'move' && nb.selected >= 0) {
-      const it = nb.page.items[nb.selected];
-      pinch = { item: true, d0: dist(), a0: angle(), before: structuredClone(it) };
-    } else { stopNudge(); pinch = { d0: dist(), y0: midY(), top: desk.scrollTop }; } // two fingers scroll the page
-  }
-  function movePinch() {
-    if (touches.size < 2) return;
-    if (pinch.item) {
-      const it = nb.page.items[nb.selected], b = pinch.before;
-      const k = Math.max(0.2, Math.min(5, dist() / pinch.d0));
-      resizeItem(it, b, k);
-      if (it.t !== 'x') it.r = (b.r ?? 0) + angle() - pinch.a0;
+  const mid = () => { const [a, b] = pts(); return { x: (a.x + b.x) / 2 - rect.left, y: (a.y + b.y) / 2 - rect.top }; };
+  function startGesture() {
+    stopNudge();
+    clearTimeout(settleTimer);
+    const m = mid(), s = sides[nb.active];
+    if (nb.selected >= 0 && itemAt(s, ...fromFrame({ clientX: m.x + rect.left, clientY: m.y + rect.top }, s.i)) === nb.selected) {
+      const before = structuredClone(s.page.items[nb.selected]);
+      gest = { item: true, d0: dist(), a0: angle(), before };
+      drag = { id: -1, side: s.i, index: nb.selected, before, mode: 'pinch', t0: 0 };
       redraw();
-    } else {
-      pinch.k = dist() / pinch.d0;
-      desk.scrollTop = pinch.top - (midY() - pinch.y0);
+      return;
     }
+    gest = { d0: dist(), from: m, to: m, start: view, peak: 0 };
+    desk.dataset.gesture = '';
+    detail.hidden = true; // the page itself moves now, a little soft until the fingers lift
   }
-  function endPinch() {
-    const p = pinch; pinch = null;
-    if (p.item) {
-      const after = structuredClone(nb.page.items[nb.selected]);
-      nb.page.items[nb.selected] = p.before;
-      commit({ kind: 'change', index: nb.selected, before: p.before, after });
-    } else if (onMaximise && p.k) {
-      if (p.k > 1.3) onMaximise('max');
-      else if (p.k < 0.75) onMaximise('restore');
+  function moveGesture() {
+    gestFrame = 0;
+    if (!gest || touches.size < 2) return;
+    const ratio = dist() / gest.d0;
+    if (gest.item) {
+      const it = sides[drag.side].page.items[drag.index], b = gest.before;
+      resizeItem(it, b, clamp(ratio, 0.2, 5));
+      if (it.t !== 'x') it.r = (b.r ?? 0) + angle() - gest.a0;
+      clearLive(); renderItem(liveCtx(drag.side), it, nb.assets); drawSelection();
+      return;
     }
+    gest.to = mid();
+    gest.peak = Math.max(gest.peak, Math.abs(ratio - 1));
+    view = pinchView(gest.start, gest.from, gest.to, ratio, frame, bookSize(), margin());
+    place();
+  }
+  function endGesture() {
+    const g = gest; gest = null;
+    delete desk.dataset.gesture;
+    if (g.item) { endDrag(); return; }
+    const dir = swipeTurn({ dx: g.to.x - g.from.x, dy: g.to.y - g.from.y, peak: g.peak, zoom: g.start.k });
+    settle();
+    if (dir) turn(dir);
+  }
+
+  // ---------- one finger not drawing ----------
+  // On the kraft, or anywhere when only a pen draws: sideways turns the page; up and down pans a
+  // page taller than the panel, and zoomed in it pans any way.
+  function startSwipe(e) { swipe = { id: e.pointerId, x: e.clientX, y: e.clientY, t0: performance.now(), start: view, axis: null, panned: false }; }
+  function moveSwipe(e) {
+    const dx = e.clientX - swipe.x, dy = e.clientY - swipe.y;
+    if (!swipe.axis && Math.hypot(dx, dy) > 8) swipe.axis = Math.abs(dy) > Math.abs(dx) ? 'y' : 'x';
+    if (!swipe.axis) return;
+    const zoomed = view.k > 1;
+    if (!zoomed && swipe.axis !== 'y') return;
+    swipe.panned = true;
+    detail.hidden = true;
+    setView({ ...swipe.start, x: swipe.start.x + (zoomed ? dx : 0), y: swipe.start.y + dy });
+  }
+  function endSwipe(e) {
+    const sw = swipe; swipe = null;
+    const dx = e.clientX - sw.x, dy = e.clientY - sw.y;
+    if (sw.panned) { settle(); return; }
+    if (isTap(Math.hypot(dx, dy), performance.now() - sw.t0)) {
+      const s = sideAt(e);
+      if (s && !tapSelect(s, ...fromFrame(e, s.i)) && nb.selected >= 0) select(-1);
+      return;
+    }
+    if (sw.axis !== 'y' && Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.4) turn(dx < 0 ? 1 : -1);
   }
 
   // ---------- move / resize / turn ----------
@@ -629,10 +910,10 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     } else it.s = clamp(b.s * k, 16, it.t === 'm' ? 480 : 160);
   }
   function transformDrag(x, y) {
-    const it = nb.page.items[drag.index], b = drag.before;
+    const s = sides[drag.side], it = s.page.items[drag.index], b = drag.before;
     if (drag.mode === 'move') { it.x = b.x + x - drag.from[0]; it.y = b.y + y - drag.from[1]; }
     else {
-      const box = boundsOf(ctxOf(base), b);
+      const box = boundsOf(ctxOf(s), b);
       if (drag.mode === 'resize') {
         const k = Math.hypot(x - box.cx, y - box.cy) / Math.max(1, Math.hypot(drag.from[0] - box.cx, drag.from[1] - box.cy));
         resizeItem(it, b, Math.max(0.2, Math.min(5, k)));
@@ -640,52 +921,65 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
         it.r = (b.r ?? 0) + Math.atan2(y - box.cy, x - box.cx) - Math.atan2(drag.from[1] - box.cy, drag.from[0] - box.cx);
       }
     }
-    clearLive(); renderItem(ctxOf(live), it, nb.assets); drawSelection();
+    clearLive(); renderItem(liveCtx(drag.side), it, nb.assets); drawSelection();
   }
   function endDrag() {
     const d = drag; drag = null;
-    const after = structuredClone(nb.page.items[d.index]);
+    const items = sides[d.side].page.items;
+    const after = structuredClone(items[d.index]);
     if (JSON.stringify(after) === JSON.stringify(d.before)) { redraw(); return; }
-    nb.page.items[d.index] = d.before;
-    commit({ kind: 'change', index: d.index, before: d.before, after });
+    items[d.index] = d.before;
+    commit({ kind: 'change', side: d.side, index: d.index, before: d.before, after });
   }
-  // The selection box, with a handle to resize, one to turn and a delete button.
-  function drawSelection() {
-    selLayer.replaceChildren();
-    if (nb.tool !== 'move' || nb.selected < 0 || !nb.page?.items[nb.selected]) return;
-    const b = boundsOf(ctxOf(base), nb.page.items[nb.selected]);
+  // The selection box, with a handle to resize, one to turn and a delete button. Kept while it
+  // moves: a handle being dragged must stay the same element.
+  let selBox = null;
+  function makeSelBox() {
     const box = h('div', { class: 'nb-sel' });
-    box.style.setProperty('left', `${(b.cx - b.w / 2) * scale}px`);
-    box.style.setProperty('top', `${(b.cy - b.h / 2) * scale}px`);
-    box.style.setProperty('width', `${b.w * scale}px`);
-    box.style.setProperty('height', `${b.h * scale}px`);
-    box.style.setProperty('transform', `rotate(${b.r}rad)`);
     const handle = (mode, cls, glyph, key) => {
       const el2 = h('button', { type: 'button', class: ['nb-sel__h', cls], 'aria-label': label(key) }, glyph);
       el2.addEventListener('pointerdown', e => {
         e.stopPropagation();
+        rect = desk.getBoundingClientRect();
         try { el2.setPointerCapture(e.pointerId); } catch { /* gone */ }
-        drag = { id: e.pointerId, index: nb.selected, before: structuredClone(nb.page.items[nb.selected]), from: toPage(e), mode };
+        const s = sides[nb.active];
+        drag = { id: e.pointerId, side: s.i, index: nb.selected, before: structuredClone(s.page.items[nb.selected]), from: fromFrame(e, s.i), mode, t0: 0 };
         redraw();
       });
-      el2.addEventListener('pointermove', e => { if (drag?.id === e.pointerId) transformDrag(...toPage(e)); });
+      el2.addEventListener('pointermove', e => { if (drag?.id === e.pointerId) transformDrag(...fromFrame(e, drag.side)); });
       el2.addEventListener('pointerup', e => { if (drag?.id === e.pointerId) endDrag(); });
       return el2;
     };
     const del = h('button', {
       type: 'button', class: 'nb-sel__h nb-sel__del', 'aria-label': label('notes.delete'),
-      onclick: () => { const i = nb.selected; nb.selected = -1; commit({ kind: 'remove', entries: [{ index: i, item: nb.page.items[i] }] }); },
+      onclick: () => {
+        if (performance.now() - selectedAt < SETTLE_MS) return;
+        const i = nb.selected;
+        nb.selected = -1;
+        commit({ kind: 'remove', entries: [{ index: i, item: nb.page.items[i] }] });
+      },
     }, '✕');
     box.append(handle('resize', 'nb-sel__resize', '⤡', 'notes.resize'), handle('rotate', 'nb-sel__rotate', '⟳', 'notes.rotate'), del);
-    selLayer.append(box);
+    return box;
+  }
+  function drawSelection() {
+    const s = sides[nb.active], item = nb.selected >= 0 ? s.page?.items[nb.selected] : null;
+    if (!item) { selBox?.remove(); selBox = null; return; }
+    selBox ??= makeSelBox();
+    if (selBox.parentNode !== s.selLayer) s.selLayer.append(selBox);
+    const b = boundsOf(ctxOf(s), item);
+    selBox.style.setProperty('left', `${(b.cx - b.w / 2) * scale}px`);
+    selBox.style.setProperty('top', `${(b.cy - b.h / 2) * scale}px`);
+    selBox.style.setProperty('width', `${b.w * scale}px`);
+    selBox.style.setProperty('height', `${b.h * scale}px`);
+    selBox.style.setProperty('transform', `rotate(${b.r}rad)`);
   }
 
   // ---------- text ----------
-  function editText(x, y) {
-    const c = ctxOf(base);
-    const hit = hitItem(c, nb.page, x, y, 6, { movable: true });
-    const existing = hit >= 0 && nb.page.items[hit].t === 'x' ? hit : -1;
-    const item = existing >= 0 ? nb.page.items[existing] : { t: 'x', c: pencilColour(nb.colour), s: TEXT_SIZE, x, y, v: '' };
+  function editText(s, x, y) {
+    const hit = hitItem(ctxOf(s), s.page, x, y, 6, { movable: true });
+    const existing = hit >= 0 && s.page.items[hit].t === 'x' ? hit : -1;
+    const item = existing >= 0 ? s.page.items[existing] : { t: 'x', c: pencilColour(nb.colour), s: TEXT_SIZE, x, y, v: '' };
     const area = h('textarea', { class: 'nb-text', 'aria-label': label('notes.tool.text'), rows: 2 });
     area.value = item.v;
     area.style.setProperty('left', `${item.x * scale}px`);
@@ -700,9 +994,9 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
       area.remove();
       if (!keep) return;
       if (existing >= 0) {
-        if (!v) commit({ kind: 'remove', entries: [{ index: existing, item }] });
-        else if (v !== item.v) commit({ kind: 'change', index: existing, before: item, after: { ...item, v } });
-      } else if (v) commit({ kind: 'add', index: nb.page.items.length, item: { ...item, v } });
+        if (!v) commit({ kind: 'remove', side: s.i, entries: [{ index: existing, item }] });
+        else if (v !== item.v) commit({ kind: 'change', side: s.i, index: existing, before: item, after: { ...item, v } });
+      } else if (v) commit({ kind: 'add', side: s.i, index: s.page.items.length, item: { ...item, v } });
     };
     area.addEventListener('keydown', e => {
       e.stopPropagation();
@@ -710,7 +1004,7 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
       else if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); finish(true); }
     });
     area.addEventListener('blur', () => finish(true));
-    selLayer.append(area);
+    s.selLayer.append(area);
     area.focus();
   }
 
@@ -734,19 +1028,19 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
       onPick: card => { nb.stampCard = card.id; nb.tool = 'stamp'; drawTools(); } });
   }
   // Only animals this explorer has collected, and not already on the page.
-  function openTagPicker() {
-    const tags = nb.page?.tags ?? [];
+  function openTagPicker(s) {
+    const tags = s.page?.tags ?? [];
     pickAnimal({ icon: '🏷️', titleKey: 'notes.pickTag', emptyKey: 'notes.noTags', cards: state.cards.filter(c => isCollected(c) && !tags.includes(c.id)),
-      onPick: card => setTags(withTag(nb.page.tags ?? [], card.id)) });
+      onPick: card => setTags(s, withTag(s.page.tags ?? [], card.id)) });
   }
   // A stamp also tags the page with its animal (once); erasing the stamp leaves the tag.
-  function placeStamp(x, y) {
+  function placeStamp(s, x, y) {
     if (!nb.stampCard) { openStampPicker(); return; }
     stampAsset(nb.stampCard);
     haptic(12);
-    const before = [...(nb.page.tags ?? [])], after = tagsAfterStamp(before, nb.stampCard);
+    const before = [...(s.page.tags ?? [])], after = tagsAfterStamp(before, nb.stampCard);
     commit({
-      kind: 'add', index: nb.page.items.length, item: { t: 'm', c: pencilColour(nb.colour), card: nb.stampCard, x, y, s: STAMP_SIZE, r: 0 },
+      kind: 'add', side: s.i, index: s.page.items.length, item: { t: 'm', c: pencilColour(nb.colour), card: nb.stampCard, x, y, s: STAMP_SIZE, r: 0 },
       ...(after.length !== before.length && { tags: { before, after } }),
     });
   }
@@ -755,11 +1049,11 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
   // Binder groups with the animals that have pages (count, latest page), each page listed
   // under every animal it is tagged with ("also in" the others); then the free pages.
   async function openContents() {
+    showing++;
     await flushSave();
-    setView('contents');
-    nb.page = null;
-    nb.draft = false; // an untouched new page is simply dropped
-    mount(tagsBox);
+    setPane('contents');
+    clearSides();
+    drawSelection();
     drawBar();
     drawContents();
   }
@@ -779,6 +1073,7 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
           h('span', { class: 'nb-toc__date' }, shortDate(rec.createdAt)),
           alsoIn.length ? h('span', { class: 'nb-toc__also' }, tx('notes.alsoIn', { names: names(alsoIn) })) : null)));
     mount(contentsBox,
+      !beside && !filterChip.hidden && filterChip, // beside a card it is in the bar
       h('h2', { class: 'nb-toc__title' }, tx('notes.contents')),
       !state.notes.length && h('p', { class: 'nb-toc__empty' }, tx('notes.empty')),
       toc.groups.map(({ group, animals }) => h('section', { class: 'nb-toc__group', 'data-group': group.id },
@@ -809,7 +1104,7 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     if (!thumbs.has(pageId)) thumbs.set(pageId, (thumbQueue = thumbQueue.then(() => drawThumb(pageId)).catch(() => null)));
     thumbs.get(pageId).then(src => {
       if (!src || !canvas.isConnected) return;
-      const r = canvas.getBoundingClientRect(), k = Math.min(2, window.devicePixelRatio || 1);
+      const r = canvas.getBoundingClientRect(), k = pixelRatio(window.devicePixelRatio);
       canvas.width = Math.max(1, Math.round(r.width * k)); canvas.height = Math.max(1, Math.round(r.height * k));
       canvas.getContext('2d').drawImage(src, 0, 0, canvas.width, canvas.height);
     });
@@ -844,9 +1139,7 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
       const item = { t: 'p', id, x: PAGE_W / 2, y: PAGE_H / 2, w: w * k, h: ph * k, r: (Math.random() - 0.5) * 0.12 };
       nb.assets.photos.set(id, await createImageBitmap(await notes.loadPhotoBlob(id)));
       commit({ kind: 'add', index: nb.page.items.length, item });
-      nb.selected = nb.page.items.length - 1;
-      setTool('move');
-      redraw();
+      select(nb.page.items.length - 1);
     } catch (err) {
       console.error(err);
       toast(tx('notes.photoFailed'));
@@ -855,28 +1148,35 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
 
   // ---------- menu: paper, export, import, delete ----------
   function openMenu() {
-    const onPage = nb.view === 'pages' && nb.page;
+    const onPage = nb.view === 'pages' && nb.page, s = sides[nb.active];
     const item = (icon, key, fn, cls = 'btn--soft') => h('button', { class: ['btn', cls], type: 'button', onclick: async () => { menuSheet.close(); await fn(); } },
       h('span', { 'aria-hidden': 'true' }, icon), tx(key));
+    // In a spread: which of the two pages the page's actions are for.
+    const sidePick = onPage && nb.spread && h('div', { class: 'nb-menu__sides', role: 'group' }, [['notes.leftPage', 0], ['notes.rightPage', 1]].map(([key, i]) => h('button', {
+      class: ['btn', i === nb.active ? 'btn--primary' : 'btn--soft'], type: 'button', 'aria-pressed': String(i === nb.active),
+      onclick: () => { setActive(sides[i]); openMenu(); },
+    }, tx(key))));
     mount(menuSheet,
       h('h2', { class: 'sheet__title' }, h('span', { 'aria-hidden': 'true' }, '📓'), tx('notes.title')),
       h('div', { class: 'nb-menu__list' },
-        onPage && item(nb.page.paper === 'grid' ? '⠿' : '▦', nb.page.paper === 'grid' ? 'notes.paperDots' : 'notes.paperGrid', async () => {
-          nb.page.paper = nb.page.paper === 'grid' ? 'dots' : 'grid'; nb.dirty = true; await flushSave(); redraw();
+        !beside && onPage && item('📑', 'notes.allPages', () => openContents()),
+        sidePick,
+        onPage && item(s.page.paper === 'grid' ? '⠿' : '▦', s.page.paper === 'grid' ? 'notes.paperDots' : 'notes.paperGrid', async () => {
+          s.page.paper = s.page.paper === 'grid' ? 'dots' : 'grid'; s.dirty = true; await flushSave(); redraw();
         }),
-        onPage && item('🖼️', 'notes.exportPage', () => exportPageImage(nb.page, { assets: nb.assets, headerText: headerText(nb.page) }).catch(() => toast(tx('notes.exportFailed')))),
+        onPage && item('🖼️', 'notes.exportPage', () => exportPageImage(s.page, { assets: nb.assets, headerText: headerText(s.page) }).catch(() => toast(tx('notes.exportFailed')))),
         item('📦', 'notes.exportAll', async () => { await flushSave(); await exportAll().catch(() => toast(tx('notes.exportFailed'))); }),
         folderSupported() && item('📁', 'notes.toFolder', async () => { await flushSave(); await saveToFolder().catch(() => {}); }),
         item('📥', 'notes.import', () => importInput.click()),
-        onPage && !nb.draft && item('🗑️', 'notes.deletePage', async () => {
+        onPage && !s.draft && item('🗑️', 'notes.deletePage', async () => {
           if (!window.confirm(label('notes.deleteConfirm'))) return;
-          await notes.deletePage(nb.page.id);
-          nb.page = null;
-          await show(nb.pos);
+          await notes.deletePage(s.page.id);
+          s.page = null; s.dirty = false;
+          await show(nb.pos + s.i);
         }, 'btn--danger')),
       h('p', { class: 'muted' }, tx('notes.backupNote')),
       h('div', { class: 'sheet__actions' }, h('button', { class: 'btn btn--primary', type: 'button', onclick: () => menuSheet.close() }, tx('card.close'))));
-    menuSheet.showModal();
+    if (!menuSheet.open) menuSheet.showModal();
   }
   async function doImport(file) {
     importInput.value = '';
@@ -884,7 +1184,7 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     try {
       const n = await importBackup(file);
       toast(tx(n === 1 ? 'notes.imported.one' : 'notes.imported.many', { n }));
-      if (nb.view === 'contents') await openContents(); else await show(nb.pos);
+      if (nb.view === 'contents') await openContents(); else await show(nb.pos + nb.active);
     } catch (err) {
       console.error(err);
       toast(tx('notes.importFailed'));
@@ -901,29 +1201,25 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
   }
 
   // ---------- wiring ----------
-  live.addEventListener('pointerdown', down);
-  live.addEventListener('pointermove', move);
-  live.addEventListener('pointerup', up);
-  live.addEventListener('pointercancel', e => { touches.delete(e.pointerId); if (e.pointerType === 'pen') penDown = false; cancelStroke(); if (pinch && touches.size < 2) pinch = null; });
-  // The kraft margin around the page: one finger there turns pages (sideways) or scrolls the
-  // page (up and down). So does a finger on the page itself when only a pen draws.
-  function startSwipe(e) { stopNudge(); swipe = { id: e.pointerId, x: e.clientX, y: e.clientY, top: desk.scrollTop, axis: null }; }
-  desk.addEventListener('pointerdown', e => {
+  desk.addEventListener('pointerdown', down);
+  desk.addEventListener('pointermove', move);
+  desk.addEventListener('pointerup', up);
+  desk.addEventListener('pointercancel', cancelled);
+  // The wheel pans, ctrl + wheel (a trackpad's pinch too) zooms: a mouse has no second finger.
+  desk.addEventListener('wheel', e => {
+    if (nb.view !== 'pages') return;
+    e.preventDefault();
     stopNudge();
-    if (e.target !== desk) return;
-    startSwipe(e);
-    try { desk.setPointerCapture(e.pointerId); } catch { /* gone */ }
-  });
-  desk.addEventListener('pointermove', e => {
-    if (swipe?.id !== e.pointerId) return;
-    const dx = e.clientX - swipe.x, dy = e.clientY - swipe.y;
-    if (!swipe.axis && Math.hypot(dx, dy) > 8) swipe.axis = Math.abs(dy) > Math.abs(dx) ? 'y' : 'x';
-    if (swipe.axis === 'y') desk.scrollTop = swipe.top - dy;
-  });
-  desk.addEventListener('pointerup', e => { if (e.target === desk && swipe?.id === e.pointerId) up(e); });
-  desk.addEventListener('pointercancel', e => { if (swipe?.id === e.pointerId) swipe = null; });
-  desk.addEventListener('wheel', stopNudge, { passive: true });
-  desk.addEventListener('scroll', drawScroll, { passive: true });
+    rect = desk.getBoundingClientRect();
+    detail.hidden = true;
+    if (e.ctrlKey || e.metaKey) {
+      const m = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+      view = pinchView(view, m, m, Math.exp(-e.deltaY * 0.002), frame, bookSize(), margin());
+      place();
+    } else setView({ ...view, x: view.x - e.deltaX, y: view.y - e.deltaY });
+    clearTimeout(settleTimer);
+    settleTimer = setTimeout(settle, 120);
+  }, { passive: false });
   const onKey = e => {
     if (!el.isConnected || e.target.closest?.('textarea, input')) return;
     if (e.key === 'Escape' && openPick) {
@@ -937,11 +1233,13 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     if (mod && e.key.toLowerCase() === 'z') { e.preventDefault(); e.stopPropagation(); if (e.shiftKey) redo(); else undo(); }
   };
   document.addEventListener('keydown', onKey, true);
-  const ro = new ResizeObserver(() => fit());
+  const ro = new ResizeObserver(() => layout());
+  ro.observe(el);
   ro.observe(desk);
 
   drawTools();
   queueMicrotask(async () => {
+    layout();
     await notes.loadIndex();
     // All pages: the newest. One animal's pages: the first (or "start a page" if none).
     if (start?.view === 'contents') await openContents();
@@ -954,12 +1252,15 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
   return {
     el,
     // Where the notebook is, to open there again: the contents, or a page in a list.
-    where: () => ({ view: nb.view, scope: nb.scope, pageId: nb.view === 'pages' && !nb.draft ? nb.page?.id ?? null : null }),
+    where: () => ({ view: nb.view, scope: nb.scope, pageId: nb.view === 'pages' ? [sides[nb.active], sides[0]].find(s => s.page && !s.draft)?.page.id ?? null : null }),
     async destroy() {
       ro.disconnect();
       toolsRo.disconnect();
       closePicker();
       stopNudge();
+      clearTimeout(settleTimer);
+      cancelAnimationFrame(redrawFrame);
+      cancelAnimationFrame(gestFrame);
       document.removeEventListener('keydown', onKey, true);
       await flushSave();
       for (const bmp of nb.assets.photos.values()) bmp?.close?.();

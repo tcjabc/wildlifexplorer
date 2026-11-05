@@ -102,7 +102,7 @@ test('backups: a version 1 page (no tags) restores tagged with what it was linke
 
 test('erasing a stamp leaves the page\'s tags: the eraser\'s step changes items only', () => {
   const src = readFileSync(new URL('../js/notebook.js', import.meta.url), 'utf8');
-  assert.match(src, /nb\.undo\.push\(\{ kind: 'remove', entries \}\)/, 'the eraser records a plain remove');
+  assert.match(src, /nb\.undo\.push\(\{ kind: 'remove', side, entries \}\)/, 'the eraser records a plain remove');
   assert.match(src, /tagsAfterStamp\(before, nb\.stampCard\)/, 'placing a stamp adds its tag');
-  assert.match(src, /if \(op\.tags\) \{ nb\.page\.tags =/, 'only ops that carry tags change them');
+  assert.match(src, /if \(op\.tags\) \{ page\.tags =/, 'only ops that carry tags change them');
 });

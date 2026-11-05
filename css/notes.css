@@ -17,11 +17,7 @@
   padding: var(--s-2) var(--s-3);
   background: var(--nb-kraft-deep); color: var(--c-on-primary);
 }
-.nb__title { margin: 0; font-size: var(--fs-md); display: flex; align-items: center; white-space: nowrap; }
-.nb__title .bi { flex-direction: row; gap: 0.4em; }
-/* A narrow notebook keeps just the 📓, so the page buttons fit on one row. */
-@container (max-width: 820px) { .nb__title .bi { display: none; } }
-.nb__bar .btn { background: var(--c-shine-faint); color: var(--c-on-primary); box-shadow: none; }
+.nb__bar .btn, .nb__rail .btn { background: var(--c-shine-faint); color: var(--c-on-primary); box-shadow: none; }
 .nb__bar .btn:disabled { opacity: 0.35; }
 .nb__count { min-width: 3.5em; text-align: center; font-weight: var(--fw-bold); font-variant-numeric: tabular-nums; }
 .nb__filter {
@@ -114,30 +110,76 @@
 .nb[data-toolbar="compact"] .nb-input { justify-content: center; width: var(--tap-xs); min-height: var(--tap-xs); padding: 0; }
 .nb[data-toolbar="compact"] .nb-input .bi { display: none; }
 
-/* The desk (kraft) and the page on it. */
-.nb__deskwrap { position: relative; flex: 1; min-height: 0; }
-.nb__desk { position: absolute; inset: 0; display: grid; place-items: center; touch-action: none; }
-/* Beside a card: the page fills the panel's width and scrolls up and down (js/notebook.js
-   scrolls it for a finger on the kraft; the wheel scrolls it natively). */
-.nb--beside .nb__desk {
-  display: block; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none;
-  padding: var(--nb-page-margin);
-}
-.nb--beside .nb__desk::-webkit-scrollbar { display: none; }
+/* The desk (kraft) and the book on it. js/notebook.js places the book with a transform: two
+   books, in fact, the pages under the canvases and what sits on them over. */
+.nb__deskwrap { position: relative; z-index: 1; flex: 1; min-width: 0; min-height: 0; }
+.nb__desk { position: absolute; inset: 0; overflow: hidden; touch-action: none; cursor: crosshair; }
+.nb__desk canvas { touch-action: none; }
+.nb__book { position: absolute; left: 0; top: 0; display: flex; transform-origin: 0 0; pointer-events: none; }
+.nb__desk[data-gesture] .nb__book { will-change: transform; }
+.nb__detail, .nb__live { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
 .nb__scrollbar {
   position: absolute; top: var(--nb-page-margin); bottom: var(--nb-page-margin);
   right: calc((var(--nb-page-margin) - var(--nb-scroll-w)) / 2); width: var(--nb-scroll-w);
   border-radius: var(--r-pill); background: var(--c-shade-faint); pointer-events: none;
 }
 .nb__thumb { display: block; width: 100%; border-radius: inherit; background: var(--nb-kraft-ink); }
-.nb__sheet { position: relative; border-radius: var(--r-sm); box-shadow: var(--shadow-3); overflow: hidden; background: var(--nb-paper); }
-.nb__sheet canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.nb__live { touch-action: none; cursor: crosshair; }
-.nb[data-tool="move"] .nb__live { cursor: grab; }
-.nb__overlay { position: absolute; inset: 0; pointer-events: none; }
+.nb__sheet { position: relative; flex: none; border-radius: var(--r-sm); box-shadow: var(--shadow-3); overflow: hidden; background: var(--nb-paper); }
+.nb__base { display: block; width: 100%; height: 100%; }
+.nb__overlay { position: relative; flex: none; pointer-events: none; }
 .nb__overlay > * { pointer-events: auto; }
 .nb__overlay > .nb__sel-layer { position: absolute; inset: 0; pointer-events: none; }
 .nb__sel-layer > * { pointer-events: auto; }
+/* An open spread: the pages meet at the fold. */
+.nb__fold { display: none; }
+.nb[data-orient="landscape"] .nb__sheet:first-child { border-radius: var(--r-sm) 0 0 var(--r-sm); }
+.nb[data-orient="landscape"] .nb__sheet:nth-child(2) { border-radius: 0 var(--r-sm) var(--r-sm) 0; }
+.nb[data-orient="landscape"] .nb__fold {
+  display: block; position: absolute; top: 0; bottom: 0; left: 50%; width: var(--s-6); margin-left: calc(var(--s-6) / -2);
+  background: linear-gradient(90deg, transparent, var(--c-shade-faint), transparent);
+}
+
+/* On its own the notebook is the whole screen: rails at the sides, or bands above and below the
+   page in portrait, where side rails would leave it short of the full height. The rails stay
+   empty apart from back, new page and the menu, and for now the tools. */
+.nb--immersive {
+  display: grid;
+  grid-template: "start stage end" minmax(0, 1fr) / var(--nb-rail) minmax(0, 1fr) var(--nb-rail);
+}
+.nb--immersive[data-orient="portrait"] {
+  grid-template: "start" var(--nb-rail) "stage" minmax(0, 1fr) "end" var(--nb-rail) / minmax(0, 1fr);
+}
+.nb__rail { display: flex; flex-direction: column; align-items: center; gap: var(--s-1); min-width: 0; min-height: 0; padding: var(--s-2) 0; }
+.nb__rail--start { grid-area: start; }
+.nb__rail--end { grid-area: end; }
+.nb--immersive .nb__deskwrap, .nb--immersive .nb__contents { grid-area: stage; }
+.nb--immersive[data-orient="portrait"] .nb__rail { flex-direction: row; padding: 0 var(--s-2); }
+.nb--immersive[data-toolbar] .nb__tools {
+  flex: 1; flex-direction: column; flex-wrap: nowrap; align-self: stretch; min-width: 0; min-height: 0; padding: 0;
+  background: none; color: var(--nb-kraft-ink); overflow-y: auto; scrollbar-width: none; touch-action: pan-y;
+}
+.nb--immersive[data-orient="portrait"][data-toolbar] .nb__tools { flex-direction: row; overflow: auto hidden; touch-action: pan-x; }
+.nb--immersive .nb__tools::-webkit-scrollbar { display: none; }
+.nb--immersive[data-toolbar] .nb__break { display: none; }
+.nb--immersive[data-toolbar] .nb-undo { margin: 0; }
+/* The ribbon marks the place in the book, down its outer edge (--nb-place: 0 first, 1 last). */
+.nb__ribbon {
+  position: absolute; z-index: 2; width: var(--tap-xs); height: var(--tap-xs); padding: 0; border: 0; background: none; cursor: pointer;
+  right: max(0px, calc(var(--nb-edge-x) - var(--tap-xs) / 2));
+  top: calc(var(--nb-edge-y) + var(--nb-rail) + var(--nb-place) * (100% - 2 * var(--nb-edge-y) - 2 * var(--nb-rail) - var(--tap-xs)));
+}
+.nb__ribbon::before {
+  content: ''; position: absolute; inset: calc((var(--tap-xs) - var(--s-5)) / 2) 0;
+  background: var(--nb-ribbon); clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 35% 50%);
+}
+/* Tabs at the book's bottom corners turn the pages. */
+.nb--immersive .nb__nav {
+  position: absolute; z-index: 2; bottom: var(--nb-edge-y); width: var(--tap-xs); height: var(--tap-xs); min-width: var(--tap-xs); min-height: var(--tap-xs);
+  background: var(--nb-kraft-deep); color: var(--c-on-primary); box-shadow: none;
+}
+.nb--immersive .nb__nav:disabled { display: none; }
+.nb--immersive .nb__nav--prev { left: var(--nb-edge-x); border-radius: 0 var(--r-md) 0 0; }
+.nb--immersive .nb__nav--next { right: var(--nb-edge-x); border-radius: var(--r-md) 0 0 0; }
 
 /* The page's animal tags: chips under the OBSERVED stamp, each with a ✕, and "＋". Small to
    look at, 44 px to tap; the gaps between them still draw. */
@@ -205,15 +247,18 @@
 
 /* Selection: move by dragging, a handle to resize, one to turn, and delete. */
 .nb-sel { position: absolute; border: var(--bw-thin) dashed var(--c-primary); transform-origin: 50% 50%; pointer-events: none; }
+/* The handles sit outside the box, so a small item can still be dragged by itself, and keep
+   their size when the page is zoomed. */
 .nb-sel__h {
   position: absolute; width: var(--tap-xs); height: var(--tap-xs); margin: calc(var(--tap-xs) / -2);
+  transform: scale(var(--nb-unzoom, 1));
   display: grid; place-items: center; border: 0; border-radius: 50%;
   background: var(--c-primary); color: var(--c-on-primary); font-weight: var(--fw-bold);
   box-shadow: var(--shadow-1); pointer-events: auto; touch-action: none; cursor: pointer;
 }
-.nb-sel__resize { right: 0; bottom: 0; margin-right: calc(var(--tap-xs) / -2); margin-bottom: calc(var(--tap-xs) / -2); cursor: nwse-resize; }
-.nb-sel__rotate { left: 50%; top: 0; margin-top: calc(var(--tap-xs) * -1.2); cursor: grab; }
-.nb-sel__del { right: 0; top: 0; margin-right: calc(var(--tap-xs) / -2); background: var(--c-bad); }
+.nb-sel__resize { right: 0; bottom: 0; margin-right: calc(var(--tap-xs) * -1); margin-bottom: calc(var(--tap-xs) * -1); transform-origin: 0 0; cursor: nwse-resize; }
+.nb-sel__rotate { left: 50%; top: 0; margin-top: calc(var(--tap-xs) * -1.2); transform-origin: 50% 100%; cursor: grab; }
+.nb-sel__del { right: 0; top: 0; margin-right: calc(var(--tap-xs) * -1); margin-top: calc(var(--tap-xs) * -1); transform-origin: 0 100%; background: var(--c-bad); }
 
 .nb-text {
   position: absolute; min-width: 8em; padding: 0; margin: 0;
@@ -234,6 +279,8 @@
 .nb-menu__list { display: grid; gap: var(--s-2); }
 .nb-menu__list .btn { justify-content: flex-start; }
 .nb-menu__list .bi { flex-direction: row; gap: 0.4em; }
+.nb-menu__sides { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-2); }
+.nb-menu__sides .btn { justify-content: center; }
 .nb-pick__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--size-medal), 1fr)); gap: var(--s-2); max-height: calc(50 * var(--dvh)); overflow-y: auto; }
 .nb-pick__item {
   display: grid; justify-items: center; gap: var(--s-1); padding: var(--s-2);
@@ -244,11 +291,11 @@
 .nb-pick__item .bi { align-items: center; text-align: center; }
 .nb-pick__emoji { font-size: var(--fs-xl); line-height: 1; }
 
-/* Field Notes as a page of the app */
+/* Field Notes as a page of the app: the whole screen, with no app header or tab bar. */
+body.is-immersive { grid-template-rows: minmax(0, 1fr); padding-bottom: 0; }
+.is-immersive .header { display: none; }
 .main[data-view="notes"] { padding: 0; overflow: hidden; }
-.main[data-view="notes"] .nb { padding: 0 var(--safe-r) var(--safe-b) var(--safe-l); }
-/* Phones: the tab bar under it already keeps clear of the bottom edge. */
-@media (max-width: 520px) { .main[data-view="notes"] .nb { padding-bottom: 0; } }
+.main[data-view="notes"] .nb { padding: var(--safe-t) var(--safe-r) var(--safe-b) var(--safe-l); }
 
 /* Tile: Field Notes pages linked to the card */
 .tile__notes {
