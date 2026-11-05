@@ -16,23 +16,20 @@ const NAV = [
 // device: kept on each device only (Field Notes, quiz scores), so not on a grown-up's device.
 const MODES = [['en', 'lang.en', 'lang.enName'], ['zh', 'lang.zh', 'lang.zhName'], ['both', 'lang.bothFace', 'lang.both']];
 
-// Button faces (EN / 中 / EN+中) look the same in every mode so children can always find them.
-export function langSwitch() {
-  const mode = getMode();
-  return h('div', { class: 'seg seg--lang', role: 'radiogroup', 'aria-label': label('lang.label') },
-    MODES.map(([m, face, name]) => h('button', {
-      type: 'button', role: 'radio', class: 'seg__btn', 'data-lang-set': m,
-      'aria-checked': String(mode === m), 'aria-label': label(name),
-    }, tx(face))));
-}
+// The language after this one: EN → 中 → EN+中 → EN.
+export const nextLang = mode => MODES[(MODES.findIndex(([m]) => m === mode) + 1) % MODES.length][0];
 
-// Narrow screens: one button that steps EN → 中 → EN+中.
-function langCycle() {
-  const i = MODES.findIndex(([m]) => m === getMode());
-  const [, face] = MODES[i];
-  const next = MODES[(i + 1) % MODES.length][0];
+// One button showing the active language; a tap steps to the next. The header is drawn again
+// when the language changes, so the new button flips in as it appears.
+let drawnMode = null;
+function langButton() {
+  const mode = getMode();
+  const [, face, name] = MODES.find(([m]) => m === mode);
+  const changed = drawnMode !== null && drawnMode !== mode;
+  drawnMode = mode;
   return h('button', {
-    type: 'button', class: 'btn btn--soft lang-cycle', 'data-lang-set': next, 'aria-label': label('lang.label'),
+    type: 'button', class: ['btn btn--soft lang-cycle', changed && 'is-flipping'], 'data-lang-cycle': true,
+    'aria-label': label('lang.current', { name: t(name) }),
   }, tx(face));
 }
 
@@ -58,8 +55,7 @@ export function renderHeader(el, active) {
       h('span', { class: 'nav__icon', 'aria-hidden': 'true' }, n.icon,
         n.badge && h('span', { class: 'nav__badge', hidden: true })),
       h('span', { class: 'nav__label' }, tx(n.key))))),
-    langSwitch(),
-    langCycle(),
+    langButton(),
     // A grown-up's device, so it is clear why packs can't be opened here.
     watching() && h('span', { class: 'watch-chip' }, h('span', { 'aria-hidden': 'true' }, '👀'), tx('watch.chip')),
     profileButton(state.profile));

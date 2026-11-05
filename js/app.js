@@ -8,7 +8,7 @@ import { $, h, on, mount } from './dom.js';
 import { loadStrings, setMode, getMode, stringsLoaded, tx } from './i18n.js';
 import * as store from './store.js';
 import { events as dbEvents } from './db.js';
-import { renderHeader } from './chrome.js';
+import { renderHeader, nextLang } from './chrome.js';
 import { handleImageErrors } from './components.js';
 import { registerOffline } from './offline.js';
 import { stop } from './speech.js';
@@ -106,9 +106,12 @@ function route() {
 
 const refresh = () => { if (shown.name) renderMain(shown, { keepScroll: true }); };
 
-async function setLanguage(mode) {
-  if (!store.state.profile || mode === getMode()) return;
-  await store.updateProfile(store.state.profile.id, { lang: mode });
+// Text switches at once (CSS shows the language). The view is drawn again after the button's
+// flip, so a heavy one such as the Globe doesn't stall it.
+async function cycleLanguage() {
+  if (!store.state.profile) return;
+  await store.updateProfile(store.state.profile.id, { lang: nextLang(getMode()) });
+  await Promise.allSettled(($('.lang-cycle')?.getAnimations() ?? []).map(a => a.finished));
   refresh();
   const open = viewer.openCardId();
   if (open) viewer.show(store.state.byId.get(open));
@@ -230,7 +233,7 @@ async function boot() {
   initPacks({ onClosed: () => { updateBadge(); if (!viewer.isOpen()) refresh(); } });
 
   window.addEventListener('hashchange', route);
-  on(document, 'click', '[data-lang-set]', (e, btn) => setLanguage(btn.dataset.langSet));
+  on(document, 'click', '[data-lang-cycle]', cycleLanguage);
   on(document, 'click', '[data-profile-switch]', () => chooseProfile());
   document.addEventListener('keydown', e => {
     if (!store.state.profile || choosing) return;

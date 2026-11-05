@@ -174,8 +174,8 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
 .brand__name { font-weight: var(--fw-bold); line-height: 1.1; }
 .bi--brand > .t-en, .bi--brand > .t-zh { font-size: var(--fs-md); white-space: nowrap; }
 .brand__sub { display: block; font-size: var(--fs-xs); font-weight: var(--fw-semi); color: var(--c-ink-soft); white-space: nowrap; }
-.header .seg--lang { flex: none; margin-left: auto; }
-.lang-cycle { display: none; flex: none; margin-left: auto; }
+.lang-cycle { flex: none; margin-left: auto; min-width: var(--lang-btn-w); }
+.lang-cycle.is-flipping { animation: zy-turn var(--t-med) var(--ease-bounce); }
 
 /* "safe" keeps the first tab reachable if the nav ever gets too wide; it then scrolls. */
 .nav {
@@ -221,8 +221,6 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
 }
 @media (max-width: 900px) {
   .header { gap: var(--s-2); }
-  .header .seg--lang { display: none; }
-  .lang-cycle { display: inline-flex; }
 }
 @media (max-width: 700px) {
   :root { --header-h: var(--header-h-base); }
@@ -1073,7 +1071,6 @@ dialog.picker::backdrop { background: var(--c-bg); }
   .notice { bottom: calc(var(--nav-h) + var(--s-3) + var(--safe-b)); }
   .bi--brand > .t-en, .bi--brand > .t-zh { font-size: var(--fs-sm); }
   .brand__icon { width: var(--size-brand-sm); height: var(--size-brand-sm); }
-  .seg--lang .seg__btn { padding: var(--s-1) var(--s-2); min-width: var(--tap-xs); }
   .binder__page { padding-left: calc(var(--s-3) + var(--rings-w)); padding-right: var(--s-3); }
   .grid { gap: var(--s-3); grid-template-columns: repeat(2, 1fr); }
   .picker__list { gap: var(--s-3); }

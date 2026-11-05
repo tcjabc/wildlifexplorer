@@ -2,7 +2,6 @@ import { h, mount } from '../dom.js';
 import { tx, t, label, getMode } from '../i18n.js';
 import { state, updateProfile, progress, speechRate } from '../store.js';
 import { speak, speechSupported } from '../speech.js';
-import { langSwitch } from '../chrome.js';
 import { offlineStatus } from '../offline.js';
 import { avatar, profileForm } from '../profiles.js';
 
@@ -42,8 +41,6 @@ export function render(main) {
           h('span', { 'aria-hidden': 'true' }, '✏️'), tx('profile.edit')),
         h('button', { class: 'btn btn--soft', type: 'button', 'data-profile-switch': true },
           h('span', { 'aria-hidden': 'true' }, '🔄'), tx('profile.switchButton')))),
-
-    h('div', { class: 'panel' }, h('h2', { class: 'panel__title' }, tx('lang.label')), langSwitch()),
 
     // How Chinese names first show on cards (a tap on a name switches it for this visit).
     h('div', { class: 'panel' },

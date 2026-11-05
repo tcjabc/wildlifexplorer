@@ -7,6 +7,7 @@
   "nav.badges": "徽章",
   "nav.more": "更多",
   "lang.label": "語言",
+  "lang.current": "語言：{name}。點一下切換。",
   "lang.en": "EN",
   "lang.zh": "中",
   "lang.both": "雙語",

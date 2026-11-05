@@ -7,6 +7,7 @@
   "nav.badges": "Badges",
   "nav.more": "More",
   "lang.label": "Language",
+  "lang.current": "Language: {name}. Tap to change.",
   "lang.en": "EN",
   "lang.zh": "中",
   "lang.both": "Both",
