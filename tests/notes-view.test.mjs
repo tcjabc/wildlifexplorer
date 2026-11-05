@@ -90,6 +90,16 @@ test('a pinch never turns the page, however far it drifts sideways', () => {
   assert.equal(swipeTurn({ ...swipe, dx: -600, dy: 0, peak: 0.06 }), 0);
 });
 
+test('close fingers may wander by 12 px; wide ones by 5%', () => {
+  assert.equal(swipeTurn({ ...swipe, span: 60, peak: 8 / 60 }), 1, '8 px at 60 apart turns');
+  assert.equal(swipeTurn({ ...swipe, span: 60, peak: 11.9 / 60 }), 1);
+  assert.equal(swipeTurn({ ...swipe, span: 60, peak: 12 / 60 }), 0, '12 px at 60 apart is a pinch');
+  assert.equal(swipeTurn({ ...swipe, span: 240, peak: 11.9 / 240 }), 1, '5% and 12 px meet at 240 px');
+  assert.equal(swipeTurn({ ...swipe, span: 240, peak: 12 / 240 }), 0);
+  assert.equal(swipeTurn({ ...swipe, span: 400, peak: 19 / 400 }), 1, 'further apart, 5% is the more');
+  assert.equal(swipeTurn({ ...swipe, span: 400, peak: 20 / 400 }), 0);
+});
+
 test('a short, slanted or zoomed-in swipe does not turn the page', () => {
   assert.equal(swipeTurn({ ...swipe, dx: -79 }), 0);
   assert.equal(swipeTurn({ ...swipe, dx: -200, dy: 100 }), 0);

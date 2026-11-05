@@ -251,6 +251,15 @@ run('a clear sideways two-finger swipe turns the page; a pinch never does', asyn
   assert.equal(await f.place(), 1, 'and back');
 });
 
+run('fingers 60 px apart turn the page with 8 px of drift, but not with 14', async f => {
+  const [a] = await f.seed([[], [], [], []]);
+  await f.show(a);
+  await f.two([{ x: 700, y: 300 }, { x: 760, y: 300 }], [{ x: 400, y: 300 }, { x: 468, y: 300 }]);
+  assert.equal(await f.place(), 3, '8 px of drift turns the page');
+  await f.two([{ x: 300, y: 300 }, { x: 360, y: 300 }], [{ x: 600, y: 300 }, { x: 674, y: 300 }]);
+  assert.equal(await f.place(), 3, '14 px is a pinch');
+});
+
 run('zoomed in, a sideways two-finger swipe pans instead of turning', async f => {
   const [a] = await f.seed([[], [], []]);
   await f.show(a);

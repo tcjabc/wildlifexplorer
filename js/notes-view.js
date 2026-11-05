@@ -16,9 +16,11 @@ const TAP_PX = 10;
 const TAP_MS = 350;
 
 // A two-finger page turn: clearly sideways, far enough, and with the fingers keeping their
-// distance all the way, so a pinch can never turn the page.
+// distance all the way, so a pinch can never turn the page. Their distance may change by 5%, or
+// by 12 px when that is more: fingers close together wander by more than 5% of the gap.
 const TURN_MIN_PX = 80;
 const TURN_MAX_SCALE = 0.05;
+const TURN_MAX_DRIFT_PX = 12;
 const TURN_SIDEWAYS = 2.5; // sideways travel at least this many times the up-and-down travel
 
 export const pixelRatio = dpr => Math.min(MAX_DPR, dpr || 1);
@@ -60,10 +62,11 @@ export function settleView(view, frame, book, pad = 0) {
 }
 
 // What a finished two-finger gesture turns the page by: 1, -1, or 0 for no turn.
-//   dx, dy: how far the fingers' midpoint moved. peak: the largest change in the fingers'
-//   distance at any moment, as a fraction. zoom: the view's zoom when the gesture began.
-export function swipeTurn({ dx, dy, peak, zoom }) {
-  if (zoom > 1 || peak >= TURN_MAX_SCALE) return 0;
+//   dx, dy: how far the fingers' midpoint moved. span: their distance at the start, in px.
+//   peak: the largest change in that distance at any moment, as a fraction of it. zoom: the
+//   view's zoom when the gesture began.
+export function swipeTurn({ dx, dy, span = Infinity, peak, zoom }) {
+  if (zoom > 1 || peak >= Math.max(TURN_MAX_SCALE, TURN_MAX_DRIFT_PX / span)) return 0;
   if (Math.abs(dx) < TURN_MIN_PX || Math.abs(dx) < Math.abs(dy) * TURN_SIDEWAYS) return 0;
   return dx < 0 ? 1 : -1;
 }

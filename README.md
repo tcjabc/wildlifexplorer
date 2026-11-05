@@ -626,8 +626,8 @@ with real touches in Chromium.
 - **Gestures**: one finger draws. Two fingers pan and pinch-zoom, up to 4×: the page moves by CSS
   transform during the gesture, and when it ends a screen-sized canvas redraws the view sharply, so
   zooming never needs a bigger page bitmap. At the fitted size a two-finger swipe turns the page, only
-  when it is clearly sideways, at least 80 px, and the fingers' distance never changed by 5%: a pinch
-  can't turn the page. A second finger within 200 ms of the first makes a gesture and drops what the
+  when it is clearly sideways, at least 80 px, and the fingers' distance never changed by 5% or 12 px,
+  whichever is more: a pinch can't turn the page. A second finger within 200 ms of the first makes a gesture and drops what the
   first had started; later, the line carries on. With a mouse, the wheel pans and ctrl + wheel zooms.
 - **Canvas**: at most 1.5 device pixels per CSS pixel. Each page is a cached bitmap: the mark being
   made is on a live layer, and a finished one is added to the bitmap on its own. Eraser redraws go by

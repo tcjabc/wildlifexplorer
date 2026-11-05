@@ -754,6 +754,8 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
   }
 
   function up(e) {
+    // Fingers can lift before the frame that would have read their last move.
+    if (gestFrame) { cancelAnimationFrame(gestFrame); moveGesture(); }
     touches.delete(e.pointerId);
     if (e.pointerType === 'pen') penDown = false;
     if (gest) { if (touches.size < 2) endGesture(); return; }
@@ -869,7 +871,7 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     const g = gest; gest = null;
     delete desk.dataset.gesture;
     if (g.item) { endDrag(); return; }
-    const dir = swipeTurn({ dx: g.to.x - g.from.x, dy: g.to.y - g.from.y, peak: g.peak, zoom: g.start.k });
+    const dir = swipeTurn({ dx: g.to.x - g.from.x, dy: g.to.y - g.from.y, span: g.d0, peak: g.peak, zoom: g.start.k });
     settle();
     if (dir) turn(dir);
   }
