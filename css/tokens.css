@@ -202,6 +202,7 @@
   --tap-lg: 72px;
   --tap-sm: 48px;       /* secondary controls (credit line) */
   --tap-xs: 44px;       /* badges and squeezed controls on phones */
+  --gate-key: var(--tap-lg); /* the sum's number pad */
   --lang-btn-w: 88px;   /* the language button: fits EN+中, so the header stays put */
   --legend-sw: 24px;    /* colour squares in the Globe's info panel key */
   --header-h-base: 68px;

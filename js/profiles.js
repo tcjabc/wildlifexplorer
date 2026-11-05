@@ -5,6 +5,7 @@ import { tx, label, getMode, setMode } from './i18n.js';
 import { state, parentTemplate, currentAge, onChange, watching } from './store.js';
 import { countryOptions } from './countries.js';
 import { restoreError } from './backup.js';
+import { grownUpCheck } from './components.js';
 import { cmFromFtIn, ftInFromCm, kgFromLb, lbFromKg } from './units.js';
 
 export function initial(name) {
@@ -34,7 +35,11 @@ export function showPicker() {
           avatar(p, 'avatar--big'),
           h('span', { class: 'picker__name' }, p.name)))),
       h('li', null,
-        h('button', { class: 'picker__item picker__item--add', type: 'button', onclick: () => done({ add: true }) },
+        // A new explorer starts a timeline and is given a pack: for grown-ups.
+        h('button', {
+          class: 'picker__item picker__item--add', type: 'button',
+          onclick: async () => { if (await grownUpCheck()) done({ add: true }); },
+        },
           h('span', { class: 'avatar avatar--big avatar--add', 'aria-hidden': 'true' }, '+'),
           h('span', { class: 'picker__name' }, tx('profile.add')))),
     ];

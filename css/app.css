@@ -875,8 +875,17 @@ a.gzone__animal { text-decoration: underline; }
 .stars .is-on { color: var(--c-accent); text-shadow: 0 3px 0 var(--c-accent-deep); }
 
 /* ---------- Parents ---------- */
-.gate { display: grid; gap: var(--s-3); }
-.gate__row { display: flex; gap: var(--s-3); }
+/* The sum and its number pad (components.js). */
+.gate { display: grid; gap: var(--s-3); justify-items: center; }
+.gate:focus { outline: none; }
+.gate__sum { font-size: var(--fs-md); font-weight: var(--fw-bold); text-align: center; }
+.gate__sum .bi { align-items: center; }
+.gate__entry { display: grid; place-items: center; width: calc(3 * var(--gate-key) + 2 * var(--s-2)); }
+.gate__entry.is-wrong { border-color: var(--c-bad); animation: shake 0.4s; }
+.gate__pad { display: grid; grid-template-columns: repeat(3, var(--gate-key)); gap: var(--s-2); }
+.gate__key { min-width: 0; min-height: var(--gate-key); padding: 0; font-size: var(--fs-lg); user-select: none; -webkit-user-select: none; }
+.gate__key--go { font-size: var(--fs-sm); }
+.gate__key--go .bi { align-items: center; }
 .parent { display: grid; gap: var(--s-4); justify-items: start; }
 /* Whose settings: one avatar button per profile. */
 .who { display: flex; flex-wrap: wrap; gap: var(--s-3); }

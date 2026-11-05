@@ -183,6 +183,7 @@ const devicePanel = () => h('div', { class: 'panel', 'data-section': 'device' },
 function renderGate(main) {
   const gate = sumGate(() => { gateOpen = true; draw(main); });
   mount(main, h('section', { class: 'page parents' }, title(), h('div', { class: 'panel' }, gate)));
+  gate.focus();
 }
 
 const title = () => h('h1', { class: 'page__title' }, h('span', { 'aria-hidden': 'true' }, '🔒'), tx('parents.title'));

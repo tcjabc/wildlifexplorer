@@ -453,7 +453,7 @@ export function familySignIn({ explorers, gate = true }) {
     const cancel = h('div', { class: 'sheet__actions' },
       h('button', { class: 'btn btn--soft', type: 'button', onclick: () => finish(false) }, tx('profile.cancel')));
     const end = (...nodes) => { cancel.hidden = true; mount(body, nodes); };
-    const focus = () => requestAnimationFrame(() => body.querySelector('input')?.focus());
+    const focus = () => requestAnimationFrame(() => body.querySelector('input, .gate')?.focus());
 
     async function draw() {
       cancel.hidden = false;

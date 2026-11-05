@@ -371,6 +371,7 @@
   "parents.device": "這台裝置",
   "parents.gate": "大人專用：{a} + {b} 等於多少？",
   "parents.gateGo": "確定",
+  "parents.gateErase": "刪除一個數字",
   "parents.who": "要設定的探險家",
   "parents.packs": "{name} 的卡包日",
   "parents.dropDay": "星期",

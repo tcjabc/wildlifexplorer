@@ -371,6 +371,7 @@
   "parents.device": "This device",
   "parents.gate": "Grown-ups only: what is {a} + {b}?",
   "parents.gateGo": "Go",
+  "parents.gateErase": "Delete a digit",
   "parents.who": "Settings for",
   "parents.packs": "Pack day for {name}",
   "parents.dropDay": "Day",
