@@ -20,6 +20,7 @@
   --c-ink-faint: #8a98a6;
   --c-line: #eadfcf;
   --c-overlay: rgb(20 30 40 / 0.72);
+  --c-overlay-strong: rgb(20 30 40 / 0.85); /* packs and badges: the page behind stays out of the way */
 
   /* Brand */
   --c-primary: #127a57;

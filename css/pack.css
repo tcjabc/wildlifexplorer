@@ -11,7 +11,7 @@
 .reveal img { -webkit-user-drag: none; }
 .reveal.is-open { opacity: 1; }
 .reveal__scrim {
-  position: absolute; inset: 0; background: var(--c-overlay);
+  position: absolute; inset: 0; background: var(--c-overlay-strong);
   transition: opacity var(--t-slow);
 }
 /* While the card flies to its tab, the binder shows through. */
