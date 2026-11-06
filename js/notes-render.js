@@ -5,7 +5,8 @@
 //   text    { t:'x', c, s, x, y, v, r }                 typed text (x,y = top left)
 //   stamp   { t:'m', c, card, x, y, s, r }               creature stamp (centre, height)
 //   roller  { t:'f', c, k, p:[x,y, …] }                  footprint trail (k: paw, hoof, bird, bear)
-//   photo   { t:'p', id, x, y, w, h, r }                 taped-in photo (centre, size)
+//   photo   { t:'p', id, x, y, w, h, r }                 taped-in Polaroid (the picture's centre and size)
+//   washi   { t:'w', k, x, y, l, s, r }                  a strip of tape (k: its colour; centre, length, width)
 import { PAGE_W, PAGE_H } from './notes-store.js';
 
 const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -14,6 +15,7 @@ export const highlightColour = id => css(`--hl-${id}`) || '#ffee58';
 // What drew a line. Pages from before there was anything but the pencil have no k.
 export const strokeKind = item => (item.k === 'pen' || item.k === 'highlighter' ? item.k : 'pencil');
 const GRID = 40;
+const WASHI_ON_PHOTOS = 'yellow';
 
 // ---------- pencil grain ----------
 
@@ -179,25 +181,63 @@ function drawStamp(ctx, item, assets) {
   ctx.restore();
 }
 
-// A photo with a white edge, a soft shadow and two strips of tape.
-function drawPhoto(ctx, item, assets) {
-  const bmp = assets.photos.get(item.id);
+// A strip of washi tape, its centre at (0, 0): pinked ends, and a stripe of the paper showing through.
+function drawTape(ctx, len, wide, colour) {
+  const teeth = 4, step = wide / teeth, tip = step * 0.5, end = len / 2;
+  ctx.beginPath();
+  ctx.moveTo(-end, -wide / 2);
+  ctx.lineTo(end, -wide / 2);
+  for (let i = 0; i < teeth; i++) { ctx.lineTo(end - tip, -wide / 2 + (i + 0.5) * step); ctx.lineTo(end, -wide / 2 + (i + 1) * step); }
+  ctx.lineTo(-end, wide / 2);
+  for (let i = teeth; i > 0; i--) { ctx.lineTo(-end + tip, -wide / 2 + (i - 0.5) * step); ctx.lineTo(-end, -wide / 2 + (i - 1) * step); }
+  ctx.closePath();
+  ctx.save();
+  ctx.globalAlpha = 0.86;
+  ctx.fillStyle = colour;
+  ctx.fill();
+  ctx.clip();
+  ctx.globalAlpha = 0.34;
+  ctx.fillStyle = css('--nb-washi-stripe');
+  const gap = wide * 0.5;
+  ctx.beginPath();
+  for (let x = -end - wide; x < end + wide; x += gap) {
+    ctx.moveTo(x, -wide / 2); ctx.lineTo(x + gap * 0.42, -wide / 2); ctx.lineTo(x + gap * 0.42 + wide * 0.5, wide / 2); ctx.lineTo(x + wide * 0.5, wide / 2); ctx.closePath();
+  }
+  ctx.fill();
+  ctx.restore();
+}
+const washiColour = id => css(`--nb-washi-${id}`) || css('--nb-washi-yellow');
+
+function drawWashi(ctx, item) {
   ctx.save();
   ctx.translate(item.x, item.y);
   ctx.rotate(item.r ?? 0);
-  const edge = Math.min(item.w, item.h) * 0.04;
-  ctx.shadowColor = css('--nb-shadow');
-  ctx.shadowOffsetY = 5;
+  drawTape(ctx, item.l, item.s, washiColour(item.k));
+  ctx.restore();
+}
+
+// The white frame round a picture: even on three sides and deep along the bottom.
+const frameOf = item => { const e = Math.min(item.w, item.h) * 0.06; return { edge: e, foot: e * 3.2 }; };
+
+// A Polaroid: the picture in its frame, on a flat hard edge, with tape over the two top corners.
+function drawPhoto(ctx, item, assets) {
+  const bmp = assets.photos.get(item.id), { edge, foot } = frameOf(item);
+  const left = -item.w / 2 - edge, top = -item.h / 2 - edge, w = item.w + edge * 2, h = item.h + edge + foot;
+  ctx.save();
+  ctx.translate(item.x, item.y);
+  ctx.rotate(item.r ?? 0);
+  ctx.fillStyle = css('--nb-photo-line');
+  ctx.fillRect(left - 2, top - 2, w + 4, h + 7);
   ctx.fillStyle = css('--nb-photo-edge');
-  ctx.fillRect(-item.w / 2 - edge, -item.h / 2 - edge, item.w + 2 * edge, item.h + 2 * edge);
-  ctx.shadowColor = 'transparent';
+  ctx.fillRect(left, top, w, h);
   if (bmp) ctx.drawImage(bmp, -item.w / 2, -item.h / 2, item.w, item.h);
-  ctx.fillStyle = css('--nb-tape');
+  else { ctx.fillStyle = css('--nb-photo-blank'); ctx.fillRect(-item.w / 2, -item.h / 2, item.w, item.h); }
+  const tape = Math.min(item.w, item.h) * 0.36;
   for (const sx of [-1, 1]) {
     ctx.save();
-    ctx.translate(sx * item.w * 0.42, -item.h / 2 - edge);
-    ctx.rotate(sx * -0.6);
-    ctx.fillRect(-item.w * 0.11, -edge * 2.2, item.w * 0.22, edge * 4.4);
+    ctx.translate(sx * (w / 2 - tape * 0.2), top + tape * 0.2);
+    ctx.rotate(sx * Math.PI / 4);
+    drawTape(ctx, tape, tape * 0.34, washiColour(WASHI_ON_PHOTOS));
     ctx.restore();
   }
   ctx.restore();
@@ -336,6 +376,7 @@ export function renderItem(ctx, item, assets) {
   else if (item.t === 'm') drawStamp(ctx, item, assets);
   else if (item.t === 'f') drawRoller(ctx, item);
   else if (item.t === 'p') drawPhoto(ctx, item, assets);
+  else if (item.t === 'w') drawWashi(ctx, item);
 }
 
 // ---------- hit testing (eraser, move tool) ----------
@@ -348,7 +389,12 @@ function segDist(px, py, ax, ay, bx, by) {
 
 // The box an item fills: { cx, cy, w, h, r } in page units.
 export function boundsOf(ctx, item) {
-  if (item.t === 'p') return { cx: item.x, cy: item.y, w: item.w, h: item.h, r: item.r ?? 0 };
+  if (item.t === 'p') {
+    // The frame's foot is deeper than its top: the box's middle is a little below the picture's.
+    const { edge, foot } = frameOf(item), r = item.r ?? 0, down = (foot - edge) / 2;
+    return { cx: item.x - Math.sin(r) * down, cy: item.y + Math.cos(r) * down, w: item.w + edge * 2, h: item.h + edge + foot, r };
+  }
+  if (item.t === 'w') return { cx: item.x, cy: item.y, w: item.l, h: item.s, r: item.r ?? 0 };
   if (item.t === 'm') return { cx: item.x, cy: item.y, w: item.s * (stampRatio.get(item.card) ?? 1), h: item.s, r: item.r ?? 0 };
   if (item.t === 'x') { const { w, h } = textLines(ctx, item); return { cx: item.x + w / 2, cy: item.y + h / 2, w, h, r: item.r ?? 0 }; }
   const xs = [], ys = [];
@@ -365,15 +411,15 @@ function inBox(b, x, y, pad) {
   return Math.abs(lx) <= b.w / 2 + pad && Math.abs(ly) <= b.h / 2 + pad;
 }
 
-// The topmost item under (x, y), or -1. movable: only what can be selected (photos, stamps, text
-// and footprint trails). lines: only lines. stamped: only what the sponge takes (stamps, text and
-// footprint trails).
+// The topmost item under (x, y), or -1. movable: only what can be selected (photos, stamps, text,
+// footprint trails and tape). lines: only lines. stamped: only what the sponge takes (stamps, text,
+// footprint trails and tape).
 export function hitItem(ctx, page, x, y, r, { movable = false, lines = false, stamped = false } = {}) {
   for (let i = page.items.length - 1; i >= 0; i--) {
     const it = page.items[i];
-    if (movable && !['p', 'm', 'x', 'f'].includes(it.t)) continue;
+    if (movable && !['p', 'm', 'x', 'f', 'w'].includes(it.t)) continue;
     if (lines && it.t !== 's') continue;
-    if (stamped && !['m', 'x', 'f'].includes(it.t)) continue;
+    if (stamped && !['m', 'x', 'f', 'w'].includes(it.t)) continue;
     if (it.t === 's') {
       const p = it.p;
       if (p.length === 3 && Math.hypot(p[0] - x, p[1] - y) <= it.w + r) return i;
