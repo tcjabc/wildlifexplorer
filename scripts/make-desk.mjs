@@ -1,17 +1,17 @@
 // The wooden desk behind Field Notes: img/desk/wood.webp, a placeholder drawn here and kept behind
-// --desk-texture in css/tokens.css so another picture can take its place. Flat planks with thick
-// seams and a few lines of grain, in the app's style, not a photograph. It tiles: every plank, line
-// and knot is drawn again one tile away, so nothing stops at an edge.
+// --desk-texture in css/tokens.css so another picture can take its place. A tabletop, not a floor:
+// a few wide boards close in colour, with soft grain and thin joins, in the app's style, not a
+// photograph. It tiles: every board, line and knot meets itself across the edge.
 // Run: node scripts/make-desk.mjs
 import { mkdir } from 'node:fs/promises';
 import sharp from 'sharp';
 
 const SIZE = 1024;      // shown at half this (--desk-texture-size)
-const PLANKS = 4;
+const PLANKS = 2;
 const PLANK = SIZE / PLANKS;
-const SEAM = 10;
-const COLOURS = ['#7f5636', '#74492c', '#865c3b', '#6e4629'];
-const GRAIN = '#5d3a22', LIGHT = '#936a47', SEAM_COLOUR = '#3b2616';
+const SEAM = 4;
+const COLOURS = ['#815a3b', '#7c5536'];
+const GRAIN = '#74502f', LIGHT = '#8a6344', SEAM_COLOUR = '#5e3f27';
 
 // The same random lines each run.
 let seed = 7;
@@ -26,7 +26,7 @@ function grain(y, colour, width) {
 }
 
 function knot(x, y) {
-  const rings = [30, 20, 10].map((r, i) => `<ellipse cx="${x}" cy="${y}" rx="${r * 1.7}" ry="${r}" fill="${i % 2 ? COLOURS[1] : 'none'}" stroke="${GRAIN}" stroke-width="5"/>`);
+  const rings = [26, 15].map(r => `<ellipse cx="${x}" cy="${y}" rx="${r * 2.2}" ry="${r}" fill="none" stroke="${GRAIN}" stroke-width="3"/>`);
   return rings.join('');
 }
 
@@ -34,12 +34,9 @@ let body = '';
 for (let p = 0; p < PLANKS; p++) {
   const top = p * PLANK;
   body += `<rect x="0" y="${top}" width="${SIZE}" height="${PLANK}" fill="${COLOURS[p]}"/>`;
-  for (let i = 0; i < 7; i++) body += grain(top + 24 + rnd() * (PLANK - 48), i % 3 ? GRAIN : LIGHT, i % 3 ? 4 : 3);
+  for (let i = 0; i < 11; i++) body += grain(top + 24 + rnd() * (PLANK - 48), i % 3 ? GRAIN : LIGHT, i % 3 ? 3 : 2);
   const kx = 120 + rnd() * (SIZE - 240), ky = top + PLANK / 2 + (rnd() - 0.5) * 60;
-  if (p % 2 === 0) body += knot(kx, ky);
-  // A butt joint, somewhere different on each plank.
-  const jx = (p * 389 + 140) % SIZE;
-  body += `<rect x="${jx - SEAM / 2}" y="${top}" width="${SEAM}" height="${PLANK}" fill="${SEAM_COLOUR}"/>`;
+  if (p === 0) body += knot(kx, ky);
   body += `<rect x="0" y="${top - SEAM / 2}" width="${SIZE}" height="${SEAM}" fill="${SEAM_COLOUR}"/>`;
 }
 // The first plank's seam also closes the bottom of the tile.
