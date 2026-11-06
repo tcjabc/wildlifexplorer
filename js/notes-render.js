@@ -35,6 +35,7 @@ function grainPattern(ctx) {
 // ---------- pieces ----------
 
 const width = (w, p) => w * (0.35 + 0.95 * p);
+const PEN_PRESSURE = 0.5; // a pen line is as wide as any line drawn by a finger
 
 // A highlighter line: one even path in one go, multiplied onto what is under it. Drawn piece by
 // piece, every joint would be multiplied twice and show as a dark bead.
@@ -58,9 +59,30 @@ function drawHighlight(ctx, item) {
   ctx.restore();
 }
 
+// A pen line: solid, one width, and smooth: a curve through the middles of its segments, each point
+// pulling it round. `from`: the first new point, to draw only what it adds while drawing; the last
+// half segment comes when the line is finished and drawn whole.
+function drawPen(ctx, item, from) {
+  const p = item.p, n = p.length;
+  ctx.strokeStyle = ctx.fillStyle = item.c;
+  ctx.lineWidth = width(item.w, PEN_PRESSURE);
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  if (n === 3) { ctx.arc(p[0], p[1], ctx.lineWidth / 2, 0, Math.PI * 2); ctx.fill(); return; }
+  const mid = i => [(p[i] + p[i + 3]) / 2, (p[i + 1] + p[i + 4]) / 2];
+  // Controls are the points between the middles: 3, 6, … up to the last but one.
+  const first = Math.max(3, from - 3);
+  if (first === 3) { ctx.moveTo(p[0], p[1]); ctx.lineTo(...mid(0)); } else ctx.moveTo(...mid(first - 3));
+  for (let i = first; i + 3 < n; i += 3) ctx.quadraticCurveTo(p[i], p[i + 1], ...mid(i));
+  if (!from) ctx.lineTo(p[n - 3], p[n - 2]);
+  ctx.stroke();
+}
+
 // A pressure-sensitive line from point index `from` (to draw only the new part while drawing).
 export function drawStroke(ctx, item, from = 0) {
   if (strokeKind(item) === 'highlighter') { drawHighlight(ctx, item); return; }
+  if (strokeKind(item) === 'pen') { drawPen(ctx, item, from); return; }
   const p = item.p;
   ctx.strokeStyle = item.c;
   ctx.lineCap = 'round';
@@ -131,7 +153,7 @@ function drawRoller(ctx, item) {
 }
 
 function textLines(ctx, item) {
-  ctx.font = `${item.s}px ${css('--font')}`;
+  ctx.font = `${item.s}px ${css('--font-notes')}`;
   const lines = item.v.split('\n');
   const w = Math.max(...lines.map(l => ctx.measureText(l).width), item.s * 0.5);
   return { lines, w, h: lines.length * item.s * 1.25 };
