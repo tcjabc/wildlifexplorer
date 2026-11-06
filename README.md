@@ -18,9 +18,10 @@ It runs at https://wildfile.app/ (Cloudflare) and works fully offline once it ha
   badges. **Quiz**: picture → name, and true/false facts.
 - **Creature comparison**: You (the animal against your own size) or Animal (lookalikes side by
   side, with how to tell them apart). **Globe**: filter the pins by continent or habitat.
-- **Field Notes**: a researcher's notebook per profile. Draw with a pencil (pen pressure and
-  palm rejection), write, stamp collected animals, roll footprints and tape in photos, in the
-  notebook beside every card or on its own page. Back it up to a zip.
+- **Field Notes**: a researcher's notebook per profile. Draw with a pencil, pen and highlighter
+  (pen pressure and palm rejection), rule straight lines, write, stamp collected animals, roll
+  footprints and tape in photos, in the notebook beside every card or on its own page. Back it up
+  to a zip.
 - **Read aloud** (Web Speech API): English in an en-GB voice, Chinese in a zh-TW voice.
 - **Language**: EN / 中 / Both, per profile.
 - **For grown-ups** (behind a sum): pack day and time, units, preview, start over, delete.
@@ -606,18 +607,36 @@ a photo is a derivative of it: give it the photo's author and licence, add
 ## Field Notes
 
 One notebook per profile (📓 in the nav, or beside every card). Code: `js/notebook.js` (the UI),
-`js/notes-render.js` (drawing a page), `js/notes-view.js` (open pages, zoom limits, what a gesture
-means; pure, tested in `tests/notes-view.test.mjs`), `js/notes-model.js` (tags, contents, migration;
-pure, tested in `tests/notes-model.test.mjs`), `js/notes-store.js` (storage), `js/notes-io.js`
+`js/notes-render.js` (drawing a page), `js/notes-rails.js` (the rails' objects, as SVG),
+`js/notes-view.js` (open pages, zoom limits, what a gesture means; pure, tested in
+`tests/notes-view.test.mjs`), `js/notes-model.js` (tags, contents, migration; pure, tested in
+`tests/notes-model.test.mjs`), `js/notes-tools.js` (the tools' shared settings) and
+`js/notes-ruler.js` (the ruler's geometry; both pure, tested in `tests/notes-tools.test.mjs`),
+`js/notes-store.js` (storage), `js/notes-io.js`
 (backup), `js/zip.js`, styles in `css/notes.css`. `tests/notes-touch.test.mjs` drives the notebook
 with real touches in Chromium.
 
 - **On its own** (`#/notes`): the whole screen, with no app header or tab bar. One back button goes
-  to the screen before (or the binder, when opened directly). Tool rails stand at the left and right
-  of the page (`--nb-rail`), or as bands above and below it in portrait, where side rails would leave
-  the page short of the full height; for now the left rail holds the tools and the right one new page
-  and ⋯. A ribbon on the book's edge marks the place and opens the contents; tabs at its bottom
-  corners turn the pages.
+  to the screen before (or the binder, when opened directly). Rails stand at the left and right of
+  the page in landscape (`--nb-rail`), on a phone too, or as bands above and below it in portrait
+  (`--nb-rail-band`): orientation alone decides. A short screen folds the rails into two columns and
+  a narrow one the bands into two rows, which costs the page nothing. A ribbon on the book's edge
+  marks the place and opens the contents; tabs at its bottom corners turn the pages.
+- **The rails** hold real objects drawn as SVG, the same ones in both layouts. Left: back, a pen
+  pouch (lying on its side in a band) and at the foot the camera (until the Polaroid comes to the right
+  rail, where room is kept for it), undo, redo and pen or finger. The tool in use stands raised out
+  of the pouch; tapped again it opens its colours and thickness. Right, between ＋ and ⋯: the ink pad
+  (tap for the ink colour) and three stamps: ABC (text), the panda (a collected animal: tap to move
+  to the next, long press for the list) and the footprints (tap again for the kind).
+- **Stamping**: the stamp comes down on the page with `navigator.vibrate(15)` and a short thunk made
+  by Web Audio (`js/fx.js`, no sound file). A tap on bare paper stamps; a tap on something already
+  there selects it, or with ABC edits text.
+- **Ruler**: it lies on the book, not on a page, so it zooms and pans with the pages, stays out when
+  they turn, and is never saved or exported. Drag it out of the pouch or tap it; tap it there, or drag
+  it back, to put it away. One finger moves it. Two fingers both on it turn it, however late the
+  second comes; one on it and one off it is a pan or zoom. A line started within 30 page units of a
+  long edge follows that edge to the ruler's ends. A pen on the ruler draws along the nearer edge and
+  never moves it, and touches don't move it while a pen is down. With a mouse, the wheel over it turns it.
 - **Spread**: landscape lies open at two pages, paired in list order (1–2, 3–4, …), and either can be
   drawn on. Undo goes back through both in the order things were done, and the ⋯ menu says which page
   its page actions are for. An odd page out has a blank page beside it, saved only at its first mark;
@@ -631,7 +650,11 @@ with real touches in Chromium.
   first had started; later, the line carries on. With a mouse, the wheel pans and ctrl + wheel zooms.
 - **Canvas**: at most 1.5 device pixels per CSS pixel. Each page is a cached bitmap: the mark being
   made is on a live layer, and a finished one is added to the bitmap on its own. Eraser redraws go by
-  the frame.
+  the frame. A highlighter line is multiplied onto the page, drawn as one path: piece by piece its
+  joints would show. The live layer has no page under it, so while one is being drawn the browser
+  multiplies that layer instead (`mix-blend-mode`).
+- **Keyboard**: while a text box is open the desk rises so it stays above the on-screen keyboard,
+  going by `visualViewport`, and the notebook keeps its height, so the page doesn't re-fit.
 
 - **Beside a card**: the notebook is always there, in one of two states. Collapsed, it is a kraft
   spine with an elastic band in the 60 px strip at the right (on phones, a 📓 tab at the bottom
@@ -649,7 +672,7 @@ with real touches in Chromium.
   the first time each page opens it dips down a little and back (not with reduced motion).
 - **Animal tags**: a page has zero or more animals, shown as chips under its OBSERVED stamp
   (✕ removes one, "＋" adds an animal this explorer has collected). Placing a stamp adds its animal;
-  erasing the stamp leaves the tag. The header's title is the first animal's name ("+ N more" when
+  removing the stamp leaves the tag. The header's title is the first animal's name ("+ N more" when
   there are several); a page with no animals is a free page (隨手記). Tag changes are undoable.
   The badge on a card's binder tile counts that animal's pages.
 - **Opening**: with a card open, the notebook steps through that animal's pages (oldest first),
@@ -660,14 +683,17 @@ with real touches in Chromium.
   latest), each page under every animal it is tagged with ("also in" the others), then the free
   pages and "＋ New free page". Pages never move; the contents is a view of their tags. From a card's
   notebook, "‹ <animal>" goes back to it.
-- **Tools**: pencil in 8 colours and two sizes, eraser (whole marks), text, stamps (collected
-  cards' silhouettes, or the group emoji), footprint roller (cat paw, hoof, bird, bear), photos, undo
-  and redo (Ctrl/⌘+Z). There is no move tool: with the pencil or roller, one tap on a photo, stamp or
-  text selects it (so a tap there leaves no dot). Drag it inside its box, use the handles outside the
-  box or a two-finger pinch on it to resize and turn it, ✕ to remove it; a tap elsewhere lets go.
-  Beside a card the toolbar never scrolls: one row when it all fits (measured, as the labels' width
-  depends on the language), otherwise two rows of 44 px controls with the colours behind a swatch. In
-  a rail the colours are always behind the swatch, and it scrolls where the screen is too short. The
+- **Tools**: pencil and pen in 9 colours (white too) and two sizes, highlighter (cyan, yellow or
+  magenta), ruler, eraser (whole lines of any tool; everything else has its ✕), text, stamps
+  (collected cards' silhouettes, or the group emoji), footprint roller (cat paw, hoof, bird, bear),
+  photos, undo and redo (Ctrl/⌘+Z). Text, stamps and footprints take the ink. The settings are kept
+  per profile on the device (`notesTools`, never sent). There is no move tool: one tap on a photo,
+  stamp, footprint trail or text selects it (so a tap there leaves no dot). Drag it inside its box, use
+  the handles outside the box or a two-finger pinch on it to resize and turn it, ✕ to remove it; a
+  tap elsewhere lets go. Resizing a trail stretches its path, not its prints.
+  Beside a card the toolbar stays a toolbar, with its own tools (no pen, highlighter or ruler) and the
+  rails' settings. It never scrolls: one row when it all fits (measured, as the labels' width
+  depends on the language), otherwise two rows of 44 px controls with the colours behind a swatch. The
   roller's feet always open from one button in a small picker.
 - **Pen or finger**: the first time a pen touches the page, the notebook switches to *Pen only*
   so a resting hand doesn't draw, and one finger turns pages. The toggle at the end of the toolbar switches
@@ -679,8 +705,9 @@ with real touches in Chromium.
   it (not Safari), *Also save to a folder* writes the same files into a folder you pick.
 - **Page file** (`version: 2`): `paper` (`dots`/`grid`), `header` (`date`), `tags` (card ids, in
   order), `createdAt`, `editedAt` (content or tags last changed), and
-  `items` in page units (1000 × 1400): `s` pencil (`p` = x, y, pressure…), `x` text, `m` stamp,
-  `f` footprints, `p` photo (`id` of a file in `photos/`). Version 1 pages (`header.cardId`, `links`, no
+  `items` in page units (1000 × 1400): `s` a line (`p` = x, y, pressure…; `k` is `pen` or
+  `highlighter`, and none means pencil, so pages from before these draw as they did; `t` is taken: it
+  is every item's type), `x` text, `m` stamp, `f` footprints, `p` photo (`id` of a file in `photos/`). Version 1 pages (`header.cardId`, `links`, no
   tags) are tagged with what they were linked to (header card, cards drawn next to, stamped animals)
   when they load; their index records the same way, once. Backups list each page's `tags`
   (manifest `version: 2`); version 1 backups still restore. Field Notes never sync: `notes` and
