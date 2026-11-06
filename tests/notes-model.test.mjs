@@ -5,8 +5,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   legacyTags, normalisePage, migrateRecord, withTag, withoutTag, tagsAfterStamp, titleOf,
-  pagesOf, freePages, latestIndex, openFor, contents,
-} from '../js/notes-model.js';
+  pagesOf, freePages, latestIndex, openFor, contents, movedTrail } from '../js/notes-model.js';
 
 const CARDS = {
   'formosan-black-bear': { id: 'formosan-black-bear', group: 'mammals', number: 1 },
@@ -153,4 +152,13 @@ test('the header title: the first tag, how many more, nothing on a free page', (
   assert.deepEqual(titleOf(['sika-deer', 'formosan-black-bear', 'taiwan-blue-magpie'], known), { first: 'sika-deer', more: 2 });
   assert.equal(titleOf([], known), null);
   assert.equal(titleOf(['an-animal-no-longer-in-the-list'], known), null);
+});
+
+test('a footprint trail moves, stretches and turns by its path alone', () => {
+  const p = [100, 100, 200, 100];
+  assert.deepEqual(movedTrail(p, { dx: 10, dy: -5 }), [110, 95, 210, 95]);
+  assert.deepEqual(movedTrail(p, { cx: 150, cy: 100, k: 2 }), [50, 100, 250, 100]);
+  const [x0, y0, x1, y1] = movedTrail(p, { cx: 150, cy: 100, a: Math.PI / 2 }).map(v => Math.round(v));
+  assert.deepEqual([x0, y0, x1, y1], [150, 50, 150, 150]);
+  assert.deepEqual(p, [100, 100, 200, 100], 'the original stays as it was, for undo');
 });

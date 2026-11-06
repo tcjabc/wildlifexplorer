@@ -270,7 +270,7 @@ test('an explorer deleted before the first sync can\'t be added later', async ()
 test('toRow: settingsAt decides the settings\' time, and device-only fields never appear', () => {
   const p = {
     id: ADA, name: 'Ada', lang: 'both', avatar: 1, zhuyin: true, rate: 'slow', age: 7, heightCm: 120, weightKg: 22,
-    homeCountry: 'TW', notesInput: 'pen', notesPanel: 'expanded', globePanel: 'collapsed', parent: { dropDay: 6, dropTime: '09:00', length: 'metric', temp: 'C', preview: true },
+    homeCountry: 'TW', notesInput: 'pen', notesTools: { ink: 'red', stampCard: 'emu' }, notesPanel: 'expanded', globePanel: 'collapsed', parent: { dropDay: 6, dropTime: '09:00', length: 'metric', temp: 'C', preview: true },
     timeline: { epoch: 2, startAt: '2026-09-01T00:00:00.000Z' }, createdAt: '2026-08-01T00:00:00.000Z',
     updatedAt: '2026-11-01T00:00:00.000Z', settingsAt: '2026-10-01T00:00:00.000Z', deletedAt: null,
   };

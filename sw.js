@@ -79,6 +79,8 @@ const SHELL = [
   'js/notes-model.js',
   'js/notes-render.js',
   'js/notes-view.js',
+  'js/notes-tools.js',
+  'js/notes-ruler.js',
   'js/notes-io.js',
   'js/notebook.js',
   'js/zip.js',

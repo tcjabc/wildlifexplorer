@@ -73,3 +73,26 @@ export function swipeTurn({ dx, dy, span = Infinity, peak, zoom }) {
 
 export const secondFingerCounts = age => age < SECOND_FINGER_MS;
 export const isTap = (travel, ms) => travel < TAP_PX && ms < TAP_MS;
+
+// How the rails are laid out, by orientation alone: side rails in landscape, bands above and
+// below the page in portrait. Where the screen is short (or narrow) for that, they fold into two
+// columns (or two rows).
+const RAIL_MIN = 640;
+export const railFit = ({ w, h }) => (w > h ? (h < RAIL_MIN ? 'short' : 'tall') : (w < RAIL_MIN ? 'narrow' : 'wide'));
+
+// Where a popover opens beside its button, inside the frame. side: the way it opens ('right',
+// 'left', 'below', 'above'). Everything in CSS px from the frame's top left.
+export function popPlace({ anchor, frame, w, h, side }) {
+  const left = side === 'right' ? anchor.right : side === 'left' ? anchor.left - w : anchor.left;
+  const top = side === 'below' ? anchor.bottom : side === 'above' ? anchor.top - h : anchor.top;
+  return { left: clamp(left, 0, Math.max(0, frame.w - w)), top: clamp(top, 0, Math.max(0, frame.h - h)) };
+}
+
+// How far to lift the page so a text box clears the keyboard: its bottom just above what is still
+// visible, but never so far that its top goes out of sight. box: where it is with no lift.
+//   viewTop, viewBottom: the visual viewport's edges, in the same px.
+export function keyboardLift({ box, viewTop, viewBottom, margin = 16 }) {
+  const need = box.bottom + margin - viewBottom;
+  if (need <= 0) return 0;
+  return Math.max(0, Math.min(need, box.top - viewTop - margin));
+}

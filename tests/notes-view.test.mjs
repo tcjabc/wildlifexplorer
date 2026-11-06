@@ -3,8 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  slotsFor, fitScale, clampView, pinchView, settleView, swipeTurn, secondFingerCounts, isTap, pixelRatio, MAX_ZOOM,
-} from '../js/notes-view.js';
+  slotsFor, fitScale, clampView, pinchView, settleView, swipeTurn, secondFingerCounts, isTap, pixelRatio, MAX_ZOOM, railFit, popPlace, keyboardLift } from '../js/notes-view.js';
 
 const ids = ['a', 'b', 'c', 'd', 'e'];
 
@@ -121,4 +120,26 @@ test('the canvas never goes past 1.5 device pixels per CSS pixel', () => {
   assert.equal(pixelRatio(3), 1.5);
   assert.equal(pixelRatio(1), 1);
   assert.equal(pixelRatio(undefined), 1);
+});
+
+test('the rails go by orientation, on a phone too: side rails in landscape, bands in portrait', () => {
+  assert.equal(railFit({ w: 1280, h: 800 }), 'tall');
+  assert.equal(railFit({ w: 780, h: 360 }), 'short', 'a phone on its side keeps side rails, in two columns');
+  assert.equal(railFit({ w: 800, h: 1280 }), 'wide');
+  assert.equal(railFit({ w: 360, h: 740 }), 'narrow', 'a phone upright: bands, in two rows');
+});
+
+test('popovers open on the page side of their button, and stay on the screen', () => {
+  const frame = { w: 800, h: 600 }, anchor = { left: 10, right: 70, top: 100, bottom: 140 };
+  assert.deepEqual(popPlace({ anchor, frame, w: 150, h: 200, side: 'right' }), { left: 70, top: 100 });
+  assert.deepEqual(popPlace({ anchor: { left: 730, right: 790, top: 500, bottom: 540 }, frame, w: 150, h: 200, side: 'left' }), { left: 580, top: 400 });
+  assert.deepEqual(popPlace({ anchor, frame, w: 150, h: 200, side: 'below' }), { left: 10, top: 140 });
+  assert.deepEqual(popPlace({ anchor: { left: 700, right: 760, top: 540, bottom: 590 }, frame, w: 150, h: 200, side: 'above' }), { left: 650, top: 340 }, 'up from the bottom band');
+});
+
+test('a text box rises just clear of the keyboard, and never out of the top', () => {
+  assert.equal(keyboardLift({ box: { top: 100, bottom: 200 }, viewTop: 0, viewBottom: 500 }), 0, 'already clear');
+  assert.equal(keyboardLift({ box: { top: 500, bottom: 560 }, viewTop: 0, viewBottom: 400, margin: 16 }), 176);
+  assert.equal(keyboardLift({ box: { top: 60, bottom: 500 }, viewTop: 0, viewBottom: 400, margin: 16 }), 44, 'a tall box keeps its top in sight');
+  assert.equal(keyboardLift({ box: { top: 10, bottom: 500 }, viewTop: 0, viewBottom: 400, margin: 16 }), 0);
 });

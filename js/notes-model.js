@@ -3,7 +3,7 @@
 // A page has zero or more animal tags (card ids, in order: the first names the page), its
 // content (the fixed 1000 × 1400 page of vector items, unchanged) and createdAt / editedAt.
 // A page with no tags is a free page. Tags change only through the chips on the page and
-// the stamp tool (a stamp adds its animal; erasing it leaves the tag).
+// the stamp tool (a stamp adds its animal; removing it leaves the tag).
 //
 // The index (IndexedDB "notes", one record per page) carries the same tags, so the binder,
 // a card's notebook and the contents never have to open every page.
@@ -47,6 +47,20 @@ export const withTag = (tags, id) => (id && !tags.includes(id) ? [...tags, id] :
 export const withoutTag = (tags, id) => tags.filter(t => t !== id);
 // Placing a stamp tags the page with that animal (once).
 export const tagsAfterStamp = (tags, cardId) => withTag(tags, cardId);
+
+// ---------- footprint trails ----------
+
+// A trail ([x, y, …]) moved by (dx, dy), or scaled k times and turned by a radians about (cx, cy).
+// Only its path changes: the prints themselves keep their size.
+export function movedTrail(p, { dx = 0, dy = 0, cx = 0, cy = 0, k = 1, a = 0 }) {
+  const c = Math.cos(a) * k, s = Math.sin(a) * k, out = new Array(p.length);
+  for (let i = 0; i < p.length; i += 2) {
+    const x = p[i] - cx, y = p[i + 1] - cy;
+    out[i] = cx + x * c - y * s + dx;
+    out[i + 1] = cy + x * s + y * c + dy;
+  }
+  return out;
+}
 
 // The header's title: the first tag's name, and how many more there are. A free page has none.
 export function titleOf(tags, known = () => true) {

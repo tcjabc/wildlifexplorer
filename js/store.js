@@ -4,6 +4,7 @@
 import * as db from './db.js';
 import { dueAt } from './schedule.js';
 import { isReady } from './ready.js';
+import { cleanTools } from './notes-tools.js';
 import { allBadges, isEarned } from './badges.js';
 
 export const state = {
@@ -250,6 +251,8 @@ export async function updateProfile(id, patch) {
       ...('rate' in patch && { rate: patch.rate }),
       // Field Notes input: 'pen' (only a pen draws; fingers turn pages) or 'finger'.
       ...('notesInput' in patch && { notesInput: patch.notesInput }),
+      // Field Notes tool settings (js/notes-tools.js). Device-only.
+      ...('notesTools' in patch && { notesTools: cleanTools(patch.notesTools) }),
       // Set once, the first time a pen draws: the switch to pen-only happens only then.
       ...('notesPenSeen' in patch && { notesPenSeen: Boolean(patch.notesPenSeen) }),
       // The notebook on the card screens: 'collapsed' (the default) or 'expanded'. Device-only.
