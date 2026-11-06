@@ -1,7 +1,7 @@
 // Drawing a Field Notes page onto a canvas: paper, the auto-stamped header, then every item
 // in order. Used for the page on screen and for "export page as an image", so both match.
 // Page units: PAGE_W × PAGE_H (notes-store.js); the canvas transform scales them.
-//   stroke  { t:'s', c, w, p:[x,y,pressure, …] }      pencil line
+//   stroke  { t:'s', c, w, p:[x,y,pressure, …], k }    a line (k: 'pen' or 'highlighter'; none: pencil)
 //   text    { t:'x', c, s, x, y, v, r }                 typed text (x,y = top left)
 //   stamp   { t:'m', c, card, x, y, s, r }               creature stamp (centre, height)
 //   roller  { t:'f', c, k, p:[x,y, …] }                  footprint trail (k: paw, hoof, bird, bear)
@@ -9,8 +9,10 @@
 import { PAGE_W, PAGE_H } from './notes-store.js';
 
 const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-export const PENCILS = ['graphite', 'red', 'orange', 'yellow', 'green', 'blue', 'purple', 'brown'];
 export const pencilColour = id => css(`--pencil-${id}`) || '#444';
+export const highlightColour = id => css(`--hl-${id}`) || '#ffee58';
+// What drew a line. Pages from before there was anything but the pencil have no k.
+export const strokeKind = item => (item.k === 'pen' || item.k === 'highlighter' ? item.k : 'pencil');
 const GRID = 40;
 
 // ---------- pencil grain ----------
@@ -32,8 +34,31 @@ function grainPattern(ctx) {
 
 const width = (w, p) => w * (0.35 + 0.95 * p);
 
+// A highlighter line: one even path in one go, multiplied onto what is under it. Drawn piece by
+// piece, every joint would be multiplied twice and show as a dark bead.
+function drawHighlight(ctx, item) {
+  const p = item.p;
+  ctx.save();
+  ctx.globalCompositeOperation = 'multiply';
+  ctx.strokeStyle = ctx.fillStyle = item.c;
+  ctx.lineWidth = item.w;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  if (p.length === 3) {
+    ctx.arc(p[0], p[1], item.w / 2, 0, Math.PI * 2);
+    ctx.fill();
+  } else {
+    ctx.moveTo(p[0], p[1]);
+    for (let i = 3; i < p.length; i += 3) ctx.lineTo(p[i], p[i + 1]);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
 // A pressure-sensitive line from point index `from` (to draw only the new part while drawing).
 export function drawStroke(ctx, item, from = 0) {
+  if (strokeKind(item) === 'highlighter') { drawHighlight(ctx, item); return; }
   const p = item.p;
   ctx.strokeStyle = item.c;
   ctx.lineCap = 'round';
@@ -110,11 +135,16 @@ function textLines(ctx, item) {
   return { lines, w, h: lines.length * item.s * 1.25 };
 }
 
+// Turned about the middle of its box; x, y stay its top left as it would be unturned.
 function drawText(ctx, item) {
-  const { lines } = textLines(ctx, item);
+  const { lines, w, h } = textLines(ctx, item);
+  ctx.save();
+  ctx.translate(item.x + w / 2, item.y + h / 2);
+  ctx.rotate(item.r ?? 0);
   ctx.fillStyle = item.c;
   ctx.textBaseline = 'top';
-  lines.forEach((l, i) => ctx.fillText(l, item.x, item.y + i * item.s * 1.25));
+  lines.forEach((l, i) => ctx.fillText(l, -w / 2, -h / 2 + i * item.s * 1.25));
+  ctx.restore();
 }
 
 // A stamp is the animal's silhouette in the pencil colour, or its group emoji.
@@ -218,7 +248,7 @@ function drawHeader(ctx, page, text) {
 
 // ---------- the whole page ----------
 
-// Pencil work goes on a layer of its own so the grain only roughens pencil, not photos. One
+// Pencil work goes on a layer of its own so the grain only roughens pencil, not ink or photos. One
 // layer for every page drawn: a new one per redraw is a full-page allocation.
 let layer = null, layerCtx = null, layerGrain = null;
 function pencilLayer(ctx) {
@@ -250,6 +280,8 @@ function flushPencil(ctx, l, { x, y, w, h }) {
   l.save(); l.setTransform(1, 0, 0, 1, 0, 0); l.clearRect(x, y, w, h); l.restore();
 }
 
+const grainy = item => item.t === 's' && strokeKind(item) === 'pencil';
+
 // headerText: { date, name, stamp } already in the profile's language.
 // skip: an item index not to draw (the one being moved, drawn on the live layer instead).
 export function renderPage(ctx, page, { assets, headerText, skip = -1 }) {
@@ -260,7 +292,7 @@ export function renderPage(ctx, page, { assets, headerText, skip = -1 }) {
   let pending = false;
   page.items.forEach((item, i) => {
     if (i === skip) return;
-    if (item.t === 's') { drawStroke(l, item); pending = true; return; }
+    if (grainy(item)) { drawStroke(l, item); pending = true; return; }
     if (pending) { flushPencil(ctx, l, all); pending = false; }
     renderItem(ctx, item, assets);
   });
@@ -284,7 +316,7 @@ function strokeBox(ctx, item) {
 
 // A new item on top of an already drawn page, without painting the page again.
 export function appendItem(ctx, item, assets) {
-  if (item.t !== 's') { renderItem(ctx, item, assets); return; }
+  if (!grainy(item)) { renderItem(ctx, item, assets); return; }
   const box = strokeBox(ctx, item);
   if (box.w <= 0 || box.h <= 0) return;
   const l = pencilLayer(ctx);
@@ -313,12 +345,13 @@ function segDist(px, py, ax, ay, bx, by) {
 export function boundsOf(ctx, item) {
   if (item.t === 'p') return { cx: item.x, cy: item.y, w: item.w, h: item.h, r: item.r ?? 0 };
   if (item.t === 'm') return { cx: item.x, cy: item.y, w: item.s, h: item.s, r: item.r ?? 0 };
-  if (item.t === 'x') { const { w, h } = textLines(ctx, item); return { cx: item.x + w / 2, cy: item.y + h / 2, w, h, r: 0 }; }
+  if (item.t === 'x') { const { w, h } = textLines(ctx, item); return { cx: item.x + w / 2, cy: item.y + h / 2, w, h, r: item.r ?? 0 }; }
   const xs = [], ys = [];
   const step = item.t === 's' ? 3 : 2;
   for (let i = 0; i < item.p.length; i += step) { xs.push(item.p[i]); ys.push(item.p[i + 1]); }
   const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
-  return { cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, w: x1 - x0, h: y1 - y0, r: 0 };
+  const prints = item.t === 'f' ? 80 : 0; // a trail's prints lie either side of its path
+  return { cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, w: x1 - x0 + prints, h: y1 - y0 + prints, r: 0 };
 }
 
 function inBox(b, x, y, pad) {
@@ -327,11 +360,13 @@ function inBox(b, x, y, pad) {
   return Math.abs(lx) <= b.w / 2 + pad && Math.abs(ly) <= b.h / 2 + pad;
 }
 
-// The topmost item under (x, y), or -1. movable: only photos, stamps and text.
-export function hitItem(ctx, page, x, y, r, { movable = false } = {}) {
+// The topmost item under (x, y), or -1. movable: only what can be selected (photos, stamps, text
+// and footprint trails). lines: only lines.
+export function hitItem(ctx, page, x, y, r, { movable = false, lines = false } = {}) {
   for (let i = page.items.length - 1; i >= 0; i--) {
     const it = page.items[i];
-    if (movable && !['p', 'm', 'x'].includes(it.t)) continue;
+    if (movable && !['p', 'm', 'x', 'f'].includes(it.t)) continue;
+    if (lines && it.t !== 's') continue;
     if (it.t === 's') {
       const p = it.p;
       if (p.length === 3 && Math.hypot(p[0] - x, p[1] - y) <= it.w + r) return i;

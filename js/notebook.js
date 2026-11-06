@@ -1,20 +1,30 @@
-// Field Notes: a researcher's notebook. Kraft cover, dotted (or grid) paper. Tools: pencil
-// (pressure), eraser (whole marks), coloured pencils, text, creature stamps, footprint roller,
-// taped-in photos, undo and redo.
+// Field Notes: a researcher's notebook. Kraft cover, dotted (or grid) paper. Tools: pencil and pen
+// (pressure), highlighter (multiplied onto the page), ruler, eraser (whole lines), text, creature
+// stamps, footprint roller, taped-in photos, undo and redo.
 //
-// On its own (#/notes) the notebook fills the screen: no app header, one back button, rails for
-// the tools at the left and right (bands above and below the page in portrait), a ribbon marking
-// the place, and tabs to turn pages. Landscape lies open at a two-page spread, portrait shows one
-// page; both pages of a spread are live. Beside a card it stays a panel: one page, with its bar
-// and toolbar on top.
+// On its own (#/notes) the notebook fills the screen: no app header, one back button, rails at the
+// left and right (bands above and below the page in portrait), a ribbon marking the place, and
+// tabs to turn pages. Landscape lies open at a two-page spread, portrait shows one page; both pages
+// of a spread are live. Beside a card it stays a panel: one page, with its bar and toolbar on top,
+// sharing the rails' tool settings (js/notes-tools.js).
+//
+// The rails hold real objects (js/notes-rails.js). Left: a pen pouch; the tool in use stands raised
+// out of it, and tapping it again opens its colours and thickness. Right: the ink pad and three
+// stamps: ABC (text), the panda (a collected animal: a tap moves to the next, a long press lists
+// them) and the footprints.
+//
+// The ruler lies on the book, not on a page, and is never saved. One finger moves it (pulled from
+// the pouch, or tap it there), two fingers both on it turn it; a line started beside an edge follows
+// that edge. A pen never moves it, and neither does anything else while a pen is down.
 //
 // One finger draws. Two fingers pan and pinch-zoom; a clear sideways two-finger swipe at the
 // fitted size turns the page (js/notes-view.js has the rules). During a gesture the page moves
 // by CSS transform; when it ends, a canvas the size of the screen redraws what is in view
 // sharply, so zooming in never needs a bigger page bitmap. The wheel pans, ctrl + wheel zooms.
 //
-// One tap on a photo, stamp or text selects it: drag it inside its box, use the handles, or
-// pinch on it to resize and turn it. A tap elsewhere lets go.
+// One tap on a photo, stamp, footprint trail or text selects it: drag it inside its box, use the
+// handles, or pinch on it to resize and turn it. A tap elsewhere lets go. With a stamp in the hand
+// a tap on bare paper stamps; with ABC a tap on text edits it.
 //
 // Pen and fingers: in "finger" mode fingers draw; in "pen" mode only a pen (or mouse) draws
 // and one finger turns pages. The first time a pen draws, the notebook switches to pen mode
@@ -39,9 +49,13 @@ import { bi, t, tx, label, getMode, dateText } from './i18n.js';
 import { state, updateProfile, isCollected, groupById } from './store.js';
 import * as notes from './notes-store.js';
 import { PAGE_W, PAGE_H } from './notes-store.js';
-import { titleOf, withTag, withoutTag, tagsAfterStamp, freePages, openFor, contents as contentsOf } from './notes-model.js';
-import { renderPage, renderItem, appendItem, drawStroke, hitItem, boundsOf, PENCILS, pencilColour } from './notes-render.js';
-import { slotsFor, fitScale, clampView, pinchView, settleView, swipeTurn, secondFingerCounts, isTap, pixelRatio } from './notes-view.js';
+import { titleOf, withTag, withoutTag, tagsAfterStamp, freePages, openFor, movedTrail, contents as contentsOf } from './notes-model.js';
+import { renderPage, renderItem, appendItem, drawStroke, hitItem, boundsOf, pencilColour, highlightColour } from './notes-render.js';
+import { slotsFor, fitScale, clampView, pinchView, settleView, swipeTurn, secondFingerCounts, isTap, pixelRatio, railFit, popPlace, keyboardLift } from './notes-view.js';
+import { PENCILS, DRAWING, paletteOf, widthOf, cleanTools, colourOf, sizeOf, withColour, withSize, nextAnimal } from './notes-tools.js';
+import { RULER_L, RULER_H, onRuler, edgeAt, snapTo, clampRuler } from './notes-ruler.js';
+import { TOOL_ROWS, toolArt, pouchBack, pouchFront, inkPadArt, stampArt, rulerArt } from './notes-rails.js';
+import { thunk } from './fx.js';
 import { exportPageImage, exportAll, importBackup, saveToFolder, folderSupported } from './notes-io.js';
 import { haptic, clamp } from './gesture.js';
 
@@ -49,11 +63,12 @@ const TOOLS = [
   ['pencil', '✏️'], ['eraser', '🧽'], ['text', '🔤'], ['stamp', '🐾'], ['roller', '👣'],
 ];
 const FEET = [['paw', '🐈'], ['hoof', '🦌'], ['bird', '🐦'], ['bear', '🐻']];
-const SIZES = { thin: 5, thick: 12 };
 const TEXT_SIZE = 40;
 const STAMP_SIZE = 180;
 const ERASE_R = 14;
 const SETTLE_MS = 400; // after selecting, before ✕ counts
+const HOLD_MS = 500;   // a long press on the panda stamp
+const RULER_PAD = 24;  // CSS px around the ruler that still count as on it for a second finger
 
 // The card's name and dates in the profile's language, for text drawn on the canvas.
 const inLang = pair => {
@@ -85,7 +100,7 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
   const nb = {
     home: cardId, view: cardId ? 'pages' : 'contents', scope: cardId ? { kind: 'animal', id: cardId } : null,
     ids: [], pos: 0, active: 0, spread: false,
-    tool: 'pencil', colour: 'graphite', size: 'thin', foot: 'paw', stampCard: null,
+    tool: 'pencil', set: cleanTools(state.profile?.notesTools),
     undo: [], redo: [], selected: -1, saveTimer: 0,
     assets: { photos: new Map(), stamps: new Map() },
     get page() { return sides[this.active].page; },
@@ -132,9 +147,9 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
   const photoBtn = h('button', { type: 'button', class: 'nb-tool', 'aria-label': label('notes.tool.photo'), onclick: () => fileInput.click() }, h('span', { 'aria-hidden': 'true' }, '📷'));
   const colourBtns = PENCILS.map(id => h('button', {
     type: 'button', class: 'nb-colour', 'data-colour': id, 'aria-pressed': 'false', 'aria-label': label(`notes.colour.${id}`),
-    onclick: () => { nb.colour = id; drawTools(); },
+    onclick: () => setColour(id),
   }));
-  const sizeBtn = h('button', { type: 'button', class: 'nb-tool', 'aria-label': label('notes.size'), onclick: () => { nb.size = nb.size === 'thin' ? 'thick' : 'thin'; drawTools(); } });
+  const sizeBtn = h('button', { type: 'button', class: 'nb-tool', 'aria-label': label('notes.size'), onclick: () => setSize(sizeOf(nb.set, nb.tool) === 'thin' ? 'thick' : 'thin') });
   const undoBtn = h('button', { type: 'button', class: 'nb-tool nb-undo', 'aria-label': label('notes.undo'), onclick: () => undo() }, h('span', { 'aria-hidden': 'true' }, '↶'));
   const redoBtn = h('button', { type: 'button', class: 'nb-tool', 'aria-label': label('notes.redo'), onclick: () => redo() }, h('span', { 'aria-hidden': 'true' }, '↷'));
   const inputBtn = h('button', { type: 'button', class: 'nb-input', onclick: () => setInput(input() === 'pen' ? 'finger' : 'pen') });
@@ -143,13 +158,14 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
   // a row of colours, so they open from a swatch the same way; in one row they sit in it.
   const colourPick = picker('nb-tool--colour', 'notes.colourPick', PENCILS.map(id => h('button', {
     type: 'button', class: 'nb-colour', 'data-colour': id, 'aria-pressed': 'false', 'aria-label': label(`notes.colour.${id}`),
-    onclick: () => { nb.colour = id; closePicker(); drawTools(); },
+    onclick: () => { closePicker(); setColour(id); },
   })));
+  colourPick.box.classList.add('nb-pop--three');
   const footPick = picker('nb-tool--foot', 'notes.footPick', FEET.map(([id, icon]) => h('button', {
     type: 'button', class: 'nb-tool', 'data-foot': id, 'aria-pressed': 'false', 'aria-label': label(`notes.foot.${id}`),
-    onclick: () => { nb.foot = id; closePicker(); drawTools(); },
+    onclick: () => { closePicker(); setFoot(id); },
   }, h('span', { 'aria-hidden': 'true' }, icon))));
-  const tools = h('div', { class: 'nb__tools', role: 'toolbar', 'aria-label': label('notes.tools') },
+  const tools = beside && h('div', { class: 'nb__tools', role: 'toolbar', 'aria-label': label('notes.tools') },
     toolBtns, photoBtn, h('span', { class: 'nb__break', 'aria-hidden': 'true' }), h('span', { class: 'nb__sep' }),
     colourPick.btn, colourBtns, sizeBtn, footPick.btn,
     h('span', { class: 'nb__sep' }), undoBtn, redoBtn, h('span', { class: 'spacer' }), inputBtn);
@@ -160,14 +176,33 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     lead,
     h('span', { class: 'nb__chipwrap' }, filterChip),
     h('span', { class: 'nb__pages' }, prev, counter, next, newBtn, menuBtn));
-  // On its own, the rails: back and the tools; and room for more tools, with new page and the
-  // menu at its ends.
+  // On its own, the rails. Left: back, the pouch, and at its foot the camera (a Polaroid on the
+  // right rail, later), undo, redo and pen / finger. Right: new page, the ink pad and the stamps
+  // with room for that Polaroid, and the menu.
+  const pouchTools = new Map(TOOL_ROWS.map(id => [id, h('button', {
+    type: 'button', class: 'nb-pt', 'data-pt': id, 'aria-pressed': 'false', 'aria-label': label(`notes.tool.${id}`), onclick: () => tapPouch(id),
+  }, toolArt(id))]));
+  const inkBtn = h('button', { type: 'button', class: 'nb-rack nb-rack--ink', 'aria-haspopup': 'true', 'aria-expanded': 'false', 'aria-label': label('notes.ink'), onclick: () => openInk() }, inkPadArt());
+  const stampTag = h('span', { class: 'nb-rack__tag', 'aria-hidden': 'true' });
+  const rackBtn = (id, key, onclick, ...kids) => h('button', { type: 'button', class: 'nb-rack', 'data-rack': id, 'aria-pressed': 'false', 'aria-label': label(key), onclick }, stampArt(id), kids);
+  const stampBtns = {
+    text: rackBtn('text', 'notes.tool.text', () => setTool('text')),
+    stamp: rackBtn('stamp', 'notes.tool.stamp', () => tapPanda(), stampTag),
+    roller: rackBtn('roller', 'notes.tool.roller', () => tapFootprints()),
+  };
   const backBtn = !beside && h('button', { class: 'btn btn--icon nb__back', type: 'button', 'aria-label': label('notes.back'), onclick: () => onBack?.() }, '‹');
-  const railStart = !beside && h('aside', { class: 'nb__rail nb__rail--start' }, backBtn, tools);
-  const railEnd = !beside && h('aside', { class: 'nb__rail nb__rail--end' }, newBtn, h('span', { class: 'spacer' }), menuBtn);
+  const railStart = !beside && h('aside', { class: 'nb__rail nb__rail--start' }, backBtn,
+    h('div', { class: 'nb__pouch', role: 'group', 'aria-label': label('notes.tools') },
+      h('div', { class: 'nb__pouch-in' }, h('div', { class: 'nb__pouch-back' }, pouchBack()), [...pouchTools.values()], h('div', { class: 'nb__pouch-front' }, pouchFront()))),
+    h('div', { class: 'nb__railfoot' }, photoBtn, undoBtn, redoBtn, inputBtn));
+  const railEnd = !beside && h('aside', { class: 'nb__rail nb__rail--end' }, newBtn,
+    h('div', { class: 'nb__rack', role: 'group', 'aria-label': label('notes.stamps') }, inkBtn, Object.values(stampBtns), h('span', { class: 'nb__rack-room', 'aria-hidden': 'true' })),
+    menuBtn);
+  // The popover for whatever on the rails was tapped; its content changes with that.
+  const railPop = { box: h('div', { class: 'nb-pop nb-pop--rail nb-pop--three', role: 'group', hidden: true }), btn: null };
 
   const el = h('section', { class: ['nb', beside ? 'nb--beside' : 'nb--immersive'], 'aria-label': label('notes.title') },
-    bar, beside && tools, railStart, colourPick.box, footPick.box, deskWrap, contentsBox, railEnd, fileInput, importInput, menuSheet, pickSheet);
+    bar, beside && tools, railStart, beside && colourPick.box, beside && footPick.box, !beside && railPop.box, deskWrap, contentsBox, railEnd, fileInput, importInput, menuSheet, pickSheet);
 
   // ---------- toolbar layout ----------
   // One row if all of it fits (measured at its widest, with the roller's footprint button),
@@ -175,8 +210,7 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
   // finger label's width depends on the language.
   let toolbar = '';
   function layoutTools() {
-    if (!beside) { el.dataset.toolbar = 'compact'; return; } // the rail: one control after another
-    if (!el.isConnected || !tools.clientWidth) return;
+    if (!beside || !el.isConnected || !tools.clientWidth) return;
     el.dataset.toolbar = 'wide';
     el.dataset.measure = '';
     const fits = tools.scrollWidth <= tools.clientWidth + 1;
@@ -186,11 +220,11 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     if (next !== toolbar) { toolbar = next; closePicker(); }
   }
   const toolsRo = new ResizeObserver(() => layoutTools());
-  toolsRo.observe(el);
+  if (beside) toolsRo.observe(el);
 
   // ---------- pickers (two-row toolbar, rails) ----------
-  // One open at a time, just under its button (beside it in a side rail); a pick, a tap
-  // elsewhere, Esc or another tool closes it.
+  // One open at a time, next to its button and on the page's side of a rail; a tap elsewhere, Esc
+  // or another tool closes it, and in the two-row toolbar so does a pick.
   let openPick = null;
   function picker(cls, key, items) {
     const box = h('div', { class: 'nb-pop', role: 'group', 'aria-label': label(key), hidden: true }, items);
@@ -206,20 +240,32 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     openPick = p;
     p.box.hidden = false;
     const b = p.btn.getBoundingClientRect(), e = el.getBoundingClientRect();
-    const rail = !beside && el.dataset.orient === 'landscape';
-    const left = rail ? b.right - e.left : Math.max(0, Math.min(b.left - e.left, e.width - p.box.offsetWidth));
-    const top = rail ? Math.max(0, Math.min(b.top - e.top, e.height - p.box.offsetHeight)) : b.bottom - e.top;
+    const start = railStart && railStart.contains(p.btn), land = el.dataset.orient === 'landscape';
+    const side = beside ? 'below' : land ? (start ? 'right' : 'left') : start ? 'below' : 'above';
+    const anchor = { left: b.left - e.left, right: b.right - e.left, top: b.top - e.top, bottom: b.bottom - e.top };
+    const { left, top } = popPlace({ anchor, frame: { w: e.width, h: e.height }, w: p.box.offsetWidth, h: p.box.offsetHeight, side });
     p.box.style.setProperty('left', `${left}px`);
     p.box.style.setProperty('top', `${top}px`);
     p.btn.setAttribute('aria-expanded', 'true');
     document.addEventListener('pointerdown', onOutside, true);
     p.box.querySelector('[aria-pressed="true"]')?.focus({ preventScroll: true });
   }
+  // A rail's popover for this button, or closed when it is already open.
+  function toggleRailPop(btn, key, ...content) {
+    if (openPick === railPop && railPop.btn === btn) { closePicker(); return; }
+    closePicker();
+    railPop.btn = btn;
+    railPop.box.setAttribute('aria-label', label(key));
+    railPop.box.classList.toggle('nb-pop--feet', key === 'notes.footPick');
+    mount(railPop.box, content);
+    openPicker(railPop);
+  }
   function closePicker() {
     if (!openPick) return;
     openPick.box.hidden = true;
     openPick.btn.setAttribute('aria-expanded', 'false');
     openPick = null;
+    popFor = null;
     document.removeEventListener('pointerdown', onOutside, true);
   }
   const onOutside = e => { if (openPick && !openPick.box.contains(e.target) && !openPick.btn.contains(e.target)) closePicker(); };
@@ -246,9 +292,11 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
 
   // Landscape or portrait, the layout and the size of everything in it.
   function layout() {
-    if (!beside && !document.activeElement?.classList.contains('nb-text')) { // a keyboard is no rotation
+    if (document.activeElement?.classList.contains('nb-text')) return; // a keyboard is no rotation
+    if (!beside) {
       const land = el.clientWidth > el.clientHeight;
       el.dataset.orient = land ? 'landscape' : 'portrait';
+      el.dataset.rails = railFit({ w: el.clientWidth, h: el.clientHeight });
       if (land !== nb.spread) {
         nb.spread = land;
         sides[1].sheet.hidden = sides[1].overlay.hidden = !land;
@@ -284,6 +332,8 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     deskWrap.style.setProperty('--nb-edge-y', `${Math.max(0, (hgt - b.h) / 2)}px`);
     if (widthChanged) view = { k: 1, x: 0, y: pad };
     setView(view);
+    if (ruler) ruler = clampRuler(ruler, bookW(), PAGE_H);
+    drawRuler();
     redraw();
     maybeNudge(); // the first fit is the first moment the page's height is known
   }
@@ -442,6 +492,7 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     el.dataset.view = name;
     contentsBox.hidden = name !== 'contents';
     if (name === 'contents') closePicker();
+    drawRuler();
   }
   // A page not saved yet in a slot with nothing in it. On the right it dates from just after the
   // left, so the two keep their places in the list.
@@ -523,13 +574,19 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     ribbon.setAttribute('aria-label', label('notes.ribbon', { n: Math.min(nb.pos + 1, Math.max(n, 1)), total: Math.max(n, 1) }));
   }
   function drawTools() {
+    const colour = colourOf(nb.set, nb.tool), size = sizeOf(nb.set, nb.tool);
     toolBtns.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tool === nb.tool)));
-    el.querySelectorAll('button[data-colour]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.colour === nb.colour)));
-    el.querySelectorAll('button[data-foot]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.foot === nb.foot)));
-    mount(colourPick.btn, h('span', { class: 'nb-swatch', 'data-colour': nb.colour, 'aria-hidden': 'true' }));
-    mount(footPick.btn, h('span', { 'aria-hidden': 'true' }, FEET.find(([id]) => id === nb.foot)?.[1] ?? ''));
+    // Colour and size buttons say what they say about the tool they belong to: on the rails, the
+    // one the popover is open for.
+    const shown = popFor ?? nb.tool;
+    el.querySelectorAll('button[data-colour], button[data-hl]').forEach(b => b.setAttribute('aria-pressed', String((b.dataset.colour ?? b.dataset.hl) === colourOf(nb.set, shown))));
+    el.querySelectorAll('button[data-thick]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.thick === sizeOf(nb.set, shown))));
+    el.querySelectorAll('button[data-foot]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.foot === nb.set.foot)));
+    mount(colourPick.btn, h('span', { class: 'nb-swatch', 'data-colour': colour, 'aria-hidden': 'true' }));
+    mount(footPick.btn, h('span', { 'aria-hidden': 'true' }, FEET.find(([id]) => id === nb.set.foot)?.[1] ?? ''));
     el.dataset.tool = nb.tool;
-    mount(sizeBtn, h('span', { class: ['nb-size', `nb-size--${nb.size}`], 'aria-hidden': 'true' }));
+    mount(sizeBtn, h('span', { class: ['nb-size', `nb-size--${size}`], 'aria-hidden': 'true' }));
+    drawRails();
     undoBtn.disabled = !nb.undo.length;
     redoBtn.disabled = !nb.redo.length;
     const pen = input() === 'pen';
@@ -538,13 +595,114 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     inputBtn.setAttribute('aria-label', label(pen ? 'notes.penOnlyHint' : 'notes.fingerHint'));
     layoutTools();
   }
+  // The objects on the rails: the tool in use raised, each tool showing its colour, the ink on the
+  // pad and on the stamps' rubber, and the animal on the panda stamp.
+  function drawRails() {
+    if (beside) return;
+    for (const [id, b] of pouchTools) {
+      if (id === 'ruler') { b.setAttribute('aria-pressed', String(Boolean(ruler))); b.toggleAttribute('data-out', Boolean(ruler)); continue; }
+      b.setAttribute('aria-pressed', String(id === nb.tool));
+      b.toggleAttribute('data-raised', id === nb.tool);
+      if (DRAWING.includes(id)) b.style.setProperty('--tool-c', colourFor(id));
+    }
+    el.style.setProperty('--ink-c', pencilColour(nb.set.ink));
+    for (const [id, b] of Object.entries(stampBtns)) {
+      b.setAttribute('aria-pressed', String(id === nb.tool));
+      b.toggleAttribute('data-raised', id === nb.tool);
+    }
+    const card = state.byId.get(stampNow());
+    stampBtns.stamp.setAttribute('aria-label', card ? label('notes.stampOf', { name: card.name }) : label('notes.tool.stamp'));
+    if (stampTag.dataset.card === (card?.id ?? '')) return;
+    stampTag.dataset.card = card?.id ?? '';
+    mount(stampTag, !card ? null : card.silhouette?.file ? h('img', { src: card.silhouette.file, alt: '' }) : groupById(card.group)?.emoji);
+  }
   function setTool(id) {
     closePicker();
     nb.tool = id;
     nb.selected = -1;
     drawSelection();
-    if (id === 'stamp' && !nb.stampCard) openStampPicker();
+    if (id === 'stamp' && !nb.set.stampCard) openStampPicker();
     drawTools();
+  }
+  // Tool settings: for this notebook now, and on the profile for the next one (the panel beside a
+  // card and the notebook on its own read the same ones).
+  function saveSet(next) {
+    nb.set = next;
+    updateProfile(state.profile.id, { notesTools: next });
+    drawTools();
+  }
+  const setColour = (id, tool = popFor ?? nb.tool) => saveSet(withColour(nb.set, tool, id));
+  const setSize = (id, tool = popFor ?? nb.tool) => saveSet(withSize(nb.set, tool, id));
+  const setFoot = id => saveSet({ ...nb.set, foot: id });
+  const colourFor = tool => (tool === 'highlighter' ? highlightColour(nb.set.highlighter.colour) : pencilColour(colourOf(nb.set, tool)));
+
+  // ---------- the rails ----------
+  let popFor = null; // the tool whose popover is open
+  const swatches = tool => paletteOf(tool).map(id => h('button', {
+    type: 'button', class: 'nb-colour', [tool === 'highlighter' ? 'data-hl' : 'data-colour']: id,
+    'aria-pressed': String(colourOf(nb.set, tool) === id), 'aria-label': label(`notes.${tool === 'highlighter' ? 'hl' : 'colour'}.${id}`),
+    onclick: () => setColour(id, tool),
+  }));
+  const thickness = tool => h('div', { class: 'nb-pop__sizes' }, ['thin', 'thick'].map(id => h('button', {
+    type: 'button', class: 'nb-thick', 'data-thick': id, 'aria-pressed': String(sizeOf(nb.set, tool) === id), 'aria-label': label(`notes.${id}`),
+    onclick: () => setSize(id, tool),
+  }, h('span', { class: `nb-thick__line nb-thick__line--${id}`, 'aria-hidden': 'true' }))));
+  function openRailPop(btn, tool, key, ...content) {
+    toggleRailPop(btn, key, ...content);
+    popFor = openPick === railPop ? tool : null;
+  }
+  // The tool in use, tapped again: its colours and thickness. The ruler comes and goes on its own.
+  function tapPouch(id) {
+    if (id === 'ruler') { if (pulled) pulled = false; else putRuler(!ruler); return; }
+    if (id !== nb.tool) { setTool(id); return; }
+    if (DRAWING.includes(id)) openRailPop(pouchTools.get(id), id, `notes.tool.${id}`, swatches(id), thickness(id));
+  }
+  const openInk = () => openRailPop(inkBtn, 'stamp', 'notes.ink', swatches('stamp'));
+  function tapFootprints() {
+    if (nb.tool !== 'roller') { setTool('roller'); return; }
+    openRailPop(stampBtns.roller, null, 'notes.footPick', FEET.map(([id, icon]) => h('button', {
+      type: 'button', class: 'nb-tool', 'data-foot': id, 'aria-pressed': String(nb.set.foot === id), 'aria-label': label(`notes.foot.${id}`),
+      onclick: () => { closePicker(); setFoot(id); },
+    }, h('span', { 'aria-hidden': 'true' }, icon))));
+  }
+  // The panda stamp: picked up on its last animal, then each tap moves to the next. A long press
+  // lists them, for when there are many.
+  const collected = () => state.cards.filter(isCollected).map(c => c.id);
+  const stampNow = () => { const ids = collected(); return ids.includes(nb.set.stampCard) ? nb.set.stampCard : ids[0] ?? null; };
+  let held = false, holdTimer = 0;
+  function tapPanda() {
+    if (held) { held = false; return; }
+    const ids = collected();
+    if (!ids.length) { openStampPicker(); return; }
+    const was = stampNow(), again = nb.tool === 'stamp';
+    const id = again ? nextAnimal(ids, was) : was;
+    if (id !== nb.set.stampCard) saveSet({ ...nb.set, stampCard: id });
+    setTool('stamp');
+    if (again) toast(bi(state.byId.get(id).name));
+  }
+  if (!beside) {
+    const b = stampBtns.stamp, letGo = () => clearTimeout(holdTimer);
+    b.addEventListener('pointerdown', () => {
+      held = false;
+      holdTimer = setTimeout(() => { held = true; haptic(8); openStampPicker(); }, HOLD_MS);
+    });
+    for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) b.addEventListener(ev, letGo);
+  }
+  // Stamping: the stamp comes down where it was pressed, with a knock and a buzz.
+  function stampFx(kind, x, y) {
+    haptic(15);
+    thunk();
+    if (reducedMotion()) return;
+    if (!beside) stampBtns[kind].firstChild.animate([{ transform: 'none' }, { transform: 'translateY(var(--nb-press)) scaleY(0.94)' }, { transform: 'none' }], { duration: 180, easing: 'ease-out' });
+    const e = el.getBoundingClientRect();
+    const ghost = h('div', { class: 'nb-ghost', 'aria-hidden': 'true', style: { left: `${x - e.left}px`, top: `${y - e.top}px` } }, stampArt(kind));
+    el.append(ghost);
+    ghost.animate([
+      { transform: 'translate(-50%, -130%) scale(1.15)', opacity: 0.6 },
+      { transform: 'translate(-50%, -100%) scale(1)', opacity: 1, offset: 0.45 },
+      { transform: 'translate(-50%, -100%) scale(1)', opacity: 1, offset: 0.6 },
+      { transform: 'translate(-50%, -125%) scale(1.05)', opacity: 0 },
+    ], { duration: 240, easing: 'ease-in-out' }).onfinish = () => ghost.remove();
   }
   async function setInput(mode) {
     await updateProfile(state.profile.id, { notesInput: mode });
@@ -641,7 +799,8 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
   let erasing = null;  // { id, side, t0, entries } removed so far
   let drag = null;     // moving an item: { id, side, index, before, from, mode, t0 }
   let swipe = null;    // one finger not drawing: { id, x, y, t0, start, axis, panned }
-  let gest = null;     // two fingers: zoom and pan, or resizing the selected item
+  let gest = null;     // two fingers: zoom and pan, resizing the selected item, or turning the ruler
+  let rulerMove = null; // one finger moving the ruler: { id, t0, start, from }
   let gestFrame = 0;
   const touches = new Map();
   let penDown = false;
@@ -700,6 +859,10 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
       if (touches.size > 1) return;
     }
     try { desk.setPointerCapture(e.pointerId); } catch { /* gone */ }
+    if (ruler && e.pointerType !== 'pen' && !penDown && overRuler(e)) {
+      rulerMove = { id: e.pointerId, t0: performance.now(), start: ruler, from: fromFrame(e, 0) };
+      return;
+    }
     const s = sideAt(e);
     if (!s || !draws(e)) { startSwipe(e); return; }
     setActive(s);
@@ -710,11 +873,17 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
       return;
     }
     const press = { id: e.pointerId, side: s.i, t0: now, x: e.clientX, y: e.clientY, travel: 0 };
-    if (nb.tool === 'pencil') {
-      stroke = { ...press, item: { t: 's', c: pencilColour(nb.colour), w: SIZES[nb.size], p: [x, y, pressureOf(e)] } };
-      drawStroke(liveCtx(s.i), stroke.item);
+    if (DRAWING.includes(nb.tool)) {
+      const edge = ruler ? edgeAt(ruler, x + s.i * PAGE_W, y, { inside: e.pointerType === 'pen' }) : 0;
+      const [px, py] = edge ? onEdge(s.i, edge, x, y) : [x, y];
+      const item = { t: 's', c: colourFor(nb.tool), w: widthOf(nb.tool, sizeOf(nb.set, nb.tool)), p: [px, py, pressureOf(e)] };
+      if (nb.tool !== 'pencil') item.k = nb.tool; // no k: a pencil, as on every page before these
+      stroke = { ...press, edge, item };
+      // The live layer has no page under it: the browser multiplies it onto the page instead.
+      if (item.k === 'highlighter') desk.dataset.blend = '';
+      drawStroke(liveCtx(s.i), item);
     } else if (nb.tool === 'roller') {
-      stroke = { ...press, item: { t: 'f', c: pencilColour(nb.colour), k: nb.foot, p: [x, y] } };
+      stroke = { ...press, item: { t: 'f', c: pencilColour(nb.set.ink), k: nb.set.foot, p: [x, y] } };
     } else if (nb.tool === 'eraser') {
       select(-1);
       erasing = { id: e.pointerId, side: s.i, t0: now, entries: [] };
@@ -730,6 +899,12 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     // looks like a change in their distance.
     if (gest) { gestFrame ||= requestAnimationFrame(moveGesture); return; }
     if (swipe?.id === e.pointerId) { moveSwipe(e); return; }
+    if (rulerMove?.id === e.pointerId) {
+      const [x, y] = fromFrame(e, 0), { start, from } = rulerMove;
+      ruler = clampRuler({ ...start, x: start.x + x - from[0], y: start.y + y - from[1] }, bookW(), PAGE_H);
+      drawRuler();
+      return;
+    }
     const events = e.getCoalescedEvents?.() ?? [];
     const points = events.length ? events : [e];
     if (stroke?.id === e.pointerId) {
@@ -737,12 +912,17 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
       const item = stroke.item, i = stroke.side;
       if (item?.t === 's') {
         const from = item.p.length;
-        for (const ev of points) { const [x, y] = fromFrame(ev, i); item.p.push(x, y, pressureOf(ev)); }
-        drawStroke(liveCtx(i), item, from);
+        for (const ev of points) {
+          const [x, y] = fromFrame(ev, i);
+          item.p.push(...(stroke.edge && ruler ? onEdge(i, stroke.edge, x, y) : [x, y]), pressureOf(ev));
+        }
+        // A highlighter line is one path: drawn again whole, or its joints would show.
+        if (item.k === 'highlighter') { clearLive(); drawStroke(liveCtx(i), item); } else drawStroke(liveCtx(i), item, from);
       } else if (item?.t === 'f') {
         const [x, y] = fromFrame(e, i), p = item.p;
         if (Math.hypot(x - p[p.length - 2], y - p[p.length - 1]) > 6) {
           p.push(x, y);
+          if (p.length === 4) stampFx('roller', e.clientX, e.clientY);
           clearLive(); renderItem(liveCtx(i), item, nb.assets);
         }
       }
@@ -759,6 +939,7 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     touches.delete(e.pointerId);
     if (e.pointerType === 'pen') penDown = false;
     if (gest) { if (touches.size < 2) endGesture(); return; }
+    if (rulerMove?.id === e.pointerId) { endRulerMove(e); return; }
     if (swipe?.id === e.pointerId) { endSwipe(e); return; }
     if (stroke?.id === e.pointerId) { endStroke(); return; }
     if (erasing?.id === e.pointerId) { endErase(); return; }
@@ -770,6 +951,7 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     if (e.pointerType === 'pen') penDown = false;
     if (gest && touches.size < 2) { if (gest.item) endDrag(); gest = null; delete desk.dataset.gesture; settle(); }
     if (swipe?.id === e.pointerId) { swipe = null; settle(); }
+    if (rulerMove?.id === e.pointerId) { ruler = rulerMove.start; rulerMove = null; drawRuler(); }
     if (stroke?.id === e.pointerId || drag?.id === e.pointerId) dropPress();
     if (erasing?.id === e.pointerId) endErase();
   }
@@ -778,10 +960,14 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     const s = stroke; stroke = null;
     const side = sides[s.side], tap = isTap(s.travel, performance.now() - s.t0), had = nb.selected >= 0;
     clearLive();
+    delete desk.dataset.blend;
     if (s.tap) {
-      if (had) select(-1);
-      else if (nb.tool === 'text') editText(side, ...s.tap);
-      else if (nb.tool === 'stamp') placeStamp(side, ...s.tap);
+      if (had) { select(-1); return; }
+      const [x, y] = s.tap, i = itemAt(side, x, y);
+      if (nb.tool === 'text' && i >= 0 && side.page.items[i].t === 'x') editText(side, x, y);
+      else if (i >= 0) tapSelect(side, x, y);
+      else if (nb.tool === 'text') { stampFx('text', s.x, s.y); editText(side, x, y); }
+      else if (nb.tool === 'stamp') placeStamp(side, x, y, s.x, s.y);
       return;
     }
     if (tap && tapSelect(side, s.item.p[0], s.item.p[1])) return;
@@ -792,7 +978,7 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
 
   // What the first finger was doing, undone: a second one has made this a gesture.
   function dropPress() {
-    if (stroke) { stroke = null; clearLive(); }
+    if (stroke) { stroke = null; clearLive(); delete desk.dataset.blend; }
     if (erasing) {
       const { side, entries } = erasing; erasing = null;
       if (entries.length) { apply({ kind: 'remove', side, entries }, true); redraw(); }
@@ -804,6 +990,17 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     }
   }
   function secondFinger() {
+    if (rulerMove) {
+      // Both on the ruler turn it, however late the second comes: it stays put by itself, so a
+      // second finger on it is meant. One on it and one off is a pan or zoom, if it came at once.
+      if (pts().every(p => overRuler({ clientX: p.x, clientY: p.y }, RULER_PAD))) { rulerMove = null; startRulerTurn(); return; }
+      if (!secondFingerCounts(performance.now() - rulerMove.t0)) return;
+      ruler = rulerMove.start;
+      rulerMove = null;
+      drawRuler();
+      startGesture();
+      return;
+    }
     const press = stroke ?? erasing ?? drag;
     if (press && !secondFingerCounts(performance.now() - press.t0)) return; // a brush of the hand
     dropPress();
@@ -811,10 +1008,10 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     startGesture();
   }
 
-  // Whole marks: anything the eraser touches goes, in one undo step per rub.
+  // Whole lines: any the eraser touches goes, in one undo step per rub. Everything else has its ✕.
   function eraseAt(x, y) {
     const s = sides[erasing.side];
-    const i = hitItem(ctxOf(s), s.page, x, y, ERASE_R);
+    const i = hitItem(ctxOf(s), s.page, x, y, ERASE_R, { lines: true });
     if (i < 0) return;
     // Its index in the page as it was before this rub started, for undo.
     const item = s.page.items[i];
@@ -854,11 +1051,12 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
   function moveGesture() {
     gestFrame = 0;
     if (!gest || touches.size < 2) return;
+    if (gest.ruler) { turnRuler(); return; }
     const ratio = dist() / gest.d0;
     if (gest.item) {
       const it = sides[drag.side].page.items[drag.index], b = gest.before;
-      resizeItem(it, b, clamp(ratio, 0.2, 5));
-      if (it.t !== 'x') it.r = (b.r ?? 0) + angle() - gest.a0;
+      if (it.t === 'f') it.p = movedTrail(b.p, { ...centreOf(b), k: clamp(ratio, 0.2, 5), a: angle() - gest.a0 });
+      else { resizeItem(it, b, clamp(ratio, 0.2, 5)); it.r = (b.r ?? 0) + angle() - gest.a0; }
       clearLive(); renderItem(liveCtx(drag.side), it, nb.assets); drawSelection();
       return;
     }
@@ -870,10 +1068,94 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
   function endGesture() {
     const g = gest; gest = null;
     delete desk.dataset.gesture;
+    if (g.ruler) return;
     if (g.item) { endDrag(); return; }
     const dir = swipeTurn({ dx: g.to.x - g.from.x, dy: g.to.y - g.from.y, span: g.d0, peak: g.peak, zoom: g.start.k });
     settle();
     if (dir) turn(dir);
+  }
+
+  // ---------- the ruler ----------
+  // On the book's top layer, so it moves and zooms with the pages, and out of everything saved.
+  let ruler = null;    // { x, y, r } while it is out of the pouch (js/notes-ruler.js)
+  let pulled = false;  // it was just dragged out: the click ending that isn't a tap on it
+  const rulerEl = h('div', { class: 'nb-ruler', hidden: true, 'aria-hidden': 'true' }, rulerArt(RULER_L, RULER_H));
+  over.append(rulerEl);
+  const bookW = () => PAGE_W * open().length;
+  function drawRuler() {
+    rulerEl.hidden = !ruler || nb.view !== 'pages';
+    if (rulerEl.hidden) return;
+    rulerEl.style.setProperty('left', `${(ruler.x - RULER_L / 2) * scale}px`);
+    rulerEl.style.setProperty('top', `${(ruler.y - RULER_H / 2) * scale}px`);
+    rulerEl.style.setProperty('width', `${RULER_L * scale}px`);
+    rulerEl.style.setProperty('height', `${RULER_H * scale}px`);
+    rulerEl.style.setProperty('transform', `rotate(${ruler.r}rad)`);
+  }
+  // pad: CSS px on screen.
+  function overRuler(e, pad = 0) {
+    const [x, y] = fromFrame(e, 0);
+    return onRuler(ruler, x, y, pad / (scale * view.k));
+  }
+  // A point of a line on side i, moved onto the ruler's edge.
+  function onEdge(i, edge, x, y) {
+    const [bx, by] = snapTo(ruler, edge, x + i * PAGE_W, y);
+    return [bx - i * PAGE_W, by];
+  }
+  // Out across the page being worked on, or back in the pouch.
+  function putRuler(out) {
+    if (nb.view !== 'pages') return;
+    ruler = out ? { x: (nb.active + 0.5) * PAGE_W, y: PAGE_H / 2, r: 0 } : null;
+    drawRuler();
+    drawTools();
+  }
+  function endRulerMove(e) {
+    rulerMove = null;
+    const b = railStart && pouchTools.get('ruler').closest('.nb__pouch').getBoundingClientRect();
+    const home = b && e.clientX >= b.left && e.clientX <= b.right && e.clientY >= b.top && e.clientY <= b.bottom;
+    if (home) putRuler(false);
+  }
+  function startRulerTurn() {
+    const m = mid();
+    gest = { ruler: true, start: ruler, a0: angle(), from: fromFrame({ clientX: m.x + rect.left, clientY: m.y + rect.top }, 0) };
+  }
+  function turnRuler() {
+    const m = mid(), [x, y] = fromFrame({ clientX: m.x + rect.left, clientY: m.y + rect.top }, 0), { start, from, a0 } = gest;
+    ruler = clampRuler({ x: start.x + x - from[0], y: start.y + y - from[1], r: start.r + angle() - a0 }, bookW(), PAGE_H);
+    drawRuler();
+  }
+  // Pulled out of the pouch: it follows the finger from the moment it leaves, and goes back if let
+  // go off the desk.
+  if (!beside) {
+    const b = pouchTools.get('ruler');
+    let pull = null;
+    b.addEventListener('pointerdown', e => {
+      pulled = false;
+      if (ruler || nb.view !== 'pages') return;
+      rect = desk.getBoundingClientRect();
+      pull = { id: e.pointerId, x: e.clientX, y: e.clientY, on: false };
+      try { b.setPointerCapture(e.pointerId); } catch { /* gone */ }
+    });
+    b.addEventListener('pointermove', e => {
+      if (pull?.id !== e.pointerId) return;
+      pull.on ||= Math.hypot(e.clientX - pull.x, e.clientY - pull.y) > 10;
+      if (!pull.on) return;
+      const [x, y] = fromFrame(e, 0);
+      ruler = clampRuler({ x, y, r: 0 }, bookW(), PAGE_H);
+      drawRuler();
+    });
+    const end = e => {
+      if (pull?.id !== e.pointerId) return;
+      const on = pull.on;
+      pull = null;
+      if (!on) return;
+      pulled = true;
+      const r = desk.getBoundingClientRect();
+      if (e.type === 'pointercancel' || e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) ruler = null;
+      drawRuler();
+      drawTools();
+    };
+    b.addEventListener('pointerup', end);
+    b.addEventListener('pointercancel', end);
   }
 
   // ---------- one finger not drawing ----------
@@ -909,18 +1191,25 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
       const long = Math.max(b.w, b.h);
       const kk = clamp(k, 80 / long, PAGE_W / long);
       it.w = b.w * kk; it.h = b.h * kk;
-    } else it.s = clamp(b.s * k, 16, it.t === 'm' ? 480 : 160);
+    } else if (it.t === 'f') it.p = movedTrail(b.p, { ...centreOf(b), k });
+    else it.s = clamp(b.s * k, 16, it.t === 'm' ? 480 : 160);
   }
+  const centreOf = trail => { const { cx, cy } = boundsOf(null, trail); return { cx, cy }; };
   function transformDrag(x, y) {
     const s = sides[drag.side], it = s.page.items[drag.index], b = drag.before;
-    if (drag.mode === 'move') { it.x = b.x + x - drag.from[0]; it.y = b.y + y - drag.from[1]; }
-    else {
+    if (drag.mode === 'move') {
+      const dx = x - drag.from[0], dy = y - drag.from[1];
+      if (it.t === 'f') it.p = movedTrail(b.p, { dx, dy });
+      else { it.x = b.x + dx; it.y = b.y + dy; }
+    } else {
       const box = boundsOf(ctxOf(s), b);
       if (drag.mode === 'resize') {
         const k = Math.hypot(x - box.cx, y - box.cy) / Math.max(1, Math.hypot(drag.from[0] - box.cx, drag.from[1] - box.cy));
         resizeItem(it, b, Math.max(0.2, Math.min(5, k)));
       } else if (drag.mode === 'rotate') {
-        it.r = (b.r ?? 0) + Math.atan2(y - box.cy, x - box.cx) - Math.atan2(drag.from[1] - box.cy, drag.from[0] - box.cx);
+        const a = Math.atan2(y - box.cy, x - box.cx) - Math.atan2(drag.from[1] - box.cy, drag.from[0] - box.cx);
+        if (it.t === 'f') it.p = movedTrail(b.p, { cx: box.cx, cy: box.cy, a });
+        else it.r = (b.r ?? 0) + a;
       }
     }
     clearLive(); renderItem(liveCtx(drag.side), it, nb.assets); drawSelection();
@@ -981,19 +1270,22 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
   function editText(s, x, y) {
     const hit = hitItem(ctxOf(s), s.page, x, y, 6, { movable: true });
     const existing = hit >= 0 && s.page.items[hit].t === 'x' ? hit : -1;
-    const item = existing >= 0 ? s.page.items[existing] : { t: 'x', c: pencilColour(nb.colour), s: TEXT_SIZE, x, y, v: '' };
+    const item = existing >= 0 ? s.page.items[existing] : { t: 'x', c: pencilColour(nb.set.ink), s: TEXT_SIZE, x, y, v: '' };
     const area = h('textarea', { class: 'nb-text', 'aria-label': label('notes.tool.text'), rows: 2 });
     area.value = item.v;
     area.style.setProperty('left', `${item.x * scale}px`);
     area.style.setProperty('top', `${item.y * scale}px`);
     area.style.setProperty('font-size', `${item.s * scale}px`);
     area.style.setProperty('color', item.c);
-    let done = false;
+    area.toggleAttribute('data-light', item.c === pencilColour('white')); // white needs a dark box
+    let done = false, freeKeyboard = null;
     const finish = keep => {
       if (done) return;
       done = true;
       const v = area.value.replace(/\s+$/, '');
       area.remove();
+      freeKeyboard();
+      layout();
       if (!keep) return;
       if (existing >= 0) {
         if (!v) commit({ kind: 'remove', side: s.i, entries: [{ index: existing, item }] });
@@ -1007,7 +1299,34 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     });
     area.addEventListener('blur', () => finish(true));
     s.selLayer.append(area);
-    area.focus();
+    freeKeyboard = clearKeyboard(area);
+    area.focus({ preventScroll: true });
+  }
+  // While a text box is open the desk rises so the box stays above the on-screen keyboard, however
+  // the browser makes room for it: the notebook keeps its height, and the visual viewport says
+  // what is still in sight. Returns what puts it all back.
+  function clearKeyboard(area) {
+    const vv = window.visualViewport;
+    if (!vv) return () => {};
+    let up = 0;
+    el.style.setProperty('height', `${el.getBoundingClientRect().height}px`);
+    const lift = () => {
+      const b = area.getBoundingClientRect();
+      const next = keyboardLift({ box: { top: b.top + up, bottom: b.bottom + up }, viewTop: vv.offsetTop, viewBottom: vv.offsetTop + vv.height });
+      if (next === up) return;
+      up = next;
+      deskWrap.style.setProperty('transform', `translateY(${-up}px)`);
+    };
+    vv.addEventListener('resize', lift);
+    vv.addEventListener('scroll', lift);
+    area.addEventListener('input', lift);
+    lift();
+    return () => {
+      vv.removeEventListener('resize', lift);
+      vv.removeEventListener('scroll', lift);
+      deskWrap.style.removeProperty('transform');
+      el.style.removeProperty('height');
+    };
   }
 
   // ---------- stamps and tags: picking a collected animal ----------
@@ -1027,7 +1346,7 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
   }
   function openStampPicker() {
     pickAnimal({ icon: '🐾', titleKey: 'notes.pickStamp', emptyKey: 'notes.noStamps', cards: state.cards.filter(isCollected),
-      onPick: card => { nb.stampCard = card.id; nb.tool = 'stamp'; drawTools(); } });
+      onPick: card => { nb.tool = 'stamp'; saveSet({ ...nb.set, stampCard: card.id }); } });
   }
   // Only animals this explorer has collected, and not already on the page.
   function openTagPicker(s) {
@@ -1035,14 +1354,15 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     pickAnimal({ icon: '🏷️', titleKey: 'notes.pickTag', emptyKey: 'notes.noTags', cards: state.cards.filter(c => isCollected(c) && !tags.includes(c.id)),
       onPick: card => setTags(s, withTag(s.page.tags ?? [], card.id)) });
   }
-  // A stamp also tags the page with its animal (once); erasing the stamp leaves the tag.
-  function placeStamp(s, x, y) {
-    if (!nb.stampCard) { openStampPicker(); return; }
-    stampAsset(nb.stampCard);
-    haptic(12);
-    const before = [...(s.page.tags ?? [])], after = tagsAfterStamp(before, nb.stampCard);
+  // A stamp also tags the page with its animal (once); removing the stamp leaves the tag.
+  function placeStamp(s, x, y, screenX, screenY) {
+    const card = nb.set.stampCard;
+    if (!card) { openStampPicker(); return; }
+    stampAsset(card);
+    stampFx('stamp', screenX, screenY);
+    const before = [...(s.page.tags ?? [])], after = tagsAfterStamp(before, card);
     commit({
-      kind: 'add', side: s.i, index: s.page.items.length, item: { t: 'm', c: pencilColour(nb.colour), card: nb.stampCard, x, y, s: STAMP_SIZE, r: 0 },
+      kind: 'add', side: s.i, index: s.page.items.length, item: { t: 'm', c: pencilColour(nb.set.ink), card, x, y, s: STAMP_SIZE, r: 0 },
       ...(after.length !== before.length && { tags: { before, after } }),
     });
   }
@@ -1213,6 +1533,8 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     e.preventDefault();
     stopNudge();
     rect = desk.getBoundingClientRect();
+    // A mouse has no second finger: the wheel over the ruler turns it.
+    if (ruler && !e.ctrlKey && !e.metaKey && overRuler(e)) { ruler = { ...ruler, r: ruler.r + e.deltaY * 0.002 }; drawRuler(); return; }
     detail.hidden = true;
     if (e.ctrlKey || e.metaKey) {
       const m = { x: e.clientX - rect.left, y: e.clientY - rect.top };

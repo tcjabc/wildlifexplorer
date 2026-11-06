@@ -152,6 +152,19 @@
   /* Coloured pencils */
   --pencil-graphite: #4a4a4a; --pencil-red: #d7263d;   --pencil-orange: #f17105; --pencil-yellow: #e6a800;
   --pencil-green: #2b8f47;    --pencil-blue: #1e78d2;  --pencil-purple: #8e44ad; --pencil-brown: #8b5e3c;
+  --pencil-white: #ffffff;
+  /* Highlighters, multiplied onto the page */
+  --hl-cyan: #5fe3f2;         --hl-yellow: #ffec3d;    --hl-magenta: #ff7ac6;
+  /* The objects on the rails (js/notes-rails.js) */
+  --nb-pouch: #3f6f5e;        --nb-pouch-dark: #2f5748;  --nb-pouch-light: #4e8371;  --nb-pouch-inside: #1b2a25;
+  --nb-zip: #20302b;          --nb-zip-teeth: #d3cdbd;   --nb-stitch: #a9c2b6;
+  --nb-wood: #d6a564;         --nb-wood-dark: #a97c44;   --nb-wood-light: #e7c592;   --nb-carve: #5a3d22;
+  --nb-metal: #c3c6ca;        --nb-metal-dark: #868a90;  --nb-tin: #8796a3;          --nb-tin-rim: #5d6b76;
+  --nb-grip: #33373b;         --nb-collar: #2f2f33;      --nb-label: #f4efe2;
+  --nb-rubber: #f6f1e7;       --nb-rubber-shade: #d9d2c3; --nb-sleeve: #2f6fb0;      --nb-sleeve-band: #f3c53c;
+  --nb-ruler: #efc94f;        --nb-ruler-glass: rgb(244 214 110 / 0.8); --nb-ruler-ink: #4a3715;
+  --nb-panda: #f7f4ec;        --nb-panda-dark: #2b2724;
+  --nb-tool-shine: rgb(255 255 255 / 0.32); --nb-tool-shade: rgb(0 0 0 / 0.16);
 
   /* IUCN Red List badge colours (the Red List's own palette) */
   --iucn-ex: #000000;  --iucn-ex-ink: #ff5a5a;
@@ -266,7 +279,18 @@
   --nb-panel-share: 0.5; /* the expanded notebook's share of the stage width (PANEL_SHARE) */
   --nb-page-margin: 16px; /* kraft around the page in the panel (a finger there scrolls it) */
   --nb-scroll-w: 4px;   /* the page's scroll indicator */
-  --nb-rail: 64px;      /* a tool rail beside the page (or band above and below it in portrait) */
+  --nb-rail: 68px;      /* a tool rail beside the page: as wide as the spread leaves free on the baseline tablet */
+  --nb-rail-wide: 124px; /* in two columns, where the screen is short (js/notes-view.js railFit) */
+  --nb-rail-band: 80px; /* a band above or below the page in portrait */
+  --nb-ribbon-inset: 64px; /* how far from the book's ends the ribbon stops */
+  --nb-tool-pitch: 44px; /* a tool's row in the pouch: what a finger taps (PITCH in js/notes-rails.js) */
+  --nb-tool-raise: 14px; /* how far the tool in use stands out of the pouch */
+  --nb-pouch-h: 120px;  /* the pouch's body, below the tools */
+  --nb-pouch-mouth: 10px; /* the middle of its mouth, from the top of its drawing */
+  --nb-stamp-w: 64px;   /* an object on the right rail */
+  --nb-stamp-lift: 6px; /* the stamp in use, lifted from the row */
+  --nb-press: 4px;      /* how far a stamp goes down when it stamps */
+  --nb-ghost-w: 104px;  /* the stamp coming down on the page */
   --nb-thumb-w: 72px;   /* a page in the contents (the latest page of an animal) */
   --nb-thumb-w-sm: 40px; /* a page row in the contents */
   /* The animal tags on a page, under the OBSERVED stamp (in page units: 1000 × 1400). */

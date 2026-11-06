@@ -141,7 +141,7 @@ run('landscape: an open spread at full height, with no app header and no toolbar
   const sheets = await f.page.evaluate(() => [...document.querySelectorAll('.nb__sheet')].filter(s => !s.hidden).map(s => s.getBoundingClientRect().height));
   assert.deepEqual(sheets.map(Math.round), [800, 800]);
   assert.equal(await f.box('.nb__bar'), undefined);
-  assert.ok((await f.box('.nb__rail--start')).w <= 64);
+  assert.ok((await f.box('.nb__rail--start')).w <= 68);
   assert.ok(await f.box('.nb__ribbon'));
   // Capped at 1.5 on a 2x screen.
   const canvas = await f.page.evaluate(() => { const c = document.querySelector('.nb__base'); return c.width / c.getBoundingClientRect().width; });
@@ -414,4 +414,403 @@ run('beside a card the notebook stays a panel with its bar and toolbar, and two 
   await f.two([{ x: 300, y: 350 }, { x: 500, y: 350 }], [{ x: 300, y: 200 }, { x: 500, y: 200 }]);
   assert.ok((await f.box('.nb__sheet')).y < y0 - 100);
   assert.equal((await f.items(a)).length, 0);
+});
+
+// ---------- the rails ----------
+const rail = {
+  // The ruler's place: where its element is, as the notebook set it.
+  ruler: f => f.page.evaluate(() => { const r = document.querySelector('.nb-ruler'); return r.hidden ? null : { left: parseFloat(r.style.left), top: parseFloat(r.style.top), turn: parseFloat(r.style.transform.slice(7)) }; }),
+  pick: (f, id) => f.page.click(`.nb-pt[data-pt="${id}"]`),
+  rack: (f, id) => f.page.click(`.nb-rack[data-rack="${id}"]`),
+  // Collected animals with a silhouette.
+  collect: (f, n) => f.page.evaluate(k => { const ids = t.state.cards.filter(c => c.silhouette?.file).slice(0, k).map(c => c.id); for (const id of ids) t.state.collected[id] = { cardId: id }; return ids; }, n),
+  buzzes: f => f.page.evaluate(() => { window.buzz = []; navigator.vibrate = ms => { window.buzz.push(ms); return true; }; }),
+  // A pixel of the left page, at page units.
+  pixel: (f, x, y) => f.page.evaluate(([px, py]) => {
+    const c = document.querySelector('.nb__base'), k = c.width / 1000;
+    return [...c.getContext('2d').getImageData(Math.round(px * k), Math.round(py * k), 1, 1).data];
+  }, [x, y]),
+};
+const PHONE_SIDE = { width: 780, height: 360 }, PHONE_UP = { width: 360, height: 740 };
+
+for (const [name, viewport, across] of [['a tablet', LANDSCAPE, true], ['a phone', PHONE_SIDE, true], ['a tablet in portrait', PORTRAIT, false], ['a phone in portrait', PHONE_UP, false]]) {
+  run(`${name}: ${across ? 'side rails' : 'bands'}, with back, new page and the menu at their ends and nothing cut off`, async f => {
+    const [a] = await f.seed([[], []]);
+    await f.show(a);
+    const start = await f.box('.nb__rail--start'), end = await f.box('.nb__rail--end'), page = await f.box('.nb__sheet');
+    if (across) assert.ok(start.x + start.w <= page.x + 1 && start.h >= viewport.height - 1);
+    else assert.ok(start.y + start.h <= page.y + 1 && page.y + page.h <= end.y + 1);
+    const inside = (b, r) => b.x >= r.x - 1 && b.y >= r.y - 1 && b.x + b.w <= r.x + r.w + 1 && b.y + b.h <= r.y + r.h + 1;
+    for (const sel of ['.nb__back', '.nb__pouch', '.nb__railfoot', '.nb-undo']) assert.ok(inside(await f.box(sel), start), sel);
+    for (const sel of ['.nb__new', '.nb__rack', '.nb-rack--ink', '.nb__rack-room']) assert.ok(inside(await f.box(sel), end), sel);
+    assert.ok((await f.box('.nb__back')).x < (await f.box('.nb__pouch')).x + (across ? 68 : 1), 'back comes first');
+    assert.ok((await f.box('.nb__new'))[across ? 'y' : 'x'] < (await f.box('.nb__rack'))[across ? 'y' : 'x'], 'new page before the stamps');
+    const taps = await f.page.evaluate(() => [...document.querySelectorAll('.nb-pt, .nb-rack')].map(b => { const r = b.getBoundingClientRect(); return Math.min(r.width, r.height); }));
+    assert.ok(taps.every(s => s >= 43), String(taps));
+  }, viewport);
+}
+
+run('the pouch: the tool in use stands raised, and tapped again opens its colours and thickness', async f => {
+  const [a] = await f.seed([[], []]);
+  await f.show(a);
+  const raised = () => f.page.evaluate(() => [...document.querySelectorAll('.nb-pt[data-raised]')].map(b => b.dataset.pt));
+  assert.deepEqual(await raised(), ['pencil']);
+  await rail.pick(f, 'pen');
+  assert.deepEqual(await raised(), ['pen']);
+  assert.equal((await f.box('.nb-pop--rail')).w, 0, 'the first tap only picks it up');
+  await rail.pick(f, 'pen');
+  const count = sel => f.page.evaluate(s => document.querySelectorAll(`.nb-pop--rail ${s}`).length, sel);
+  assert.equal(await count('[data-colour]'), 9);
+  assert.equal(await count('[data-colour="white"]'), 1);
+  assert.equal(await count('[data-thick]'), 2);
+  const pop = await f.box('.nb-pop--rail');
+  assert.ok(pop.x >= 68, 'beside the rail');
+  await rail.pick(f, 'highlighter');
+  await rail.pick(f, 'highlighter');
+  assert.equal(await count('[data-colour]'), 0);
+  assert.deepEqual(await f.page.evaluate(() => [...document.querySelectorAll('.nb-pop--rail [data-hl]')].map(b => b.dataset.hl)), ['cyan', 'yellow', 'magenta']);
+  await rail.pick(f, 'eraser');
+  await rail.pick(f, 'eraser');
+  assert.equal((await f.box('.nb-pop--rail')).w, 0, 'the eraser has nothing to choose');
+});
+
+run('in a band the popover stays on the screen: the ink pad at the bottom opens upward', async f => {
+  const [a] = await f.seed([[], []]);
+  await f.show(a);
+  await f.page.click('.nb-rack--ink');
+  const pop = await f.box('.nb-pop--rail'), pad = await f.box('.nb-rack--ink');
+  assert.ok(pop.y + pop.h <= pad.y + 1);
+}, PORTRAIT);
+
+run('each tool draws its own kind of line; c stays a plain colour and a pencil line stays as it always was', async f => {
+  const [a] = await f.seed([[], []]);
+  await f.show(a);
+  await f.drag({ x: 300, y: 300 }, { x: 400, y: 300 });
+  await rail.pick(f, 'pen');
+  await f.drag({ x: 300, y: 350 }, { x: 400, y: 350 });
+  await rail.pick(f, 'highlighter');
+  await f.drag({ x: 300, y: 400 }, { x: 400, y: 400 });
+  const [pencil, pen, hl] = await f.items(a);
+  assert.deepEqual(Object.keys(pencil).sort(), ['c', 'p', 't', 'w']);
+  assert.equal(pen.k, 'pen');
+  assert.equal(hl.k, 'highlighter');
+  assert.ok(hl.w > pen.w);
+  for (const it of [pencil, pen, hl]) { assert.equal(it.t, 's'); assert.match(it.c, /^#[0-9a-f]{6}$/i); }
+});
+
+run('a highlighter multiplies: what is under it still shows, and its joints leave no beads', async f => {
+  const points = Array.from({ length: 41 }, (_, i) => [100 + i * 20, 400, 0.5]).flat();
+  const [a] = await f.seed([[{ t: 's', c: '#000000', w: 30, k: 'pen', p: [300, 300, 0.5, 300, 500, 0.5] }, { t: 's', c: '#ffec3d', w: 40, k: 'highlighter', p: points }], []]);
+  await f.show(a);
+  const [r, g, b] = await rail.pixel(f, 300, 400);
+  assert.ok(r < 30 && g < 30 && b < 30, 'black stays black under yellow');
+  const onJoint = await rail.pixel(f, 500, 400), between = await rail.pixel(f, 510, 400);
+  assert.deepEqual(onJoint, between);
+  assert.ok(onJoint[2] < 100 && onJoint[0] > 200, 'yellow on the paper');
+});
+
+run('the eraser takes whole lines of any tool, and leaves stamps and text alone', async f => {
+  const [a] = await f.seed([[stroke(100, 300), { ...stroke(100, 500), k: 'highlighter', w: 40 }, label(100, 700)], []]);
+  await f.show(a);
+  await rail.pick(f, 'eraser');
+  await f.tap({ x: 69 + 150 * 0.571, y: 300 * 0.571 });
+  await f.drag({ x: 69 + 150 * 0.571, y: 480 * 0.571 }, { x: 69 + 150 * 0.571, y: 760 * 0.571 });
+  assert.deepEqual((await f.items(a)).map(i => i.t), ['x']);
+});
+
+run('the ruler: tapped out across the page, one finger moves it, and it is never saved', async f => {
+  const [a] = await f.seed([[], []]);
+  await f.show(a);
+  assert.equal(await rail.ruler(f), null);
+  await rail.pick(f, 'ruler');
+  const at = await rail.ruler(f);
+  assert.ok(at);
+  assert.equal(await f.page.evaluate(() => document.querySelector('.nb-pt[data-raised]').dataset.pt), 'pencil', 'the pencil stays in the hand');
+  await f.drag({ x: 354, y: 400 }, { x: 354, y: 500 });
+  assert.ok(Math.abs((await rail.ruler(f)).top - at.top - 100) < 2);
+  assert.equal((await f.items(a)).length, 0, 'moving it draws nothing');
+  await rail.pick(f, 'ruler');
+  assert.equal(await rail.ruler(f), null, 'back in the pouch');
+  const page = await f.page.evaluate(i => t.notes.loadPage(i), a);
+  assert.deepEqual(Object.keys(page).sort(), ['createdAt', 'editedAt', 'header', 'h', 'id', 'items', 'paper', 'tags', 'version', 'w'].sort());
+});
+
+run('the ruler can be dragged from the pouch onto the page, and goes back if let go off it', async f => {
+  const [a] = await f.seed([[], []]);
+  await f.show(a);
+  const b = await f.box('.nb-pt[data-pt="ruler"]'), from = { x: b.x + b.w / 2, y: b.y + b.h / 2 };
+  await f.drag(from, { x: 500, y: 400 });
+  const at = await rail.ruler(f);
+  assert.ok(at && at.left > 0, 'on the page');
+  await rail.pick(f, 'ruler');
+  await f.drag(from, { x: 40, y: 700 });
+  assert.equal(await rail.ruler(f), null);
+});
+
+run('two fingers starting on the ruler turn it, and leave the page where it is', async f => {
+  const [a] = await f.seed([[], []]);
+  await f.show(a);
+  await rail.pick(f, 'ruler');
+  const view = await f.transform();
+  await f.two([{ x: 200, y: 400 }, { x: 500, y: 400 }], [{ x: 200, y: 340 }, { x: 500, y: 460 }]);
+  const { turn } = await rail.ruler(f);
+  assert.ok(Math.abs(turn - Math.atan2(120, 300)) < 0.02, String(turn));
+  assert.equal(await f.transform(), view);
+  assert.equal((await f.items(a)).length, 0);
+});
+
+run('two fingers elsewhere pan and zoom as ever, and the ruler stays on the page with them', async f => {
+  const [a] = await f.seed([[], []]);
+  await f.show(a);
+  await rail.pick(f, 'ruler');
+  const at = await rail.ruler(f), view = await f.transform();
+  await f.two([{ x: 320, y: 620 }, { x: 420, y: 620 }], [{ x: 220, y: 620 }, { x: 520, y: 620 }]);
+  assert.notEqual(await f.transform(), view);
+  assert.deepEqual(await rail.ruler(f), at);
+});
+
+run('one finger on the ruler and one off it: a pan or zoom, and the ruler stays put', async f => {
+  const [a] = await f.seed([[], []]);
+  await f.show(a);
+  await rail.pick(f, 'ruler');
+  const at = await rail.ruler(f), view = await f.transform();
+  await f.two([{ x: 300, y: 400 }, { x: 300, y: 650 }], [{ x: 300, y: 300 }, { x: 300, y: 750 }]);
+  assert.notEqual(await f.transform(), view);
+  assert.deepEqual(await rail.ruler(f), at);
+});
+
+run('a second finger on the ruler turns it even long after the first, while one off it by then is a brush of the hand', async f => {
+  const [a] = await f.seed([[], []]);
+  await f.show(a);
+  await rail.pick(f, 'ruler');
+  const view = await f.transform();
+  await f.send('touchStart', [{ x: 200, y: 400, id: 1 }]);
+  await f.wait(350);
+  await f.send('touchStart', [{ x: 200, y: 400, id: 1 }, { x: 500, y: 400, id: 2 }]);
+  await f.wait(30);
+  await f.send('touchMove', [{ x: 200, y: 400, id: 1 }, { x: 500, y: 500, id: 2 }]);
+  await f.wait(30);
+  await f.send('touchEnd', []);
+  await f.wait(100);
+  const { turn } = await rail.ruler(f);
+  assert.ok(turn > 0.2, String(turn));
+  assert.equal(await f.transform(), view);
+});
+
+run('a line started beside the ruler runs straight along its edge, with any tool; one started away from it does not', async f => {
+  const [a] = await f.seed([[], []]);
+  await f.show(a);
+  await rail.pick(f, 'ruler');
+  const wobble = async (x, y, h = 25) => {
+    await f.send('touchStart', [{ x, y, id: 1 }]);
+    for (let i = 1; i <= 10; i++) { await f.send('touchMove', [{ x: x + i * 30, y: y + (i % 2 ? h : -h) * 0.5, id: 1 }]); await f.wait(16); }
+    await f.send('touchEnd', []);
+    await f.wait(550);
+  };
+  await wobble(160, 436);
+  await rail.pick(f, 'highlighter');
+  await wobble(160, 364);
+  await wobble(160, 520);
+  const [low, high, free] = await f.items(a);
+  const ys = it => it.p.filter((_, i) => i % 3 === 1);
+  assert.ok(ys(low).every(y => Math.abs(y - 748) < 0.01), 'the lower edge');
+  assert.ok(ys(high).every(y => Math.abs(y - 652) < 0.01), 'the upper edge');
+  assert.ok(Math.max(...ys(free)) - Math.min(...ys(free)) > 10, 'away from it, the line goes where the finger goes');
+});
+
+run('a line along a turned ruler follows it, on the right page of a spread too', async f => {
+  const [a, b] = await f.seed([[], []]);
+  await f.show(a);
+  await f.tap({ x: 930, y: 700 }); // the right page is the one being worked on
+  await rail.pick(f, 'ruler');
+  await f.two([{ x: 780, y: 400 }, { x: 1080, y: 400 }], [{ x: 780, y: 300 }, { x: 1080, y: 500 }]);
+  const { turn } = await rail.ruler(f);
+  // Just off its lower edge, then roughly along it.
+  const x0 = 930 - Math.sin(turn) * 35, y0 = 400 + Math.cos(turn) * 35;
+  await f.send('touchStart', [{ x: x0, y: y0, id: 1 }]);
+  for (let i = 1; i <= 8; i++) { await f.send('touchMove', [{ x: x0 + i * 15, y: y0 + i * 12, id: 1 }]); await f.wait(16); }
+  await f.send('touchEnd', []);
+  await f.wait(550);
+  const dots = (await f.items(b)).filter(i => i.p.length > 3).at(-1).p;
+  const slope = (dots[dots.length - 2] - dots[1]) / (dots[dots.length - 3] - dots[0]);
+  assert.ok(Math.abs(Math.atan(slope) - turn) < 0.01, `${Math.atan(slope)} and ${turn}`);
+});
+
+run('a pen on the ruler draws along it and never moves it', async f => {
+  const [a] = await f.seed([[], []]);
+  await f.show(a);
+  await rail.pick(f, 'ruler');
+  const at = await rail.ruler(f);
+  const cdp = await f.page.context().newCDPSession(f.page);
+  const pen = (type, x, y) => cdp.send('Input.dispatchMouseEvent', { type, x, y, button: 'left', buttons: type === 'mouseReleased' ? 0 : 1, clickCount: 1, pointerType: 'pen', force: 0.5 });
+  await pen('mousePressed', 200, 410);
+  for (let i = 1; i <= 6; i++) { await pen('mouseMoved', 200 + i * 30, 415); await f.wait(16); }
+  await pen('mouseReleased', 380, 415);
+  await f.wait(550);
+  assert.deepEqual(await rail.ruler(f), at);
+  const [line] = await f.items(a);
+  assert.ok(line.p.filter((_, i) => i % 3 === 1).every(y => Math.abs(y - 748) < 0.01), 'the nearer edge');
+});
+
+run('the panda stamp: a tap picks it up, taps cycle the collected animals, and stamping links the page', async f => {
+  const ids = await rail.collect(f, 3);
+  const [a] = await f.seed([[], []]);
+  await f.show(a);
+  await rail.buzzes(f);
+  const label = () => f.page.evaluate(() => document.querySelector('.nb-rack[data-rack="stamp"]').getAttribute('aria-label'));
+  await rail.rack(f, 'stamp');
+  const first = await label();
+  await rail.rack(f, 'stamp');
+  assert.notEqual(await label(), first);
+  await rail.rack(f, 'stamp');
+  await rail.rack(f, 'stamp');
+  assert.equal(await label(), first, 'round again');
+  await f.tap({ x: 350, y: 600 });
+  const [item] = await f.items(a);
+  assert.equal(item.t, 'm');
+  assert.equal(item.card, ids[0]);
+  assert.deepEqual((await f.page.evaluate(i => t.notes.loadPage(i), a)).tags, [ids[0]]);
+  assert.deepEqual(await f.page.evaluate(() => window.buzz), [15]);
+});
+
+run('with no animals collected the panda stamp says how to get some', async f => {
+  const [a] = await f.seed([[], []]);
+  await f.show(a);
+  await rail.rack(f, 'stamp');
+  assert.ok(await f.page.evaluate(() => document.querySelector('.nb-pick').open));
+});
+
+run('a long press on the panda stamp lists the animals', async f => {
+  await rail.collect(f, 3);
+  const [a] = await f.seed([[], []]);
+  await f.show(a);
+  const b = await f.box('.nb-rack[data-rack="stamp"]');
+  await f.send('touchStart', [{ x: b.x + b.w / 2, y: b.y + b.h / 2, id: 1 }]);
+  await f.wait(650);
+  await f.send('touchEnd', []);
+  await f.wait(100);
+  assert.equal(await f.page.evaluate(() => document.querySelectorAll('.nb-pick .nb-pick__item').length), 3);
+});
+
+run('the ink pad colours what is stamped, and a tap on a stamp selects it rather than stamping over it', async f => {
+  const ids = await rail.collect(f, 1);
+  const [a] = await f.seed([[], []]);
+  await f.show(a);
+  await f.page.click('.nb-rack--ink');
+  await f.page.click('.nb-pop--rail [data-colour="white"]');
+  await f.page.mouse.click(5, 5); // closes it: a tap elsewhere
+  await rail.rack(f, 'stamp');
+  await f.tap({ x: 350, y: 600 });
+  await f.tap({ x: 350, y: 600 });
+  const items = await f.items(a);
+  assert.equal(items.length, 1);
+  assert.equal(items[0].c.toLowerCase(), '#ffffff');
+  assert.ok(await f.box('.nb-sel'));
+  assert.ok(ids.length);
+});
+
+run('the footprint stamp rolls a trail, and the trail can be selected, moved, turned and deleted', async f => {
+  const [a] = await f.seed([[], []]);
+  await f.show(a);
+  await rail.buzzes(f);
+  await rail.rack(f, 'roller');
+  await f.drag({ x: 200, y: 500 }, { x: 450, y: 500 }, 12);
+  const [trail] = await f.items(a);
+  assert.equal(trail.t, 'f');
+  assert.deepEqual(await f.page.evaluate(() => window.buzz), [15], 'one thunk for the trail, not one per print');
+  await f.tap({ x: 300, y: 500 });
+  assert.ok(await f.box('.nb-sel'));
+  await f.drag({ x: 300, y: 500 }, { x: 300, y: 560 });
+  const [moved] = await f.items(a);
+  assert.ok(Math.abs(moved.p[1] - trail.p[1] - 60 / 0.571) < 2);
+  assert.equal(moved.p.length, trail.p.length);
+  await f.two([{ x: 260, y: 560 }, { x: 340, y: 560 }], [{ x: 260, y: 520 }, { x: 340, y: 600 }]);
+  const [turned] = await f.items(a);
+  assert.ok(Math.abs(turned.p[1] - turned.p[turned.p.length - 1]) > 50, 'it now runs at an angle');
+  assert.deepEqual(Object.keys(turned).sort(), ['c', 'k', 'p', 't']);
+  await f.wait(450);
+  const del = await f.box('.nb-sel__del');
+  await f.tap({ x: del.x + del.w / 2, y: del.y + del.h / 2 });
+  assert.equal((await f.items(a)).length, 0);
+});
+
+run('the ABC stamp places text in the ink, which can be turned like any stamp', async f => {
+  const [a] = await f.seed([[], []]);
+  await f.show(a);
+  await rail.buzzes(f);
+  await rail.rack(f, 'text');
+  await f.tap({ x: 250, y: 500 });
+  assert.deepEqual(await f.page.evaluate(() => window.buzz), [15]);
+  await f.page.keyboard.type('Otter');
+  await f.page.keyboard.press('Enter');
+  await f.wait(550);
+  await rail.pick(f, 'pencil');
+  await f.tap({ x: 270, y: 515 });
+  assert.ok(await f.box('.nb-sel'));
+  await f.two([{ x: 230, y: 515 }, { x: 310, y: 515 }], [{ x: 230, y: 480 }, { x: 310, y: 550 }]);
+  const [text] = await f.items(a);
+  assert.equal(text.v, 'Otter');
+  assert.ok(text.r > 0.3, String(text.r));
+});
+
+run('with the keyboard up, a text box near the bottom rises above it and everything comes back after', async f => {
+  const [a] = await f.seed([[], []]);
+  await f.show(a);
+  await f.page.evaluate(() => {
+    const vv = new EventTarget();
+    vv.offsetTop = 0; vv.height = innerHeight;
+    Object.defineProperty(window, 'visualViewport', { value: vv, configurable: true });
+  });
+  const before = await f.box('.nb__sheet');
+  await rail.rack(f, 'text');
+  await f.tap({ x: 300, y: 740 });
+  await f.page.evaluate(() => { visualViewport.height = 420; visualViewport.dispatchEvent(new Event('resize')); });
+  const box = await f.box('.nb-text');
+  assert.ok(box.y + box.h <= 420, `${box.y + box.h}`);
+  assert.ok(box.y > 0);
+  assert.equal((await f.box('.nb__sheet')).w, before.w, 'the page keeps its size');
+  await f.page.keyboard.type('Low down');
+  await f.page.keyboard.press('Enter');
+  await f.wait(550);
+  assert.deepEqual(await f.box('.nb__sheet'), before);
+  assert.equal(await f.page.evaluate(() => document.querySelector('.nb').style.height), '');
+  assert.equal((await f.items(a))[0].v, 'Low down');
+});
+
+run('the panel beside a card uses the settings the rails set: colours, thickness and ink', async f => {
+  const [a] = await f.seed([[], []]);
+  await f.show(a);
+  await rail.pick(f, 'pencil');
+  await f.page.click('.nb-pop--rail [data-colour="white"]');
+  await f.page.click('.nb-pop--rail [data-thick="thick"]');
+  await f.page.mouse.click(5, 5);
+  await f.page.click('.nb-rack--ink');
+  await f.page.click('.nb-pop--rail [data-colour="green"]');
+  await f.wait(100);
+  await f.page.evaluate(() => { window.book.destroy(); document.body.className = ''; document.getElementById('main').dataset.view = 'binder'; document.getElementById('main').style.height = '700px'; document.getElementById('main').style.padding = '0'; });
+  await f.page.evaluate(i => { t.open(i, { beside: true, lead: document.createElement('span') }); }, a);
+  await f.page.waitForFunction(() => document.querySelector('.nb__sheet canvas').width > 1);
+  await f.wait(1600);
+  assert.equal(await f.box('.nb__pouch'), undefined, 'the panel keeps its own toolbar');
+  const pressed = () => f.page.evaluate(() => [...document.querySelectorAll('.nb__tools [data-colour][aria-pressed="true"]')].map(b => b.dataset.colour)[0]);
+  assert.equal(await pressed(), 'white');
+  assert.ok(await f.page.evaluate(() => Boolean(document.querySelector('.nb__tools .nb-size--thick'))));
+  await f.page.click('.nb__tools [data-tool="text"]');
+  assert.equal(await pressed(), 'green');
+  await f.page.click('.nb__tools [data-tool="pencil"]');
+  await f.page.click('.nb__tools .nb-tool--colour');
+  await f.page.click('.nb-pop [data-colour="red"]');
+  await f.wait(100);
+  assert.equal(await f.page.evaluate(() => t.state.profile.notesTools.pencil.colour), 'red', 'and back the other way');
+}, { width: 1000, height: 800 });
+
+run('the contents hide the rails\' objects; back and the menu stay', async f => {
+  const [a] = await f.seed([[], []]);
+  await f.show(a);
+  await rail.pick(f, 'ruler');
+  await f.page.click('.nb__ribbon');
+  await f.wait(200);
+  for (const sel of ['.nb__pouch', '.nb__rack', '.nb__railfoot', '.nb-ruler']) assert.equal(await f.box(sel).then(b => b?.w ?? 0), 0, sel);
+  assert.ok((await f.box('.nb__back')).w > 0);
+  assert.ok((await f.box('.nb__rail--end .btn:not(.nb__new)')).w > 0);
 });

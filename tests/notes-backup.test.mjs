@@ -104,3 +104,15 @@ test('a version 2 export of the restored notebook imports again, tags, pages and
   assert.deepEqual(await bytes(await notes.loadPhotoBlob('photo-0001')), [...v1.files.get('photos/photo-0001.jpg')]);
   assert.equal(await io.importBackup(v2zip), 0, 'and not twice');
 });
+
+test('a backup keeps which tool drew a line, and a line that doesn\'t say is a pencil', async () => {
+  const { cleanPage } = await import('../js/notes-io.js');
+  const items = [
+    { t: 's', c: '#4a4a4a', w: 5, p: [1, 2, 0.5] },
+    { t: 's', c: '#1e78d2', w: 4, k: 'pen', p: [1, 2, 0.5] },
+    { t: 's', c: '#ffec3d', w: 40, k: 'highlighter', p: [1, 2, 0.5] },
+  ];
+  const page = cleanPage({ id: 'page-1', header: { date: '2026-01-01T00:00:00.000Z' }, createdAt: '2026-01-01T00:00:00.000Z', tags: [], items });
+  assert.deepEqual(page.items, items);
+  assert.ok(items.every(it => /^#[0-9a-f]{6}$/.test(it.c)), 'colours stay plain colours');
+});
