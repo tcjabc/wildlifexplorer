@@ -526,6 +526,18 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
 .glayer__emoji { font-size: var(--fs-lg); line-height: 1; }
 .glayer[aria-pressed="true"] { background: var(--c-primary); border-color: var(--c-primary); color: var(--c-on-primary); }
 .glayer--filter { border-color: var(--c-primary); }
+/* Show or hide the animals: a round button with a paw, crossed out while they are hidden. */
+.glayer--paw { justify-content: center; width: var(--tap-sm); padding: 0; touch-action: manipulation; }
+.glayer--paw .art { display: block; width: var(--gpaw); height: var(--gpaw); }
+.glayer--paw.is-crossed { background: var(--c-primary); border-color: var(--c-primary); color: var(--c-on-primary); }
+.art__paw { fill: currentColor; }
+.art__paw-gap, .art__paw-cross { display: none; fill: none; stroke-linecap: round; }
+.art__paw-gap { stroke: var(--c-primary); stroke-width: 7; }
+.art__paw-cross { stroke: currentColor; stroke-width: 3; }
+.is-crossed .art__paw-gap, .is-crossed .art__paw-cross { display: inline; }
+/* While the animals are hidden the filters wait, and the key's animal rows fade. */
+.glayer:disabled, .gchip:disabled { opacity: var(--o-dimmed); cursor: default; }
+.pins-off .gkey__item--animals { opacity: var(--o-dimmed); }
 
 /* Active filters: small chips over the globe. A tap anywhere on one takes it off. */
 .gactive { flex: 1; min-width: 0; display: flex; gap: var(--s-2); overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }

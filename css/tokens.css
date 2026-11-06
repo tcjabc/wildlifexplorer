@@ -347,6 +347,8 @@
   --nb-tags-w: 56%;
   --map-marker: 8px;    /* range marker on the little world map */
   --gpin: 52px;         /* photo pins on the Globe */
+  --gpaw: 30px;         /* the paw on the Globe's show/hide button */
+  --o-dimmed: 0.45;     /* controls and key rows that are waiting (the Globe's filters while pins are hidden) */
   --gpanel-w: 256px;    /* the Globe's toolbar: one width, open or not */
   --gpick-w: 420px;     /* the layer picker */
   --gtile-min: 120px;   /* a tile in it */

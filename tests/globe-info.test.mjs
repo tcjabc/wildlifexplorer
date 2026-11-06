@@ -37,6 +37,22 @@ test('every panel string is in both languages, and the Chinese is not the Englis
   assert.deepEqual(Object.keys(en).sort(), Object.keys(zh).sort(), 'the same keys in both files');
 });
 
+test('only the plain map has animal rows: all three of its rows, which dim while pins are hidden', () => {
+  assert.deepEqual(INFO.everywhere.key.map(k => k.animals), [true, true, true]);
+  for (const [id, info] of Object.entries(INFO)) {
+    if (id !== 'everywhere' && Array.isArray(info.key)) assert.ok(info.key.every(k => !k.animals), id);
+  }
+  assert.ok(css.includes('.pins-off .gkey__item--animals { opacity: var(--o-dimmed); }'));
+  assert.match(tokens, /--o-dimmed:/);
+});
+
+test('the paw button says what a tap will do, in both languages', () => {
+  for (const k of ['globe.pins.hide', 'globe.pins.show']) {
+    assert.ok(en[k]?.trim() && zh[k]?.trim(), k);
+    assert.notEqual(zh[k], en[k], k);
+  }
+});
+
 test('the keys are short labels, never sentences', () => {
   for (const id of Object.keys(INFO)) {
     for (const k of keyLabels(id)) {

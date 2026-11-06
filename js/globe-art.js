@@ -23,6 +23,16 @@ export function pins() {
     circle(122, 14, 8, 'art__count'), text(122, 18, '3', 'art__counttext'));
 }
 
+// The Globe's show/hide button: a paw in the button's own colour. The line across it shows
+// when the animals are hidden (css/app.css), with a gap so it reads against the paw.
+export function paw() {
+  const toe = (cx, cy, rx, ry, turn) => svg('ellipse', { cx, cy, rx, ry, class: 'art__paw', transform: `rotate(${turn} ${cx} ${cy})` });
+  return frame(32, 32,
+    toe(6, 14.5, 2.8, 3.8, -18), toe(12, 7.5, 3, 4.2, -6), toe(20, 7.5, 3, 4.2, 6), toe(26, 14.5, 2.8, 3.8, 18),
+    path('M16 15c-4.5 0-9 5-9 9.2 0 2.6 2 3.8 4.2 3.8 1.9 0 3.2-1 4.8-1s2.9 1 4.8 1c2.2 0 4.2-1.2 4.2-3.8C25 20 20.5 15 16 15Z', 'art__paw'),
+    path('M4 4L28 28', 'art__paw-gap'), path('M4 4L28 28', 'art__paw-cross'));
+}
+
 // Topography: lowlands, dry hills, a high snowy peak.
 export function mountain() {
   return frame(160, 80,

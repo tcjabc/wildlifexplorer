@@ -521,6 +521,8 @@
   "badge.secretTap": "Tap the card to see what you found",
   "badge.rub": "Rub the medal to make it shine!",
   "badge.flick": "Flick it up to your badges",
+  "globe.pins.hide": "Hide animals",
+  "globe.pins.show": "Show animals",
   "globe.filterAll": "All animals",
   "globe.filterNone": "No animals match yet",
   "globe.filters.one": "1 filter",

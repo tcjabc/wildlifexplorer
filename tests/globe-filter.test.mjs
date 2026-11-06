@@ -2,7 +2,7 @@
 // Run: npm test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { matches, noFilters, filterCount, optionCount, onGlobe } from '../js/globe-filter.js';
+import { matches, noFilters, filterCount, optionCount, onGlobe, pinShown, pinHint } from '../js/globe-filter.js';
 
 const cards = [
   { id: 'magpie', group: 'birds', continents: ['asia'], biomes: ['forest', 'mountains'] },
@@ -54,6 +54,30 @@ test('its own section does not narrow it: other choices there are OR', () => {
 test('Antarctica + Rainforest cannot be reached: the option is 0 either way round', () => {
   assert.equal(optionCount(cards, pick({ continents: ['antarctica'] }), 'biomes', 'rainforest'), 0);
   assert.equal(optionCount(cards, pick({ biomes: ['rainforest'] }), 'continents', 'antarctica'), 0);
+});
+
+test('hidden: no pin shows, whatever the filters say or the card it was opened from', () => {
+  assert.equal(pinShown(cards[0], noFilters(), { hidden: true }), false);
+  assert.equal(pinShown(cards[0], noFilters(), { hidden: true, keep: cards[0] }), false);
+  assert.equal(pinShown(cards[0], noFilters()), true);
+});
+
+test('the card the globe was opened from shows past a filter, and only that card', () => {
+  const f = pick({ continents: ['antarctica'] });
+  assert.equal(pinShown(cards[0], f), false);
+  assert.equal(pinShown(cards[0], f, { keep: cards[0] }), true);
+  assert.equal(pinShown(cards[2], f, { keep: cards[0] }), false);
+  assert.equal(pinShown(cards[3], f, { keep: cards[0] }), true, 'what matches still shows');
+});
+
+test('the hint under the globe: none until the pins are placed, none while they are hidden', () => {
+  const at = o => pinHint({ hidden: false, ready: true, placed: 3, shown: true, ...o });
+  assert.equal(at({}), null);
+  assert.equal(at({ placed: 0, shown: false }), 'globe.empty');
+  assert.equal(at({ shown: false }), 'globe.filterNone');
+  assert.equal(at({ placed: 0, shown: false, ready: false }), null);
+  assert.equal(at({ placed: 0, shown: false, hidden: true }), null);
+  assert.equal(at({ shown: false, hidden: true }), null);
 });
 
 test('a card can be on the globe by its range, or a place of its own', () => {

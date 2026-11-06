@@ -5,7 +5,8 @@
 //          Each swatch is the colour as it looks on the map: token, or paint for a mix
 //          (reef: the see-through fill on the sea; dusk, night: the land under the night
 //          overlay; lights: a glow on the night). mark: an emoji inside the swatch, tree: a
-//          tree drawn inside it; short: a mark beside it in the collapsed key (depths).
+//          tree drawn inside it; short: a mark beside it in the collapsed key (depths);
+//          animals: the row is about the pins, so it dims while they are hidden.
 //   what:  "What am I looking at?": one or two short lines for young children, and a drawing
 //          (art, js/globe-art.js).
 //   more:  extra lines for older children (a "Did you know?", scientific names), shown when the
@@ -26,9 +27,9 @@ export const INFO = {
   everywhere: {
     emoji: '🌐', title: 'info.everywhere.title',
     key: [
-      { icon: 'pin', label: 'info.everywhere.key.pin' },
-      { icon: 'stack', label: 'info.everywhere.key.stack' },
-      { icon: 'filter', label: 'info.everywhere.key.filter' },
+      { icon: 'pin', label: 'info.everywhere.key.pin', animals: true },
+      { icon: 'stack', label: 'info.everywhere.key.stack', animals: true },
+      { icon: 'filter', label: 'info.everywhere.key.filter', animals: true },
     ],
     what: ['info.everywhere.what.1', 'info.everywhere.what.2'], art: 'pins',
     more: ['info.everywhere.more.1', 'info.everywhere.more.2'],

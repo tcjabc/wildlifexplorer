@@ -521,6 +521,8 @@
   "badge.secretTap": "點一下卡片，看看你發現了什麼",
   "badge.rub": "摸一摸獎牌，讓它閃閃發亮！",
   "badge.flick": "把它往上一撥，收進徽章",
+  "globe.pins.hide": "隱藏動物",
+  "globe.pins.show": "顯示動物",
   "globe.filterAll": "全部動物",
   "globe.filterNone": "還沒有符合的動物",
   "globe.filters.one": "1 個篩選",
