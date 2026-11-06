@@ -614,7 +614,8 @@ One notebook per profile (📓 in the nav, or beside every card). Code: `js/note
 `js/notes-ruler.js` (the ruler's geometry; both pure, tested in `tests/notes-tools.test.mjs`),
 `js/notes-store.js` (storage), `js/notes-io.js`
 (backup), `js/zip.js`, styles in `css/notes.css`. `tests/notes-touch.test.mjs` drives the notebook
-with real touches in Chromium.
+with real touches in Chromium, and `tests/notes-full.test.mjs` the trip from the panel to the full
+notebook and back in the real app.
 
 - **On its own** (`#/notes`): the whole screen, with no app header or tab bar. One back button goes
   to the screen before (or the binder, when opened directly). Rails stand at the left and right of
@@ -624,13 +625,24 @@ with real touches in Chromium.
   marks the place and opens the contents; tabs at its bottom corners turn the pages.
 - **The rails** hold real objects drawn as SVG, the same ones in both layouts. Left: back, a pen
   pouch (lying on its side in a band) and at the foot the camera (until the Polaroid comes to the right
-  rail, where room is kept for it), undo, redo and pen or finger. The tool in use stands raised out
+  rail, where room is kept for it), then undo, redo and pen or finger as wooden tokens with the sign
+  carved in (worn flat when there is nothing to undo). The tool in use stands raised out
   of the pouch; tapped again it opens its colours and thickness. Right, between ＋ and ⋯: the ink pad
-  (tap for the ink colour) and three stamps: ABC (text), the panda (a collected animal: tap to move
-  to the next, long press for the list) and the footprints (tap again for the kind).
+  (tap for the ink colour), the sponge, three stamps: ABC (text), the panda (a collected animal: tap to
+  move to the next, long press for the list) and the footprints (tap again for the kind), and the
+  tweezers. On a phone the right rail folds into two columns with ＋ and ⋯ side by side, and the bottom
+  band into two rows.
+- **Tweezers**: press a photo, stamp, footprint trail or text to select it and drag it in the same
+  move; the handles resize and turn it, ✕ removes it, and a tap on bare paper lets go. They work with
+  a finger in *Pen only* too. They never touch lines, never open the keyboard, and a drag on bare paper
+  only pans when zoomed in, so a missed grab can't turn the page.
+- **Sponge**: rubbing or tapping takes stamps, footprint trails and text off the page, one undo step
+  per rub, with a brief wipe (`wipeFx`: each item drawn once on a small canvas that fades; none with
+  reduced motion). Lines stay (they are the eraser's) and so do photos (✕). The page keeps its animal
+  tags. In *Pen only* it follows the eraser and takes only the pen, so a resting hand can't wipe.
 - **Stamping**: the stamp comes down on the page with `navigator.vibrate(15)` and a short thunk made
   by Web Audio (`js/fx.js`, no sound file). A tap on bare paper stamps; a tap on something already
-  there selects it, or with ABC edits text.
+  there selects it, or with ABC edits text. A stamp's box follows its silhouette's shape.
 - **Ruler**: it lies on the book, not on a page, so it zooms and pans with the pages, stays out when
   they turn, and is never saved or exported. Drag it out of the pouch or tap it; tap it there, or drag
   it back, to put it away. One finger moves it. Two fingers both on it turn it, however late the
@@ -668,8 +680,16 @@ with real touches in Chromium.
   (`notesPanel`).
 - **The page beside a card** fills the panel's width (less a 16 px kraft margin) and scrolls up and
   down when it is taller: with the wheel, two fingers, one finger on the kraft margin, or one
-  finger on the page in *Pen only*. It zooms like the page on its own. A slim indicator on its right edge shows there is more, and
+  finger on the page in *Pen only*. Ctrl + wheel zooms it; a pinch doesn't (see below). A slim indicator on its right edge shows there is more, and
   the first time each page opens it dips down a little and back (not with reduced motion).
+- **The full notebook from the panel**: the open book in the bar's top corner, or a pinch outward from
+  the fitted page past 1.3× (a shorter one springs back), opens `#/notes/<card>` on the same page. It
+  saves first; then the kraft and the page grow to the screen by transform alone, and stay a moment
+  while the full notebook draws under them (none of it with reduced motion). A pinch on a selected
+  item still resizes it. Back returns to the same card and side with the panel open, through
+  `js/card-return.js` as from the globe: on the page the full notebook ended on if that page is
+  tagged with this card, otherwise on the page it started from, so another animal's page never ends
+  up beside this card. Undo history starts afresh, as on any page turn.
 - **Animal tags**: a page has zero or more animals, shown as chips under its OBSERVED stamp
   (✕ removes one, "＋" adds an animal this explorer has collected). Placing a stamp adds its animal;
   removing the stamp leaves the tag. The header's title is the first animal's name ("+ N more" when
@@ -682,16 +702,20 @@ with real touches in Chromium.
   **contents**: binder groups with the animals that have pages (page count, a thumbnail of the
   latest), each page under every animal it is tagged with ("also in" the others), then the free
   pages and "＋ New free page". Pages never move; the contents is a view of their tags. From a card's
-  notebook, "‹ <animal>" goes back to it.
+  notebook, "‹ <animal>" goes back to it. On its own the contents has no rails: back and ⋯ share a
+  slim row over a list the full width of the screen.
 - **Tools**: pencil and pen in 9 colours (white too) and two sizes, highlighter (cyan, yellow or
   magenta), ruler, eraser (whole lines of any tool; everything else has its ✕), text, stamps
   (collected cards' silhouettes, or the group emoji), footprint roller (cat paw, hoof, bird, bear),
   photos, undo and redo (Ctrl/⌘+Z). Text, stamps and footprints take the ink. The settings are kept
-  per profile on the device (`notesTools`, never sent). There is no move tool: one tap on a photo,
-  stamp, footprint trail or text selects it (so a tap there leaves no dot). Drag it inside its box, use
+  per profile on the device (`notesTools`, never sent). With the tweezers or a stamp in the hand, one
+  tap on a photo, stamp, footprint trail or text selects it; with a pencil, pen or highlighter a tap
+  there is a dot like any other. A photo just added stays selected whichever tool is in the hand, so
+  it can be placed. Drag it inside its box, use
   the handles outside the box or a two-finger pinch on it to resize and turn it, ✕ to remove it; a
   tap elsewhere lets go. Resizing a trail stretches its path, not its prints.
-  Beside a card the toolbar stays a toolbar, with its own tools (no pen, highlighter or ruler) and the
+  Beside a card the toolbar stays a toolbar, with its own tools (no pen, highlighter, ruler, tweezers
+  or sponge: the open book is one tap away) and the
   rails' settings. It never scrolls: one row when it all fits (measured, as the labels' width
   depends on the language), otherwise two rows of 44 px controls with the colours behind a swatch. The
   roller's feet always open from one button in a small picker.
