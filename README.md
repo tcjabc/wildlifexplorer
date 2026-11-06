@@ -608,7 +608,8 @@ a photo is a derivative of it: give it the photo's author and licence, add
 
 One notebook per profile (📓 in the nav, or beside every card). Code: `js/notebook.js` (the UI),
 `js/notes-render.js` (drawing a page), `js/notes-rails.js` (the roll's and tray's objects, as SVG),
-`js/notes-book.js` (the book round the page, its flips and riffles), `js/notes-polaroid.js` (photos
+`js/notes-book.js` (the book round the page, and what turns on its spiral), `js/notes-cover.js` (its
+front cover, kept apart for decorating later), `js/notes-polaroid.js` (photos
 waiting on the desk), `js/notes-debug.js` (the tap zone overlay),
 `js/notes-view.js` (where the page lies, zoom limits, what a gesture means; pure, tested in
 `tests/notes-view.test.mjs`), `js/notes-model.js` (tags, contents, migration; pure, tested in
@@ -619,37 +620,56 @@ waiting on the desk), `js/notes-debug.js` (the tap zone overlay),
 with real touches in Chromium, and `tests/notes-full.test.mjs` the trip from the panel to the full
 notebook and back in the real app.
 
-- **On its own** (`#/notes`): the whole screen, with no app header or tab bar. One back button goes
-  to the screen before (or the binder, when opened directly). One page at a time, in either
-  orientation: a 4:5 page (1120 × 1400 units) in a spiral-bound book on a wooden desk, with the pencil
-  roll and the tray beside it in landscape, the tray above and the roll below in portrait: orientation
-  alone decides. A short screen folds them into two columns and a narrow one into rows. A ribbon on
-  the book's left edge marks the place and opens the contents; tabs on its right edge turn the pages.
+- **On its own** (`#/notes`): the whole screen, with no app header or tab bar. The book lies closed on
+  the desk, showing its cover with "Field Notes" and the explorer's name; a tap turns the cover up over
+  the spiral, and Back turns it down again before leaving. Opened from the panel beside a card there
+  is no cover: the page grows straight into place, and Back goes straight back to the panel.
+  One page at a time, in either orientation: a 4:5 page (1120 × 1400 units), with the pencil roll and
+  the tray beside the book in landscape, the tray above and the roll below in portrait: orientation
+  alone decides. A short screen folds them into two columns and a narrow one into rows.
 - **The book** (`js/notes-book.js`) lies outside the page: the cover, the coils and the page edges
   all stay inside the desk's margins (`--nb-book-top`, `-bottom`, `-side`), which `bookBox` in
   `js/notes-view.js` leaves round the page whether or not they are drawn, so the canvas is the same size
-  with them as without. On the baseline tablet the page is 592 × 740 in landscape and 740 × 926 in
-  portrait, which fills the room left by the tray and the roll. The stack of page edges below the page
-  shows the pages to come in the list in view, the stack above the spiral the pages turned (`stackDepth`:
-  a list of 12 or more fills it, a short one is a thin book). Zooming happens inside the page's own
-  edges, so the book stays still. Turns flip one snapshot of the page over the spiral with `rotateX`;
-  opening the contents riffles a few plain leaves back to the front, and a page picked there riffles
-  them away, in about 0.4 s. All of it is transform and opacity, and none of it runs with reduced motion.
+  with them as without. On the baseline tablet the page is 585 × 732 in landscape and 708 × 885 in
+  portrait, which fills the room left by the tray, the roll and the tabs. The stack of page edges below the page
+  shows the pages to come, the stack above the spiral the pages turned (`stackDepth`: 12 or more fill
+  it, a short list is a thin book). Zooming happens inside the page's own edges, so the book stays still.
+- **Motion**: the cover turns in 0.8 s and a page in 0.6 s, with one easing, tuned in `css/tokens.css`
+  (`--nb-cover-ms`, `--nb-flip-ms`, `--nb-flip-ease`, `--nb-flip-angle`, `--nb-fade-ms`). A turn stops just
+  past edge-on: further, and it would be off the screen with half its time left. A jump to a distant page
+  (a tab, a contents link) is one flip with the target already underneath, never through the pages
+  between. What turns is never what fades: an element fading is flattened, and shows its front from
+  behind, so its wrap fades instead. With reduced motion a 0.3 s crossfade stands in for every turn.
+- **Index tabs** stick out of the page's right edge: Contents, every animal with pages in the contents'
+  order and its group's colour, then the free pages. The one for the place sits forward. A tap jumps
+  there, to an animal's latest page. Page turns stay within an animal's section; back from its first page
+  is the contents. Where they don't all fit, the nearest show, with "more" for the contents. How they
+  fit is measured (`tabFit`). Beside the page a label always reads across, in two short lines to each
+  language (`js/notes-tabs.js`): a name that won't fit becomes its group's emoji and first word, and a
+  single word too long for the tab breaks in two, so nothing is cut off. Where there is no room beside
+  the page, on phones, a tab is a stub: an initial with its label on press, 44 px wide over the page's
+  edge. Two buttons below them turn the page.
 - **The desk** is one picture behind one token, `--desk-texture` in `css/tokens.css` (with
   `--desk-texture-size` and `--desk-colour`), so it can be swapped, and used for the explorer's desk
   home screen. The placeholder, `img/desk/wood.webp`, is a seamless tile drawn by `scripts/make-desk.mjs`.
   No soft shadows or filters on anything on it: hard offset edges only.
 - **The pencil roll** opens out when the notebook first shows a page (its window and its cloth move
   opposite ways, so only the edge travels; not with reduced motion). Top to bottom: a thickness slider
-  of five notches, the ruler, pencil, pen, highlighter and eraser in their loops (the one in use slid
-  partly out), the colours, and undo, redo and pen or finger as wooden tokens with the sign carved in
-  (worn flat when there is nothing to undo). The colours and slider are for the drawing tool in hand,
-  or the last one: using them brings that tool back to hand. Cyan, yellow and magenta are the
-  highlighter's only; the pencil and pen have nine colours, white among them.
+  of five notches, the ruler, pencil, pen, highlighter and eraser in their loops, the colours, and undo,
+  redo and pen or finger as wooden tokens with the sign carved in (worn flat when there is nothing to
+  undo). The colours and slider are for the drawing tool in hand, or the last one: using them brings
+  that tool back to hand; the eraser has none. Cyan, yellow and magenta are the highlighter's only; the
+  pencil and pen have nine colours, white among them.
+- **The tool in hand** comes out of the roll and lies on the desk at a slight angle, wherever the free
+  desk beside the roll has the room (`deskSpot`, measured from the layout, not the device). Where it
+  doesn't, on phones, it slides partly out of its loop and stays there, raised and highlighted. Tapped
+  on the desk, or at its empty loop, it goes back and the pencil comes out, so a finger always draws
+  something; the pencil itself goes back and stays raised, still in the hand.
 - **The tray** holds, in compartments, the ink pad (tap for the ink colour), the sponge, three stamps:
   ABC (text), the panda (a collected animal: tap to move to the next, long press for the list) and the
-  footprints (tap again for the kind), the tweezers, the washi tape and the pile of Polaroids. ＋ and ⋯
-  sit beside it.
+  footprints (tap again for the kind), the tweezers, the washi tape, the magnifying glass (+, − and
+  back to the whole page, for zooming with no second finger or wheel) and the pile of Polaroids. ＋ and
+  ⋯ sit beside it.
 - **Washi tape**: a drag across the page lays a strip along it, a tap a short one; tapped again in
   the tray it offers four colours. Tweezers move, stretch and turn a strip, and the sponge takes it.
 - **Polaroids**: a tap on the pile opens the device's picker (camera or library). The picture, shrunk
@@ -658,6 +678,11 @@ notebook and back in the real app.
   left on the desk leaves nothing behind; let go off the page, it goes back to its place. Every photo,
   old or new, is drawn in a white frame with washi over its top corners. Beside a card the 📷 button
   puts a photo straight on the page, and it stays selected so it can be placed.
+- **Font**: notebook text (ABC stamp, contents, cover label, tabs) is WildFile Notes: Andika's Latin
+  in two weights, 13 KB each, in `assets/fonts/`. It is Andika subset with `pyftsubset`, and renamed
+  because the OFL reserves that name from modified versions (`OFL-Andika.txt` beside it). Chinese stays
+  in the system font: a subset for the app's own 733 characters would be about 100–400 KB by
+  font, but anything else a child types would fall back and mix styles.
 - **Tap zones**: `?debug=taps` (in a parent's preview, like the other overlays) outlines each one with
   its size, in red if it is under 44 px.
 - **Tweezers**: press a photo, stamp, footprint trail, text or tape to select it and drag it in the same
@@ -670,7 +695,11 @@ notebook and back in the real app.
   tags. In *Pen only* it follows the eraser and takes only the pen, so a resting hand can't wipe.
 - **Stamping**: the stamp comes down on the page with `navigator.vibrate(15)` and a short thunk made
   by Web Audio (`js/fx.js`, no sound file). A tap on bare paper stamps; a tap on something already
-  there selects it, or with ABC edits text. A stamp's box follows its silhouette's shape.
+  there selects it, or with ABC edits text. A stamp's box follows its silhouette's shape. Selected
+  text has a pencil button to edit it, and a double tap on it with the tweezers or a stamp does the same.
+  The button answers the finger lifting, as ✕ does, since the first tap after dragging a handle can come
+  without a click; it only counts a press on itself. All the handles go while two fingers are down, and
+  a finger that had landed on one joins the pinch, so a pinch on small text can't catch one.
 - **Ruler**: it lies on the book, not on a page, so it zooms and pans with the page, stays out when
   it turns, and is never saved or exported. Drag it out of its loop or tap it; tap it there, or drag
   it back, to put it away. One finger moves it. Two fingers both on it turn it, however late the
@@ -684,6 +713,9 @@ notebook and back in the real app.
   when it is clearly in that direction, at least 80 px, and the fingers' distance never changed by 5% or
   12 px, whichever is more: a pinch can't turn the page. A second finger within 200 ms of the first makes a gesture and drops what the
   first had started; later, the line carries on. With a mouse, the wheel pans and ctrl + wheel zooms.
+- **Pen**: a solid line of one width whatever the pressure, drawn as curves through the middles of its
+  segments, so it stays smooth; the file still keeps each point's pressure, and old pen lines draw the
+  same way. The pencil keeps its pressure and grain.
 - **Canvas**: at most 1.5 device pixels per CSS pixel. The page is a cached bitmap: the mark being
   made is on a live layer, and a finished one is added to the bitmap on its own. Eraser redraws go by
   the frame. A highlighter line is multiplied onto the page, drawn as one path: piece by piece its
@@ -724,12 +756,12 @@ notebook and back in the real app.
 - **Opening**: with a card open, the notebook steps through that animal's pages (oldest first),
   starting on the one edited last; "＋" adds a page tagged with it. An animal with no pages gets a
   new page tagged with it, saved only once something goes on it (flicking through cards never makes
-  empty pages, or duplicates). The Field Notes page in the menu, and "All pages", show the
-  **contents**: binder groups with the animals that have pages (page count, a thumbnail of the
-  latest), each page under every animal it is tagged with ("also in" the others), then the free
-  pages and "＋ New free page". Pages never move; the contents is a view of their tags. From a card's
-  notebook, "‹ <animal>" goes back to it. On its own the contents has no roll or tray: back and ⋯
-  share a slim row over a list, a sheet of kraft on the desk, the full width of the screen.
+  empty pages, or duplicates). The Field Notes page in the menu opens on the **contents**, the first
+  pages of the book, on the same paper and read-only, so the roll and the tray are put away: under a
+  tilted heading with a drawn line, binder groups with a text link for each animal that has pages (page
+  count, last edited), then the free pages and "＋ New free page". It flows onto more pages (`paginate`),
+  turned like any other. Beside a card it is the same list, scrolling. Pages never move: the contents
+  is a view of their tags.
 - **Tools**: pencil and pen in 9 colours (white too) and five thicknesses, highlighter (cyan, yellow or
   magenta), ruler, eraser (whole lines of any tool; everything else has its ✕), text, stamps
   (collected cards' silhouettes, or the group emoji), footprint roller (cat paw, hoof, bird, bear),
