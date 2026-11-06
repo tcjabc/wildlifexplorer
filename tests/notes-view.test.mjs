@@ -1,46 +1,35 @@
-// The notebook's view: open pages, fitting, zoom limits and what a gesture means (js/notes-view.js).
+// The notebook's view: where the page lies, fitting, zoom limits and what a gesture means (js/notes-view.js).
 // Run: npm test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { atFit, pinchOpensFull, fullPageBox } from '../js/notes-view.js';
+import { atFit, pinchOpensFull, fullPageBox, bookBox, stackDepth } from '../js/notes-view.js';
 import {
-  slotsFor, fitScale, clampView, pinchView, settleView, swipeTurn, secondFingerCounts, isTap, pixelRatio, MAX_ZOOM, railFit, popPlace, keyboardLift } from '../js/notes-view.js';
+  fitScale, clampView, pinchView, settleView, swipeTurn, secondFingerCounts, isTap, pixelRatio, MAX_ZOOM, railFit, popPlace, keyboardLift } from '../js/notes-view.js';
 
-const ids = ['a', 'b', 'c', 'd', 'e'];
+const page = { pageW: 1120, pageH: 1400 };
+const margins = { top: 40, bottom: 20, side: 12 };
 
-test('a spread pairs pages in list order, whichever of the two is asked for', () => {
-  assert.deepEqual(slotsFor(ids, 0, true), { start: 0, at: 0, slots: ['a', 'b'] });
-  assert.deepEqual(slotsFor(ids, 1, true), { start: 0, at: 1, slots: ['a', 'b'] });
-  assert.deepEqual(slotsFor(ids, 3, true), { start: 2, at: 1, slots: ['c', 'd'] });
+test('the page takes all the room inside the desk\'s margins, in both layouts', () => {
+  assert.deepEqual(bookBox({ w: 832, h: 800, ...margins, ...page }), { width: 592, height: 740, left: 120, top: 40 });
+  assert.deepEqual(bookBox({ w: 800, h: 986, ...margins, ...page }), { width: 740, height: 926, left: 30, top: 40 });
+  const narrow = bookBox({ w: 384, h: 900, ...margins, ...page });
+  assert.equal(narrow.width, 360, 'a phone: the width decides');
+  assert.equal(narrow.top, Math.round(40 + (840 - narrow.height) / 2), 'and it lies in the middle');
 });
 
-test('an odd page out has a blank slot beside it; no pages at all is two blanks', () => {
-  assert.deepEqual(slotsFor(ids, 4, true), { start: 4, at: 0, slots: ['e', null] });
-  assert.deepEqual(slotsFor([], 0, true), { start: 0, at: 0, slots: [null, null] });
-});
-
-test('one page at a time shows just that page, and rotating keeps it open', () => {
-  assert.deepEqual(slotsFor(ids, 3, false), { start: 3, at: 0, slots: ['d'] });
-  const { start, at } = slotsFor(ids, 3, true);
-  assert.equal(start + at, 3);
-  assert.deepEqual(slotsFor([], 0, false).slots, [null]);
-});
-
-test('a position past the end comes back to the last page', () => {
-  assert.equal(slotsFor(ids, 9, false).start, 4);
-  assert.deepEqual(slotsFor(ids, 9, true).slots, ['e', null]);
-});
-
-const page = { pageW: 1000, pageH: 1400 };
-
-test('the page fills the height when width allows, in both layouts', () => {
-  assert.equal(fitScale({ w: 1152, h: 800, pages: 2, ...page }), 800 / 1400);
-  assert.equal(fitScale({ w: 800, h: 1100, ...page }), 1100 / 1400);
-  assert.equal(fitScale({ w: 360, h: 612, ...page }), 360 / 1000); // a phone: the width decides
+test('the stack follows the place in the list, and a short list is a thin book', () => {
+  assert.deepEqual(stackDepth(0, 1), { before: 0, after: 0 });
+  assert.deepEqual(stackDepth(0, 12), { before: 0, after: 1 });
+  assert.deepEqual(stackDepth(11, 12), { before: 1, after: 0 });
+  const mid = stackDepth(5, 30);
+  assert.ok(mid.after > mid.before);
+  assert.ok(Math.abs(mid.before + mid.after - 1) < 1e-9);
+  const thin = stackDepth(0, 3);
+  assert.equal(thin.after, 0.25);
 });
 
 test('beside a card the page takes the width and may run taller', () => {
-  assert.equal(fitScale({ w: 632, h: 300, pad: 16, byWidth: true, ...page }), 0.6);
+  assert.equal(fitScale({ w: 704, h: 300, pad: 16, byWidth: true, ...page }), 0.6);
 });
 
 const frame = { w: 1000, h: 800 }, book = { w: 800, h: 800 };
@@ -77,17 +66,25 @@ test('ending almost at the fitted page snaps back to it', () => {
   assert.equal(settleView({ k: 1.5, x: 0, y: 0 }, frame, book).k, 1.5);
 });
 
-const swipe = { dx: -200, dy: 10, peak: 0.01, zoom: 1 };
+const swipe = { dx: 10, dy: -200, peak: 0.01, zoom: 1 };
 
-test('a clear sideways two-finger swipe turns the page', () => {
+test('in the book a clear two-finger swipe up is the next page, and down the one before', () => {
   assert.equal(swipeTurn(swipe), 1);
-  assert.equal(swipeTurn({ ...swipe, dx: 200 }), -1);
+  assert.equal(swipeTurn({ ...swipe, dy: 200 }), -1);
+  assert.equal(swipeTurn({ ...swipe, dx: -200, dy: 10 }), 0, 'sideways is nothing here');
 });
 
-test('a pinch never turns the page, however far it drifts sideways', () => {
+test('in the panel the same swipe goes sideways', () => {
+  const side = { ...swipe, dx: -200, dy: 10, axis: 'x' };
+  assert.equal(swipeTurn(side), 1);
+  assert.equal(swipeTurn({ ...side, dx: 200 }), -1);
+  assert.equal(swipeTurn({ ...side, dx: 10, dy: -200 }), 0, 'up and down pans there');
+});
+
+test('a pinch never turns the page, however far it drifts', () => {
   assert.equal(swipeTurn({ ...swipe, peak: 0.05 }), 0);
   assert.equal(swipeTurn({ ...swipe, peak: 0.3 }), 0);
-  assert.equal(swipeTurn({ ...swipe, dx: -600, dy: 0, peak: 0.06 }), 0);
+  assert.equal(swipeTurn({ ...swipe, dx: 0, dy: -600, peak: 0.06 }), 0);
 });
 
 test('close fingers may wander by 12 px; wide ones by 5%', () => {
@@ -101,8 +98,8 @@ test('close fingers may wander by 12 px; wide ones by 5%', () => {
 });
 
 test('a short, slanted or zoomed-in swipe does not turn the page', () => {
-  assert.equal(swipeTurn({ ...swipe, dx: -79 }), 0);
-  assert.equal(swipeTurn({ ...swipe, dx: -200, dy: 100 }), 0);
+  assert.equal(swipeTurn({ ...swipe, dy: -79 }), 0);
+  assert.equal(swipeTurn({ ...swipe, dx: 100, dy: -200 }), 0);
   assert.equal(swipeTurn({ ...swipe, zoom: 1.5 }), 0);
 });
 
@@ -155,18 +152,9 @@ test('a pinch opens the full notebook only from the fitted page, and only from 1
   assert.equal(atFit(1.2), false);
 });
 
-test('a page lands on its side of the spread between the rails, or alone between the bands', () => {
-  const land = { w: 1280, h: 800, rail: 68, tall: 1.4 };
-  const left = fullPageBox(land), right = fullPageBox({ ...land, right: true });
-  assert.equal(left.height, 800);
-  assert.ok(Math.abs(left.width - 800 / 1.4) < 0.01);
-  assert.equal(left.left + left.width, 640);
-  assert.equal(right.left, 640);
-  const up = fullPageBox({ w: 800, h: 1280, rail: 80, tall: 1.4 });
-  assert.equal(up.width, 800);
-  assert.equal(up.left, 0);
-  assert.equal(up.top, (1280 - 1120) / 2);
-  const wide = fullPageBox({ w: 1000, h: 800, rail: 68, tall: 1.4 });
-  assert.equal(wide.width, 432, 'a screen too narrow for the full height');
-  assert.equal(wide.top, (800 - 432 * 1.4) / 2);
+test('a page lands on the desk between the roll and the tray, or between the tray and the roll', () => {
+  const land = fullPageBox({ w: 1280, h: 800, roll: 224, tray: 224, ...margins, ...page });
+  assert.deepEqual(land, { width: 592, height: 740, left: 344, top: 40 });
+  const up = fullPageBox({ w: 800, h: 1280, roll: 170, tray: 124, ...margins, ...page });
+  assert.deepEqual(up, { width: 740, height: 926, left: 30, top: 164 });
 });

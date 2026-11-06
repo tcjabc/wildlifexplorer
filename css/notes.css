@@ -72,6 +72,10 @@
 [data-hl="cyan"]         { --pencil: var(--hl-cyan); }
 [data-hl="yellow"]       { --pencil: var(--hl-yellow); }
 [data-hl="magenta"]      { --pencil: var(--hl-magenta); }
+[data-washi="yellow"]    { --pencil: var(--nb-washi-yellow); }
+[data-washi="green"]     { --pencil: var(--nb-washi-green); }
+[data-washi="blue"]      { --pencil: var(--nb-washi-blue); }
+[data-washi="red"]       { --pencil: var(--nb-washi-red); }
 .nb-colour[data-colour="white"], .nb-swatch[data-colour="white"] { border-color: var(--c-line); }
 .nb-size { display: block; border-radius: 50%; background: var(--c-ink); }
 .nb-size--thin { width: var(--s-2); height: var(--s-2); }
@@ -102,15 +106,6 @@
 .nb-pop .nb-colour { width: var(--tap-xs); height: var(--tap-xs); }
 .nb-pop--three { grid-template-columns: repeat(3, var(--tap-xs)); } /* the nine colours */
 .nb-pop--three.nb-pop--feet { grid-template-columns: repeat(4, var(--tap-xs)); }
-.nb-pop__sizes { grid-column: 1 / -1; display: flex; gap: var(--s-2); }
-.nb-thick {
-  flex: 1; display: grid; place-items: center; height: var(--tap-xs); padding: 0;
-  border: var(--bw-thin) solid var(--c-line); border-radius: var(--r-sm); background: none; cursor: pointer; touch-action: manipulation;
-}
-.nb-thick[aria-pressed="true"] { border-color: var(--c-primary); background: var(--c-good-soft); }
-.nb-thick__line { display: block; width: 70%; border-radius: var(--r-pill); background: var(--c-ink); }
-.nb-thick__line--thin { height: var(--s-1); }
-.nb-thick__line--thick { height: var(--s-3); }
 /* Narrow notebooks: smaller page buttons in the bar. */
 @container (max-width: 520px) {
   .nb__bar { gap: var(--s-1); padding: var(--s-1) var(--s-2); }
@@ -130,9 +125,10 @@
 .nb[data-toolbar="compact"] .nb-input { justify-content: center; width: var(--tap-xs); min-height: var(--tap-xs); padding: 0; }
 .nb[data-toolbar="compact"] .nb-input .bi { display: none; }
 
-/* The desk (kraft) and the book on it. js/notebook.js places the book with a transform: two
-   books, in fact, the pages under the canvases and what sits on them over. */
-.nb__deskwrap { position: relative; z-index: 1; flex: 1; min-width: 0; min-height: 0; }
+/* The page and what is around it. js/notebook.js places the page with a transform: two layers, in
+   fact, the page under the canvases and what sits on it over. */
+.nb__deskwrap { position: relative; z-index: 1; flex: 1; min-width: 0; min-height: 0; touch-action: none; }
+.nb-bk { position: absolute; inset: 0; }
 .nb__desk { position: absolute; inset: 0; overflow: hidden; touch-action: none; cursor: crosshair; }
 .nb__desk canvas { touch-action: none; }
 .nb__book { position: absolute; left: 0; top: 0; display: flex; transform-origin: 0 0; pointer-events: none; }
@@ -151,108 +147,190 @@
 .nb__overlay > * { pointer-events: auto; }
 .nb__overlay > .nb__sel-layer { position: absolute; inset: 0; pointer-events: none; }
 .nb__sel-layer > * { pointer-events: auto; }
-/* An open spread: the pages meet at the fold. */
-.nb__fold { display: none; }
-.nb[data-orient="landscape"] .nb__sheet:first-child { border-radius: var(--r-sm) 0 0 var(--r-sm); }
-.nb[data-orient="landscape"] .nb__sheet:nth-child(2) { border-radius: 0 var(--r-sm) var(--r-sm) 0; }
-.nb[data-orient="landscape"] .nb__fold {
-  display: block; position: absolute; top: 0; bottom: 0; left: 50%; width: var(--s-6); margin-left: calc(var(--s-6) / -2);
-  background: linear-gradient(90deg, transparent, var(--c-shade-faint), transparent);
-}
+/* Beside a card there is no book: the parts of it stay out of the way. */
+.nb--beside :is(.nb-bk__cover, .nb-bk__after, .nb-bk__before, .nb-bk__stub, .nb-bk__spiral, .nb-bk__turn) { display: none; }
 
-/* On its own the notebook is the whole screen. Landscape: rails at the sides, on any screen.
-   Portrait: bands above and below the page, the same objects laid flat. data-rails (js/notes-view.js
-   railFit) folds them where there is little room: "short" into two columns (a phone's spread is
-   narrower than the width anyway), "narrow" into two rows (a phone's page is shorter than the height). */
+/* On its own the notebook is the whole screen, on the desk. Landscape: the roll and the tray beside
+   the book. Portrait: the tray above it and the roll below. data-rails (js/notes-view.js railFit) folds
+   them where there is little room: "short" into two columns, "narrow" into rows. */
 .nb--immersive {
   display: grid;
-  grid-template: "start stage end" minmax(0, 1fr) / var(--nb-rail) minmax(0, 1fr) var(--nb-rail);
-  --nb-pouch-len: calc(var(--nb-tool-raise) + var(--nb-tool-pitch) * 5 + var(--nb-pouch-h));
+  grid-template: "start stage end" minmax(0, 1fr) / var(--nb-roll-w) minmax(0, 1fr) var(--nb-tray-w);
+  background: var(--desk-colour) var(--desk-texture) 0 0 / var(--desk-texture-size);
+  color: var(--nb-line);
 }
 .nb--immersive[data-orient="portrait"] {
-  grid-template: "start" auto "stage" minmax(0, 1fr) "end" auto / minmax(0, 1fr);
+  grid-template: "end" var(--nb-tray-band) "stage" minmax(0, 1fr) "start" var(--nb-roll-band) / minmax(0, 1fr);
 }
-.nb--immersive[data-rails="short"] {
-  grid-template-columns: var(--nb-rail-wide) minmax(0, 1fr) var(--nb-rail-wide);
-  --nb-pouch-h: var(--s-7); --nb-stamp-w: var(--tap);
-}
-.nb--immersive[data-rails="narrow"] { --nb-pouch-h: var(--s-7); --nb-stamp-w: var(--tap-xs); }
-.nb__rail { display: flex; flex-direction: column; align-items: center; gap: var(--s-1); min-width: 0; min-height: 0; padding: var(--s-2) 0; }
+.nb--immersive[data-rails="short"] { grid-template-columns: var(--nb-fold-w) minmax(0, 1fr) var(--nb-fold-w); --nb-book-top: 34px; --nb-book-bottom: 14px; --nb-stack: 8px; --nb-tool-len: 84px; --nb-tool-w: 20px; --nb-loop-pitch: var(--tap-xs); --nb-token: var(--tap-xs); --nb-tool-in: 8px; --nb-tool-out: -2px; }
+.nb--immersive[data-rails="narrow"] { grid-template-rows: auto minmax(0, 1fr) auto; --nb-loop-pitch: var(--tap-xs); --nb-token: var(--tap-xs); --nb-roll-end-w: 10px; }
+.nb__rail { position: relative; z-index: 2; min-width: 0; min-height: 0; }
 .nb__rail--start { grid-area: start; }
 .nb__rail--end { grid-area: end; }
 .nb--immersive .nb__deskwrap, .nb--immersive .nb__contents { grid-area: stage; }
-.nb--immersive[data-orient="portrait"] .nb__rail { flex-direction: row; min-height: var(--nb-rail-band); padding: 0 var(--s-2); }
+.nb--immersive .nb__back { position: absolute; z-index: 3; left: var(--s-3); top: var(--s-2); background: var(--nb-cover); color: var(--c-on-primary); box-shadow: none; border: var(--bw-mid) solid var(--nb-line); }
+.nb--immersive .nb__rail .btn { background: var(--nb-cover); color: var(--c-on-primary); box-shadow: none; border: var(--bw-mid) solid var(--nb-line); }
 
-/* The foot of the left rail: the camera for now, undo, redo, pen or finger. */
-.nb__railfoot { flex: none; display: flex; flex-direction: column; align-items: center; gap: var(--s-1); margin-top: auto; color: var(--nb-kraft-ink); }
-.nb__railfoot .nb-tool { width: var(--tap-xs); height: var(--tap-xs); }
-.nb__railfoot .nb-input { justify-content: center; width: var(--tap-xs); min-height: var(--tap-xs); padding: 0; background: none; border: 0; }
-/* Undo, redo and pen or finger are wooden tokens. With nothing to undo, the sign is worn flat. */
-.nb__railfoot .nb-token { padding: 0; border: 0; }
-.nb__railfoot .nb-token:disabled { opacity: 1; }
-.nb__railfoot .nb-token:disabled .nb-l-carve { stroke: var(--nb-wood-dark); }
-.nb[data-orient="portrait"] .nb__railfoot { flex-direction: row; margin: 0 0 0 auto; }
-.nb[data-rails="short"] .nb__rail--start {
-  display: grid; align-items: start; justify-items: center;
-  grid-template: "back foot" auto "pouch foot" minmax(0, 1fr) / var(--nb-rail) minmax(0, 1fr);
+/* The book, round the page and never over it. Flat: hard edges, no blur. */
+.nb--immersive .nb__sheet { border-radius: 0; box-shadow: none; }
+.nb--immersive .nb__desk:not([data-zoomed]) { overflow: visible; } /* the handles of something at the page's edge */
+.nb--immersive .nb-bk { inset: auto; }
+.nb-bk__cover {
+  position: absolute; top: calc(var(--nb-book-top) * -1); bottom: calc(var(--nb-book-bottom) * -1); left: calc(var(--nb-book-side) * -1); right: calc(var(--nb-book-side) * -1);
+  border: var(--bw-mid) solid var(--nb-line); border-radius: var(--r-sm);
+  background: var(--nb-cover); box-shadow: 0 var(--s-1) 0 var(--nb-line);
 }
-.nb[data-rails="short"] .nb__back { grid-area: back; width: var(--tap-xs); height: var(--tap-xs); min-width: var(--tap-xs); min-height: var(--tap-xs); }
-.nb[data-rails="short"] .nb__pouch { grid-area: pouch; }
-.nb[data-rails="short"] .nb__railfoot { grid-area: foot; margin: 0; }
-.nb[data-rails="narrow"] .nb__rail--start { flex-wrap: wrap; padding-top: var(--s-1); }
-.nb[data-rails="narrow"] .nb__railfoot { flex-basis: 100%; justify-content: flex-end; }
+/* Page edges: a strip the height of the deepest stack, slid out from under the page as far as there are
+   pages (--nb-after, --nb-before), so a turn only moves it. */
+.nb-bk__after, .nb-bk__before {
+  position: absolute; left: var(--s-hair); right: var(--s-hair);
+  background: repeating-linear-gradient(0deg, var(--nb-edge) 0 var(--s-hair), var(--nb-edge-line) var(--s-hair) calc(var(--s-hair) + var(--bw-hair)));
+  border: var(--bw-hair) solid var(--nb-line); transition: transform var(--t-med) ease-out;
+}
+.nb-bk__after { top: calc(100% - var(--nb-stack)); height: var(--nb-stack); border-top: 0; transform: translateY(calc(var(--nb-after, 0) * var(--nb-stack))); }
+.nb-bk__before { bottom: calc(100% + var(--nb-stub-h)); height: var(--nb-stack-up); border-bottom: 0; transform: translateY(calc((1 - var(--nb-before, 0)) * var(--nb-stack-up))); }
+.nb-bk__stub { position: absolute; left: 0; right: 0; bottom: 100%; height: var(--nb-stub-h); background: var(--nb-paper); border-bottom: var(--bw-hair) dashed var(--nb-dot); }
+.nb-bk__spiral { position: absolute; left: 0; right: 0; bottom: calc(100% - var(--s-1)); pointer-events: none; }
+/* A leaf in the air: the page's picture on its front, plain paper on its back. */
+.nb-bk__turn { position: absolute; inset: 0; perspective: var(--nb-turn-depth); perspective-origin: 50% 0; pointer-events: none; }
+.nb-leaf { position: absolute; inset: 0; transform-origin: 50% 0; transform-style: preserve-3d; }
+.nb-leaf__face, .nb-leaf__back { position: absolute; inset: 0; width: 100%; height: 100%; display: block; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.nb-leaf__face--paper, .nb-leaf__back { background: var(--nb-paper); border: var(--bw-hair) solid var(--nb-edge-line); }
+.nb-leaf__back { transform: rotateX(180deg); }
+.nb--immersive .nb__deskwrap { z-index: 3; } /* a leaf goes over the tray on its way up */
 
-/* The pouch stands in a rail, or lies on its side in a band: the same drawing a quarter turned, its
-   mouth to the right. Back, tools, front, in that order; each tool is a row of the rail to tap. */
+/* The pencil roll: canvas, with the rolled-up end still at its edge. Its window and its cloth move
+   opposite ways to open it (js/notebook.js unroll). */
 .nb-art { display: block; overflow: visible; pointer-events: none; }
-.nb__pouch { position: relative; flex: none; width: var(--nb-rail); height: var(--nb-pouch-len); }
-.nb__pouch-in { position: absolute; left: 0; top: 0; width: var(--nb-rail); height: var(--nb-pouch-len); }
-.nb[data-orient="portrait"] .nb__pouch { width: var(--nb-pouch-len); height: var(--nb-rail); }
-.nb[data-orient="portrait"] .nb__pouch-in { transform-origin: 0 0; transform: translateX(var(--nb-pouch-len)) rotate(90deg); }
-.nb__pouch-back, .nb__pouch-front {
-  position: absolute; left: 0; right: 0; bottom: 0; pointer-events: none;
-  top: calc(var(--nb-tool-raise) + var(--nb-tool-pitch) * 5 - var(--nb-pouch-mouth));
+.nb__rail--start { padding: calc(var(--tap) + var(--s-3)) var(--s-3) var(--s-2); display: flex; align-items: flex-start; justify-content: center; }
+.nb-roll {
+  position: relative; flex: 1; min-width: 0; overflow: hidden;
+  border: var(--bw-mid) solid var(--nb-line); border-radius: var(--r-sm);
+  background: var(--nb-roll); box-shadow: 0 var(--s-1) 0 var(--nb-line);
 }
-.nb__pouch-front { z-index: 7; }
-.nb-pouch__art { width: 100%; height: 100%; overflow: hidden; }
+.nb-roll__cloth {
+  display: grid; gap: var(--s-2); padding: var(--s-2) var(--s-2) calc(var(--nb-roll-end-w) + var(--s-3));
+  grid-template: "size" auto "loops" auto "colours" auto "foot" auto / minmax(0, 1fr);
+  outline: var(--bw-thin) dashed var(--nb-stitch); outline-offset: calc(var(--s-1) * -1);
+}
+.nb-roll__end {
+  position: absolute; left: 0; right: 0; bottom: 0; height: var(--nb-roll-end-w);
+  border-top: var(--bw-mid) solid var(--nb-line);
+  background: repeating-linear-gradient(0deg, var(--nb-roll-end) 0 var(--s-1), var(--nb-roll-dark) var(--s-1) var(--s-2));
+}
+.nb-roll__size { grid-area: size; display: flex; align-items: center; gap: var(--s-1); padding: 0 var(--s-1); }
+.nb-roll__dot { flex: none; width: var(--s-1); height: var(--s-1); border-radius: 50%; background: var(--tool-c, var(--pencil-graphite)); }
+.nb-roll__dot--big { width: var(--s-3); height: var(--s-3); }
+.nb-slider { flex: 1; min-width: 0; height: var(--tap-xs); margin: 0; padding: 0; background: none; -webkit-appearance: none; appearance: none; cursor: pointer; touch-action: none; }
+.nb-slider::-webkit-slider-runnable-track { height: var(--s-2); border: var(--bw-thin) solid var(--nb-line); border-radius: var(--r-pill); background: var(--nb-roll-dark); }
+.nb-slider::-webkit-slider-thumb { -webkit-appearance: none; width: var(--tap-xs); height: var(--tap-xs); margin-top: calc((var(--s-2) - var(--tap-xs)) / 2 - var(--bw-thin)); border: var(--bw-mid) solid var(--nb-line); border-radius: 50%; background: var(--nb-wood); }
+.nb-slider::-moz-range-track { height: var(--s-2); border: var(--bw-thin) solid var(--nb-line); border-radius: var(--r-pill); background: var(--nb-roll-dark); }
+.nb-slider::-moz-range-thumb { width: var(--tap-xs); height: var(--tap-xs); border: var(--bw-mid) solid var(--nb-line); border-radius: 50%; background: var(--nb-wood); }
+.nb-roll__loops { grid-area: loops; display: flex; flex-direction: column; }
+/* Each tool in its loop: a row to tap, the tool lying with its tip to the page. Standing, in a band. */
 .nb-pt {
-  position: absolute; left: 0; width: 100%; height: var(--nb-tool-pitch); padding: 0; border: 0; background: none;
-  top: calc(var(--nb-tool-raise) + var(--nb-tool-pitch) * var(--row)); z-index: calc(var(--row) + 1);
-  cursor: pointer; touch-action: manipulation;
+  position: relative; flex: none; width: 100%; height: var(--nb-loop-pitch); padding: 0; border: 0; background: none; overflow: hidden;
+  cursor: pointer; touch-action: manipulation; --nb-tool-turn: 90deg;
 }
 .nb-pt > .nb-art {
-  position: absolute; left: 0; top: 0; transform-origin: 50% 100%;
-  transform: rotate(var(--tilt)); transition: transform var(--t-fast) var(--ease-bounce);
+  position: absolute; left: 50%; top: 50%; width: var(--nb-tool-w); height: var(--nb-tool-len);
+  margin: calc(var(--nb-tool-len) / -2) 0 0 calc(var(--nb-tool-w) / -2);
+  transform: rotate(var(--nb-tool-turn)) translateY(var(--nb-tool-in)); transition: transform var(--t-fast) var(--ease-bounce);
 }
-.nb-pt[data-pt="ruler"]       { --row: 0; --tilt: 1deg; touch-action: none; }
-.nb-pt[data-pt="pencil"]      { --row: 1; --tilt: 1deg; }
-.nb-pt[data-pt="pen"]         { --row: 2; --tilt: -1.5deg; }
-.nb-pt[data-pt="highlighter"] { --row: 3; --tilt: 1.5deg; }
-.nb-pt[data-pt="eraser"]      { --row: 4; --tilt: 0deg; }
-.nb-pt[data-raised] > .nb-art { transform: translateY(calc(var(--nb-tool-raise) * -1)) rotate(var(--tilt)); }
+.nb-pt[data-raised] > .nb-art { transform: rotate(var(--nb-tool-turn)) translateY(var(--nb-tool-out)); }
 .nb-pt[data-out] > .nb-art { opacity: 0.25; } /* the ruler is out on the page */
+.nb-pt[data-pt="ruler"] { touch-action: none; }
+.nb-pt__loop {
+  position: absolute; top: var(--s-hair); bottom: var(--s-hair); left: 26%; width: var(--nb-loop-w); pointer-events: none;
+  border: var(--bw-thin) solid var(--nb-line); border-radius: var(--s-1); background: var(--nb-roll-dark);
+}
+/* The colours for the tool in hand. */
+.nb-roll__colours { grid-area: colours; display: flex; flex-wrap: wrap; justify-content: center; align-content: center; gap: var(--s-1); min-height: calc(var(--tap-xs) * 3 + var(--s-1) * 2); }
+.nb-roll__colours .nb-colour { width: var(--tap-xs); height: var(--tap-xs); border-color: var(--nb-line); box-shadow: none; }
+.nb-roll__colours .nb-colour[aria-pressed="true"] { outline-color: var(--nb-line); outline-offset: var(--s-hair); }
+/* Undo, redo, pen or finger: wooden tokens. With nothing to undo, the sign is worn flat. */
+.nb__railfoot { grid-area: foot; display: flex; justify-content: center; align-items: center; gap: var(--s-2); color: var(--nb-kraft-ink); }
+.nb__railfoot :is(.nb-tool, .nb-input) { width: var(--nb-token); height: var(--nb-token); min-height: var(--nb-token); justify-content: center; padding: 0; border: 0; background: none; }
+.nb__railfoot .nb-token .nb-art { width: 100%; height: 100%; }
+.nb__railfoot .nb-token:disabled { opacity: 1; }
+.nb__railfoot .nb-token:disabled .nb-l-carve { stroke: var(--nb-wood-dark); }
 
-/* The ink pad and the stamps, with room for the Polaroid. */
-.nb__rack { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--s-3); }
-.nb[data-orient="portrait"] .nb__rack { flex-direction: row; }
-.nb[data-rails="narrow"] .nb__rack { flex-wrap: wrap; gap: var(--s-1); padding: var(--s-1) 0; }
-/* Short: new page and the menu side by side, so the rack has the rest of the height. */
-.nb[data-rails="short"] .nb__rail--end { display: grid; justify-items: center; grid-template: "new menu" auto "rack rack" minmax(0, 1fr) / minmax(0, 1fr) minmax(0, 1fr); }
-.nb[data-rails="short"] .nb__new { grid-area: new; }
-.nb[data-rails="short"] .nb__rack { grid-area: rack; }
-.nb[data-rails="short"] .nb__rack { display: grid; grid-template-columns: repeat(2, var(--nb-stamp-w)); align-content: center; gap: var(--s-1); }
-.nb-rack { position: relative; flex: none; width: var(--nb-stamp-w); padding: 0; border: 0; background: none; cursor: pointer; touch-action: manipulation; }
-.nb-rack--ink, .nb-rack[data-rack="sponge"], .nb-rack[data-rack="tweezers"] { display: grid; place-items: center; min-height: var(--tap-xs); }
-.nb-rack > .nb-art { width: 100%; height: auto; transition: transform var(--t-fast) var(--ease-bounce); }
+.nb[data-orient="portrait"] .nb__rail--start { padding: var(--s-1) var(--s-2) var(--s-2); }
+.nb[data-orient="portrait"] .nb-roll { align-self: stretch; }
+.nb[data-orient="portrait"] .nb-roll__cloth {
+  height: 100%; padding: var(--s-2) calc(var(--nb-roll-end-w) + var(--s-3)) var(--s-2) var(--s-2);
+  grid-template: "loops size foot" auto "loops colours colours" minmax(0, 1fr) / auto minmax(0, 1fr) auto;
+  --nb-tool-len: 112px; --nb-tool-w: 27px; --nb-tool-in: 16px; --nb-tool-out: -4px;
+}
+.nb[data-orient="portrait"] .nb-roll__end {
+  left: auto; top: 0; right: 0; bottom: 0; width: var(--nb-roll-end-w); height: auto; border-top: 0; border-left: var(--bw-mid) solid var(--nb-line);
+  background: repeating-linear-gradient(90deg, var(--nb-roll-end) 0 var(--s-1), var(--nb-roll-dark) var(--s-1) var(--s-2));
+}
+.nb[data-orient="portrait"] .nb-roll__loops { flex-direction: row; }
+.nb[data-orient="portrait"] .nb-pt { width: var(--nb-loop-pitch); height: 100%; --nb-tool-turn: 0deg; }
+.nb[data-orient="portrait"] .nb-pt__loop { top: 54%; bottom: auto; left: var(--s-hair); right: var(--s-hair); width: auto; height: var(--nb-loop-w); }
+.nb[data-orient="portrait"] .nb-roll__colours { min-height: var(--tap-xs); justify-content: flex-start; }
+.nb[data-rails="short"] .nb__rail--start { padding: calc(var(--tap-xs) + var(--s-3)) var(--s-2) var(--s-2); }
+.nb[data-rails="short"] .nb-roll__cloth { grid-template: "loops size" auto "loops colours" minmax(0, 1fr) "loops foot" auto / minmax(0, 1fr) auto; }
+.nb[data-rails="short"] .nb-roll__colours { width: calc(var(--tap-xs) * 3 + var(--s-1) * 2); }
+.nb[data-rails="short"] .nb__back, .nb[data-rails="narrow"] .nb__back { width: var(--tap-xs); height: var(--tap-xs); min-width: var(--tap-xs); min-height: var(--tap-xs); }
+.nb--immersive[data-rails="narrow"] .nb-roll__cloth { grid-template: "loops size" auto "loops foot" auto "colours colours" auto / auto minmax(0, 1fr); gap: var(--s-1); padding: var(--s-1) calc(var(--nb-roll-end-w) + var(--s-1)) var(--s-1) var(--s-1); --nb-tool-len: 84px; --nb-tool-w: 20px; --nb-tool-in: 12px; --nb-tool-out: -4px; }
+.nb[data-rails="narrow"] .nb__railfoot { gap: 0; }
+.nb[data-rails="narrow"] .nb-roll__dot { display: none; }
+.nb[data-rails="narrow"] .nb__rail--start { padding: var(--s-1) var(--s-1) var(--s-2); }
+
+/* The field-kit tray: a wooden box of compartments. */
+.nb__rail--end { display: grid; grid-template: "new menu" auto "tray tray" minmax(0, 1fr) / auto auto; justify-content: space-between; align-content: start; gap: var(--s-2); padding: var(--s-2) var(--s-3); }
+.nb__rail--end .nb__new { grid-area: new; }
+.nb__rail--end .nb__menu { grid-area: menu; }
+.nb-tray {
+  grid-area: tray; align-self: start; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-1); padding: var(--s-2);
+  border: var(--bw-mid) solid var(--nb-line); border-radius: var(--r-sm);
+  background: var(--nb-wood); box-shadow: 0 var(--s-1) 0 var(--nb-line);
+}
+.nb[data-orient="portrait"] .nb__rail--end { grid-template: "tray new" minmax(0, 1fr) "tray menu" minmax(0, 1fr) / minmax(0, 1fr) auto; margin-left: calc(var(--tap) + var(--s-3)); gap: var(--s-1) var(--s-2); padding: var(--s-2) var(--s-3) var(--s-2) var(--s-2); align-content: stretch; }
+.nb[data-orient="portrait"] .nb__rail--end .btn--icon { width: var(--tap-xs); height: var(--tap-xs); min-width: var(--tap-xs); min-height: var(--tap-xs); }
+.nb[data-orient="portrait"] .nb-tray { align-self: stretch; grid-template-columns: repeat(8, minmax(0, 1fr)); }
+.nb[data-rails="short"] .nb__rail--end { padding-top: var(--s-1); gap: var(--s-1); }
+.nb[data-rails="short"] .nb__rail--end .btn--icon { width: var(--tap-xs); height: var(--tap-xs); min-width: var(--tap-xs); min-height: var(--tap-xs); }
+.nb[data-rails="short"] .nb-tray { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.nb[data-rails="narrow"] .nb__rail--end { margin-left: 0; grid-template: ". new menu" auto "tray tray tray" auto / minmax(0, 1fr) auto auto; padding: var(--s-1) var(--s-2); }
+.nb[data-rails="narrow"] .nb-tray { grid-template-columns: repeat(8, minmax(0, 1fr)); padding: var(--s-1); gap: var(--s-hair); }
+.nb-rack {
+  position: relative; min-width: var(--tap-xs); min-height: var(--tap-xs); padding: var(--s-1); display: grid; place-items: center;
+  border: var(--bw-thin) solid var(--nb-line); border-radius: var(--s-1); background: var(--nb-tray-well);
+  cursor: pointer; touch-action: manipulation;
+}
+.nb-rack > .nb-art { width: 100%; max-width: var(--tap); height: auto; transition: transform var(--t-fast) var(--ease-bounce); }
 .nb-rack[data-raised] > .nb-art { transform: translateY(calc(var(--nb-stamp-lift) * -1)); }
-.nb__rack-room { flex: none; width: var(--nb-stamp-w); aspect-ratio: 1; }
+.nb-rack[data-raised] { background: var(--nb-wood-light); }
 /* The animal on the panda stamp, on its block. */
 .nb-rack__tag {
-  position: absolute; left: 50%; top: 58%; width: 60%; height: 25%; transform: translateX(-50%);
+  position: absolute; left: 50%; top: 58%; width: 44%; height: 22%; transform: translateX(-50%);
   display: grid; place-items: center; overflow: hidden; pointer-events: none; font-size: var(--fs-sm); line-height: 1;
 }
 .nb-rack[data-raised] .nb-rack__tag { margin-top: calc(var(--nb-stamp-lift) * -1); }
 .nb-rack__tag img { width: 100%; height: 100%; object-fit: contain; }
+.nb-colour--washi { width: var(--tap-xs); height: var(--tap-xs); border-radius: var(--r-sm); }
+
+/* A Polaroid waiting on the desk (js/notes-polaroid.js): white frame, deep at the foot. */
+.nb-polaroid {
+  position: absolute; z-index: 6; width: var(--nb-polaroid-w); padding: var(--s-2) var(--s-2) var(--s-6);
+  border: var(--bw-thin) solid var(--nb-line); background: var(--nb-photo-edge); box-shadow: 0 var(--s-1) 0 var(--nb-line);
+  touch-action: none; cursor: grab;
+}
+.nb-polaroid[data-held] { z-index: 7; cursor: grabbing; }
+.nb-polaroid__window { position: relative; display: block; }
+.nb-polaroid__pic { display: block; width: 100%; height: auto; }
+.nb-polaroid__blank { position: absolute; inset: 0; background: var(--nb-photo-blank); pointer-events: none; }
+
+/* ?debug=taps: the size of every tap zone (js/notes-debug.js). */
+.nb-taps { position: absolute; inset: 0; z-index: 8; pointer-events: none; }
+.nb-taps__zone {
+  position: absolute; display: grid; place-items: center; overflow: hidden; border: var(--bw-hair) solid var(--c-good, var(--c-primary));
+  background: var(--c-shine-faint); color: var(--c-ink); font-size: var(--fs-xs); font-weight: var(--fw-bold);
+}
+.nb-taps__zone--small { border-color: var(--c-bad); border-width: var(--bw-thin); color: var(--c-bad); }
 
 /* What the drawings are made of. */
 .nb-a-tint { fill: var(--tool-c, var(--pencil-graphite)); }
@@ -273,11 +351,16 @@
 .nb-a-rubber-shade { fill: var(--nb-rubber-shade); }
 .nb-a-sleeve { fill: var(--nb-sleeve); }
 .nb-a-sleeve-band { fill: var(--nb-sleeve-band); }
-.nb-a-pouch { fill: var(--nb-pouch); }
-.nb-a-pouch-dark { fill: var(--nb-pouch-dark); }
-.nb-a-pouch-light { fill: var(--nb-pouch-light); }
-.nb-a-pouch-inside { fill: var(--nb-pouch-inside); }
-.nb-a-zip-tape { fill: var(--nb-zip); }
+.nb-a-washi { fill: var(--washi-c, var(--nb-washi-yellow)); }
+.nb-a-washi-edge { fill: var(--nb-line); }
+.nb-a-washi-core { fill: var(--nb-edge); }
+.nb-a-washi-hole { fill: var(--nb-tray-well); }
+.nb-a-polaroid { fill: var(--nb-photo-edge); }
+.nb-a-polaroid-line { fill: var(--nb-line); }
+.nb-a-polaroid-blank { fill: var(--nb-photo-blank); }
+.nb-a-polaroid-sky { fill: var(--nb-polaroid-sky); }
+.nb-a-polaroid-leaf { fill: var(--nb-polaroid-leaf); }
+.nb-a-coil-hole { fill: var(--nb-coil-hole); }
 .nb-a-tin { fill: var(--nb-tin); }
 .nb-a-tin-rim { fill: var(--nb-tin-rim); }
 .nb-a-panda { fill: var(--nb-panda); }
@@ -290,8 +373,8 @@
 .nb-a-digit { fill: var(--nb-ruler-ink); font-family: var(--font); font-size: 26px; font-weight: var(--fw-bold); }
 [class^="nb-l-"] { fill: none; stroke-linecap: round; stroke-linejoin: round; }
 .nb-l-tick { stroke: var(--nb-ruler-ink); stroke-width: 1; }
-.nb-l-zip-teeth { stroke: var(--nb-zip-teeth); stroke-width: 4; stroke-dasharray: 2 3; stroke-linecap: butt; }
-.nb-l-stitch { stroke: var(--nb-stitch); stroke-width: 1.5; stroke-dasharray: 4 4; }
+.nb-l-coil-line { stroke: var(--nb-line); stroke-width: 5.5; }
+.nb-l-coil { stroke: var(--nb-coil); stroke-width: 2.5; }
 .nb-l-felt { stroke: var(--nb-tool-shade); stroke-width: 1.5; stroke-dasharray: 2 4; }
 .nb-l-carve { stroke: var(--nb-carve); stroke-width: 2.4; }
 .nb-l-panda-mouth { stroke: var(--nb-panda-dark); stroke-width: 1.6; }
@@ -310,29 +393,32 @@
 .nb__sel-layer > .nb-wipe { position: absolute; pointer-events: none; }
 /* Tweezers pick things up. */
 .nb[data-tool="tweezers"] .nb__desk { cursor: grab; }
-/* The panel growing into the full notebook: kraft and the page, over everything until it is drawn. */
+/* The panel growing into the full notebook: the desk and the page, over everything until it is drawn. */
 .nb-grow { position: fixed; inset: 0; z-index: var(--z-grow); overflow: hidden; pointer-events: none; }
-.nb-grow__back { position: absolute; inset: 0; transform-origin: 0 0; background: var(--nb-kraft); }
-.nb-grow__page { position: absolute; transform-origin: 0 0; box-shadow: var(--shadow-3); }
+.nb-grow__back { position: absolute; inset: 0; transform-origin: 0 0; background: var(--desk-colour) var(--desk-texture) 0 0 / var(--desk-texture-size); }
+.nb-grow__page { position: absolute; transform-origin: 0 0; }
 
-/* The ribbon marks the place in the book, down its outer edge (--nb-place: 0 first, 1 last). */
+/* The ribbon marks the place, down the book's left edge (--nb-place: 0 first, 1 last); tapped, it opens
+   the contents. */
 .nb__ribbon {
   position: absolute; z-index: 2; width: var(--tap-xs); height: var(--tap-xs); padding: 0; border: 0; background: none; cursor: pointer;
-  right: max(0px, calc(var(--nb-edge-x) - var(--tap-xs) / 2));
-  top: calc(var(--nb-edge-y) + var(--nb-ribbon-inset) + var(--nb-place) * (100% - 2 * var(--nb-edge-y) - 2 * var(--nb-ribbon-inset) - var(--tap-xs)));
+  left: max(0px, calc(var(--nb-edge-x) + var(--nb-book-side) - var(--tap-xs)));
+  top: calc(var(--nb-edge-top) + var(--nb-ribbon-inset) + var(--nb-place) * (100% - var(--nb-edge-top) - var(--nb-edge-bottom) - 2 * var(--nb-ribbon-inset) - var(--tap-xs)));
 }
 .nb__ribbon::before {
   content: ''; position: absolute; inset: calc((var(--tap-xs) - var(--s-5)) / 2) 0;
-  background: var(--nb-ribbon); clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 35% 50%);
+  background: var(--nb-ribbon); clip-path: polygon(100% 0, 0 0, 0 100%, 100% 100%, 65% 50%);
 }
-/* Tabs at the book's bottom corners turn the pages. */
+/* Tabs on the book's right edge turn the pages: up to the next, down to the one before. */
 .nb--immersive .nb__nav {
-  position: absolute; z-index: 2; bottom: var(--nb-edge-y); width: var(--tap-xs); height: var(--tap-xs); min-width: var(--tap-xs); min-height: var(--tap-xs);
-  background: var(--nb-kraft-deep); color: var(--c-on-primary); box-shadow: none;
+  position: absolute; z-index: 2; right: max(0px, calc(var(--nb-edge-x) - var(--tap-xs))); width: var(--tap-xs); height: var(--tap-xs); min-width: var(--tap-xs); min-height: var(--tap-xs);
+  border: var(--bw-mid) solid var(--nb-line); border-left: 0; border-radius: 0 var(--r-md) var(--r-md) 0;
+  background: var(--nb-cover); color: var(--c-on-primary); box-shadow: none;
 }
 .nb--immersive .nb__nav:disabled { display: none; }
-.nb--immersive .nb__nav--prev { left: var(--nb-edge-x); border-radius: 0 var(--r-md) 0 0; }
-.nb--immersive .nb__nav--next { right: var(--nb-edge-x); border-radius: var(--r-md) 0 0 0; }
+.nb--immersive .nb__nav--next { bottom: calc(var(--nb-edge-bottom) + var(--tap-xs) + var(--s-3)); }
+.nb--immersive .nb__nav--prev { bottom: var(--nb-edge-bottom); }
+.nb--immersive .nb__nav-sign { display: block; transform: rotate(-90deg); }
 
 /* The page's animal tags: chips under the OBSERVED stamp, each with a ✕, and "＋". Small to
    look at, 44 px to tap; the gaps between them still draw. */
@@ -357,12 +443,15 @@
 
 /* The contents: in place of the page and its tools. */
 .nb[data-view="contents"] .nb__tools, .nb[data-view="contents"] .nb__deskwrap,
-.nb[data-view="contents"] :is(.nb__nav, .nb__count, .nb__new, .nb__pouch, .nb__rack, .nb__railfoot) { display: none; }
-/* No rails here: back and the menu share a slim row over a list the full width of the screen. */
+.nb[data-view="contents"] :is(.nb__nav, .nb__count, .nb__new, .nb-roll, .nb-tray, .nb-polaroid) { display: none; }
+/* No roll or tray here: back and the menu share a slim row over a list the full width of the screen. */
 .nb.nb--immersive[data-view="contents"] { grid-template: "start end" auto "stage stage" minmax(0, 1fr) / minmax(0, 1fr) minmax(0, 1fr); }
-.nb.nb--immersive[data-view="contents"] .nb__rail { display: flex; flex-direction: row; min-height: 0; padding: var(--s-1) var(--s-2); }
+.nb.nb--immersive[data-view="contents"] .nb__rail { display: flex; flex-direction: row; min-height: var(--tap-xs); padding: var(--s-1) var(--s-2); }
 .nb.nb--immersive[data-view="contents"] .nb__rail--end { justify-content: flex-end; }
-.nb.nb--immersive[data-view="contents"] .nb__rail .btn--icon { width: var(--tap-xs); height: var(--tap-xs); min-width: var(--tap-xs); min-height: var(--tap-xs); }
+.nb.nb--immersive[data-view="contents"] :is(.nb__rail, .nb__back) .btn--icon, .nb.nb--immersive[data-view="contents"] .nb__back { width: var(--tap-xs); height: var(--tap-xs); min-width: var(--tap-xs); min-height: var(--tap-xs); }
+.nb.nb--immersive[data-view="contents"] .nb__back { left: var(--s-2); top: var(--s-1); }
+/* The list lies on the desk as a sheet of kraft. */
+.nb--immersive .nb__contents { margin: 0 var(--s-2) var(--s-2); border: var(--bw-mid) solid var(--nb-line); border-radius: var(--r-md); background: var(--nb-kraft); }
 .nb__contents {
   flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
   padding: var(--s-3) var(--s-3) var(--s-6); color: var(--nb-kraft-ink); touch-action: pan-y;
@@ -394,7 +483,7 @@
 }
 .nb-toc__also .bi, .nb-toc__count .bi, .nb-toc__date .bi { flex-direction: row; flex-wrap: wrap; column-gap: 0.35em; }
 .nb-toc__thumb {
-  flex: none; width: var(--nb-thumb-w); aspect-ratio: 5 / 7; border-radius: var(--r-sm);
+  flex: none; width: var(--nb-thumb-w); aspect-ratio: var(--nb-page-shape); border-radius: var(--r-sm);
   background: var(--nb-paper); box-shadow: var(--shadow-1);
 }
 .nb-toc__thumb--small { width: var(--nb-thumb-w-sm); }
@@ -438,8 +527,6 @@
 .nb-menu__list { display: grid; gap: var(--s-2); }
 .nb-menu__list .btn { justify-content: flex-start; }
 .nb-menu__list .bi { flex-direction: row; gap: 0.4em; }
-.nb-menu__sides { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-2); }
-.nb-menu__sides .btn { justify-content: center; }
 .nb-pick__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--size-medal), 1fr)); gap: var(--s-2); max-height: calc(50 * var(--dvh)); overflow-y: auto; }
 .nb-pick__item {
   display: grid; justify-items: center; gap: var(--s-1); padding: var(--s-2);

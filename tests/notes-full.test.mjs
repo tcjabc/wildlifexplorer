@@ -79,14 +79,14 @@ async function open() {
     async openFull() {
       await page.click('.nbdock .nb__full');
       await f.full();
-      await f.wait(700); // past the growing, and the page drawn
+      await f.wait(1000); // past the growing, the roll opening, and the page drawn
     },
     async back() {
       await page.click('.nb__back');
       await page.waitForSelector('.viewer .nbdock[data-state="expanded"] .nb__count');
       await f.wait(300);
     },
-    // The first page lying open in the full notebook: a spread pairs 1–2 and 3–4.
+    // The page open in the full notebook.
     place: () => page.evaluate(() => document.querySelector('.nb__ribbon').getAttribute('aria-label').match(/[0-9]+/)[0]),
   };
   return f;
@@ -113,22 +113,23 @@ run('turning on to another of this card\'s pages: the panel comes back on the pa
   await f.panelOn(1);
   await f.openFull();
   await f.page.click('.nb__nav--next');
-  await f.wait(300);
-  assert.equal(await f.place(), '3');
+  await f.wait(500);
+  assert.equal(await f.place(), '2');
   await f.back();
-  assert.equal(await f.count(), '3 / 3');
+  assert.equal(await f.count(), '2 / 3');
 });
 
 for (const [name, row] of [['another animal\'s page', i => i.b], ['a free page', () => null]]) {
   run(`ending on ${name}: the panel comes back on the page it started from`, async f => {
     await f.panelOn(2);
     await f.openFull();
-    assert.equal(await f.place(), '1', 'the spread with page 2 in it');
+    assert.equal(await f.place(), '2', 'the same page');
     await f.page.click('.nb__ribbon');
     await f.page.waitForSelector('.nb__contents:not([hidden])');
+    await f.wait(100);
     const id = row(f);
     await f.page.click(id ? `.nb-toc__group:not(.nb-toc__group--free) .nb-toc__animal:nth-of-type(2) .nb-toc__page` : '.nb-toc__group--free .nb-toc__page');
-    await f.wait(300);
+    await f.wait(700);
     assert.equal(await f.page.evaluate(() => document.querySelector('.nb').dataset.view), 'pages');
     await f.back();
     assert.equal(await f.count(), '2 / 3');
@@ -176,7 +177,7 @@ run('a second trip works the same', async f => {
   await f.back();
   await f.openFull();
   await f.page.click('.nb__nav--next');
-  await f.wait(300);
+  await f.wait(500);
   await f.back();
-  assert.equal(await f.count(), '3 / 3');
+  assert.equal(await f.count(), '2 / 3');
 });

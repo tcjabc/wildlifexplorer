@@ -1,6 +1,6 @@
 // The numbers behind the notebook's view, plain in and out (tests/notes-view.test.mjs): which
-// pages lie open, how big they are, where zoom and pan may go, and what a gesture means.
-// A view is { k, x, y }: zoom (1 = the page fitted) and where the book's top left is in the
+// page lies where, how big it is, where zoom and pan may go, and what a gesture means.
+// A view is { k, x, y }: zoom (1 = the page fitted) and where the page's top left is in the
 // frame, in CSS px. None of it is saved: pages keep their fixed size and vector items.
 
 export const MAX_ZOOM = 4;
@@ -15,35 +15,45 @@ const SECOND_FINGER_MS = 200;
 const TAP_PX = 10;
 const TAP_MS = 350;
 
-// A two-finger page turn: clearly sideways, far enough, and with the fingers keeping their
+// A two-finger page turn: clearly in one direction, far enough, and with the fingers keeping their
 // distance all the way, so a pinch can never turn the page. Their distance may change by 5%, or
 // by 12 px when that is more: fingers close together wander by more than 5% of the gap.
 const TURN_MIN_PX = 80;
 const TURN_MAX_SCALE = 0.05;
 const TURN_MAX_DRIFT_PX = 12;
-const TURN_SIDEWAYS = 2.5; // sideways travel at least this many times the up-and-down travel
+const TURN_STRAIGHT = 2.5; // travel along the turn at least this many times the travel across it
 
 // Beside a card, fingers this many times further apart than they started open the full notebook.
 const FULL_RATIO = 1.3;
 
+// A list of this many pages or more shows the whole stack.
+const FULL_STACK = 12;
+
 export const pixelRatio = dpr => Math.min(MAX_DPR, dpr || 1);
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 
-// The pages lying open with `pos` among them: pairs in list order in a spread (1–2, 3–4, …),
-// otherwise that page alone. A slot past the end of the list is null (a blank page).
-//   { start, at, slots }: the list index of the first slot, and the slot `pos` is in.
-export function slotsFor(ids, pos, spread) {
-  const p = clamp(pos, 0, Math.max(0, ids.length - 1));
-  const start = spread ? p - (p % 2) : p;
-  const slots = (spread ? [start, start + 1] : [start]).map(i => ids[i] ?? null);
-  return { start, at: p - start, slots };
+// CSS px per page unit for the fitted page beside a card: the whole page in the frame, or just its
+// width when the page may run taller than the frame.
+export function fitScale({ w, h, pad = 0, pageW, pageH, byWidth = false }) {
+  const across = (w - pad * 2) / pageW;
+  return byWidth ? across : Math.min(across, (h - pad * 2) / pageH);
 }
 
-// CSS px per page unit for the fitted page: the whole page (or spread) in the frame, or just its
-// width when the page may run taller than the frame (beside a card).
-export function fitScale({ w, h, pages = 1, pad = 0, pageW, pageH, byWidth = false }) {
-  const across = (w - pad * 2) / (pageW * pages);
-  return byWidth ? across : Math.min(across, (h - pad * 2) / pageH);
+// Where the page lies on the desk: as big as it can be inside the desk's margins, which the cover,
+// the spiral and the page edges all stay within, so none of them costs the page anything.
+//   w, h: the desk. top, bottom, side: its margins.
+export function bookBox({ w, h, top, bottom, side, pageW, pageH }) {
+  const k = Math.min((w - side * 2) / pageW, (h - top - bottom) / pageH);
+  const width = Math.max(10, Math.floor(pageW * k)), height = Math.max(10, Math.floor(pageH * k));
+  return { width, height, left: Math.round((w - width) / 2), top: Math.round(top + (h - top - bottom - height) / 2) };
+}
+
+// How much of the stack lies above the spiral (pages turned) and below the page (pages to come), each
+// out of 1. A long list fills the stack; a short one is a thin book.
+export function stackDepth(pos, n) {
+  if (n < 2) return { before: 0, after: 0 };
+  const full = Math.min(1, n / FULL_STACK);
+  return { before: (full * pos) / (n - 1), after: (full * (n - 1 - pos)) / (n - 1) };
 }
 
 // A book smaller than the frame sits in the middle; a bigger one can't leave a gap at an edge
@@ -67,11 +77,13 @@ export function settleView(view, frame, book, pad = 0) {
 // What a finished two-finger gesture turns the page by: 1, -1, or 0 for no turn.
 //   dx, dy: how far the fingers' midpoint moved. span: their distance at the start, in px.
 //   peak: the largest change in that distance at any moment, as a fraction of it. zoom: the
-//   view's zoom when the gesture began.
-export function swipeTurn({ dx, dy, span = Infinity, peak, zoom }) {
+//   view's zoom when the gesture began. axis: 'y' in the book (pages flip up: a swipe up is the next
+//   page), 'x' in the panel beside a card, where two fingers going up and down pan the page.
+export function swipeTurn({ dx, dy, span = Infinity, peak, zoom, axis = 'y' }) {
   if (zoom > 1 || peak >= Math.max(TURN_MAX_SCALE, TURN_MAX_DRIFT_PX / span)) return 0;
-  if (Math.abs(dx) < TURN_MIN_PX || Math.abs(dx) < Math.abs(dy) * TURN_SIDEWAYS) return 0;
-  return dx < 0 ? 1 : -1;
+  const along = axis === 'y' ? dy : dx, across = axis === 'y' ? dx : dy;
+  if (Math.abs(along) < TURN_MIN_PX || Math.abs(along) < Math.abs(across) * TURN_STRAIGHT) return 0;
+  return along < 0 ? 1 : -1;
 }
 
 // Whether a view at zoom k counts as the fitted page.
@@ -79,21 +91,21 @@ export const atFit = k => k < SNAP_ZOOM;
 // A pinch outward from the fitted page, far enough. Zoomed in already, a pinch only zooms.
 export const pinchOpensFull = (zoom, ratio) => atFit(zoom) && ratio >= FULL_RATIO;
 
-// Where a page lands in the full notebook, near enough for the panel to grow towards it: the
-// left or right of a spread between the rails, or alone between the bands.
-//   w, h: the screen. rail: a rail's width, or a band's height. tall: the page's height / width.
-export function fullPageBox({ w, h, rail, tall, right = false }) {
+// Where a page lands in the full notebook, near enough for the panel to grow towards it.
+//   w, h: the screen. roll, tray: their widths beside the desk, or in portrait their heights.
+//   top, bottom, side: the desk's margins.
+export function fullPageBox({ w, h, roll, tray, ...rest }) {
   const land = w > h;
-  const width = Math.min(land ? (w - rail * 2) / 2 : w, (land ? h : h - rail * 2) / tall);
-  return { left: land ? w / 2 - (right ? 0 : width) : (w - width) / 2, top: (h - width * tall) / 2, width, height: width * tall };
+  const b = bookBox({ ...rest, w: land ? w - roll - tray : w, h: land ? h : h - roll - tray });
+  return { ...b, left: b.left + (land ? roll : 0), top: b.top + (land ? 0 : tray) };
 }
 
 export const secondFingerCounts = age => age < SECOND_FINGER_MS;
 export const isTap = (travel, ms) => travel < TAP_PX && ms < TAP_MS;
 
-// How the rails are laid out, by orientation alone: side rails in landscape, bands above and
-// below the page in portrait. Where the screen is short (or narrow) for that, they fold into two
-// columns (or two rows).
+// How the roll and the tray are laid out, by orientation alone: beside the book in landscape, the
+// tray above it and the roll below in portrait. Where the screen is short (or narrow) for that, they
+// fold into two columns (or two rows).
 const RAIL_MIN = 640;
 export const railFit = ({ w, h }) => (w > h ? (h < RAIL_MIN ? 'short' : 'tall') : (w < RAIL_MIN ? 'narrow' : 'wide'));
 

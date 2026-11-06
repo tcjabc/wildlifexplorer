@@ -1,16 +1,14 @@
-// The rails' objects, drawn as SVG: the pen pouch and what is in it, the ink pad, the sponge, the
-// stamps, the tweezers, the wooden tokens at the foot of the left rail and the ruler. Flat colours from tokens (css/notes.css gives each .nb-a-* its fill), no blur, no
-// filters. The art only; js/notebook.js makes the buttons around it and says what they do.
+// The objects on the roll and in the tray, drawn as SVG: the tools in their loops, the ink pad, the
+// sponge, the stamps, the tweezers, the washi tape, the pile of Polaroids, the wooden tokens, the
+// book's spiral and the ruler. Flat colours from tokens (css/notes.css gives each .nb-a-* its fill),
+// thick outlines, no blur, no filters. The art only; js/notebook.js makes the buttons around it and
+// says what they do.
 //
-// The pouch is drawn standing up, in a rail --nb-rail wide. Lying on its side in a band is the
-// same drawing turned a quarter (css/notes.css). Each tool is its own svg between the pouch's
-// back and front, so raising one moves a single layer. A tool's tip sits in a row of its own, the
-// row being what a finger taps: the ruler at the back and tallest, the eraser in front.
+// A tool is drawn standing, tip up; css/notes.css lays it on its side in the roll beside the page.
 import { svg } from './dom.js';
 
-const PITCH = 44;     // a tool's row (--nb-tool-pitch)
-const TUCKED = 40;    // how far it reaches into the pouch
-const W = 68;         // the rail (--nb-rail)
+const TOOL_W = 36;    // a tool's drawing (--nb-tool-w), and its length
+const TOOL_LEN = 150;
 export const TOOL_ROWS = ['ruler', 'pencil', 'pen', 'highlighter', 'eraser'];
 
 const art = (w, hgt, ...kids) => svg('svg', { class: 'nb-art', viewBox: `0 0 ${w} ${hgt}`, width: w, height: hgt, 'aria-hidden': 'true', focusable: 'false' }, kids);
@@ -20,7 +18,7 @@ const circle = (cls, cx, cy, r) => svg('circle', { class: `nb-a-${cls}`, cx, cy,
 const ellipse = (cls, cx, cy, rx, ry, turn = 0) => svg('ellipse', { class: `nb-a-${cls}`, cx, cy, rx, ry, transform: turn ? `rotate(${turn} ${cx} ${cy})` : null });
 const line = (cls, d) => svg('path', { class: `nb-l-${cls}`, d });
 
-// ---------- what is in the pouch ----------
+// ---------- the tools ----------
 // Each is drawn from its tip (y 0) down `len` px. The tinted parts take the tool's colour.
 const TOOLS = {
   ruler: (cx, len) => {
@@ -57,35 +55,7 @@ const TOOLS = {
     rect('sleeve-band', cx - 15, 26, 30, 7),
   ],
 };
-// Across the rail, zig-zag, so each one shows beside the taller one behind it.
-const PLACES = { ruler: 16, pencil: 50, pen: 31, highlighter: 53, eraser: 30 };
-
-export function toolArt(id) {
-  const len = (TOOL_ROWS.length - TOOL_ROWS.indexOf(id)) * PITCH + TUCKED;
-  return art(W, len, TOOLS[id](PLACES[id], len));
-}
-
-// ---------- the pouch ----------
-// A cylinder of green canvas: the dark inside of its mouth behind the tools, and in front of them
-// the body with a zip round it near the top. Where the rail is short, it shows only the top.
-const POUCH_H = 130;
-const pouchSvg = (...kids) => svg('svg', {
-  class: 'nb-art nb-pouch__art', viewBox: `0 0 ${W} ${POUCH_H}`, preserveAspectRatio: 'xMidYMin slice', 'aria-hidden': 'true', focusable: 'false',
-}, kids);
-
-export const pouchBack = () => pouchSvg(ellipse('pouch-inside', 34, 10, 31, 9));
-
-export const pouchFront = () => pouchSvg(
-  path('pouch', 'M3 10A31 9 0 0 0 65 10V116Q34 130 3 116Z'),
-  path('pouch-light', 'M16 17.2Q22 18.6 28 19V122.8Q22 122.2 16 120.7Z'),
-  path('pouch-dark', 'M3 10A31 9 0 0 0 11 15.8V119.4Q6.5 118 3 116Z'),
-  path('pouch-dark', 'M65 10A31 9 0 0 1 56 15.9V119.7Q61 118 65 116Z'),
-  path('zip-tape', 'M3 26Q34 42 65 26V36Q34 52 3 36Z'),
-  line('zip-teeth', 'M3 31Q34 47 65 31'),
-  rect('metal', 43, 34, 9, 7, 1.5),
-  rect('metal', 45.5, 40, 4, 14, 2),
-  line('stitch', 'M3 106Q34 120 65 106'),
-);
+export const toolArt = id => art(TOOL_W, TOOL_LEN, TOOLS[id](TOOL_W / 2, TOOL_LEN));
 
 // ---------- the ink pad ----------
 export const inkPadArt = () => art(64, 52,
@@ -114,8 +84,30 @@ export const tweezersArt = () => art(64, 44,
   rect('metal-dark', 52, 17, 11, 10, 2),
   line('grip', 'M28 11.5v4M32 12v4M36 12.4v4M28 32.5v-4M32 32v-4M36 31.6v-4'));
 
-// ---------- the tokens at the foot of the left rail ----------
-// Round pieces of the same wood as the stamps, the sign carved in. Each is 44 px, a tap's size.
+// ---------- the washi tape ----------
+// A roll on its side, its end pulled out. The tape takes the colour on the roll (--washi-c).
+export const washiArt = () => art(64, 48,
+  path('washi', 'M30 30H62V40H55L52 37L49 40L46 37L43 40H30Z'),
+  circle('washi-edge', 24, 24, 22), circle('washi', 24, 22, 21), circle('washi-core', 24, 22, 9), circle('washi-hole', 24, 22, 6));
+
+// ---------- the pile of Polaroids ----------
+// Loose, one on the other, the top one still blank.
+const polaroid = (x, y, turn, cls) => svg('g', { transform: `rotate(${turn} ${x + 21} ${y + 25})` },
+  rect('polaroid-line', x - 1.5, y - 1.5, 45, 54, 2), rect('polaroid', x, y, 42, 51, 1), rect(cls, x + 4, y + 4, 34, 33));
+export const pileArt = () => art(64, 70,
+  polaroid(14, 10, 11, 'polaroid-sky'), polaroid(7, 12, -9, 'polaroid-leaf'), polaroid(11, 11, 2, 'polaroid-blank'));
+
+// ---------- the book's spiral ----------
+// Coils along the top of the book, a tile repeated across it, through the holes in the stub.
+export const spiralArt = () => svg('svg', { class: 'nb-bk__spiral', width: '100%', height: 30, 'aria-hidden': 'true', focusable: 'false' },
+  svg('defs', null, svg('pattern', { id: 'nb-coil', width: 24, height: 30, patternUnits: 'userSpaceOnUse' },
+    ellipse('coil-hole', 12, 22, 4, 3.5),
+    line('coil-line', 'M12 22C12 8 8 3 4 3C0 3 1 10 3 12'),
+    line('coil', 'M12 22C12 8 8 3 4 3C0 3 1 10 3 12'))),
+  svg('rect', { width: '100%', height: 30, fill: 'url(#nb-coil)' }));
+
+// ---------- the tokens on the roll ----------
+// Round pieces of the same wood as the stamps, the sign carved in.
 const SIGNS = {
   undo: 'M31 30A10 10 0 0 0 22 16H13M19 10L13 16L19 22',
   redo: 'M13 30A10 10 0 0 1 22 16H31M25 10L31 16L25 22',
