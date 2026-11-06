@@ -29,6 +29,11 @@ const FULL_RATIO = 1.3;
 // A list of this many pages or more shows the whole stack.
 const FULL_STACK = 12;
 
+// CSS px beside the page for a tab with a label on it.
+const TAB_FULL = 84;
+const TAB_NARROW = 60;
+const EDGE_GAP = 4; // the book never quite touches the side of the screen
+
 export const pixelRatio = dpr => Math.min(MAX_DPR, dpr || 1);
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 
@@ -41,11 +46,59 @@ export function fitScale({ w, h, pad = 0, pageW, pageH, byWidth = false }) {
 
 // Where the page lies on the desk: as big as it can be inside the desk's margins, which the cover,
 // the spiral and the page edges all stay within, so none of them costs the page anything.
-//   w, h: the desk. top, bottom, side: its margins.
-export function bookBox({ w, h, top, bottom, side, pageW, pageH }) {
-  const k = Math.min((w - side * 2) / pageW, (h - top - bottom) / pageH);
+//   w, h: the desk. top, bottom, side: its margins. right: room wanted to its right, for the tabs:
+//   the page moves left for it, as far as its margin allows, with a gap for the book's edge.
+//   keep: room that must be left there, even if the page has to be a little smaller for it.
+export function bookBox({ w, h, top, bottom, side, pageW, pageH, right = 0, keep = 0 }) {
+  const k = Math.min((w - side * 2) / pageW, (w - side - EDGE_GAP - keep) / pageW, (h - top - bottom) / pageH);
   const width = Math.max(10, Math.floor(pageW * k)), height = Math.max(10, Math.floor(pageH * k));
-  return { width, height, left: Math.round((w - width) / 2), top: Math.round(top + (h - top - bottom - height) / 2) };
+  const centred = (w - width) / 2;
+  const left = Math.max(Math.min(side + EDGE_GAP, centred), Math.min(centred, w - width - Math.max(right, keep)));
+  return { width, height, left: Math.round(left), top: Math.round(top + (h - top - bottom - height) / 2) };
+}
+
+// How the index tabs fit beside the page, by the room there is. full: a label across on a wide tab.
+// narrow: the same on a narrower one, in shorter lines. stub: no room for words: a colour and an
+// initial, a finger wide over the page.
+export const tabFit = room => (room >= TAB_FULL ? 'full' : room >= TAB_NARROW ? 'narrow' : 'stub');
+
+// The tabs that fit: the first (the contents) always, the ones nearest the place, and "more".
+//   entries: all of them. at: the index of the place. capacity: how many fit.
+export function tabsShown(entries, at, capacity) {
+  if (entries.length <= capacity) return entries;
+  const room = Math.max(1, capacity - 2), rest = entries.slice(1);
+  const from = clamp(clamp(at - 1, 0, rest.length - 1) - Math.floor(room / 2), 0, rest.length - room);
+  return [entries[0], ...rest.slice(from, from + room), { id: 'more' }];
+}
+
+// Rows on pages. A heading never ends a page. first: how many fit on the first page, under its title.
+export function paginate(rows, { perPage, first = perPage }) {
+  const pages = [[]];
+  let room = first;
+  for (const row of rows) {
+    if (room < 1 || (row.head && room < 2)) { pages.push([]); room = perPage; }
+    pages[pages.length - 1].push(row);
+    room--;
+  }
+  return pages;
+}
+
+// Where the tool in hand can lie on the desk beside the roll, at a slight angle, measured: { x, y, turn }
+// (its middle, in the screen's px; turn in radians from standing tip up), or null where nothing has the
+// room for it, and it stays in the roll.
+//   w, h: the screen. roll, book: { left, top, right, bottom }. len, wide: the tool. near: the height
+//   it would rather lie at.
+export function deskSpot({ w, h, roll, book, len, wide, near = h / 2, gap = 8, tilt = 0.14 }) {
+  const long = len * Math.cos(tilt) + wide * Math.sin(tilt), short = len * Math.sin(tilt) + wide * Math.cos(tilt);
+  const beside = { left: roll.right + gap, right: book.left - gap, top: gap, bottom: h - gap };
+  if (beside.right - beside.left >= short && beside.bottom - beside.top >= long) {
+    return { x: (beside.left + beside.right) / 2, y: clamp(near, beside.top + long / 2, beside.bottom - long / 2), turn: tilt };
+  }
+  const under = { left: roll.right + gap, right: w - gap, top: book.bottom + gap, bottom: h - gap };
+  if (under.right - under.left >= long && under.bottom - under.top >= short) {
+    return { x: (under.left + under.right) / 2, y: (under.top + under.bottom) / 2, turn: Math.PI / 2 - tilt };
+  }
+  return null;
 }
 
 // How much of the stack lies above the spiral (pages turned) and below the page (pages to come), each

@@ -2,19 +2,70 @@
 // Run: npm test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { atFit, pinchOpensFull, fullPageBox, bookBox, stackDepth } from '../js/notes-view.js';
+import { atFit, pinchOpensFull, fullPageBox, bookBox, stackDepth, tabFit, tabsShown, paginate, deskSpot } from '../js/notes-view.js';
 import {
   fitScale, clampView, pinchView, settleView, swipeTurn, secondFingerCounts, isTap, pixelRatio, MAX_ZOOM, railFit, popPlace, keyboardLift } from '../js/notes-view.js';
 
 const page = { pageW: 1120, pageH: 1400 };
-const margins = { top: 40, bottom: 20, side: 12 };
+const margins = { top: 40, bottom: 28, side: 12 };
 
 test('the page takes all the room inside the desk\'s margins, in both layouts', () => {
-  assert.deepEqual(bookBox({ w: 832, h: 800, ...margins, ...page }), { width: 592, height: 740, left: 120, top: 40 });
-  assert.deepEqual(bookBox({ w: 800, h: 986, ...margins, ...page }), { width: 740, height: 926, left: 30, top: 40 });
+  assert.deepEqual(bookBox({ w: 784, h: 800, ...margins, ...page }), { width: 585, height: 732, left: 100, top: 40 });
+  assert.deepEqual(bookBox({ w: 800, h: 974, ...margins, ...page }), { width: 724, height: 906, left: 38, top: 40 });
   const narrow = bookBox({ w: 384, h: 900, ...margins, ...page });
   assert.equal(narrow.width, 360, 'a phone: the width decides');
-  assert.equal(narrow.top, Math.round(40 + (840 - narrow.height) / 2), 'and it lies in the middle');
+  assert.equal(narrow.top, Math.round(40 + (832 - narrow.height) / 2), 'and it lies in the middle');
+});
+
+test('the page moves left to leave the tabs their room, as far as its margin allows', () => {
+  assert.equal(bookBox({ w: 800, h: 974, ...margins, ...page, right: 64 }).left, 16, 'all it can, with a gap at the edge');
+  assert.equal(bookBox({ w: 800, h: 974, ...margins, ...page, right: 44 }).left, 32);
+  const kept = bookBox({ w: 800, h: 974, ...margins, ...page, right: 64, keep: 76 });
+  assert.deepEqual([kept.width, kept.height, kept.left], [708, 885, 16], 'room kept costs the page a little');
+  assert.equal(800 - kept.left - kept.width, 76);
+  assert.equal(bookBox({ w: 784, h: 800, ...margins, ...page, right: 64 }).left, 100, 'with room already, it stays in the middle');
+  assert.equal(bookBox({ w: 384, h: 900, ...margins, ...page, right: 64 }).left, 12, 'on a phone there is none to find');
+});
+
+test('tabs fit by the room measured', () => {
+  assert.equal(tabFit(99), 'full');
+  assert.equal(tabFit(84), 'full');
+  assert.equal(tabFit(83), 'narrow');
+  assert.equal(tabFit(60), 'narrow');
+  assert.equal(tabFit(59), 'stub');
+  assert.equal(tabFit(12), 'stub');
+});
+
+test('tabs that don\'t all fit: the first, the nearest, and more', () => {
+  const entries = ['c', 'a', 'b', 'd', 'e', 'f', 'g', 'h'].map(id => ({ id })), ids = list => list.map(e => e.id);
+  assert.deepEqual(tabsShown(entries, 3, 8), entries, 'all of them when they fit');
+  assert.deepEqual(ids(tabsShown(entries, 3, 5)), ['c', 'b', 'd', 'e', 'more']);
+  assert.deepEqual(ids(tabsShown(entries, 7, 5)), ['c', 'f', 'g', 'h', 'more'], 'near the end');
+  assert.deepEqual(ids(tabsShown(entries, 0, 5)), ['c', 'a', 'b', 'd', 'more'], 'on the contents');
+  assert.ok(ids(tabsShown(entries, 5, 5)).includes('f'), 'the place is always there');
+});
+
+test('rows flow onto pages, and a heading never ends one', () => {
+  const r = n => Array.from({ length: n }, (_, i) => ({ i })), h = { head: true };
+  assert.deepEqual(paginate(r(5), { perPage: 3 }).map(p => p.length), [3, 2]);
+  assert.deepEqual(paginate(r(5), { perPage: 3, first: 1 }).map(p => p.length), [1, 3, 1], 'the title takes room on the first');
+  assert.deepEqual(paginate([{}, {}, h, {}], { perPage: 3 }).map(p => p.length), [2, 2]);
+  assert.deepEqual(paginate([], { perPage: 3 }), [[]]);
+});
+
+const tool = { len: 150, wide: 36 };
+test('the tool lies beside the roll where the gap takes it, and under the book where that does', () => {
+  const beside = deskSpot({ w: 1280, h: 800, roll: { left: 12, top: 68, right: 236, bottom: 670 }, book: { left: 336, top: 0, right: 945, bottom: 800 }, near: 369, ...tool });
+  assert.ok(beside.x > 236 && beside.x < 336 && Math.abs(beside.y - 369) < 1);
+  assert.ok(Math.abs(beside.turn) < 0.3, 'standing, at a slight angle');
+  const under = deskSpot({ w: 800, h: 1280, roll: { left: 8, top: 1102, right: 620, bottom: 1272 }, book: { left: 20, top: 124, right: 768, bottom: 1098 }, ...tool });
+  assert.ok(under.x > 620 && under.y > 1098);
+  assert.ok(Math.abs(under.turn - Math.PI / 2) < 0.3, 'lying down');
+});
+
+test('with no room for the tool, there is no spot: it stays in the roll', () => {
+  assert.equal(deskSpot({ w: 844, h: 390, roll: { left: 8, top: 56, right: 264, bottom: 348 }, book: { left: 272, top: 0, right: 564, bottom: 390 }, ...tool }), null);
+  assert.equal(deskSpot({ w: 390, h: 844, roll: { left: 4, top: 634, right: 386, bottom: 836 }, book: { left: 3, top: 120, right: 387, bottom: 630 }, ...tool }), null);
 });
 
 test('the stack follows the place in the list, and a short list is a thin book', () => {
@@ -153,8 +204,8 @@ test('a pinch opens the full notebook only from the fitted page, and only from 1
 });
 
 test('a page lands on the desk between the roll and the tray, or between the tray and the roll', () => {
-  const land = fullPageBox({ w: 1280, h: 800, roll: 224, tray: 224, ...margins, ...page });
-  assert.deepEqual(land, { width: 592, height: 740, left: 344, top: 40 });
-  const up = fullPageBox({ w: 800, h: 1280, roll: 170, tray: 124, ...margins, ...page });
-  assert.deepEqual(up, { width: 740, height: 926, left: 30, top: 164 });
+  const land = fullPageBox({ w: 1280, h: 800, roll: 248, tray: 248, ...margins, ...page });
+  assert.deepEqual(land, { width: 585, height: 732, left: 348, top: 40 });
+  const up = fullPageBox({ w: 800, h: 1280, roll: 182, tray: 124, right: 64, ...margins, ...page });
+  assert.deepEqual(up, { width: 724, height: 906, left: 16, top: 164 });
 });
