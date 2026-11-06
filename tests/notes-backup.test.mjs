@@ -64,7 +64,7 @@ test('restoring a version 1 backup brings back every page and photo, tagged from
     const page = await notes.loadPage(entry.id);
     assert.equal(page.version, 2);
     assert.deepEqual(page.tags, migrated.tags);
-    assert.deepEqual(page.items, old.items, `${entry.id}: the content is unchanged`);
+    assert.deepEqual(page.items, model.widenPage(old).items, `${entry.id}: the content is unchanged, on the wider paper`);
   }
   const [bear, magpie, free] = v1.manifest.pages.map(p => store.state.notes.find(r => r.pageId === p.id));
   assert.deepEqual(bear.tags, ['formosan-black-bear']);
@@ -100,7 +100,7 @@ test('a version 2 export of the restored notebook imports again, tags, pages and
   assert.equal(await io.importBackup(v2zip), 3);
   const after = store.state.notes.map(r => ({ id: r.pageId, tags: r.tags, createdAt: r.createdAt })).sort((a, b) => a.id.localeCompare(b.id));
   assert.deepEqual(after, before);
-  for (const { id } of after) assert.deepEqual((await notes.loadPage(id)).items, v1.page(id).items);
+  for (const { id } of after) assert.deepEqual((await notes.loadPage(id)).items, model.widenPage(v1.page(id)).items, 'moved once, however many backups it has been through');
   assert.deepEqual(await bytes(await notes.loadPhotoBlob('photo-0001')), [...v1.files.get('photos/photo-0001.jpg')]);
   assert.equal(await io.importBackup(v2zip), 0, 'and not twice');
 });
@@ -112,7 +112,7 @@ test('a backup keeps which tool drew a line, and a line that doesn\'t say is a p
     { t: 's', c: '#1e78d2', w: 4, k: 'pen', p: [1, 2, 0.5] },
     { t: 's', c: '#ffec3d', w: 40, k: 'highlighter', p: [1, 2, 0.5] },
   ];
-  const page = cleanPage({ id: 'page-1', header: { date: '2026-01-01T00:00:00.000Z' }, createdAt: '2026-01-01T00:00:00.000Z', tags: [], items });
+  const page = cleanPage({ id: 'page-1', w: 1120, header: { date: '2026-01-01T00:00:00.000Z' }, createdAt: '2026-01-01T00:00:00.000Z', tags: [], items });
   assert.deepEqual(page.items, items);
   assert.ok(items.every(it => /^#[0-9a-f]{6}$/.test(it.c)), 'colours stay plain colours');
 });

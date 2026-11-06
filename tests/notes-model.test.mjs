@@ -5,7 +5,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   legacyTags, normalisePage, migrateRecord, withTag, withoutTag, tagsAfterStamp, titleOf,
-  pagesOf, freePages, latestIndex, openFor, contents, movedTrail } from '../js/notes-model.js';
+  pagesOf, freePages, latestIndex, openFor, contents, movedTrail, widenPage, PAGE_W, PAGE_H,
+} from '../js/notes-model.js';
 
 const CARDS = {
   'formosan-black-bear': { id: 'formosan-black-bear', group: 'mammals', number: 1 },
@@ -161,4 +162,31 @@ test('a footprint trail moves, stretches and turns by its path alone', () => {
   const [x0, y0, x1, y1] = movedTrail(p, { cx: 150, cy: 100, a: Math.PI / 2 }).map(v => Math.round(v));
   assert.deepEqual([x0, y0, x1, y1], [150, 50, 150, 150]);
   assert.deepEqual(p, [100, 100, 200, 100], 'the original stays as it was, for undo');
+});
+
+test('a 5:7 page gets its extra paper once: every kind of item 60 further in, the same size', () => {
+  const old = { id: 'p', version: 2, w: 1000, h: 1400, tags: [], items: [
+    { t: 's', c: '#444', w: 5, p: [100, 200, 0.5, 110, 210, 0.6] },
+    { t: 'f', c: '#444', k: 'paw', p: [100, 700, 300, 720] },
+    { t: 'x', c: '#444', s: 40, x: 50, y: 60, v: 'Hi' },
+    { t: 'm', c: '#444', card: 'a', x: 300, y: 400, s: 180, r: 0.2 },
+    { t: 'p', id: 'q', x: 500, y: 600, w: 300, h: 200, r: 0 },
+  ] };
+  const page = widenPage(old);
+  assert.equal(page.w, PAGE_W);
+  assert.deepEqual(page.items[0].p, [160, 200, 0.5, 170, 210, 0.6], 'a line: its pressure left alone');
+  assert.deepEqual(page.items[1].p, [160, 700, 360, 720]);
+  assert.equal(page.items[2].x, 110);
+  assert.equal(page.items[3].x, 360);
+  assert.equal(page.items[3].s, 180);
+  assert.equal(page.items[4].x, 560);
+  assert.equal(page.items[4].w, 300);
+  assert.equal(old.items[2].x, 50, 'the page handed in stays as it was');
+  assert.equal(widenPage(page), page, 'and a wide page is left alone');
+  assert.deepEqual(normalisePage(normalisePage(old)).items, page.items, 'twice is once');
+});
+
+test('the page is 4:5 and as tall as it always was', () => {
+  assert.equal(PAGE_W / PAGE_H, 0.8);
+  assert.equal(PAGE_H, 1400);
 });

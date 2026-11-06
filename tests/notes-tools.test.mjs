@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  PENCILS, HIGHLIGHTS, DEFAULTS, paletteOf, widthOf, cleanTools, colourOf, sizeOf, withColour, withSize, nextAnimal,
+  PENCILS, HIGHLIGHTS, DEFAULTS, SIZES, paletteOf, widthOf, isFine, cleanTools, colourOf, sizeOf, withColour, withSize, nextAnimal,
 } from '../js/notes-tools.js';
 import { RULER_L, RULER_H, onRuler, edgeAt, snapTo, clampRuler } from '../js/notes-ruler.js';
 
@@ -87,4 +87,26 @@ test('ruler: points land on the edge, turned with it, and stop at its ends', () 
 test('ruler: its middle stays on the book', () => {
   assert.deepEqual(clampRuler({ x: -50, y: 5000, r: 1 }, 1000, 1400), { x: 0, y: 1400, r: 1 });
   assert.deepEqual(clampRuler({ x: 1500, y: 700, r: 0 }, 2000, 1400), { x: 1500, y: 700, r: 0 });
+});
+
+test('five thicknesses, with thin and thick as they were, and the old settings still good', () => {
+  assert.deepEqual(SIZES, ['hair', 'thin', 'mid', 'thick', 'bold']);
+  assert.equal(widthOf('pencil', 'thin'), 5);
+  assert.equal(widthOf('pencil', 'thick'), 12);
+  assert.equal(widthOf('highlighter', 'thick'), 40);
+  for (const tool of ['pencil', 'pen', 'highlighter']) {
+    const w = SIZES.map(s => widthOf(tool, s));
+    assert.deepEqual(w, [...w].sort((a, b) => a - b), tool);
+  }
+  assert.equal(cleanTools({ pencil: { size: 'thick' } }).pencil.size, 'thick');
+  assert.equal(cleanTools({ pencil: { size: 'bold' } }).pencil.size, 'bold');
+  assert.equal(isFine('hair'), true);
+  assert.equal(isFine('thin'), true);
+  assert.equal(isFine('mid'), false);
+});
+
+test('the tape in hand is kept, and anything else falls back to the first', () => {
+  assert.equal(cleanTools({ washi: 'blue' }).washi, 'blue');
+  assert.equal(cleanTools({ washi: 'plaid' }).washi, 'yellow');
+  assert.equal(cleanTools({}).washi, 'yellow');
 });

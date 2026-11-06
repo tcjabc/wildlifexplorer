@@ -40,12 +40,13 @@ test('migration: records and pages from before tags load with tags, and nothing 
   const stored = await db.get('notes', `${PID}:a1`);
   assert.deepEqual(stored.tags, ['sika-deer', 'formosan-black-bear']);
   assert.equal('cardIds' in stored, false);
-  // The pages themselves: tagged, content as it was.
+  // The pages themselves: tagged, and on the wider paper with their content as it was.
   const p1 = await notes.loadPage('a1'), p2 = await notes.loadPage('a2');
   assert.deepEqual(p1.tags, ['sika-deer', 'formosan-black-bear']);
-  assert.deepEqual(p1.items, linked.items);
+  assert.deepEqual(p1.items, [{ ...linked.items[0], x: 61 }]);
+  assert.equal(p1.w, 1120);
   assert.deepEqual(p2.tags, []);
-  assert.deepEqual(p2.items, loose.items);
+  assert.deepEqual(p2.items, [{ ...loose.items[0], x: 61 }]);
   assert.deepEqual(notes.pagesFor('sika-deer').map(r => r.pageId), ['a1']);
   assert.equal(notes.notesCount('formosan-black-bear'), 1);
 });
@@ -102,7 +103,7 @@ test('backups: a version 1 page (no tags) restores tagged with what it was linke
 
 test('removing an item leaves the page\'s tags: only ops that carry tags change them', () => {
   const src = readFileSync(new URL('../js/notebook.js', import.meta.url), 'utf8');
-  assert.match(src, /nb\.undo\.push\(\{ kind: 'remove', side, entries \}\)/, 'the eraser records a plain remove');
+  assert.match(src, /nb\.undo\.push\(\{ kind: 'remove', entries \}\)/, 'the eraser records a plain remove');
   assert.match(src, /tagsAfterStamp\(before, card\)/, 'placing a stamp adds its tag');
   assert.match(src, /if \(op\.tags\) \{ page\.tags =/, 'only ops that carry tags change them');
 });

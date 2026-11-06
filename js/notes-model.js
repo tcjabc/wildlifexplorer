@@ -1,7 +1,7 @@
 // Field Notes pages and their animal tags, as plain data in and out (tests/notes-model.test.mjs).
 //
 // A page has zero or more animal tags (card ids, in order: the first names the page), its
-// content (the fixed 1000 × 1400 page of vector items, unchanged) and createdAt / editedAt.
+// content (a fixed PAGE_W × PAGE_H page of vector items) and createdAt / editedAt.
 // A page with no tags is a free page. Tags change only through the chips on the page and
 // the stamp tool (a stamp adds its animal; removing it leaves the tag).
 //
@@ -9,6 +9,11 @@
 // a card's notebook and the contents never have to open every page.
 
 export const PAGE_VERSION = 2;
+
+// The page: 4:5. Pages used to be 5:7, 1000 wide at the same height (see widenPage).
+export const PAGE_W = 1120;
+export const PAGE_H = 1400;
+const OLD_PAGE_W = 1000;
 
 const uniq = ids => [...new Set(ids.filter(id => typeof id === 'string' && id))];
 
@@ -20,13 +25,35 @@ export function legacyTags(page) {
   return uniq([page?.header?.cardId, ...(page?.links ?? []), ...(page?.items ?? []).filter(i => i?.t === 'm').map(i => i.card)]);
 }
 
+// ---------- pages from before the wider page ----------
+
+function shifted(item, dx) {
+  if (item?.t === 's') {
+    const p = [...item.p];
+    for (let i = 0; i < p.length; i += 3) p[i] += dx;
+    return { ...item, p };
+  }
+  if (item?.t === 'f') return { ...item, p: movedTrail(item.p, { dx }) };
+  return typeof item?.x === 'number' ? { ...item, x: item.x + dx } : item;
+}
+
+// A 5:7 page on the wider paper: what is on it stays the same size, centred, with extra paper left
+// and right. `w` says which a page is, so this happens once: it is done as a page loads, and the
+// file only changes when the page next does.
+export function widenPage(page) {
+  const was = page.w ?? OLD_PAGE_W;
+  if (was >= PAGE_W) return page;
+  const dx = (PAGE_W - was) / 2;
+  return { ...page, w: PAGE_W, items: (page.items ?? []).map(it => shifted(it, dx)) };
+}
+
 // A page as the notebook uses it. Version 1 pages get their tags from what they were linked
-// to (or from their index record, which held the same list). Nothing in the content changes.
+// to (or from their index record, which held the same list), and 5:7 pages their extra paper.
 export function normalisePage(page, rec = null) {
   if (!page) return page;
   const tags = Array.isArray(page.tags) ? uniq(page.tags) : uniq(rec?.tags ?? rec?.cardIds ?? legacyTags(page));
   return {
-    ...page,
+    ...widenPage(page),
     version: Math.max(PAGE_VERSION, page.version ?? 1),
     tags,
     editedAt: page.editedAt ?? rec?.editedAt ?? rec?.updatedAt ?? page.createdAt,

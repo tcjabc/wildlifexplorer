@@ -1,6 +1,6 @@
 // The settings the notebook's tools share, plain in and out (tests/notes-tools.test.mjs): each
-// drawing tool's colour and thickness, the ink on the pad, the footprints, and the animal on the
-// stamp. The rails and the panel's toolbar both read and write these, so they stay in step.
+// drawing tool's colour and thickness, the ink on the pad, the footprints, the tape, and the animal
+// on the stamp. The roll, the tray and the panel's toolbar all read and write these, so they stay in step.
 // Kept on the profile as notesTools (device-only: js/cloud/sync.js toRow never sends it).
 
 export const PENCILS = ['graphite', 'red', 'orange', 'yellow', 'green', 'blue', 'purple', 'brown', 'white'];
@@ -8,15 +8,19 @@ export const HIGHLIGHTS = ['cyan', 'yellow', 'magenta'];
 export const DRAWING = ['pencil', 'pen', 'highlighter'];
 export const FEET = ['paw', 'hoof', 'bird', 'bear'];
 export const INKED = ['text', 'stamp', 'roller'];
-const SIZES = ['thin', 'thick'];
+export const WASHI = ['yellow', 'green', 'blue', 'red'];
+// The notches of the slider on the roll. Thin and thick are what the panel's button goes between.
+export const SIZES = ['hair', 'thin', 'mid', 'thick', 'bold'];
 const WIDTHS = {
-  pencil: { thin: 5, thick: 12 },
-  pen: { thin: 4, thick: 9 },
-  highlighter: { thin: 24, thick: 40 },
+  pencil: { hair: 3, thin: 5, mid: 8, thick: 12, bold: 18 },
+  pen: { hair: 2.5, thin: 4, mid: 6, thick: 9, bold: 14 },
+  highlighter: { hair: 16, thin: 24, mid: 32, thick: 40, bold: 54 },
 };
 
 export const paletteOf = tool => (tool === 'highlighter' ? HIGHLIGHTS : PENCILS);
 export const widthOf = (tool, size) => WIDTHS[tool][size];
+// The panel's button shows and sets only two: which side of the slider's middle a size is on.
+export const isFine = size => SIZES.indexOf(size) < SIZES.indexOf('mid');
 
 export const DEFAULTS = {
   pencil: { colour: 'graphite', size: 'thin' },
@@ -24,6 +28,7 @@ export const DEFAULTS = {
   highlighter: { colour: 'yellow', size: 'thick' },
   ink: 'graphite',
   foot: 'paw',
+  washi: 'yellow',
   stampCard: null,
 };
 
@@ -40,6 +45,7 @@ export function cleanTools(raw) {
     pencil: tool('pencil'), pen: tool('pen'), highlighter: tool('highlighter'),
     ink: oneOf(PENCILS, r.ink, DEFAULTS.ink),
     foot: oneOf(FEET, r.foot, DEFAULTS.foot),
+    washi: oneOf(WASHI, r.washi, DEFAULTS.washi),
     stampCard: typeof r.stampCard === 'string' && r.stampCard ? r.stampCard : null,
   };
 }

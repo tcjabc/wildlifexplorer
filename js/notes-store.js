@@ -10,11 +10,10 @@
 // Pages and records from before tags are migrated as they load (js/notes-model.js).
 import * as db from './db.js';
 import { state } from './store.js';
-import { normalisePage, migrateRecord, pagesOf, PAGE_VERSION } from './notes-model.js';
+import { normalisePage, migrateRecord, pagesOf, PAGE_VERSION, PAGE_W, PAGE_H } from './notes-model.js';
 
 const nowIso = () => new Date().toISOString();
-export const PAGE_W = 1000;
-export const PAGE_H = 1400;
+export { PAGE_W, PAGE_H };
 
 // ---------- files ----------
 
@@ -152,10 +151,10 @@ export async function deletePage(pageId) {
 
 // ---------- photos ----------
 
-const MAX_PHOTO = 2048;
+const MAX_PHOTO = 1280; // a page shows a photo at half that; the baseline tablet decodes every one
 
-// Shrink a picked image (camera or library) and keep it. Returns { id, w, h }.
-export async function savePhoto(file) {
+// A picked image (camera or library) made small enough to keep: { blob, w, h }.
+export async function shrinkPhoto(file) {
   const bmp = await createImageBitmap(file);
   const k = Math.min(1, MAX_PHOTO / Math.max(bmp.width, bmp.height));
   const w = Math.round(bmp.width * k), h = Math.round(bmp.height * k);
@@ -163,11 +162,18 @@ export async function savePhoto(file) {
   canvas.width = w; canvas.height = h;
   canvas.getContext('2d').drawImage(bmp, 0, 0, w, h);
   bmp.close?.();
-  const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.85));
+  const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.8));
+  return { blob, w, h };
+}
+
+// Returns { id, w, h }.
+export async function keepPhoto({ blob, w, h }) {
   const id = db.newId();
   await putFile(state.profile.id, `photos/${id}.jpg`, blob);
   return { id, w, h };
 }
+
+export const savePhoto = async file => keepPhoto(await shrinkPhoto(file));
 
 export const loadPhotoBlob = id => getFile(state.profile.id, `photos/${id}.jpg`);
 export const putPhotoBlob = (id, blob) => putFile(state.profile.id, `photos/${id}.jpg`, blob);
