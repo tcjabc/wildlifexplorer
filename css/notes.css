@@ -1,6 +1,10 @@
 /* Field Notes: the researcher's notebook (js/notebook.js), and the notebook on the card
    screens. All values come from tokens.css. */
 
+/* Andika's Latin, subset and renamed as its licence asks (assets/fonts/OFL-Andika.txt). */
+@font-face { font-family: "WildFile Notes"; font-weight: 400; font-display: swap; src: url("../assets/fonts/WildFileNotes-Regular.woff2") format("woff2"); }
+@font-face { font-family: "WildFile Notes"; font-weight: 700; font-display: swap; src: url("../assets/fonts/WildFileNotes-Bold.woff2") format("woff2"); }
+
 /* ---------- Notebook ---------- */
 .nb {
   container-type: inline-size;
@@ -162,12 +166,13 @@
 .nb--immersive[data-orient="portrait"] {
   grid-template: "end" var(--nb-tray-band) "stage" minmax(0, 1fr) "start" var(--nb-roll-band) / minmax(0, 1fr);
 }
-.nb--immersive[data-rails="short"] { grid-template-columns: var(--nb-fold-w) minmax(0, 1fr) var(--nb-fold-w); --nb-book-top: 34px; --nb-book-bottom: 14px; --nb-stack: 8px; --nb-tool-len: 84px; --nb-tool-w: 20px; --nb-loop-pitch: var(--tap-xs); --nb-token: var(--tap-xs); --nb-tool-in: 8px; --nb-tool-out: -2px; }
+.nb--immersive[data-rails="short"] { grid-template-columns: var(--nb-fold-w) minmax(0, 1fr) var(--nb-fold-w); --nb-book-top: 34px; --nb-book-bottom: 20px; --nb-stack: 12px; --nb-tool-len: 84px; --nb-tool-w: 20px; --nb-loop-pitch: var(--tap-xs); --nb-token: var(--tap-xs); --nb-tool-in: 8px; --nb-tool-out: -2px; }
+.nb--immersive[data-rails="wide"] { --nb-tab-keep: 76px; } /* "Black Bear" across, in portrait */
 .nb--immersive[data-rails="narrow"] { grid-template-rows: auto minmax(0, 1fr) auto; --nb-loop-pitch: var(--tap-xs); --nb-token: var(--tap-xs); --nb-roll-end-w: 10px; }
 .nb__rail { position: relative; z-index: 2; min-width: 0; min-height: 0; }
 .nb__rail--start { grid-area: start; }
 .nb__rail--end { grid-area: end; }
-.nb--immersive .nb__deskwrap, .nb--immersive .nb__contents { grid-area: stage; }
+.nb--immersive .nb__deskwrap { grid-area: stage; }
 .nb--immersive .nb__back { position: absolute; z-index: 3; left: var(--s-3); top: var(--s-2); background: var(--nb-cover); color: var(--c-on-primary); box-shadow: none; border: var(--bw-mid) solid var(--nb-line); }
 .nb--immersive .nb__rail .btn { background: var(--nb-cover); color: var(--c-on-primary); box-shadow: none; border: var(--bw-mid) solid var(--nb-line); }
 
@@ -181,21 +186,52 @@
   background: var(--nb-cover); box-shadow: 0 var(--s-1) 0 var(--nb-line);
 }
 /* Page edges: a strip the height of the deepest stack, slid out from under the page as far as there are
-   pages (--nb-after, --nb-before), so a turn only moves it. */
+   pages (--nb-after, --nb-before), so a turn only moves it. A line every few px, a sheet each. */
 .nb-bk__after, .nb-bk__before {
   position: absolute; left: var(--s-hair); right: var(--s-hair);
-  background: repeating-linear-gradient(0deg, var(--nb-edge) 0 var(--s-hair), var(--nb-edge-line) var(--s-hair) calc(var(--s-hair) + var(--bw-hair)));
+  background: repeating-linear-gradient(0deg, var(--nb-edge) 0 var(--s-hair), var(--nb-edge-line) var(--s-hair) var(--s-1));
   border: var(--bw-hair) solid var(--nb-line); transition: transform var(--t-med) ease-out;
 }
 .nb-bk__after { top: calc(100% - var(--nb-stack)); height: var(--nb-stack); border-top: 0; transform: translateY(calc(var(--nb-after, 0) * var(--nb-stack))); }
 .nb-bk__before { bottom: calc(100% + var(--nb-stub-h)); height: var(--nb-stack-up); border-bottom: 0; transform: translateY(calc((1 - var(--nb-before, 0)) * var(--nb-stack-up))); }
 .nb-bk__stub { position: absolute; left: 0; right: 0; bottom: 100%; height: var(--nb-stub-h); background: var(--nb-paper); border-bottom: var(--bw-hair) dashed var(--nb-dot); }
 .nb-bk__spiral { position: absolute; left: 0; right: 0; bottom: calc(100% - var(--s-1)); pointer-events: none; }
+/* The front cover, hinged at the coils (js/notes-cover.js, turned by js/notes-book.js). */
+.nb-bk__hinge {
+  position: absolute; pointer-events: none; perspective: var(--nb-turn-depth); perspective-origin: 50% 0;
+  top: calc(var(--nb-stub-h) * -1); bottom: calc(var(--nb-book-bottom) * -1); left: calc(var(--nb-book-side) * -1); right: calc(var(--nb-book-side) * -1);
+}
+.nb--beside .nb-bk__hinge { display: none; }
+.nb-cover { position: absolute; inset: 0; pointer-events: auto; transform-origin: 50% 0; transform-style: preserve-3d; }
+.nb-cover__tap { position: absolute; inset: 0; padding: 0; border: 0; background: none; cursor: pointer; touch-action: manipulation; }
+.nb-cover[hidden] { display: none; }
+.nb-cover__front, .nb-cover__inside { position: absolute; inset: 0; display: grid; backface-visibility: hidden; -webkit-backface-visibility: hidden; border: var(--bw-mid) solid var(--nb-line); border-radius: 0 0 var(--r-sm) var(--r-sm); }
+.nb-cover__front {
+  place-items: start center; padding-top: 22%;
+  background: repeating-linear-gradient(0deg, var(--nb-cover-weave) 0 var(--bw-hair), transparent var(--bw-hair) var(--s-1)), repeating-linear-gradient(90deg, var(--nb-cover-weave) 0 var(--bw-hair), transparent var(--bw-hair) var(--s-1)), var(--nb-cover);
+}
+.nb-cover__inside { transform: rotateX(180deg); background: var(--nb-cover-inside); }
+.nb-cover__label {
+  display: grid; justify-items: center; gap: var(--s-2); min-width: 58%; max-width: 76%; padding: var(--s-4) var(--s-5);
+  border: var(--bw-mid) solid var(--nb-line); border-radius: var(--r-sm); background: var(--nb-label); color: var(--nb-line); box-shadow: 0 var(--s-1) 0 var(--nb-line);
+}
+.nb-cover__label { font-family: var(--font-notes); }
+.nb-cover__title { font-size: var(--fs-xl); font-weight: 700; }
+.nb-cover__title .bi { align-items: center; }
+.nb-cover__name { width: 100%; padding-top: var(--s-2); border-top: var(--bw-thin) solid var(--nb-label-rule); font-size: var(--fs-lg); font-weight: var(--fw-semi); text-align: center; overflow: hidden; text-overflow: ellipsis; }
+/* Closed: nothing to turn to and no page to work on, and the roll is rolled up. */
+.nb[data-book] :is(.nb__nav, .nb-tabs, .nb-bk__before, .nb-desktool) { visibility: hidden; }
+.nb[data-book="closed"] .nb-roll { transform: translateY(calc(-100% + var(--nb-roll-shut))); }
+.nb[data-book="closed"] .nb-roll__cloth { transform: translateY(calc(100% - var(--nb-roll-shut))); }
+.nb[data-book="closed"][data-orient="portrait"] .nb-roll { transform: translateX(calc(-100% + var(--nb-roll-shut))); }
+.nb[data-book="closed"][data-orient="portrait"] .nb-roll__cloth { transform: translateX(calc(100% - var(--nb-roll-shut))); }
+
 /* A leaf in the air: the page's picture on its front, plain paper on its back. */
-.nb-bk__turn { position: absolute; inset: 0; perspective: var(--nb-turn-depth); perspective-origin: 50% 0; pointer-events: none; }
+.nb-bk__turn { position: absolute; inset: 0; pointer-events: none; }
+.nb-leaf-wrap { position: absolute; inset: 0; perspective: var(--nb-turn-depth); perspective-origin: 50% 0; }
 .nb-leaf { position: absolute; inset: 0; transform-origin: 50% 0; transform-style: preserve-3d; }
 .nb-leaf__face, .nb-leaf__back { position: absolute; inset: 0; width: 100%; height: 100%; display: block; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
-.nb-leaf__face--paper, .nb-leaf__back { background: var(--nb-paper); border: var(--bw-hair) solid var(--nb-edge-line); }
+.nb-leaf__back { background: var(--nb-paper); border: var(--bw-hair) solid var(--nb-edge-line); }
 .nb-leaf__back { transform: rotateX(180deg); }
 .nb--immersive .nb__deskwrap { z-index: 3; } /* a leaf goes over the tray on its way up */
 
@@ -206,7 +242,11 @@
 .nb-roll {
   position: relative; flex: 1; min-width: 0; overflow: hidden;
   border: var(--bw-mid) solid var(--nb-line); border-radius: var(--r-sm);
-  background: var(--nb-roll); box-shadow: 0 var(--s-1) 0 var(--nb-line);
+  background:
+    repeating-linear-gradient(0deg, var(--nb-roll-weave) 0 var(--bw-hair), transparent var(--bw-hair) var(--s-1)),
+    repeating-linear-gradient(90deg, var(--nb-roll-weave) 0 var(--bw-hair), transparent var(--bw-hair) var(--s-1)),
+    var(--nb-roll);
+  box-shadow: 0 var(--s-1) 0 var(--nb-line);
 }
 .nb-roll__cloth {
   display: grid; gap: var(--s-2); padding: var(--s-2) var(--s-2) calc(var(--nb-roll-end-w) + var(--s-3));
@@ -216,7 +256,7 @@
 .nb-roll__end {
   position: absolute; left: 0; right: 0; bottom: 0; height: var(--nb-roll-end-w);
   border-top: var(--bw-mid) solid var(--nb-line);
-  background: repeating-linear-gradient(0deg, var(--nb-roll-end) 0 var(--s-1), var(--nb-roll-dark) var(--s-1) var(--s-2));
+  background: linear-gradient(0deg, var(--nb-roll-tie) 0 var(--bw-thick), var(--nb-roll-end) var(--bw-thick) 45%, var(--nb-roll-dark) 45% 70%, var(--nb-roll-end) 70%);
 }
 .nb-roll__size { grid-area: size; display: flex; align-items: center; gap: var(--s-1); padding: 0 var(--s-1); }
 .nb-roll__dot { flex: none; width: var(--s-1); height: var(--s-1); border-radius: 50%; background: var(--tool-c, var(--pencil-graphite)); }
@@ -240,13 +280,18 @@
 .nb-pt[data-raised] > .nb-art { transform: rotate(var(--nb-tool-turn)) translateY(var(--nb-tool-out)); }
 .nb-pt[data-out] > .nb-art { opacity: 0.25; } /* the ruler is out on the page */
 .nb-pt[data-pt="ruler"] { touch-action: none; }
+.nb-pt[data-away] > .nb-art { visibility: hidden; } /* out on the desk */
+.nb-pt[data-raised] { border-radius: var(--s-1); background: var(--nb-roll-dark); } /* no room on the desk: it stays here */
+.nb-roll__cloth[data-bare] :is(.nb-roll__size, .nb-roll__colours) { visibility: hidden; }
 .nb-pt__loop {
   position: absolute; top: var(--s-hair); bottom: var(--s-hair); left: 26%; width: var(--nb-loop-w); pointer-events: none;
   border: var(--bw-thin) solid var(--nb-line); border-radius: var(--s-1); background: var(--nb-roll-dark);
 }
 /* The colours for the tool in hand. */
-.nb-roll__colours { grid-area: colours; display: flex; flex-wrap: wrap; justify-content: center; align-content: center; gap: var(--s-1); min-height: calc(var(--tap-xs) * 3 + var(--s-1) * 2); }
-.nb-roll__colours .nb-colour { width: var(--tap-xs); height: var(--tap-xs); border-color: var(--nb-line); box-shadow: none; }
+.nb-roll__colours { grid-area: colours; display: flex; flex-wrap: wrap; justify-content: center; align-content: center; gap: var(--s-1); min-height: calc(var(--nb-swatch) * 3 + var(--s-1) * 2); }
+.nb-roll__colours .nb-colour { width: var(--nb-swatch); height: var(--nb-swatch); border-color: var(--nb-line); box-shadow: none; }
+.nb[data-rails="tall"] { --nb-swatch: 52px; }
+.nb[data-rails="tall"] .nb-roll__colours { justify-self: center; width: calc(var(--nb-swatch) * 3 + var(--s-1) * 2); }
 .nb-roll__colours .nb-colour[aria-pressed="true"] { outline-color: var(--nb-line); outline-offset: var(--s-hair); }
 /* Undo, redo, pen or finger: wooden tokens. With nothing to undo, the sign is worn flat. */
 .nb__railfoot { grid-area: foot; display: flex; justify-content: center; align-items: center; gap: var(--s-2); color: var(--nb-kraft-ink); }
@@ -257,24 +302,27 @@
 
 .nb[data-orient="portrait"] .nb__rail--start { padding: var(--s-1) var(--s-2) var(--s-2); }
 .nb[data-orient="portrait"] .nb-roll { align-self: stretch; }
+.nb[data-rails="wide"] .nb__rail--start { justify-content: flex-start; }
+.nb[data-rails="wide"] .nb-roll { flex: none; width: calc(100% - var(--nb-desk-room)); }
 .nb[data-orient="portrait"] .nb-roll__cloth {
-  height: 100%; padding: var(--s-2) calc(var(--nb-roll-end-w) + var(--s-3)) var(--s-2) var(--s-2);
+  height: 100%; gap: var(--s-1); padding: var(--s-2) calc(var(--nb-roll-end-w) + var(--s-3)) var(--s-2) var(--s-2);
   grid-template: "loops size foot" auto "loops colours colours" minmax(0, 1fr) / auto minmax(0, 1fr) auto;
-  --nb-tool-len: 112px; --nb-tool-w: 27px; --nb-tool-in: 16px; --nb-tool-out: -4px;
+  --nb-tool-len: 120px; --nb-tool-w: 29px; --nb-tool-in: 16px; --nb-tool-out: -4px; --nb-loop-pitch: 52px;
 }
 .nb[data-orient="portrait"] .nb-roll__end {
   left: auto; top: 0; right: 0; bottom: 0; width: var(--nb-roll-end-w); height: auto; border-top: 0; border-left: var(--bw-mid) solid var(--nb-line);
-  background: repeating-linear-gradient(90deg, var(--nb-roll-end) 0 var(--s-1), var(--nb-roll-dark) var(--s-1) var(--s-2));
+  background: linear-gradient(270deg, var(--nb-roll-tie) 0 var(--bw-thick), var(--nb-roll-end) var(--bw-thick) 45%, var(--nb-roll-dark) 45% 70%, var(--nb-roll-end) 70%);
 }
 .nb[data-orient="portrait"] .nb-roll__loops { flex-direction: row; }
 .nb[data-orient="portrait"] .nb-pt { width: var(--nb-loop-pitch); height: 100%; --nb-tool-turn: 0deg; }
+.nb[data-orient="portrait"] .nb__railfoot { gap: var(--s-1); }
 .nb[data-orient="portrait"] .nb-pt__loop { top: 54%; bottom: auto; left: var(--s-hair); right: var(--s-hair); width: auto; height: var(--nb-loop-w); }
 .nb[data-orient="portrait"] .nb-roll__colours { min-height: var(--tap-xs); justify-content: flex-start; }
 .nb[data-rails="short"] .nb__rail--start { padding: calc(var(--tap-xs) + var(--s-3)) var(--s-2) var(--s-2); }
 .nb[data-rails="short"] .nb-roll__cloth { grid-template: "loops size" auto "loops colours" minmax(0, 1fr) "loops foot" auto / minmax(0, 1fr) auto; }
 .nb[data-rails="short"] .nb-roll__colours { width: calc(var(--tap-xs) * 3 + var(--s-1) * 2); }
 .nb[data-rails="short"] .nb__back, .nb[data-rails="narrow"] .nb__back { width: var(--tap-xs); height: var(--tap-xs); min-width: var(--tap-xs); min-height: var(--tap-xs); }
-.nb--immersive[data-rails="narrow"] .nb-roll__cloth { grid-template: "loops size" auto "loops foot" auto "colours colours" auto / auto minmax(0, 1fr); gap: var(--s-1); padding: var(--s-1) calc(var(--nb-roll-end-w) + var(--s-1)) var(--s-1) var(--s-1); --nb-tool-len: 84px; --nb-tool-w: 20px; --nb-tool-in: 12px; --nb-tool-out: -4px; }
+.nb--immersive[data-rails="narrow"] .nb-roll__cloth { grid-template: "loops size" auto "loops foot" auto "colours colours" auto / auto minmax(0, 1fr); gap: var(--s-1); padding: var(--s-1) calc(var(--nb-roll-end-w) + var(--s-1)) var(--s-1) var(--s-1); --nb-tool-len: 84px; --nb-tool-w: 20px; --nb-tool-in: 12px; --nb-tool-out: -4px; --nb-loop-pitch: var(--tap-xs); }
 .nb[data-rails="narrow"] .nb__railfoot { gap: 0; }
 .nb[data-rails="narrow"] .nb-roll__dot { display: none; }
 .nb[data-rails="narrow"] .nb__rail--start { padding: var(--s-1) var(--s-1) var(--s-2); }
@@ -288,20 +336,23 @@
   border: var(--bw-mid) solid var(--nb-line); border-radius: var(--r-sm);
   background: var(--nb-wood); box-shadow: 0 var(--s-1) 0 var(--nb-line);
 }
+.nb-rack[data-rack="photos"] { grid-column: span 2; }
+.nb[data-orient="portrait"] .nb-rack[data-rack="photos"], .nb[data-rails="short"] .nb-rack[data-rack="photos"] { grid-column: auto; }
 .nb[data-orient="portrait"] .nb__rail--end { grid-template: "tray new" minmax(0, 1fr) "tray menu" minmax(0, 1fr) / minmax(0, 1fr) auto; margin-left: calc(var(--tap) + var(--s-3)); gap: var(--s-1) var(--s-2); padding: var(--s-2) var(--s-3) var(--s-2) var(--s-2); align-content: stretch; }
 .nb[data-orient="portrait"] .nb__rail--end .btn--icon { width: var(--tap-xs); height: var(--tap-xs); min-width: var(--tap-xs); min-height: var(--tap-xs); }
-.nb[data-orient="portrait"] .nb-tray { align-self: stretch; grid-template-columns: repeat(8, minmax(0, 1fr)); }
+.nb[data-orient="portrait"] .nb-tray { align-self: stretch; grid-template-columns: repeat(9, minmax(0, 1fr)); }
 .nb[data-rails="short"] .nb__rail--end { padding-top: var(--s-1); gap: var(--s-1); }
 .nb[data-rails="short"] .nb__rail--end .btn--icon { width: var(--tap-xs); height: var(--tap-xs); min-width: var(--tap-xs); min-height: var(--tap-xs); }
 .nb[data-rails="short"] .nb-tray { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .nb[data-rails="narrow"] .nb__rail--end { margin-left: 0; grid-template: ". new menu" auto "tray tray tray" auto / minmax(0, 1fr) auto auto; padding: var(--s-1) var(--s-2); }
-.nb[data-rails="narrow"] .nb-tray { grid-template-columns: repeat(8, minmax(0, 1fr)); padding: var(--s-1); gap: var(--s-hair); }
+.nb[data-rails="narrow"] .nb-tray { grid-template-columns: repeat(5, minmax(0, 1fr)); padding: var(--s-1); gap: var(--s-hair); --nb-rack-art: 34px; }
+.nb[data-rails="narrow"] .nb-rack { padding: var(--s-hair); }
 .nb-rack {
   position: relative; min-width: var(--tap-xs); min-height: var(--tap-xs); padding: var(--s-1); display: grid; place-items: center;
   border: var(--bw-thin) solid var(--nb-line); border-radius: var(--s-1); background: var(--nb-tray-well);
   cursor: pointer; touch-action: manipulation;
 }
-.nb-rack > .nb-art { width: 100%; max-width: var(--tap); height: auto; transition: transform var(--t-fast) var(--ease-bounce); }
+.nb-rack > .nb-art { width: 100%; max-width: var(--nb-rack-art, var(--tap)); height: auto; transition: transform var(--t-fast) var(--ease-bounce); }
 .nb-rack[data-raised] > .nb-art { transform: translateY(calc(var(--nb-stamp-lift) * -1)); }
 .nb-rack[data-raised] { background: var(--nb-wood-light); }
 /* The animal on the panda stamp, on its block. */
@@ -321,6 +372,7 @@
 }
 .nb-polaroid[data-held] { z-index: 7; cursor: grabbing; }
 .nb-polaroid__window { position: relative; display: block; }
+.nb[data-orient="landscape"][data-rails="tall"] .nb-tray { --nb-rack-art: 76px; padding: var(--s-3); gap: var(--s-2); }
 .nb-polaroid__pic { display: block; width: 100%; height: auto; }
 .nb-polaroid__blank { position: absolute; inset: 0; background: var(--nb-photo-blank); pointer-events: none; }
 
@@ -361,6 +413,9 @@
 .nb-a-polaroid-sky { fill: var(--nb-polaroid-sky); }
 .nb-a-polaroid-leaf { fill: var(--nb-polaroid-leaf); }
 .nb-a-coil-hole { fill: var(--nb-coil-hole); }
+.nb-a-glass { fill: var(--nb-glass); }
+.nb-a-glass-shine { fill: var(--nb-tool-shine); }
+.nb-a-ink-shine { fill: var(--nb-tool-shine); }
 .nb-a-tin { fill: var(--nb-tin); }
 .nb-a-tin-rim { fill: var(--nb-tin-rim); }
 .nb-a-panda { fill: var(--nb-panda); }
@@ -375,7 +430,7 @@
 .nb-l-tick { stroke: var(--nb-ruler-ink); stroke-width: 1; }
 .nb-l-coil-line { stroke: var(--nb-line); stroke-width: 5.5; }
 .nb-l-coil { stroke: var(--nb-coil); stroke-width: 2.5; }
-.nb-l-felt { stroke: var(--nb-tool-shade); stroke-width: 1.5; stroke-dasharray: 2 4; }
+.nb-l-rule { stroke: var(--nb-stamp); stroke-width: 2.5; vector-effect: non-scaling-stroke; }
 .nb-l-carve { stroke: var(--nb-carve); stroke-width: 2.4; }
 .nb-l-panda-mouth { stroke: var(--nb-panda-dark); stroke-width: 1.6; }
 .nb-l-grip { stroke: var(--nb-metal-dark); stroke-width: 1.2; }
@@ -398,27 +453,49 @@
 .nb-grow__back { position: absolute; inset: 0; transform-origin: 0 0; background: var(--desk-colour) var(--desk-texture) 0 0 / var(--desk-texture-size); }
 .nb-grow__page { position: absolute; transform-origin: 0 0; }
 
-/* The ribbon marks the place, down the book's left edge (--nb-place: 0 first, 1 last); tapped, it opens
-   the contents. */
-.nb__ribbon {
-  position: absolute; z-index: 2; width: var(--tap-xs); height: var(--tap-xs); padding: 0; border: 0; background: none; cursor: pointer;
-  left: max(0px, calc(var(--nb-edge-x) + var(--nb-book-side) - var(--tap-xs)));
-  top: calc(var(--nb-edge-top) + var(--nb-ribbon-inset) + var(--nb-place) * (100% - var(--nb-edge-top) - var(--nb-edge-bottom) - 2 * var(--nb-ribbon-inset) - var(--tap-xs)));
+/* Sticky index tabs down the page's right edge, one per section (js/notebook.js drawTabs). How they fit
+   is measured: data-tabs is full (a label across), narrow (a label down) or stub (a colour and an
+   initial, its label on press). The one for the place in the book sits forward. */
+.nb-tabs { position: absolute; z-index: 2; left: var(--nb-tab-x); width: var(--nb-tab-w); top: var(--nb-edge-top); display: flex; flex-direction: column; gap: var(--s-1); }
+.nb-tab {
+  position: relative; isolation: isolate; flex: none; display: flex; align-items: center; height: var(--nb-tab-h); padding: var(--s-hair) calc(var(--s-1) + var(--bw-thin)) var(--s-hair) var(--s-1);
+  border: 0; background: none; color: var(--g-ink, var(--nb-tab-ink)); font-family: var(--font-notes); font-size: var(--nb-tab-fs); text-align: left; cursor: pointer; touch-action: manipulation; overflow: hidden;
 }
-.nb__ribbon::before {
-  content: ''; position: absolute; inset: calc((var(--tap-xs) - var(--s-5)) / 2) 0;
-  background: var(--nb-ribbon); clip-path: polygon(100% 0, 0 0, 0 100%, 100% 100%, 65% 50%);
+/* The note itself: the zone to tap stays whole, and only the one for the place reaches its end. */
+.nb-tab::before {
+  content: ''; position: absolute; z-index: -1; inset: 0 var(--s-1) 0 0;
+  border: var(--bw-thin) solid var(--nb-line); border-left: 0; border-radius: 0 var(--s-2) var(--s-2) 0; background: var(--g, var(--nb-tab-more));
 }
-/* Tabs on the book's right edge turn the pages: up to the next, down to the one before. */
+.nb-tab--contents { --g: var(--nb-tab-contents); }
+.nb-tab--free { --g: var(--nb-tab-free); }
+.nb-tab[aria-current]::before { right: 0; }
+.nb-tab[aria-current] { font-weight: 700; }
+.nb-tab__name { display: block; width: 100%; line-height: 1.15; overflow: hidden; }
+.nb-tab__name .bi { display: flex; width: 100%; gap: 0; align-items: flex-start; }
+.nb-tab__name .bi > * { max-width: 100%; white-space: normal; }
+.nb-tab[data-short] .nb-tab__name { overflow-wrap: anywhere; } /* the last resort: one word too long for the tab */
+.nb-tab__initial { display: none; }
+.nb[data-tabs="stub"] .nb-tab { height: var(--tap-xs); justify-content: center; padding: 0; overflow: visible; font-weight: var(--fw-bold); font-size: var(--fs-sm); }
+.nb[data-tabs="stub"] .nb-tab__initial { display: block; }
+.nb[data-tabs="stub"] .nb-tab__name { display: none; }
+.nb[data-tabs="stub"] .nb-tab:active .nb-tab__name {
+  display: block; position: absolute; right: 100%; top: 0; padding: var(--s-2) var(--s-3); margin-right: var(--s-1);
+  border: var(--bw-thin) solid var(--nb-line); border-radius: var(--s-2); background: var(--g, var(--nb-tab-more)); color: var(--g-ink, var(--nb-tab-ink)); font-size: var(--fs-xs);
+}
+/* Under the tabs, buttons to turn: up to the next page, down to the one before. */
 .nb--immersive .nb__nav {
-  position: absolute; z-index: 2; right: max(0px, calc(var(--nb-edge-x) - var(--tap-xs))); width: var(--tap-xs); height: var(--tap-xs); min-width: var(--tap-xs); min-height: var(--tap-xs);
-  border: var(--bw-mid) solid var(--nb-line); border-left: 0; border-radius: 0 var(--r-md) var(--r-md) 0;
+  position: absolute; z-index: 2; left: var(--nb-tab-x); width: var(--tap-xs); height: var(--tap-xs); min-width: var(--tap-xs); min-height: var(--tap-xs);
+  border: var(--bw-thin) solid var(--nb-line); border-left: 0; border-radius: 0 var(--s-2) var(--s-2) 0;
   background: var(--nb-cover); color: var(--c-on-primary); box-shadow: none;
 }
-.nb--immersive .nb__nav:disabled { display: none; }
-.nb--immersive .nb__nav--next { bottom: calc(var(--nb-edge-bottom) + var(--tap-xs) + var(--s-3)); }
+.nb--immersive .nb__nav:disabled { visibility: hidden; }
+.nb--immersive .nb__nav--next { bottom: calc(var(--nb-edge-bottom) + var(--tap-xs) + var(--s-1)); }
 .nb--immersive .nb__nav--prev { bottom: var(--nb-edge-bottom); }
 .nb--immersive .nb__nav-sign { display: block; transform: rotate(-90deg); }
+/* The tool in hand, lying on the desk (js/notebook.js placeTool). */
+.nb-desktool { position: absolute; z-index: 4; width: var(--nb-desk-tool-w); height: var(--nb-desk-tool-len); padding: 0; border: 0; background: none; cursor: pointer; touch-action: manipulation; }
+.nb-desktool[hidden] { display: none; }
+.nb-desktool .nb-art { width: 100%; height: 100%; }
 
 /* The page's animal tags: chips under the OBSERVED stamp, each with a ✕, and "＋". Small to
    look at, 44 px to tap; the gaps between them still draw. */
@@ -441,56 +518,39 @@
 }
 .nb-tag--add { padding: 0; border: var(--bw-thin) dashed var(--nb-stamp); }
 
-/* The contents: in place of the page and its tools. */
-.nb[data-view="contents"] .nb__tools, .nb[data-view="contents"] .nb__deskwrap,
-.nb[data-view="contents"] :is(.nb__nav, .nb__count, .nb__new, .nb-roll, .nb-tray, .nb-polaroid) { display: none; }
-/* No roll or tray here: back and the menu share a slim row over a list the full width of the screen. */
-.nb.nb--immersive[data-view="contents"] { grid-template: "start end" auto "stage stage" minmax(0, 1fr) / minmax(0, 1fr) minmax(0, 1fr); }
-.nb.nb--immersive[data-view="contents"] .nb__rail { display: flex; flex-direction: row; min-height: var(--tap-xs); padding: var(--s-1) var(--s-2); }
-.nb.nb--immersive[data-view="contents"] .nb__rail--end { justify-content: flex-end; }
-.nb.nb--immersive[data-view="contents"] :is(.nb__rail, .nb__back) .btn--icon, .nb.nb--immersive[data-view="contents"] .nb__back { width: var(--tap-xs); height: var(--tap-xs); min-width: var(--tap-xs); min-height: var(--tap-xs); }
-.nb.nb--immersive[data-view="contents"] .nb__back { left: var(--s-2); top: var(--s-1); }
-/* The list lies on the desk as a sheet of kraft. */
-.nb--immersive .nb__contents { margin: 0 var(--s-2) var(--s-2); border: var(--bw-mid) solid var(--nb-line); border-radius: var(--r-md); background: var(--nb-kraft); }
+/* The contents. Beside a card, a list in place of the page and its tools. */
+.nb--beside[data-view="contents"] :is(.nb__tools, .nb__deskwrap, .nb__nav, .nb__count, .nb__new) { display: none; }
 .nb__contents {
   flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
-  padding: var(--s-3) var(--s-3) var(--s-6); color: var(--nb-kraft-ink); touch-action: pan-y;
+  padding: var(--s-3) var(--s-3) var(--s-6); color: var(--nb-kraft-ink); touch-action: pan-y; font-family: var(--font-notes);
 }
-.nb-toc__title { margin: 0 0 var(--s-3); font-size: var(--fs-lg); }
-.nb-toc__title .bi { flex-direction: row; gap: 0.4em; }
+/* On its own, the first pages of the book, on the same paper: read-only, so the roll and the tray are
+   put away. They keep their places, so the book doesn't move. */
+.nb--immersive[data-view="contents"] :is(.nb-roll, .nb-tray, .nb__new, .nb-polaroid, .nb-desktool) { visibility: hidden; }
+.nb--immersive .nb__contents {
+  position: absolute; inset: 0; overflow: hidden; padding: var(--nb-toc-pad); touch-action: none; color: var(--nb-ink);
+  background: radial-gradient(circle, var(--nb-dot) 0 var(--bw-hair), transparent var(--bw-hair)) 0 0 / calc(var(--nb-sheet-w) / 28) calc(var(--nb-sheet-w) / 28), var(--nb-paper);
+}
+.nb-leaf .nb__contents { pointer-events: none; }
+.nb-toc__title { position: relative; width: max-content; max-width: 100%; height: calc(var(--nb-toc-row) * 2 - var(--s-4)); margin: 0 0 var(--s-4); font-size: var(--fs-xl); font-weight: 700; transform: rotate(-2deg); transform-origin: 0 100%; }
+.nb-toc__title .bi { flex-direction: row; gap: 0.4em; white-space: nowrap; }
+.nb:is([data-rails="short"], [data-rails="narrow"]) .nb-toc__title { font-size: var(--fs-lg); }
+.nb-toc__rule { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: var(--s-3); }
 .nb-toc__empty { margin: var(--s-4) 0; }
-.nb-toc__group { margin-bottom: var(--s-5); }
 .nb-toc__heading {
-  display: flex; align-items: center; gap: var(--s-2); margin: 0 0 var(--s-2);
-  font-size: var(--fs-md); border-bottom: var(--bw-thin) solid var(--c-shade);
+  display: flex; align-items: flex-end; gap: var(--s-2); height: var(--nb-toc-row); margin: 0; padding-bottom: var(--s-1);
+  border-bottom: var(--bw-thin) solid var(--g, var(--nb-line)); font-size: var(--fs-sm); font-weight: 700;
 }
 .nb-toc__heading .bi { flex-direction: row; gap: 0.4em; }
-.nb-toc__animal { margin-bottom: var(--s-3); padding: var(--s-2); border-radius: var(--r-md); background: var(--c-veil); color: var(--c-ink); }
-.nb-toc__head, .nb-toc__page {
-  display: flex; align-items: center; gap: var(--s-3); width: 100%; min-height: var(--tap-xs);
-  padding: var(--s-1); border: 0; border-radius: var(--r-sm); background: none; color: inherit; font: inherit; text-align: left; cursor: pointer;
+.nb-toc__link {
+  display: flex; flex-direction: column; justify-content: center; width: 100%; height: var(--nb-toc-row); padding: 0 var(--s-1);
+  border: 0; border-bottom: var(--bw-hair) dotted var(--nb-dot); background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; touch-action: manipulation; overflow: hidden;
 }
-.nb-toc__head:hover, .nb-toc__page:hover { background: var(--c-shine-faint); }
-.nb-toc__name { flex: 1; min-width: 0; font-weight: var(--fw-bold); }
-.nb-toc__count { flex: none; font-size: var(--fs-xs); font-weight: var(--fw-bold); color: var(--c-ink-soft); }
-.nb-toc__heading .nb-toc__count { margin-left: auto; color: inherit; }
-.nb-toc__pages { list-style: none; margin: 0; padding: 0 0 0 var(--s-5); }
-.nb-toc__info { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: var(--s-1); }
-.nb-toc__date { font-size: var(--fs-sm); }
-.nb-toc__also {
-  padding: 0 var(--s-2); border-radius: var(--r-md); background: var(--c-surface);
-  font-size: var(--fs-xs); font-weight: var(--fw-bold); color: var(--c-ink-soft);
-}
-.nb-toc__also .bi, .nb-toc__count .bi, .nb-toc__date .bi { flex-direction: row; flex-wrap: wrap; column-gap: 0.35em; }
-.nb-toc__thumb {
-  flex: none; width: var(--nb-thumb-w); aspect-ratio: var(--nb-page-shape); border-radius: var(--r-sm);
-  background: var(--nb-paper); box-shadow: var(--shadow-1);
-}
-.nb-toc__thumb--small { width: var(--nb-thumb-w-sm); }
-.nb-toc__group--free .nb-toc__pages { padding-left: 0; }
-.nb-toc__new { margin-top: var(--s-2); }
-
-/* Before the first page: a kraft cover with a label. */
+.nb-toc__name, .nb-toc__meta { display: flex; gap: 0.4em; min-width: 0; white-space: nowrap; overflow: hidden; }
+.nb-toc__name { font-size: var(--fs-sm); font-weight: 700; line-height: 1.2; }
+.nb-toc__name .bi, .nb-toc__meta .bi { flex-direction: row; gap: 0.35em; }
+.nb-toc__meta { font-size: var(--fs-xs); color: var(--c-ink-soft); line-height: 1.2; }
+.nb-toc__new { color: var(--nb-stamp); }
 
 /* Selection: move by dragging, a handle to resize, one to turn, and delete. */
 .nb-sel { position: absolute; border: var(--bw-thin) dashed var(--c-primary); transform-origin: 50% 50%; pointer-events: none; }
@@ -505,12 +565,15 @@
 }
 .nb-sel__resize { right: 0; bottom: 0; margin-right: calc(var(--tap-xs) * -1); margin-bottom: calc(var(--tap-xs) * -1); transform-origin: 0 0; cursor: nwse-resize; }
 .nb-sel__rotate { left: 50%; top: 0; margin-top: calc(var(--tap-xs) * -1.2); transform-origin: 50% 100%; cursor: grab; }
+.nb-sel__edit { left: 0; bottom: 0; margin-left: calc(var(--tap-xs) * -1); margin-bottom: calc(var(--tap-xs) * -1); transform-origin: 100% 0; }
+.nb-sel__edit[hidden] { display: none; }
+.nb__desk[data-fingers] .nb-sel__h { visibility: hidden; } /* a pinch mustn't land on one */
 .nb-sel__del { right: 0; top: 0; margin-right: calc(var(--tap-xs) * -1); margin-top: calc(var(--tap-xs) * -1); transform-origin: 0 100%; background: var(--c-bad); }
 
 .nb-text {
   position: absolute; min-width: 8em; padding: 0; margin: 0;
   border: var(--bw-thin) dashed var(--c-primary); background: var(--c-shine-soft);
-  font-family: var(--font); line-height: 1.25; resize: none; outline: none;
+  font-family: var(--font-notes); line-height: 1.25; resize: none; outline: none;
   user-select: text; -webkit-user-select: text;
 }
 .nb-text[data-light] { background: var(--c-shade); } /* white writing */

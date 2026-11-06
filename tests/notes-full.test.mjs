@@ -18,7 +18,7 @@ try { pw = await import('playwright'); } catch { /* not installed */ }
 const have = () => { try { return pw && existsSync(pw.chromium.executablePath()); } catch { return false; } };
 const skip = !have() && 'chromium not installed';
 
-const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json' };
+const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json', '.woff2': 'font/woff2' };
 let server, url;
 before(async () => {
   server = createServer(async (req, res) => {
@@ -87,7 +87,7 @@ async function open() {
       await f.wait(300);
     },
     // The page open in the full notebook.
-    place: () => page.evaluate(() => document.querySelector('.nb__ribbon').getAttribute('aria-label').match(/[0-9]+/)[0]),
+    place: () => page.evaluate(() => document.querySelector('.nb-tabs').getAttribute('aria-label').match(/[0-9]+/)[0]),
   };
   return f;
 }
@@ -113,7 +113,7 @@ run('turning on to another of this card\'s pages: the panel comes back on the pa
   await f.panelOn(1);
   await f.openFull();
   await f.page.click('.nb__nav--next');
-  await f.wait(500);
+  await f.wait(800);
   assert.equal(await f.place(), '2');
   await f.back();
   assert.equal(await f.count(), '2 / 3');
@@ -124,12 +124,12 @@ for (const [name, row] of [['another animal\'s page', i => i.b], ['a free page',
     await f.panelOn(2);
     await f.openFull();
     assert.equal(await f.place(), '2', 'the same page');
-    await f.page.click('.nb__ribbon');
+    await f.page.click('.nb-tab[data-tab="contents"]');
     await f.page.waitForSelector('.nb__contents:not([hidden])');
-    await f.wait(100);
+    await f.wait(800);
     const id = row(f);
-    await f.page.click(id ? `.nb-toc__group:not(.nb-toc__group--free) .nb-toc__animal:nth-of-type(2) .nb-toc__page` : '.nb-toc__group--free .nb-toc__page');
-    await f.wait(700);
+    await f.page.click(id ? `.nb-toc__link[data-card="${f.b}"]` : '.nb-toc__link[data-free]');
+    await f.wait(900);
     assert.equal(await f.page.evaluate(() => document.querySelector('.nb').dataset.view), 'pages');
     await f.back();
     assert.equal(await f.count(), '2 / 3');
@@ -141,7 +141,7 @@ for (const [name, row] of [['another animal\'s page', i => i.b], ['a free page',
 run('ending in the contents: the panel comes back on the page it started from', async f => {
   await f.panelOn(2);
   await f.openFull();
-  await f.page.click('.nb__ribbon');
+  await f.page.click('.nb-tab[data-tab="contents"]');
   await f.page.waitForSelector('.nb__contents:not([hidden])');
   await f.back();
   assert.equal(await f.count(), '2 / 3');
@@ -177,7 +177,22 @@ run('a second trip works the same', async f => {
   await f.back();
   await f.openFull();
   await f.page.click('.nb__nav--next');
-  await f.wait(500);
+  await f.wait(800);
   await f.back();
   assert.equal(await f.count(), '2 / 3');
+});
+
+run('opened from the menu or a card link the book starts closed; from the panel it never does', async f => {
+  await f.panelOn(1);
+  await f.openFull();
+  assert.equal(await f.page.evaluate(() => document.querySelector('.nb-cover')), null, 'from the panel: straight to the page');
+  await f.back();
+  await f.page.evaluate(id => { location.hash = `#/notes/${encodeURIComponent(id)}`; }, f.a);
+  await f.page.waitForSelector('.nb--immersive .nb-cover__tap');
+  assert.equal(await f.page.evaluate(() => document.querySelector('.nb--immersive').dataset.book), 'closed', 'a card link');
+  await f.page.evaluate(() => { location.hash = '#/notes'; });
+  await f.page.waitForFunction(() => document.querySelector('.nb--immersive[data-view="contents"] .nb-cover__tap'));
+  await f.page.click('.nb-cover__tap');
+  await f.wait(1000);
+  assert.ok(await f.page.evaluate(() => document.querySelector('.nb-toc__title').getClientRects().length > 0), 'the contents under the cover');
 });

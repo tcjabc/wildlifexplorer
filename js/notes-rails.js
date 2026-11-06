@@ -58,13 +58,13 @@ const TOOLS = {
 export const toolArt = id => art(TOOL_W, TOOL_LEN, TOOLS[id](TOOL_W / 2, TOOL_LEN));
 
 // ---------- the ink pad ----------
+// A shallow tin, seen from above with its lid off, the pad filling it in the ink in use.
 export const inkPadArt = () => art(64, 52,
-  rect('metal', 5, 1, 54, 14, 3),
-  rect('metal-dark', 5, 11, 54, 4),
-  rect('tin', 1, 12, 62, 38, 6),
-  rect('tin-rim', 6, 17, 52, 28, 3),
-  rect('ink', 9, 20, 46, 22, 2),
-  line('felt', 'M13 26h38M13 32h38M13 38h38'));
+  rect('tin-rim', 1, 7, 62, 42, 10),
+  rect('tin', 1, 4, 62, 41, 10),
+  rect('tin-rim', 7, 10, 50, 29, 6),
+  rect('ink', 10, 13, 44, 23, 4),
+  path('ink-shine', 'M14 17h19v3H14ZM36 17h5v3h-5Z'));
 
 // ---------- the sponge ----------
 // A rounded block: its top, the thicker side under it, and the holes.
@@ -105,6 +105,16 @@ export const spiralArt = () => svg('svg', { class: 'nb-bk__spiral', width: '100%
     line('coil-line', 'M12 22C12 8 8 3 4 3C0 3 1 10 3 12'),
     line('coil', 'M12 22C12 8 8 3 4 3C0 3 1 10 3 12'))),
   svg('rect', { width: '100%', height: 30, fill: 'url(#nb-coil)' }));
+
+// ---------- the magnifying glass ----------
+export const glassArt = () => art(64, 64,
+  path('wood-dark', 'M38 44L45 37L61 53Q63 57 59.5 60Q56 63 52 60Z'),
+  path('wood', 'M38 42L43 37L60 52Q61 55 58.5 57.5Q56 59 54 57Z'),
+  circle('metal-dark', 26, 26, 24), circle('metal', 26, 24, 23), circle('glass', 26, 25, 17), path('glass-shine', 'M15 25A11 11 0 0 1 26 14V19A6 6 0 0 0 20 25Z'));
+
+// ---------- the line under the contents' heading ----------
+export const underlineArt = () => svg('svg', { class: 'nb-art nb-toc__rule', viewBox: '0 0 200 12', preserveAspectRatio: 'none', 'aria-hidden': 'true', focusable: 'false' },
+  line('rule', 'M3 7C30 3 52 9 84 6S140 3 165 7S190 8 197 5'));
 
 // ---------- the tokens on the roll ----------
 // Round pieces of the same wood as the stamps, the sign carved in.

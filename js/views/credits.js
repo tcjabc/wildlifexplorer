@@ -26,6 +26,7 @@ export function render(main) {
     h('p', { class: 'muted' }, tx('credits.map')),
     h('p', { class: 'muted' }, tx('credits.gbif')),
     h('p', { class: 'muted' }, tx('credits.desk')),
+    h('p', { class: 'muted' }, tx('credits.font')),
     items.length
       ? h('ul', { class: 'credits' }, items.map(({ card, kind, img, entry }) => h('li', { class: 'credits__item', 'data-group': card.group },
         // Thumbnails of cards not collected yet are blurred so the credits don't spoil them.

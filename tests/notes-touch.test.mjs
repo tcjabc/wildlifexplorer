@@ -18,7 +18,7 @@ try { pw = await import('playwright'); } catch { /* not installed */ }
 const have = () => { try { return pw && existsSync(pw.chromium.executablePath()); } catch { return false; } };
 const skip = !have() && 'chromium not installed';
 
-const TYPES = { '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml' };
+const TYPES = { '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.woff2': 'font/woff2' };
 const PAGE = `<!doctype html><meta name=viewport content="width=device-width, initial-scale=1">
 ${['tokens', 'app', 'card', 'notes'].map(n => `<link rel=stylesheet href="/css/${n}.css">`).join('')}
 <body class="is-immersive"><main class="main" id="main" data-view="notes"></main>
@@ -76,8 +76,8 @@ after(() => server?.close());
 
 const LANDSCAPE = { width: 1280, height: 800 }, PORTRAIT = { width: 800, height: 1280 };
 // The page at the baseline tablet's size in landscape: its top left and CSS px per page unit.
-const K = 592 / 1120;
-const onPage = (x, y) => ({ x: 344 + x * K, y: 40 + y * K });
+const K = 585 / 1120;
+const onPage = (x, y) => ({ x: 348 + x * K, y: 40 + y * K });
 const LEFT = onPage(200, 800);
 const stroke = (x, y) => ({ t: 's', c: '#444', w: 5, p: [x, y, 0.5, x + 100, y, 0.5] });
 const label = (x, y) => ({ t: 'x', c: '#444', s: 40, x, y, v: 'Hello' });
@@ -104,8 +104,8 @@ async function open(viewport = LANDSCAPE) {
     },
     items: id => page.evaluate(i => t.items(i), id),
     where: () => page.evaluate(() => t.where().pageId),
-    // The page open, by what the ribbon says.
-    place: () => page.evaluate(() => Number(document.querySelector('.nb__ribbon').getAttribute('aria-label').match(/[0-9]+/)[0])),
+    // The page open, by what the tabs say.
+    place: () => page.evaluate(() => Number(document.querySelector('.nb-tabs').getAttribute('aria-label').match(/[0-9]+/)[0])),
     transform: () => page.evaluate(() => getComputedStyle(document.querySelector('.nb__book')).transform),
     box: sel => page.evaluate(s => { const r = document.querySelector(s)?.getBoundingClientRect(); return r && { x: r.x, y: r.y, w: r.width, h: r.height }; }, sel),
     // One finger along a line.
@@ -145,9 +145,9 @@ run('landscape: one page as tall as the desk\'s margins allow, with no app heade
   const [a] = await f.seed([[], []]);
   await f.show(a);
   const sheets = await f.page.evaluate(() => [...document.querySelectorAll('.nb__sheet')].map(s => { const r = s.getBoundingClientRect(); return [r.x, r.y, r.width, r.height]; }));
-  assert.deepEqual(sheets, [[344, 40, 592, 740]]);
+  assert.deepEqual(sheets, [[348, 40, 585, 732]]);
   assert.equal(await f.box('.nb__bar'), undefined);
-  assert.ok(await f.box('.nb__ribbon'));
+  assert.ok(await f.box('.nb-tab[data-tab="contents"]'));
   // Capped at 1.5 on a 2x screen.
   const canvas = await f.page.evaluate(() => { const c = document.querySelector('.nb__base'); return c.width / c.getBoundingClientRect().width; });
   assert.ok(Math.abs(canvas - 1.5) < 0.01, String(canvas));
@@ -205,7 +205,7 @@ run('two fingers zoom without marking the page, and the sharp canvas stays scree
   assert.equal((await f.items(a)).length, 1);
   const detail = await f.page.evaluate(() => { const c = document.querySelector('.nb__detail'); return { hidden: c.hidden, w: c.width, h: c.height }; });
   assert.equal(detail.hidden, false);
-  assert.ok(detail.w <= 592 * 1.5 + 1 && detail.h <= 740 * 1.5 + 1, JSON.stringify(detail));
+  assert.ok(detail.w <= 585 * 1.5 + 1 && detail.h <= 732 * 1.5 + 1, JSON.stringify(detail));
   const base = await f.page.evaluate(() => document.querySelector('.nb__base').width);
   assert.ok(base < 900, 'the page bitmap stays at the fitted size');
 });
@@ -466,18 +466,23 @@ run('a pinch on the selected item resizes it and leaves the page\'s zoom alone',
   assert.equal(zoomOf(await f.transform()), 1);
 });
 
-run('the tabs turn one page at a time, and the ribbon opens the contents', async f => {
+run('the turn buttons go one page at a time, back past the first page to the contents, and a tab opens the contents', async f => {
   const [a, b] = await f.seed([[], [], [], []]);
   await f.show(a);
-  assert.equal(await f.page.evaluate(() => getComputedStyle(document.querySelector('.nb__nav--prev')).display), 'none', 'nothing before the first page');
   await f.page.click('.nb__nav--next');
-  await f.wait(500);
+  await f.wait(800);
   assert.equal(await f.where(), b);
   await f.page.click('.nb__nav--prev');
-  await f.wait(500);
+  await f.wait(800);
   assert.equal(await f.where(), a);
-  await f.page.click('.nb__ribbon');
-  await f.wait(650);
+  await f.page.click('.nb__nav--prev');
+  await f.wait(800);
+  assert.equal(await f.page.evaluate(() => document.querySelector('.nb').dataset.view), 'contents', 'turned back from the first page');
+  await f.page.click('.nb-tab[data-tab="free"]');
+  await f.wait(800);
+  assert.equal(await f.page.evaluate(() => document.querySelector('.nb').dataset.view), 'pages');
+  await f.page.click('.nb-tab[data-tab="contents"]');
+  await f.wait(800);
   assert.equal(await f.page.evaluate(() => document.querySelector('.nb').dataset.view), 'contents');
 });
 
@@ -513,7 +518,7 @@ run('beside a card the notebook stays a panel with its bar and toolbar, and two 
   await f.wait(1600); // past the nudge
   assert.ok(await f.box('.nb__bar'));
   assert.ok(await f.box('.nb__tools'));
-  assert.equal(await f.box('.nb__ribbon'), undefined);
+  assert.equal(await f.box('.nb-tabs'), undefined);
   const y0 = (await f.box('.nb__sheet')).y;
   await f.two([{ x: 300, y: 350 }, { x: 500, y: 350 }], [{ x: 300, y: 200 }, { x: 500, y: 200 }]);
   assert.ok((await f.box('.nb__sheet')).y < y0 - 100);
@@ -521,6 +526,7 @@ run('beside a card the notebook stays a panel with its bar and toolbar, and two 
 });
 
 // ---------- the roll and the tray ----------
+const inHand = f => f.page.evaluate(() => document.querySelector('.nb').dataset.tool);
 const rail = {
   // The ruler's place: where its element is, as the notebook set it.
   ruler: f => f.page.evaluate(() => { const r = document.querySelector('.nb-ruler'); return r.hidden ? null : { left: parseFloat(r.style.left), top: parseFloat(r.style.top), turn: parseFloat(r.style.transform.slice(7)) }; }),
@@ -551,31 +557,30 @@ for (const [name, viewport, across] of [['a tablet', LANDSCAPE, true], ['a phone
     for (const sel of ['.nb-roll', '.nb__railfoot', '.nb-undo', '.nb__railfoot .nb-input', '.nb-slider', '.nb-roll__colours', '.nb-pt[data-pt="ruler"]', '.nb-pt[data-pt="eraser"]']) assert.ok(inside(await f.box(sel), sel === '.nb-roll' ? start : roll), sel);
     for (const sel of ['.nb__new', '.nb__menu', '.nb-tray', '.nb-rack--ink', '.nb-rack[data-rack="sponge"]', '.nb-rack[data-rack="tweezers"]', '.nb-rack[data-rack="washi"]', '.nb-rack[data-rack="photos"]']) assert.ok(inside(await f.box(sel), end), sel);
     assert.ok(await f.page.evaluate(() => { const r = document.querySelector('.nb-roll'); return r.scrollHeight <= r.clientHeight + 1 && r.scrollWidth <= r.clientWidth + 1; }), 'nothing spills out of the roll');
-    const small = await f.page.evaluate(() => [...document.querySelectorAll('.nb__rail button, .nb__rail input, .nb__back, .nb__ribbon')].filter(b => b.offsetParent).map(b => { const r = b.getBoundingClientRect(); return [b.className, Math.round(r.width), Math.round(r.height)]; }).filter(([, w, h]) => Math.min(w, h) < 44));
+    const small = await f.page.evaluate(() => [...document.querySelectorAll('.nb__rail button, .nb__rail input, .nb__back, .nb-tab, .nb__nav')].filter(b => b.offsetParent).map(b => { const r = b.getBoundingClientRect(); return [b.className, Math.round(r.width), Math.round(r.height)]; }).filter(([, w, h]) => Math.min(w, h) < 44));
     assert.deepEqual(small, []);
     const clash = await f.page.evaluate(() => { const r = e => e.getBoundingClientRect(), back = r(document.querySelector('.nb__back')); return [...document.querySelectorAll('.nb__rail button')].filter(b => { const q = r(b); return q.right > back.left && q.left < back.right && q.bottom > back.top && q.top < back.bottom; }).length; });
     assert.equal(clash, 0, 'back sits on nothing');
   }, viewport);
 }
 
-run('the roll: the tool in use slides out of its loop, with its colours and thickness on show', async f => {
+run('the roll shows the colours and thickness of the tool in hand; a colour brings its tool to hand', async f => {
   const [a] = await f.seed([[], []]);
   await f.show(a);
-  const raised = () => f.page.evaluate(() => [...document.querySelectorAll('.nb-pt[data-raised]')].map(b => b.dataset.pt));
   const colours = () => f.page.evaluate(() => [...document.querySelectorAll('.nb-roll__colours button')].map(b => b.dataset.colour ?? b.dataset.hl));
-  assert.deepEqual(await raised(), ['pencil']);
   assert.equal((await colours()).length, 9);
   assert.ok((await colours()).includes('white'));
-  await rail.pick(f, 'pen');
-  assert.deepEqual(await raised(), ['pen']);
   await rail.pick(f, 'highlighter');
   assert.deepEqual(await colours(), ['cyan', 'yellow', 'magenta'], 'only these for the highlighter, and no white');
   await rail.pick(f, 'eraser');
-  assert.deepEqual(await raised(), ['eraser']);
-  assert.deepEqual(await colours(), ['cyan', 'yellow', 'magenta'], 'the eraser has none: the last tool\'s stay');
+  await f.wait(50);
+  assert.equal(await f.page.evaluate(() => getComputedStyle(document.querySelector('.nb-roll__colours')).visibility), 'hidden', 'the eraser has none to show');
+  await rail.rack(f, 'sponge');
+  await f.wait(50);
+  assert.deepEqual(await colours(), ['cyan', 'yellow', 'magenta'], 'with something from the tray, the last drawing tool\'s stay');
   await f.page.click('.nb-roll__colours [data-hl="magenta"]');
   await f.wait(100);
-  assert.deepEqual(await raised(), ['highlighter'], 'a colour is for drawing: its tool comes to hand');
+  assert.equal(await inHand(f), 'highlighter', 'a colour is for drawing: its tool comes to hand');
   assert.equal(await f.page.evaluate(() => t.state.profile.notesTools.highlighter.colour), 'magenta');
 });
 
@@ -648,7 +653,7 @@ run('the ruler: tapped out across the page, one finger moves it, and it is never
   await rail.pick(f, 'ruler');
   const at = await rail.ruler(f);
   assert.ok(at);
-  assert.equal(await f.page.evaluate(() => document.querySelector('.nb-pt[data-raised]').dataset.pt), 'pencil', 'the pencil stays in the hand');
+  assert.equal(await inHand(f), 'pencil', 'the pencil stays in the hand');
   await f.drag({ x: 640, y: 410 }, { x: 640, y: 510 });
   assert.ok(Math.abs((await rail.ruler(f)).top - at.top - 100) < 2);
   assert.equal((await f.items(a)).length, 0, 'moving it draws nothing');
@@ -870,7 +875,7 @@ run('the ABC stamp places text in the ink, which can be turned like any stamp', 
   await f.tap({ x: 470, y: 515 });
   assert.ok(await f.box('.nb-sel'));
   assert.equal(await f.box('.nb-text'), undefined, 'tweezers open no keyboard');
-  await f.two([{ x: 430, y: 515 }, { x: 510, y: 515 }], [{ x: 430, y: 480 }, { x: 510, y: 550 }]);
+  await f.two([{ x: 430, y: 515 }, { x: 510, y: 515 }], [{ x: 430, y: 480 }, { x: 510, y: 550 }]); // one finger lands on ✎: it joins the pinch
   const [text] = await f.items(a);
   assert.equal(text.v, 'Otter');
   assert.ok(text.r > 0.3, String(text.r));
@@ -927,23 +932,22 @@ run('the panel beside a card uses the settings the roll and tray set: colours, t
 }, { width: 1000, height: 800 });
 
 for (const [name, viewport] of [['a tablet', LANDSCAPE], ['a tablet in portrait', PORTRAIT], ['a phone', PHONE_SIDE], ['a phone in portrait', PHONE_UP]]) {
-  run(`${name}: the contents have no roll or tray, only back and the menu in a slim row over a list the full width`, async f => {
+  run(`${name}: the contents are a page of the book, with the roll and tray put away and the menu in reach`, async f => {
     const pages = await f.seed(Array.from({ length: 24 }, () => []));
     await f.show(pages[0]);
     await rail.pick(f, 'ruler');
-    await f.page.click('.nb__ribbon');
-    await f.wait(650);
-    for (const sel of ['.nb-roll', '.nb-tray', '.nb__railfoot', '.nb-ruler']) assert.equal(await f.box(sel).then(b => b?.w ?? 0), 0, sel);
-    const back = await f.box('.nb__back'), menu = await f.box('.nb__menu'), list = await f.box('.nb__contents');
-    assert.ok(back.w >= 43 && menu.w >= 43);
-    assert.ok(Math.abs(back.y - menu.y) < 1, 'one row');
-    assert.ok(back.x < 20 && menu.x + menu.w > viewport.width - 20, 'at its ends');
-    assert.equal(Math.round(list.w), viewport.width - 16, 'a sheet on the desk');
-    assert.ok(list.y >= back.y + back.h && list.y < 70, String(list.y));
-    assert.ok(list.y + list.h <= viewport.height + 1);
-    await f.page.click('.nb-toc__page');
-    await f.wait(700);
-    assert.ok((await f.box('.nb-roll')).w > 0, 'the roll and tray come back with a page');
+    const sheet = await f.box('.nb__sheet');
+    await f.page.click('.nb-tab[data-tab="contents"]');
+    await f.wait(900);
+    const shown = sel => f.page.evaluate(q => { const e = document.querySelector(q); return Boolean(e) && getComputedStyle(e).visibility === 'visible'; }, sel);
+    for (const sel of ['.nb-roll', '.nb-tray', '.nb__new', '.nb-ruler:not([hidden])']) assert.equal(await shown(sel), false, sel);
+    assert.ok(await shown('.nb__back') && await shown('.nb__menu'), 'back and the menu stay');
+    assert.deepEqual(await f.box('.nb__contents'), sheet, 'a page of the book, in the same place');
+    assert.equal(await f.box('.nb-toc__thumb'), undefined, 'text only');
+    assert.equal(await f.page.evaluate(() => { const c = document.querySelector('.nb__contents'); return c.scrollHeight > c.clientHeight + 1; }), false, 'it all fits its page');
+    await f.page.click('.nb-toc__link[data-free]');
+    await f.wait(900);
+    assert.ok(await shown('.nb-roll'), 'the roll and tray come back with a page');
   }, viewport);
 }
 
@@ -1187,12 +1191,11 @@ run('removing a tag: the page stays open, the tabs carry on through the list it 
   await f.wait(100);
   assert.equal(await f.where(), pages[1], 'it stays open');
   assert.match(await f.page.evaluate(() => document.querySelector('.nb__toast').textContent), /Free pages/);
-  assert.equal(await f.page.evaluate(() => getComputedStyle(document.querySelector('.nb__nav--next')).display) === 'none', false, 'the tabs still work');
   await f.page.click('.nb__nav--next');
-  await f.wait(500);
+  await f.wait(800);
   assert.equal(await f.where(), pages[2], 'on to its old neighbour');
   await f.page.click('.nb__nav--prev');
-  await f.wait(500);
+  await f.wait(800);
   assert.equal(await f.where(), pages[0], 'and past its old place');
   assert.equal(await f.page.evaluate(i => t.notes.loadPage(i).then(p => p.tags.length), pages[1]), 0, 'a free page now');
 });
@@ -1206,10 +1209,10 @@ run('undoing the tag\'s removal puts the page back in its place', async f => {
   await f.page.click('.nb-undo');
   await f.wait(100);
   await f.page.click('.nb__nav--next');
-  await f.wait(500);
+  await f.wait(800);
   assert.equal(await f.where(), pages[2]);
   await f.page.click('.nb__nav--prev');
-  await f.wait(500);
+  await f.wait(800);
   assert.equal(await f.where(), pages[1]);
 });
 
@@ -1228,62 +1231,74 @@ run('the book lies outside the page: the canvas is the size the desk\'s margins 
   assert.match(desk, /img\/desk\/wood\.webp/);
 });
 
-run('the stack shows how far through the list the page is: pages to come below, pages turned above', async f => {
+run('the stack shows how far through the book the page is: pages to come below, pages turned above', async f => {
   const pages = await f.seed(Array.from({ length: 12 }, () => []));
   await f.show(pages[0]);
   const depth = () => f.page.evaluate(() => { const c = document.querySelector('.nb-bk').style; return [c.getPropertyValue('--nb-before'), c.getPropertyValue('--nb-after')].map(Number); });
   const [b0, a0] = await depth();
-  assert.equal(b0, 0, 'nothing turned on the first page');
-  assert.equal(a0, 1, 'a full stack to come');
+  assert.ok(a0 > 0.8 && b0 < a0, 'nearly all still to come');
   await f.show(pages[6]);
   const [b1, a1] = await depth();
   assert.ok(b1 > 0.5 && a1 > 0.3 && a1 < a0, JSON.stringify([b1, a1]));
   const edge = await f.page.evaluate(() => { const r = s => document.querySelector(s).getBoundingClientRect(); return { before: r('.nb-bk__before').top, coils: r('.nb-bk__spiral').top, after: r('.nb-bk__after').bottom, page: r('.nb__sheet').bottom }; });
   assert.ok(edge.before < edge.coils - 2, `turned pages show above the coils: ${JSON.stringify(edge)}`);
-  assert.ok(edge.after > edge.page + 2, `pages to come show below the page: ${JSON.stringify(edge)}`);
+  assert.ok(edge.after > edge.page + 6, `pages to come show below the page: ${JSON.stringify(edge)}`);
   await f.show(pages[11]);
   const [b2, a2] = await depth();
   assert.equal(b2, 1);
   assert.equal(a2, 0, 'the end of the book');
 });
 
-run('a turn flips one leaf, by transform alone, and leaves nothing behind; reduced motion has none', async f => {
+run('a turn is one flip of 0.6 s, by transform and opacity, and leaves nothing behind', async f => {
   const [a] = await f.seed([[], [], []]);
   await f.show(a);
   await f.page.click('.nb__nav--next');
   await f.page.waitForSelector('.nb-leaf');
-  const props = await f.page.evaluate(() => document.getAnimations().flatMap(x => x.effect.getKeyframes().flatMap(k => Object.keys(k))).filter(k => !['offset', 'computedOffset', 'easing', 'composite'].includes(k)));
-  assert.deepEqual([...new Set(props)].sort(), ['opacity', 'transform']);
-  await f.wait(500);
+  const motion = await f.page.evaluate(() => {
+    const all = document.getAnimations().filter(x => x.effect.target.closest?.('.nb-leaf-wrap'));
+    return {
+      props: [...new Set(all.flatMap(x => x.effect.getKeyframes().flatMap(k => Object.keys(k))).filter(k => !['offset', 'computedOffset', 'easing', 'composite'].includes(k)))].sort(),
+      ms: all.map(x => x.effect.getComputedTiming().duration), ease: all.map(x => x.effect.getComputedTiming().easing),
+      turned: all.find(x => x.effect.target.matches('.nb-leaf')).effect.getKeyframes().some(k => k.opacity !== undefined),
+    };
+  });
+  assert.deepEqual(motion.props, ['opacity', 'transform']);
+  assert.deepEqual(motion.ms, [600, 600]);
+  assert.ok(motion.ease.includes('cubic-bezier(0.45, 0, 0.55, 1)'));
+  assert.equal(motion.turned, false, 'what turns is never what fades, or its front would show from behind');
+  await f.wait(800);
   assert.equal(await f.box('.nb-leaf'), undefined);
-  await f.page.emulateMedia({ reducedMotion: 'reduce' });
-  await f.page.click('.nb__nav--next');
-  await f.wait(60);
-  assert.equal(await f.box('.nb-leaf'), undefined);
-  assert.equal(await f.place(), 3);
 });
 
-run('the contents riffle up to the front, and a page picked riffles down, each under half a second', async f => {
-  const pages = await f.seed(Array.from({ length: 8 }, () => []));
-  await f.show(pages[5]);
-  const riffle = () => f.page.evaluate(() => { const all = document.getAnimations().filter(x => x.effect.target.closest?.('.nb-leaf')); return { n: all.length, ms: Math.max(...all.map(x => x.effect.getComputedTiming().endTime)) }; });
-  await f.page.click('.nb__ribbon');
-  await f.page.waitForSelector('.nb-leaf');
-  const up = await riffle();
-  assert.ok(up.n >= 2 && up.ms < 500, JSON.stringify(up));
-  assert.notEqual(await f.page.evaluate(() => document.querySelector('.nb').dataset.view), 'contents', 'the book first');
-  await f.wait(550);
-  assert.equal(await f.page.evaluate(() => document.querySelector('.nb').dataset.view), 'contents');
-  await f.page.click('.nb-toc__page');
-  await f.page.waitForSelector('.nb-leaf');
-  const down = await riffle();
-  assert.ok(down.n >= 2 && down.ms < 500, JSON.stringify(down));
-  await f.wait(550);
-  assert.equal(await f.box('.nb-leaf'), undefined);
+run('with reduced motion a turn is a 0.3 s crossfade, with nothing turning', async f => {
   await f.page.emulateMedia({ reducedMotion: 'reduce' });
-  await f.page.click('.nb__ribbon');
-  await f.wait(60);
-  assert.equal(await f.page.evaluate(() => document.querySelector('.nb').dataset.view), 'contents', 'at once');
+  const [a] = await f.seed([[], [], []]);
+  await f.show(a);
+  await f.page.click('.nb__nav--next');
+  await f.page.waitForSelector('.nb-leaf');
+  const motion = await f.page.evaluate(() => document.getAnimations().filter(x => x.effect.target.closest?.('.nb-bk__turn')).map(x => ({ ms: x.effect.getComputedTiming().duration, keys: x.effect.getKeyframes().flatMap(k => Object.keys(k)) })));
+  assert.equal(motion.length, 1);
+  assert.equal(motion[0].ms, 300);
+  assert.ok(motion[0].keys.includes('opacity') && !motion[0].keys.includes('transform'));
+  await f.wait(450);
+  assert.equal(await f.box('.nb-leaf'), undefined);
+  assert.equal(await f.place(), 2);
+});
+
+run('a jump to a distant page is one flip with the target underneath, never through the pages between', async f => {
+  const [id, other] = await rail.collect(f, 2);
+  const mine = await tagged(f, id, 6), theirs = await tagged(f, other, 2);
+  await f.show(mine[5], { start: { view: 'pages', scope: { kind: 'animal', id }, pageId: mine[5] } });
+  await f.page.evaluate(() => { window.leaves = 0; new MutationObserver(m => { for (const r of m) window.leaves += [...r.addedNodes].filter(n => n.matches?.('.nb-leaf-wrap')).length; }).observe(document.querySelector('.nb-bk__turn'), { childList: true }); });
+  await f.page.click(`.nb-tab[data-tab="${other}"]`);
+  await f.wait(150);
+  assert.equal(await f.where(), theirs[1], 'the target is there already, under the leaf');
+  await f.wait(800);
+  assert.equal(await f.page.evaluate(() => window.leaves), 1, 'one leaf');
+  await f.page.click('.nb-tab[data-tab="contents"]');
+  await f.wait(800);
+  assert.equal(await f.page.evaluate(() => document.querySelector('.nb').dataset.view), 'contents');
+  assert.ok(await f.page.evaluate(() => window.leaves) <= 3, 'one flip: back has a leaf for each page');
 });
 
 run('the roll unrolls once when the notebook opens, by transform alone; reduced motion skips it', async f => {
@@ -1412,4 +1427,454 @@ run('?debug=taps outlines every tap zone with its size, and none on the roll or 
   assert.ok(zones.all > 20, String(zones.all));
   assert.deepEqual(zones.red, []);
   assert.match(zones.sample, /^[0-9]+×[0-9]+$/);
+});
+
+// ---------- the cover ----------
+const seen = (f, sel) => f.page.evaluate(q => { const e = document.querySelector(q); return Boolean(e) && e.getClientRects().length > 0 && getComputedStyle(e).visibility === 'visible'; }, sel);
+const closed = async (f, options = { start: null }) => {
+  await f.page.evaluate(o => t.open(null, o), options);
+  await f.page.waitForSelector('.nb-cover__tap');
+  await f.wait(200);
+};
+
+run('the book opens closed with its cover in front of the contents, the explorer\'s name on the label', async f => {
+  await f.seed([[], []]);
+  await closed(f);
+  assert.equal(await f.page.evaluate(() => document.querySelector('.nb').dataset.book), 'closed');
+  assert.equal(await f.page.evaluate(() => document.querySelector('.nb-cover__name').textContent), 'Test');
+  assert.match(await f.page.evaluate(() => document.querySelector('.nb-cover__title').textContent), /Field Notes/);
+  const cover = await f.box('.nb-cover'), page = await f.box('.nb__sheet');
+  assert.ok(cover.x <= page.x && cover.y <= page.y && cover.x + cover.w >= page.x + page.w && cover.y + cover.h >= page.y + page.h, 'all over the page');
+  assert.equal(await seen(f, '.nb-tabs'), false, 'no tabs on a closed book');
+  await f.page.click('.nb-cover__tap');
+  await f.wait(1000);
+  assert.equal(await f.page.evaluate(() => document.querySelector('.nb').dataset.view), 'contents');
+  assert.equal(await seen(f, '.nb-cover'), false);
+  assert.ok(await seen(f, '.nb-toc__title'));
+  assert.ok(await seen(f, '.nb-tabs'));
+});
+
+run('the cover turns in 0.8 s on the spiral, and what turns is never what fades', async f => {
+  await f.seed([[], []]);
+  await closed(f);
+  await f.page.click('.nb-cover__tap');
+  await f.page.waitForFunction(() => document.getAnimations().some(a => a.effect.target.matches('.nb-cover')));
+  const m = await f.page.evaluate(() => {
+    const all = document.getAnimations(), turning = all.find(a => a.effect.target.matches('.nb-cover')), t = turning.effect.getComputedTiming();
+    return { ms: t.duration, ease: t.easing, faded: turning.effect.getKeyframes().some(k => k.opacity !== undefined), hinge: all.some(a => a.effect.target.matches('.nb-bk__hinge')), origin: getComputedStyle(document.querySelector('.nb-cover')).transformOrigin };
+  });
+  assert.equal(m.ms, 800);
+  assert.ok(m.ease.includes('cubic-bezier(0.45, 0, 0.55, 1)'));
+  assert.equal(m.faded, false);
+  assert.ok(m.hinge);
+  assert.match(m.origin, / 0px$/, 'hinged along its top');
+});
+
+run('a page under the cover opens with the roll unrolling; Back closes the book before it leaves', async f => {
+  const [a] = await f.seed([[], []]);
+  await f.page.evaluate(i => { window.left = 0; t.open(null, { cardId: t.state.cards[0].id, start: null, onBack: () => { window.left = document.querySelector('.nb').dataset.book; } }); }, a);
+  await f.page.waitForSelector('.nb-cover__tap');
+  await f.wait(300);
+  assert.equal(await f.page.evaluate(() => document.querySelector('.nb').dataset.view), 'pages');
+  await f.page.click('.nb-cover__tap');
+  await f.page.waitForFunction(() => document.getAnimations().some(x => x.effect.target.matches('.nb-roll')));
+  await f.wait(1000);
+  assert.equal(await f.page.evaluate(() => document.querySelector('.nb').dataset.book), undefined, 'open');
+  await f.page.click('.nb__back');
+  await f.wait(400);
+  assert.equal(await f.page.evaluate(() => window.left), 0, 'still closing');
+  assert.equal(await f.page.evaluate(() => document.querySelector('.nb').dataset.book), 'closing');
+  await f.wait(700);
+  assert.equal(await f.page.evaluate(() => window.left), 'closed', 'closed, then gone');
+});
+
+run('nothing draws through a closed book', async f => {
+  const [a] = await f.seed([[], []]);
+  await f.page.evaluate(() => t.open(null, { cardId: t.state.cards[0].id, start: null }));
+  await f.page.waitForSelector('.nb-cover__tap');
+  await f.wait(300);
+  await f.drag({ x: 500, y: 300 }, { x: 650, y: 300 });
+  assert.deepEqual((await f.items(a)), []);
+  assert.equal(await f.page.evaluate(() => document.querySelector('.nb').dataset.book), 'closed');
+});
+
+run('with reduced motion the cover crossfades in 0.3 s, and nothing turns', async f => {
+  await f.page.emulateMedia({ reducedMotion: 'reduce' });
+  await f.seed([[], []]);
+  await closed(f);
+  await f.page.click('.nb-cover__tap');
+  await f.page.waitForFunction(() => document.getAnimations().some(x => x.effect.target.closest?.('.nb-bk__hinge')));
+  const m = await f.page.evaluate(() => document.getAnimations().filter(x => x.effect.target.closest?.('.nb-bk__hinge')).map(x => ({ ms: x.effect.getComputedTiming().duration, keys: x.effect.getKeyframes().flatMap(k => Object.keys(k)) })));
+  assert.equal(m.length, 1);
+  assert.equal(m[0].ms, 300);
+  assert.ok(m[0].keys.includes('opacity') && !m[0].keys.includes('transform'));
+  await f.wait(450);
+  assert.equal(await seen(f, '.nb-cover'), false);
+});
+
+run('no cover from the panel, or beside a card', async f => {
+  const [a] = await f.seed([[], []]);
+  await f.show(a); // start: where the panel was
+  assert.equal(await f.box('.nb-cover'), undefined);
+  assert.equal(await f.page.evaluate(() => document.querySelector('.nb').dataset.book), undefined);
+  await panel(f, a);
+  assert.equal(await f.box('.nb-cover'), undefined);
+}, { width: 640, height: 700 });
+
+// ---------- the contents ----------
+run('a long contents flows onto more pages, read-only, turned like any page; animals are links with count and date', async f => {
+  const ids = await rail.collect(f, 20);
+  for (const id of ids) await tagged(f, id, 1);
+  await f.seed([[], []]);
+  await f.page.evaluate(() => t.open(null, { start: { view: 'contents' } }));
+  await f.page.waitForSelector('.nb-toc__link');
+  await f.wait(400);
+  const links = () => f.page.evaluate(() => [...document.querySelectorAll('.nb-toc__link')].map(l => l.dataset.card ?? l.dataset.free ?? 'new'));
+  const first = await links();
+  assert.equal(await f.page.evaluate(() => getComputedStyle(document.querySelector('.nb-toc__title')).fontWeight), '700');
+  assert.ok(first.length > 5 && first.length < 20, 'not all on one page');
+  assert.match(await f.page.evaluate(() => document.querySelector('.nb-toc__link .nb-toc__meta').textContent), /1 page.*2026/);
+  const canvas = await f.page.evaluate(() => document.querySelector('.nb__base').toDataURL());
+  await f.drag({ x: 500, y: 300 }, { x: 650, y: 310 });
+  assert.equal(await f.page.evaluate(() => document.querySelector('.nb__base').toDataURL()), canvas, 'nothing draws here');
+  await f.two([{ x: 500, y: 700 }, { x: 700, y: 700 }], [{ x: 500, y: 400 }, { x: 700, y: 400 }]);
+  await f.wait(300);
+  const second = await links();
+  assert.ok(second.length && second[0] !== first[0], 'the next contents page');
+  assert.equal(await f.box('.nb-toc__title'), undefined, 'the heading is on the first');
+  for (let i = 0; i < 3 && !(await links()).includes('new'); i++) { await f.page.click('.nb__nav--next'); await f.wait(800); }
+  const last = await links();
+  assert.equal(last.at(-1), 'new', 'free pages after the animals, then a new one');
+  assert.equal(last.filter(l => /-/.test(l) && !ids.includes(l)).length, 2);
+  await f.page.click('.nb__nav--next');
+  await f.wait(900);
+  assert.equal(await f.page.evaluate(() => document.querySelector('.nb').dataset.view), 'pages', 'on past the contents to the first section');
+});
+
+// ---------- index tabs ----------
+const tabs = f => f.page.evaluate(() => [...document.querySelectorAll('.nb-tab')].map(b => b.dataset.tab));
+
+run('the tabs: Contents, each animal in its group\'s colour, free pages; the one for the place sits forward', async f => {
+  const ids = await rail.collect(f, 3);
+  const first = await tagged(f, ids[0], 2);
+  await tagged(f, ids[1], 1);
+  await f.seed([[]]);
+  await f.show(first[0], { start: { view: 'pages', scope: { kind: 'animal', id: ids[0] }, pageId: first[0] } });
+  assert.deepEqual(await tabs(f), ['contents', ids[0], ids[1], 'free']);
+  const tab = id => f.page.evaluate(i => { const b = document.querySelector(`.nb-tab[data-tab="${i}"]`), r = b.getBoundingClientRect(); const note = getComputedStyle(b, '::before'); return { current: b.getAttribute('aria-current'), short: parseFloat(note.right), w: r.width, h: r.height, label: b.getAttribute('aria-label'), bg: note.backgroundColor }; }, id);
+  const on = await tab(ids[0]), off = await tab(ids[1]);
+  assert.equal(on.current, 'true');
+  assert.equal(off.current, null);
+  assert.ok(on.short < off.short, 'further out');
+  assert.equal(on.w, off.w, 'with the same zone to tap');
+  assert.equal(on.bg, await f.page.evaluate(() => { const d = document.createElement('i'); d.setAttribute('data-group', 'mammals'); d.style.color = 'var(--g)'; document.body.append(d); const c = getComputedStyle(d).color; d.remove(); return c; }), 'the group\'s colour');
+  assert.match(on.label, /[A-Z]/);
+  await f.page.click(`.nb-tab[data-tab="${ids[1]}"]`);
+  await f.wait(800);
+  assert.equal(await f.page.evaluate(() => t.where().scope.id), ids[1]);
+  assert.equal((await tab(ids[1])).current, 'true');
+});
+
+run('more tabs than fit: the nearest ones, and "more" opens the contents', async f => {
+  const ids = await rail.collect(f, 30);
+  assert.ok(ids.length > 16);
+  const all = [];
+  for (const id of ids) all.push((await tagged(f, id, 1))[0]);
+  const at = Math.floor(ids.length / 2);
+  await f.show(all[at], { start: { view: 'pages', scope: { kind: 'animal', id: ids[at] }, pageId: all[at] } });
+  const shown = await tabs(f);
+  assert.equal(shown[0], 'contents');
+  assert.equal(shown.at(-1), 'more');
+  assert.ok(shown.length < ids.length);
+  assert.ok(shown.includes(ids[at]));
+  const low = await f.page.evaluate(() => { const nav = document.querySelector('.nb__nav--next').getBoundingClientRect(), last = [...document.querySelectorAll('.nb-tab')].at(-1).getBoundingClientRect(); return last.bottom <= nav.top + 1; });
+  assert.ok(low, 'clear of the turn buttons');
+  await f.page.click('.nb-tab[data-tab="more"]');
+  await f.wait(800);
+  assert.equal(await f.page.evaluate(() => document.querySelector('.nb').dataset.view), 'contents');
+});
+
+for (const [name, viewport, fits] of [['a tablet', LANDSCAPE, 'full'], ['a tablet in portrait', PORTRAIT, 'narrow'], ['a phone', PHONE_SIDE, 'stub'], ['a phone in portrait', PHONE_UP, 'narrow']]) {
+  run(`${name}: tabs fit by the room measured (${fits}), each 44 px to tap, and none lies wider than a tab over the page`, async f => {
+    const [id] = await rail.collect(f, 1);
+    const pages = await tagged(f, id, 2);
+    await f.show(pages[0], { start: { view: 'pages', scope: { kind: 'animal', id }, pageId: pages[0] } });
+    assert.equal(await f.page.evaluate(() => document.querySelector('.nb').dataset.tabs), fits);
+    const page = await f.box('.nb__sheet');
+    const boxes = await f.page.evaluate(() => [...document.querySelectorAll('.nb-tab')].map(b => { const r = b.getBoundingClientRect(); return { x: r.x, w: r.width, h: r.height, right: r.right }; }));
+    for (const b of boxes) {
+      assert.ok(b.w >= 44 && b.h >= 44, JSON.stringify(b));
+      assert.ok(b.right <= viewport.width + 1, 'on the screen');
+      assert.ok(page.x + page.w - b.x <= (fits === 'stub' ? 44 : 1), `${page.x + page.w - b.x} px over the page`);
+    }
+    if (fits !== 'stub') return;
+    assert.equal(await f.page.evaluate(() => document.querySelector('.nb-tab .nb-tab__initial').textContent), 'C', 'an initial');
+    assert.equal(await seen(f, '.nb-tab .nb-tab__name'), false, 'its label only on press');
+  }, viewport);
+}
+
+// ---------- the tool in hand ----------
+for (const [name, viewport, room] of [['a tablet', LANDSCAPE, true], ['a tablet in portrait', PORTRAIT, true], ['a phone', PHONE_SIDE, false], ['a phone in portrait', PHONE_UP, false]]) {
+  run(`${name}: the tool in hand ${room ? 'lies on the desk beside the roll' : 'stays raised in its loop'}, by the free space measured`, async f => {
+    const [a] = await f.seed([[], []]);
+    await f.show(a);
+    await rail.pick(f, 'pen');
+    await f.wait(350);
+    const state = () => f.page.evaluate(() => ({ raised: [...document.querySelectorAll('.nb-pt[data-raised]')].map(b => b.dataset.pt), away: [...document.querySelectorAll('.nb-pt[data-away]')].map(b => b.dataset.pt), desk: document.querySelector('.nb-desktool').hidden ? null : document.querySelector('.nb-desktool').dataset.tool }));
+    if (!room) { assert.deepEqual(await state(), { raised: ['pen'], away: [], desk: null }); return; }
+    assert.deepEqual(await state(), { raised: [], away: ['pen'], desk: 'pen' });
+    const tool = await f.box('.nb-desktool'), cover = await f.box('.nb-bk__cover'), roll = await f.box('.nb-roll'), tray = await f.box('.nb-tray');
+    const clear = (p, q) => p.x + p.w <= q.x || q.x + q.w <= p.x || p.y + p.h <= q.y || q.y + q.h <= p.y;
+    assert.ok(clear(tool, cover) && clear(tool, roll) && clear(tool, tray), JSON.stringify({ tool, cover, roll, tray }));
+    assert.ok(tool.x >= 0 && tool.y >= 0 && tool.x + tool.w <= viewport.width && tool.y + tool.h <= viewport.height);
+    assert.ok(tool.w >= 44 && tool.h >= 44);
+    await f.page.click('.nb-desktool');
+    await f.wait(350);
+    assert.deepEqual(await state(), { raised: [], away: ['pencil'], desk: 'pencil' }, 'put back: the pencil comes out, and a finger still draws');
+    assert.equal(await inHand(f), 'pencil');
+    await rail.pick(f, 'highlighter');
+    await f.wait(300);
+    await rail.pick(f, 'highlighter'); // its empty loop
+    await f.wait(300);
+    assert.equal(await inHand(f), 'pencil');
+    await rail.pick(f, 'pencil');
+    await f.wait(300);
+    assert.deepEqual(await state(), { raised: ['pencil'], away: [], desk: null }, 'the pencil goes back too, still in the hand');
+    await f.drag({ x: viewport.width / 2, y: viewport.height / 2 }, { x: viewport.width / 2 + 40, y: viewport.height / 2 + 20 });
+    assert.equal((await f.items(a)).length, 1, 'and still draws');
+    await rail.rack(f, 'sponge');
+    await f.wait(100);
+    assert.equal((await state()).desk, null, 'with something from the tray, the desk is clear');
+  }, viewport);
+}
+
+// ---------- text, pen, zoom ----------
+run('the selected text has a pencil button to edit it, and nothing else does', async f => {
+  const [a] = await f.seed([[label(300, 500), STAMP], []]);
+  await f.show(a);
+  await tweezers(f);
+  await f.tap(onPage(340, 520));
+  const b = await f.box('.nb-sel__edit');
+  assert.ok(b.w >= 44 && b.h >= 44);
+  assert.equal(await f.page.evaluate(() => document.querySelector('.nb-sel__edit').getAttribute('aria-label')), 'Edit the text');
+  await f.tap({ x: b.x + b.w / 2, y: b.y + b.h / 2 });
+  assert.equal(await f.page.evaluate(() => document.querySelector('.nb-text').value), 'Hello');
+  await f.page.keyboard.type(' there');
+  await f.page.keyboard.press('Enter');
+  await f.wait(550);
+  assert.equal((await f.items(a))[0].v, 'Hello there');
+  await f.tap(onPage(300, 1000));
+  assert.equal(await seen(f, '.nb-sel__edit'), false, 'a stamp has no text to edit');
+});
+
+run('a double tap on text with the tweezers edits it; two slow taps don\'t; with a pencil it is two dots', async f => {
+  const [a] = await f.seed([[label(300, 500)], []]);
+  await f.show(a);
+  await tweezers(f);
+  const at = onPage(340, 520);
+  await f.tap(at);
+  await f.wait(300);
+  await f.tap(at);
+  assert.equal(await f.box('.nb-text'), undefined, 'slow');
+  await f.tap(onPage(900, 1200));
+  await f.send('touchStart', [{ ...at, id: 1 }]); await f.send('touchEnd', []);
+  await f.wait(90);
+  await f.send('touchStart', [{ ...at, id: 1 }]); await f.send('touchEnd', []);
+  await f.wait(150);
+  assert.ok(await f.box('.nb-text'), 'quick');
+  await f.page.keyboard.press('Escape');
+  await rail.pick(f, 'pen');
+  await f.wait(300);
+  await f.send('touchStart', [{ ...at, id: 1 }]); await f.send('touchEnd', []);
+  await f.wait(90);
+  await f.send('touchStart', [{ ...at, id: 1 }]); await f.send('touchEnd', []);
+  await f.wait(550);
+  assert.equal(await f.box('.nb-text'), undefined);
+  assert.equal((await f.items(a)).length, 3);
+});
+
+run('a pen line is one width whatever the pressure, and curves through its points; a pencil line is as it was', async f => {
+  const p = [100, 300, 0.1, 300, 300, 0.1, 500, 300, 1, 700, 300, 1, 900, 300, 1];
+  const [a] = await f.seed([[{ t: 's', c: '#000000', w: 20, k: 'pen', p }], []]);
+  await f.show(a);
+  const across = x => f.page.evaluate(px => {
+    const c = document.querySelector('.nb__base'), k = c.width / 1120, g = c.getContext('2d');
+    const d = g.getImageData(Math.round(px * k), Math.round(260 * k), 1, Math.round(80 * k)).data;
+    let n = 0;
+    for (let i = 0; i < d.length; i += 4) if (d[i] < 100) n++;
+    return n;
+  }, x);
+  const thin = await across(200), thick = await across(800);
+  assert.ok(thin > 4 && Math.abs(thin - thick) <= 1, `${thin} and ${thick}`);
+  const calls = await f.page.evaluate(async () => {
+    const { drawStroke } = await import('/js/notes-render.js');
+    const log = [], ctx = new Proxy({}, { get: (_, k) => (...args) => { log.push(k); }, set: () => true });
+    drawStroke(ctx, { t: 's', c: '#000', w: 5, k: 'pen', p: [0, 0, 0.5, 10, 10, 0.5, 20, 0, 0.5, 30, 10, 0.5] });
+    const pen = log.slice(); log.length = 0;
+    drawStroke(ctx, { t: 's', c: '#000', w: 5, p: [0, 0, 0.5, 10, 10, 0.5, 20, 0, 0.5] });
+    return { pen, pencil: log };
+  });
+  assert.equal(calls.pen.filter(c => c === 'quadraticCurveTo').length, 2);
+  assert.equal(calls.pen.filter(c => c === 'stroke').length, 1, 'one line, not pieces');
+  assert.equal(calls.pencil.filter(c => c === 'quadraticCurveTo').length, 0);
+});
+
+run('a pen line drawn by finger is smooth while drawing and when finished', async f => {
+  const [a] = await f.seed([[], []]);
+  await f.show(a);
+  await rail.pick(f, 'pen');
+  await f.send('touchStart', [{ x: 450, y: 300, id: 1 }]);
+  for (let i = 1; i <= 10; i++) { await f.send('touchMove', [{ x: 450 + i * 20, y: 300 + (i % 2) * 30, id: 1 }]); await f.wait(16); }
+  await f.send('touchEnd', []);
+  await f.wait(550);
+  const [line] = await f.items(a);
+  assert.equal(line.k, 'pen');
+  assert.ok(line.p.length > 12);
+});
+
+run('the magnifying glass zooms by steps, back to the whole page, with no second finger', async f => {
+  const [a] = await f.seed([[stroke(200, 400)], []]);
+  await f.show(a);
+  const b = await f.box('.nb-rack[data-rack="zoom"]');
+  assert.ok(b.w >= 44 && b.h >= 44);
+  await rail.rack(f, 'zoom');
+  await f.page.click('[data-zoom="in"]');
+  await f.wait(100);
+  assert.ok(Math.abs(zoomOf(await f.transform()) - 1.5) < 0.01);
+  await f.page.click('[data-zoom="in"]');
+  await f.wait(100);
+  assert.ok(Math.abs(zoomOf(await f.transform()) - 2.25) < 0.01, 'the glass stays open for another step');
+  await f.page.click('[data-zoom="out"]');
+  await f.wait(100);
+  assert.ok(Math.abs(zoomOf(await f.transform()) - 1.5) < 0.01);
+  assert.equal(await f.page.evaluate(() => document.querySelector('.nb__detail').hidden), false, 'sharp');
+  await f.page.click('[data-zoom="reset"]');
+  await f.wait(100);
+  assert.equal(zoomOf(await f.transform()), 1);
+  assert.equal((await f.items(a)).length, 1);
+});
+
+// ---------- the font ----------
+run('notebook text is in the subset of Andika, with its single-storey a, and the app\'s own font is left alone', async f => {
+  const [a] = await f.seed([[label(300, 500)], []]);
+  await f.show(a);
+  await f.page.evaluate(() => document.fonts.load('40px "WildFile Notes"'));
+  assert.ok(await f.page.evaluate(() => document.fonts.check('40px "WildFile Notes"')));
+  assert.match(await f.page.evaluate(() => getComputedStyle(document.querySelector('.nb-tab')).fontFamily), /WildFile Notes/);
+  assert.doesNotMatch(await f.page.evaluate(() => getComputedStyle(document.body).fontFamily), /WildFile Notes/);
+});
+
+// ---------- tab labels ----------
+const allNames = f => f.page.evaluate(() => t.state.cards.map(c => c.id));
+// Every animal's tab, at the width the tabs have here. All of them, not only those that fit a list.
+const tabLabels = async (f, mode) => f.page.evaluate(async ([m, ids]) => {
+  const i18n = await import('/js/i18n.js'), tabs = await import('/js/notes-tabs.js'), store = await import('/js/store.js');
+  const box = document.querySelector('.nb-tabs'), was = [...box.children], out = [];
+  i18n.setMode(m);
+  for (const id of ids) {
+    const card = store.state.byId.get(id), entry = { id, group: card.group, emoji: store.groupById(card.group)?.emoji, name: card.name };
+    const tab = tabs.tabButton(entry, { text: card.name.en, current: false, onclick: () => {} });
+    box.replaceChildren(tab);
+    tabs.fitLabel(tab, entry);
+    const n = tab.querySelector('.nb-tab__name'), s = getComputedStyle(n);
+    out.push({ id, text: n.innerText.replace(/\n/g, ' / '), short: tab.hasAttribute('data-short'), clipped: tabs.spills(n, tab), across: s.writingMode === 'horizontal-tb' });
+  }
+  box.replaceChildren(...was);
+  i18n.setMode('en');
+  return out;
+}, [mode, await allNames(f)]);
+
+for (const [name, viewport] of [['a tablet', LANDSCAPE], ['a tablet in portrait', PORTRAIT]]) {
+  run(`${name}: every animal's tab label reads across with nothing clipped, in each language setting`, async f => {
+    const [a] = await f.seed([[], []]);
+    await f.show(a);
+    await f.page.evaluate(() => document.fonts.load('12px "WildFile Notes"'));
+    for (const mode of ['en', 'zh', 'both']) {
+      for (const l of await tabLabels(f, mode)) {
+        assert.equal(l.clipped, false, `${mode}: ${l.id}: ${l.text}`);
+        assert.equal(l.across, true);
+      }
+    }
+    const en = await tabLabels(f, 'en');
+    const bear = en.find(l => l.id === 'formosan-black-bear');
+    assert.equal(bear.short, false, 'a name that fits stays whole');
+    assert.match(bear.text, /Formosan.*Black.*Bear/);
+    const squirrel = en.find(l => /Red and White/.test(l.text) || (l.short && /Red/.test(l.text)));
+    assert.ok(squirrel?.short, 'and the longest falls back to the emoji and its first word');
+  }, viewport);
+}
+
+// ---------- the edit button, and two fingers ----------
+
+run('✎ works on the finger lifting when no click comes, and only for a press on ✎ itself', async f => {
+  const [a] = await f.seed([[label(300, 500)], []]);
+  await f.show(a);
+  await tweezers(f);
+  await f.tap(onPage(340, 520));
+  // The drag's own click, with no press on ✎: nothing.
+  await f.page.evaluate(() => document.querySelector('.nb-sel__edit').dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 })));
+  await f.wait(150);
+  assert.equal(await f.box('.nb-text'), undefined, 'a click with no press does nothing');
+  // A lift ending a press somewhere else: nothing.
+  await f.page.evaluate(() => document.querySelector('.nb-sel__edit').dispatchEvent(new PointerEvent('pointerup', { bubbles: true, pointerId: 9, pointerType: 'touch' })));
+  await f.wait(150);
+  assert.equal(await f.box('.nb-text'), undefined, 'a lift with no press does nothing');
+  // After dragging a handle, the first tap comes with no click.
+  const r = await f.box('.nb-sel__resize');
+  await f.drag({ x: r.x + r.w / 2, y: r.y + r.h / 2 }, { x: r.x + r.w / 2 + 20, y: r.y + r.h / 2 + 20 });
+  await f.page.evaluate(() => { const e = document.querySelector('.nb-sel__edit'), go = t => e.dispatchEvent(new PointerEvent(t, { bubbles: true, pointerId: 7, pointerType: 'touch' })); go('pointerdown'); go('pointerup'); });
+  await f.wait(200);
+  assert.equal(await f.page.evaluate(() => document.querySelector('.nb-text')?.value), 'Hello', 'the very first tap opens it');
+  await f.page.keyboard.press('Escape');
+});
+
+run('with a real tap the box to type in opens once, and stays open', async f => {
+  const [a] = await f.seed([[label(300, 500)], []]);
+  await f.show(a);
+  await tweezers(f);
+  await f.tap(onPage(340, 520));
+  const b = await f.box('.nb-sel__edit');
+  await f.tap({ x: b.x + b.w / 2, y: b.y + b.h / 2 });
+  await f.wait(300);
+  assert.equal(await f.page.evaluate(() => document.querySelectorAll('.nb-text').length), 1);
+  assert.equal(await f.page.evaluate(() => document.activeElement.className), 'nb-text');
+});
+
+run('the handles go while two fingers are down, and come back; a finger on ✕ or ✎ does nothing in a pinch', async f => {
+  const [a] = await f.seed([[label(300, 500)], []]);
+  await f.show(a);
+  await tweezers(f);
+  await f.tap(onPage(340, 520));
+  const shown = () => f.page.evaluate(() => [...document.querySelectorAll('.nb-sel__h')].filter(h => getComputedStyle(h).visibility === 'visible' && !h.hidden).length);
+  assert.equal(await shown(), 4);
+  const edit = await f.box('.nb-sel__edit'), del = await f.box('.nb-sel__del');
+  const on = { x: edit.x + edit.w / 2, y: edit.y + edit.h / 2 }, off = { x: del.x + del.w / 2, y: del.y + del.h / 2 };
+  await f.send('touchStart', [{ ...on, id: 1 }]);
+  await f.send('touchStart', [{ ...on, id: 1 }, { ...off, id: 2 }]);
+  await f.wait(40);
+  assert.equal(await shown(), 0, 'gone with two down, even with a finger on one');
+  await f.send('touchMove', [{ x: on.x - 20, y: on.y + 20, id: 1 }, { x: off.x + 20, y: off.y - 20, id: 2 }]);
+  await f.wait(40);
+  await f.send('touchEnd', []);
+  await f.wait(600);
+  assert.equal(await f.box('.nb-text'), undefined, '✎ did nothing');
+  assert.equal((await f.items(a)).length, 1, '✕ did nothing');
+  assert.equal(await shown(), 4, 'and back when they lift');
+});
+
+run('a finger on a handle, then a second: the handle lets go and the pinch resizes the item', async f => {
+  const [a] = await f.seed([[{ t: 'p', id: 'missing', x: 560, y: 700, w: 300, h: 300, r: 0 }], []]);
+  await f.show(a);
+  await tweezers(f);
+  await f.tap(onPage(560, 700));
+  const r = await f.box('.nb-sel__resize'), c = onPage(560, 700);
+  const handle = { x: r.x + r.w / 2, y: r.y + r.h / 2 }, other = { x: 2 * c.x - handle.x, y: 2 * c.y - handle.y };
+  await f.send('touchStart', [{ ...handle, id: 1 }]);
+  await f.send('touchStart', [{ ...handle, id: 1 }, { ...other, id: 2 }]);
+  for (let i = 1; i <= 6; i++) { await f.send('touchMove', [{ x: handle.x + i * 6, y: handle.y + i * 6, id: 1 }, { x: other.x - i * 6, y: other.y - i * 6, id: 2 }]); await f.wait(16); }
+  await f.send('touchEnd', []);
+  await f.wait(600);
+  const [photo] = await f.items(a);
+  assert.ok(photo.w > 330, 'bigger, from both sides');
+  assert.ok(Math.abs(photo.x - 560) < 4 && Math.abs(photo.y - 700) < 4, 'about its middle, as a pinch does');
 });

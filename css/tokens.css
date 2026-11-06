@@ -148,7 +148,6 @@
   --nb-ink: #3d3a35;        --nb-stamp: #c0392b;
   --nb-photo-edge: #ffffff; --nb-photo-line: #3b2a1a;   --nb-photo-blank: #e3ddd0;
   --nb-band: #2b211a;       /* the elastic band down the collapsed notebook's spine */
-  --nb-ribbon: #a8322a;     /* the bookmark on the notebook's edge */
   /* Coloured pencils */
   --pencil-graphite: #4a4a4a; --pencil-red: #d7263d;   --pencil-orange: #f17105; --pencil-yellow: #e6a800;
   --pencil-green: #2b8f47;    --pencil-blue: #1e78d2;  --pencil-purple: #8e44ad; --pencil-brown: #8b5e3c;
@@ -158,7 +157,11 @@
   /* The objects on the rails (js/notes-rails.js) */
   --nb-line: #3b2a1a;         /* the thick outline round everything on the desk */
   --nb-roll: #d9c49a;         --nb-roll-dark: #b89e6c;   --nb-roll-end: #9c8355;     --nb-stitch: #fbf3df;
-  --nb-cover: #3f6f5e;        --nb-edge: #f1e9d7;         --nb-edge-line: #cfc3a9;
+  --nb-roll-weave: #cbb587;   --nb-roll-tie: #7f6a42;
+  --nb-tab-contents: #f4d35e; --nb-tab-free: #f2b5a7;    --nb-tab-more: #e7dcc3;     --nb-tab-ink: #3b2a1a;
+  --nb-glass: #cfe6ee;
+  --nb-cover: #3f6f5e;        --nb-cover-weave: #4a7a69; --nb-cover-inside: #e7dcc3; --nb-label: #f7f0dd;  --nb-label-rule: #c9b48a;
+  --nb-edge: #f1e9d7;         --nb-edge-line: #cfc3a9;
   --nb-coil: #c3c6ca;         --nb-coil-hole: #2b211a;
   --nb-tray-well: #8f6a3a;    /* a compartment in the tray: the wood, lower down */
   --nb-washi-yellow: #f2c230; --nb-washi-green: #5bb37f; --nb-washi-blue: #5aa7e0;   --nb-washi-red: #e5706f;
@@ -188,6 +191,8 @@
   --font: ui-rounded, "SF Pro Rounded", "Nunito", "Segoe UI", system-ui, -apple-system, Roboto,
           "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
   --font-zh: "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", ui-rounded, system-ui, sans-serif;
+  /* Notebook text: the ABC stamp, the contents, the cover and the tabs. Chinese falls through to the system. */
+  --font-notes: "WildFile Notes", var(--font-zh);
   --fs-xs: 0.85rem;
   --fs-sm: 1rem;
   --fs-md: 1.2rem;
@@ -294,35 +299,48 @@
   /* The desk's margins round the page. Everything of the book stays inside them, so it costs the
      page nothing (js/notes-view.js bookBox). */
   --nb-book-top: 40px;
-  --nb-book-bottom: 20px;
+  --nb-book-bottom: 28px;
   --nb-book-side: 12px;
   --nb-stub-h: 14px;    /* the strip of paper above the page that the coils go through */
-  --nb-stack: 12px;     /* the stack of page edges under the page, at its deepest */
+  --nb-stack: 20px;     /* the stack of page edges under the page, at its deepest */
   --nb-stack-up: 22px;  /* the stack of turned pages behind the coils and above them */
-  --nb-turn-depth: 1800px; /* how far off the page a turning leaf is seen from */
+  --nb-turn-depth: 2600px; /* how far off the page a turning leaf is seen from */
+  /* How the book moves. Everything turns with this easing; the cover sets the pace. */
+  --nb-cover-ms: 800ms;   /* the cover turning */
+  --nb-flip-ms: 600ms;    /* a page turning, however far it goes */
+  --nb-fade-ms: 300ms;    /* reduced motion: a crossfade in place of any turn */
+  --nb-flip-ease: cubic-bezier(0.45, 0, 0.55, 1);
+  --nb-flip-angle: 104deg; /* just past edge-on, where it slips over the spiral: beyond that it is off the screen */
   /* The roll and the tray. */
-  --nb-roll-w: 224px;   /* beside the book */
-  --nb-roll-band: 170px; /* along the bottom in portrait */
-  --nb-roll-end-w: 16px; /* the part still rolled up */
-  --nb-tray-w: 224px;
+  --nb-roll-w: 248px;   /* beside the book */
+  --nb-roll-band: 182px; /* along the bottom in portrait */
+  --nb-roll-end-w: 22px; /* the part still rolled up */
+  --nb-roll-shut: calc(var(--nb-roll-end-w) + var(--bw-mid) * 2); /* what shows of it with the book closed */
+  --nb-tray-w: 248px;
   --nb-tray-band: 124px; /* along the top in portrait */
   --nb-fold-w: 272px;   /* either of them, where the screen is short (js/notes-view.js railFit) */
-  --nb-ribbon-inset: 64px; /* how far from the book's ends the ribbon stops */
-  --nb-tool-w: 36px;    /* a tool's drawing (TOOL_W in js/notes-rails.js) */
-  --nb-tool-len: 150px;
-  --nb-loop-pitch: 52px; /* a loop on the roll: what a finger taps */
-  --nb-loop-w: 28px;    /* the band of the loop */
+  --nb-tool-w: 41px;    /* a tool's drawing (TOOL_W in js/notes-rails.js), in its loop */
+  --nb-tool-len: 170px;
+  --nb-desk-tool-w: 36px; /* the tool in hand, lying on the desk */
+  --nb-desk-tool-len: 150px;
+  --nb-desk-room: 172px; /* left free beside the roll in portrait, for that tool */
+  --nb-loop-pitch: 58px; /* a loop on the roll: what a finger taps */
+  --nb-loop-w: 30px;    /* the band of the loop */
   --nb-tool-in: 26px;   /* a tool at rest, pushed back through its loop */
   --nb-tool-out: -4px;  /* the tool in use, slid out */
-  --nb-token: 52px;     /* undo, redo, pen or finger */
-  --nb-polaroid-w: 132px; /* a Polaroid waiting on the desk */
+  --nb-token: 56px;     /* undo, redo, pen or finger */
+  --nb-toc-pad: 28px;   /* the contents' margin on its page */
+  --nb-toc-row: 46px;   /* a row of the contents: what a finger taps */
+  --nb-tab-h: 56px;     /* an index tab: room for two short lines in each language */
+  --nb-tab-fs: 0.72rem; /* their labels */
+  --nb-tab-want: 64px;  /* the room the page leaves beside it for them, if it can */
+  --nb-tab-keep: 0px;   /* and the room it gives up some size to leave */
+  --nb-polaroid-w: 104px; /* a Polaroid waiting on the desk: narrow enough to lie between the page and the tray */
+  --nb-swatch: var(--tap-xs); /* a colour on the roll */
   --nb-stamp-lift: 6px; /* the stamp in use, lifted from its compartment */
   --nb-press: 4px;      /* how far a stamp goes down when it stamps */
   --nb-ghost-w: 104px;  /* the stamp coming down on the page */
   --z-grow: 70;         /* the panel growing into the full notebook: over the card screen (60) */
-  --nb-thumb-w: 72px;   /* a page in the contents (the latest page of an animal) */
-  --nb-thumb-w-sm: 40px; /* a page row in the contents */
-  --nb-page-shape: 4 / 5; /* PAGE_W / PAGE_H in js/notes-model.js */
   /* The animal tags on a page, under the OBSERVED stamp (in page units: 1120 × 1400). */
   --nb-tags-top: 12.6%;  /* just below the header line (y 165 of 1400) */
   --nb-tags-side: 5.36%; /* the header's margin (60 of 1120) */

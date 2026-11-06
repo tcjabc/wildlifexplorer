@@ -4,7 +4,7 @@
 //  - The globe's own data (land, home outline) and its map layers: cache first, only once
 //    the globe or a layer is first shown (own LAYERS_VERSION).
 // Bump VERSION to throw away the app and image caches.
-const VERSION = 'v42';
+const VERSION = 'v43';
 const SHELL_CACHE = `shell-${VERSION}`;
 const IMAGE_CACHE = `images-${VERSION}`;
 // The globe's files (assets/globe.json, assets/home.json, assets/layers/): big, so only
@@ -29,6 +29,8 @@ const SHELL = [
   'css/pack.css',
   'css/notes.css',
   'img/desk/wood.webp',
+  'assets/fonts/WildFileNotes-Regular.woff2',
+  'assets/fonts/WildFileNotes-Bold.woff2',
   'js/app.js',
   'js/dom.js',
   'js/i18n.js',
@@ -84,6 +86,8 @@ const SHELL = [
   'js/notes-ruler.js',
   'js/notes-rails.js',
   'js/notes-book.js',
+  'js/notes-cover.js',
+  'js/notes-tabs.js',
   'js/notes-polaroid.js',
   'js/notes-debug.js',
   'js/notes-io.js',
