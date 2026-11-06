@@ -1,4 +1,4 @@
-// Little celebrations: confetti and two short tones (no audio files needed).
+// Little celebrations: confetti, a few short tones and a stamp's thunk (no audio files needed).
 import { reducedMotion } from './dom.js';
 
 const CONFETTI_COLOURS = ['--c-accent', '--g-mammals', '--g-birds', '--g-reptiles', '--g-microscopic', '--g-behavior', '--g-invertebrates'];
@@ -39,6 +39,32 @@ function tone(freqs, dur = 0.12) {
       o.start(t0);
       o.stop(t0 + dur * 1.8);
     });
+  } catch { /* sound is optional */ }
+}
+
+// A rubber stamp landing: a low knock falling away fast, with a tick of paper on top.
+export function thunk() {
+  try {
+    ctx ??= new (window.AudioContext || window.webkitAudioContext)();
+    if (ctx.state === 'suspended') ctx.resume();
+    const t0 = ctx.currentTime;
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(170, t0);
+    o.frequency.exponentialRampToValueAtTime(60, t0 + 0.07);
+    g.gain.setValueAtTime(0.45, t0);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.1);
+    o.connect(g).connect(ctx.destination);
+    o.start(t0);
+    o.stop(t0 + 0.11);
+    const noise = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * 0.02), ctx.sampleRate);
+    const d = noise.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+    const n = ctx.createBufferSource(), ng = ctx.createGain();
+    n.buffer = noise;
+    ng.gain.value = 0.12;
+    n.connect(ng).connect(ctx.destination);
+    n.start(t0);
   } catch { /* sound is optional */ }
 }
 
