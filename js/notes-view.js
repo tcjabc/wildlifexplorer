@@ -23,6 +23,9 @@ const TURN_MAX_SCALE = 0.05;
 const TURN_MAX_DRIFT_PX = 12;
 const TURN_SIDEWAYS = 2.5; // sideways travel at least this many times the up-and-down travel
 
+// Beside a card, fingers this many times further apart than they started open the full notebook.
+const FULL_RATIO = 1.3;
+
 export const pixelRatio = dpr => Math.min(MAX_DPR, dpr || 1);
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 
@@ -69,6 +72,20 @@ export function swipeTurn({ dx, dy, span = Infinity, peak, zoom }) {
   if (zoom > 1 || peak >= Math.max(TURN_MAX_SCALE, TURN_MAX_DRIFT_PX / span)) return 0;
   if (Math.abs(dx) < TURN_MIN_PX || Math.abs(dx) < Math.abs(dy) * TURN_SIDEWAYS) return 0;
   return dx < 0 ? 1 : -1;
+}
+
+// Whether a view at zoom k counts as the fitted page.
+export const atFit = k => k < SNAP_ZOOM;
+// A pinch outward from the fitted page, far enough. Zoomed in already, a pinch only zooms.
+export const pinchOpensFull = (zoom, ratio) => atFit(zoom) && ratio >= FULL_RATIO;
+
+// Where a page lands in the full notebook, near enough for the panel to grow towards it: the
+// left or right of a spread between the rails, or alone between the bands.
+//   w, h: the screen. rail: a rail's width, or a band's height. tall: the page's height / width.
+export function fullPageBox({ w, h, rail, tall, right = false }) {
+  const land = w > h;
+  const width = Math.min(land ? (w - rail * 2) / 2 : w, (land ? h : h - rail * 2) / tall);
+  return { left: land ? w / 2 - (right ? 0 : width) : (w - width) / 2, top: (h - width * tall) / 2, width, height: width * tall };
 }
 
 export const secondFingerCounts = age => age < SECOND_FINGER_MS;

@@ -7,7 +7,7 @@ export const PENCILS = ['graphite', 'red', 'orange', 'yellow', 'green', 'blue', 
 export const HIGHLIGHTS = ['cyan', 'yellow', 'magenta'];
 export const DRAWING = ['pencil', 'pen', 'highlighter'];
 export const FEET = ['paw', 'hoof', 'bird', 'bear'];
-const INKED = ['text', 'stamp', 'roller'];
+export const INKED = ['text', 'stamp', 'roller'];
 const SIZES = ['thin', 'thick'];
 const WIDTHS = {
   pencil: { thin: 5, thick: 12 },

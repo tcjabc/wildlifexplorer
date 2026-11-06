@@ -147,6 +147,10 @@ function drawText(ctx, item) {
   ctx.restore();
 }
 
+// How wide each animal's silhouette is for its height, once it has been drawn: a stamp's box and
+// what touches it follow the animal's shape, not a square.
+const stampRatio = new Map();
+
 // A stamp is the animal's silhouette in the pencil colour, or its group emoji.
 function drawStamp(ctx, item, assets) {
   const a = assets.stamps.get(item.card);
@@ -155,6 +159,7 @@ function drawStamp(ctx, item, assets) {
   ctx.rotate(item.r ?? 0);
   if (a?.img?.complete && a.img.naturalWidth) {
     const ratio = a.img.naturalWidth / a.img.naturalHeight;
+    stampRatio.set(item.card, ratio);
     const h = item.s, w = h * ratio;
     const off = document.createElement('canvas');
     off.width = Math.max(1, Math.round(w)); off.height = Math.max(1, Math.round(h));
@@ -344,7 +349,7 @@ function segDist(px, py, ax, ay, bx, by) {
 // The box an item fills: { cx, cy, w, h, r } in page units.
 export function boundsOf(ctx, item) {
   if (item.t === 'p') return { cx: item.x, cy: item.y, w: item.w, h: item.h, r: item.r ?? 0 };
-  if (item.t === 'm') return { cx: item.x, cy: item.y, w: item.s, h: item.s, r: item.r ?? 0 };
+  if (item.t === 'm') return { cx: item.x, cy: item.y, w: item.s * (stampRatio.get(item.card) ?? 1), h: item.s, r: item.r ?? 0 };
   if (item.t === 'x') { const { w, h } = textLines(ctx, item); return { cx: item.x + w / 2, cy: item.y + h / 2, w, h, r: item.r ?? 0 }; }
   const xs = [], ys = [];
   const step = item.t === 's' ? 3 : 2;
@@ -361,12 +366,14 @@ function inBox(b, x, y, pad) {
 }
 
 // The topmost item under (x, y), or -1. movable: only what can be selected (photos, stamps, text
-// and footprint trails). lines: only lines.
-export function hitItem(ctx, page, x, y, r, { movable = false, lines = false } = {}) {
+// and footprint trails). lines: only lines. stamped: only what the sponge takes (stamps, text and
+// footprint trails).
+export function hitItem(ctx, page, x, y, r, { movable = false, lines = false, stamped = false } = {}) {
   for (let i = page.items.length - 1; i >= 0; i--) {
     const it = page.items[i];
     if (movable && !['p', 'm', 'x', 'f'].includes(it.t)) continue;
     if (lines && it.t !== 's') continue;
+    if (stamped && !['m', 'x', 'f'].includes(it.t)) continue;
     if (it.t === 's') {
       const p = it.p;
       if (p.length === 3 && Math.hypot(p[0] - x, p[1] - y) <= it.w + r) return i;

@@ -2,6 +2,7 @@
 // Run: npm test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { atFit, pinchOpensFull, fullPageBox } from '../js/notes-view.js';
 import {
   slotsFor, fitScale, clampView, pinchView, settleView, swipeTurn, secondFingerCounts, isTap, pixelRatio, MAX_ZOOM, railFit, popPlace, keyboardLift } from '../js/notes-view.js';
 
@@ -142,4 +143,30 @@ test('a text box rises just clear of the keyboard, and never out of the top', ()
   assert.equal(keyboardLift({ box: { top: 500, bottom: 560 }, viewTop: 0, viewBottom: 400, margin: 16 }), 176);
   assert.equal(keyboardLift({ box: { top: 60, bottom: 500 }, viewTop: 0, viewBottom: 400, margin: 16 }), 44, 'a tall box keeps its top in sight');
   assert.equal(keyboardLift({ box: { top: 10, bottom: 500 }, viewTop: 0, viewBottom: 400, margin: 16 }), 0);
+});
+
+test('a pinch opens the full notebook only from the fitted page, and only from 1.3 times', () => {
+  assert.equal(pinchOpensFull(1, 1.29), false);
+  assert.equal(pinchOpensFull(1, 1.3), true);
+  assert.equal(pinchOpensFull(1.05, 2), true, 'as good as fitted');
+  assert.equal(pinchOpensFull(1.5, 2), false, 'zoomed in already: it only zooms');
+  assert.equal(pinchOpensFull(1, 0.7), false);
+  assert.equal(atFit(1), true);
+  assert.equal(atFit(1.2), false);
+});
+
+test('a page lands on its side of the spread between the rails, or alone between the bands', () => {
+  const land = { w: 1280, h: 800, rail: 68, tall: 1.4 };
+  const left = fullPageBox(land), right = fullPageBox({ ...land, right: true });
+  assert.equal(left.height, 800);
+  assert.ok(Math.abs(left.width - 800 / 1.4) < 0.01);
+  assert.equal(left.left + left.width, 640);
+  assert.equal(right.left, 640);
+  const up = fullPageBox({ w: 800, h: 1280, rail: 80, tall: 1.4 });
+  assert.equal(up.width, 800);
+  assert.equal(up.left, 0);
+  assert.equal(up.top, (1280 - 1120) / 2);
+  const wide = fullPageBox({ w: 1000, h: 800, rail: 68, tall: 1.4 });
+  assert.equal(wide.width, 432, 'a screen too narrow for the full height');
+  assert.equal(wide.top, (800 - 432 * 1.4) / 2);
 });
