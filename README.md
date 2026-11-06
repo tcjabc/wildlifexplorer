@@ -17,7 +17,8 @@ It runs at https://wildfile.app/ (Cloudflare) and works fully offline once it ha
 - **Badges**: for finishing a group, Bronze/Silver/Gold for continents and habitats, and secret
   badges. **Quiz**: picture → name, and true/false facts.
 - **Creature comparison**: You (the animal against your own size) or Animal (lookalikes side by
-  side, with how to tell them apart). **Globe**: filter the pins by continent or habitat.
+  side, with how to tell them apart). **Globe**: filter the pins by continent or habitat, or hide
+  them all with the paw button to see the map on its own.
 - **Field Notes**: a researcher's notebook per profile. Draw with a pencil, pen and highlighter
   (pen pressure and palm rejection), rule straight lines, write, stamp collected animals, roll
   footprints and tape in photos, in the notebook beside every card or on its own page. Back it up
@@ -369,6 +370,9 @@ file have it (`opensGlobe` in `js/card-return.js`), and not in pack reveals.
 - `#/globe/<card id>` lights the range up, turns to it and zooms so it fills about 40% of the
   view, but never past zoom 8 (`FIT_K_MAX`, `rangeFit` in `js/globe.js`), so a Taiwan-only animal
   still shows the coasts around it. The globe holds still there until it is touched.
+- Pins are on when the globe opens from a card, even if they were hidden with the paw button, and
+  that card's own pin shows even when a filter would leave it out, until the filters change or
+  another pin is picked.
 - "‹ Back to card" (Esc, or the device's back button) returns to the card as it was: the same
   side (front, open or Fact File) and the notebook collapsed or expanded, on the same page
   (`js/card-return.js`, kept in memory only). `#/globe` on its own is the Globe tab as always.
