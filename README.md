@@ -645,8 +645,9 @@ notebook and back in the real app.
   there, to an animal's latest page. Page turns stay within an animal's section; back from its first page
   is the contents. Where they don't all fit, the nearest show, with "more" for the contents. How they
   fit is measured (`tabFit`). Beside the page a label always reads across, in two short lines to each
-  language (`js/notes-tabs.js`): a name that won't fit becomes its group's emoji and first word, and a
-  single word too long for the tab breaks in two, so nothing is cut off. Where there is no room beside
+  language (`js/notes-tabs.js`): a name that won't fit becomes its group's emoji and last word, or its
+  last two where tabs showing together would read the same, and a single word too long for the tab
+  breaks in two, so nothing is cut off. Where there is no room beside
   the page, on phones, a tab is a stub: an initial with its label on press, 44 px wide over the page's
   edge. Two buttons below them turn the page.
 - **The desk** is one picture behind one token, `--desk-texture` in `css/tokens.css` (with

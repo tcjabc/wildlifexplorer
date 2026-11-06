@@ -68,7 +68,7 @@ import { TOOL_ROWS, toolArt, inkPadArt, stampArt, spongeArt, tweezersArt, washiA
 import { bookFrame, snapshot, turnPage, fadePage, turnCover } from './notes-book.js';
 import { bookCover } from './notes-cover.js';
 import { polaroids } from './notes-polaroid.js';
-import { tabButton, fitLabel } from './notes-tabs.js';
+import { tabButton, fitLabels } from './notes-tabs.js';
 import { tapZones } from './notes-debug.js';
 import { thunk } from './fx.js';
 import { exportPageImage, exportAll, importBackup, saveToFolder, folderSupported } from './notes-io.js';
@@ -688,7 +688,7 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
       const name = e.id === 'more' ? t('notes.moreTabs') : e.name;
       return tabButton(e, { name, text: inLang(name), current: e.id === place, onclick: () => jump(e, entries) });
     }));
-    shown.forEach((e, i) => fitLabel(tabsBox.children[i], e));
+    fitLabels([...tabsBox.children], shown);
   }
   function drawTools() {
     const colour = colourOf(nb.set, nb.tool), size = sizeOf(nb.set, nb.tool);

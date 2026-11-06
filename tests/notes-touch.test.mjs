@@ -1799,10 +1799,32 @@ for (const [name, viewport] of [['a tablet', LANDSCAPE], ['a tablet in portrait'
     const bear = en.find(l => l.id === 'formosan-black-bear');
     assert.equal(bear.short, false, 'a name that fits stays whole');
     assert.match(bear.text, /Formosan.*Black.*Bear/);
-    const squirrel = en.find(l => /Red and White/.test(l.text) || (l.short && /Red/.test(l.text)));
-    assert.ok(squirrel?.short, 'and the longest falls back to the emoji and its first word');
+    const squirrel = en.find(l => l.id === 'red-and-white-giant-flying-squirrel');
+    assert.ok(squirrel?.short, 'the longest falls back');
+    assert.match(squirrel.text, /^\S+ Squirrel$/, 'to the emoji and its last word, which names the animal');
   }, viewport);
 }
+
+run('tabs showing together that would read the same use the last two words; a bracket is no part of a word', async f => {
+  const [a] = await f.seed([[], []]);
+  await f.show(a);
+  await f.page.evaluate(() => document.fonts.load('12px "WildFile Notes"'));
+  const read = names => f.page.evaluate(async list => {
+    const i18n = await import('/js/i18n.js'), tabs = await import('/js/notes-tabs.js');
+    const box = document.querySelector('.nb-tabs'), was = [...box.children];
+    i18n.setMode('en');
+    const entries = list.map((en, i) => ({ id: `t${i}`, group: 'mammals', emoji: en.includes('Sun') ? '🌱' : '🐘', name: { en, zh: '' } }));
+    const made = entries.map(e => tabs.tabButton(e, { text: e.name.en, current: false, onclick: () => {} }));
+    box.replaceChildren(...made);
+    tabs.fitLabels(made, entries);
+    const out = made.map(t => t.querySelector('.nb-tab__name').innerText.trim());
+    box.replaceChildren(...was);
+    return out;
+  }, names);
+  const long = 'An Animal With A Very Long Name Indeed And At Last';
+  assert.deepEqual(await read([`${long} Black Bear`, `${long} Sun Bear`, `${long} Macaque`]), ['🐘 Black Bear', '🌱 Sun Bear', '🐘 Macaque'], 'the same words, whatever the emoji');
+  assert.deepEqual(await read([`${long} (Water Bear)`]), ['🐘 Bear']);
+});
 
 // ---------- the edit button, and two fingers ----------
 
