@@ -607,8 +607,10 @@ a photo is a derivative of it: give it the photo's author and licence, add
 ## Field Notes
 
 One notebook per profile (📓 in the nav, or beside every card). Code: `js/notebook.js` (the UI),
-`js/notes-render.js` (drawing a page), `js/notes-rails.js` (the rails' objects, as SVG),
-`js/notes-view.js` (open pages, zoom limits, what a gesture means; pure, tested in
+`js/notes-render.js` (drawing a page), `js/notes-rails.js` (the roll's and tray's objects, as SVG),
+`js/notes-book.js` (the book round the page, its flips and riffles), `js/notes-polaroid.js` (photos
+waiting on the desk), `js/notes-debug.js` (the tap zone overlay),
+`js/notes-view.js` (where the page lies, zoom limits, what a gesture means; pure, tested in
 `tests/notes-view.test.mjs`), `js/notes-model.js` (tags, contents, migration; pure, tested in
 `tests/notes-model.test.mjs`), `js/notes-tools.js` (the tools' shared settings) and
 `js/notes-ruler.js` (the ruler's geometry; both pure, tested in `tests/notes-tools.test.mjs`),
@@ -618,49 +620,71 @@ with real touches in Chromium, and `tests/notes-full.test.mjs` the trip from the
 notebook and back in the real app.
 
 - **On its own** (`#/notes`): the whole screen, with no app header or tab bar. One back button goes
-  to the screen before (or the binder, when opened directly). Rails stand at the left and right of
-  the page in landscape (`--nb-rail`), on a phone too, or as bands above and below it in portrait
-  (`--nb-rail-band`): orientation alone decides. A short screen folds the rails into two columns and
-  a narrow one the bands into two rows, which costs the page nothing. A ribbon on the book's edge
-  marks the place and opens the contents; tabs at its bottom corners turn the pages.
-- **The rails** hold real objects drawn as SVG, the same ones in both layouts. Left: back, a pen
-  pouch (lying on its side in a band) and at the foot the camera (until the Polaroid comes to the right
-  rail, where room is kept for it), then undo, redo and pen or finger as wooden tokens with the sign
-  carved in (worn flat when there is nothing to undo). The tool in use stands raised out
-  of the pouch; tapped again it opens its colours and thickness. Right, between ＋ and ⋯: the ink pad
-  (tap for the ink colour), the sponge, three stamps: ABC (text), the panda (a collected animal: tap to
-  move to the next, long press for the list) and the footprints (tap again for the kind), and the
-  tweezers. On a phone the right rail folds into two columns with ＋ and ⋯ side by side, and the bottom
-  band into two rows.
-- **Tweezers**: press a photo, stamp, footprint trail or text to select it and drag it in the same
+  to the screen before (or the binder, when opened directly). One page at a time, in either
+  orientation: a 4:5 page (1120 × 1400 units) in a spiral-bound book on a wooden desk, with the pencil
+  roll and the tray beside it in landscape, the tray above and the roll below in portrait: orientation
+  alone decides. A short screen folds them into two columns and a narrow one into rows. A ribbon on
+  the book's left edge marks the place and opens the contents; tabs on its right edge turn the pages.
+- **The book** (`js/notes-book.js`) lies outside the page: the cover, the coils and the page edges
+  all stay inside the desk's margins (`--nb-book-top`, `-bottom`, `-side`), which `bookBox` in
+  `js/notes-view.js` leaves round the page whether or not they are drawn, so the canvas is the same size
+  with them as without. On the baseline tablet the page is 592 × 740 in landscape and 740 × 926 in
+  portrait, which fills the room left by the tray and the roll. The stack of page edges below the page
+  shows the pages to come in the list in view, the stack above the spiral the pages turned (`stackDepth`:
+  a list of 12 or more fills it, a short one is a thin book). Zooming happens inside the page's own
+  edges, so the book stays still. Turns flip one snapshot of the page over the spiral with `rotateX`;
+  opening the contents riffles a few plain leaves back to the front, and a page picked there riffles
+  them away, in about 0.4 s. All of it is transform and opacity, and none of it runs with reduced motion.
+- **The desk** is one picture behind one token, `--desk-texture` in `css/tokens.css` (with
+  `--desk-texture-size` and `--desk-colour`), so it can be swapped, and used for the explorer's desk
+  home screen. The placeholder, `img/desk/wood.webp`, is a seamless tile drawn by `scripts/make-desk.mjs`.
+  No soft shadows or filters on anything on it: hard offset edges only.
+- **The pencil roll** opens out when the notebook first shows a page (its window and its cloth move
+  opposite ways, so only the edge travels; not with reduced motion). Top to bottom: a thickness slider
+  of five notches, the ruler, pencil, pen, highlighter and eraser in their loops (the one in use slid
+  partly out), the colours, and undo, redo and pen or finger as wooden tokens with the sign carved in
+  (worn flat when there is nothing to undo). The colours and slider are for the drawing tool in hand,
+  or the last one: using them brings that tool back to hand. Cyan, yellow and magenta are the
+  highlighter's only; the pencil and pen have nine colours, white among them.
+- **The tray** holds, in compartments, the ink pad (tap for the ink colour), the sponge, three stamps:
+  ABC (text), the panda (a collected animal: tap to move to the next, long press for the list) and the
+  footprints (tap again for the kind), the tweezers, the washi tape and the pile of Polaroids. ＋ and ⋯
+  sit beside it.
+- **Washi tape**: a drag across the page lays a strip along it, a tap a short one; tapped again in
+  the tray it offers four colours. Tweezers move, stretch and turn a strip, and the sponge takes it.
+- **Polaroids**: a tap on the pile opens the device's picker (camera or library). The picture, shrunk
+  to 1280 px, slides off the pile and develops over 2 s on the desk, and a finger carries it to the page,
+  where it lands within ±4° of straight. It is kept (the usual `photos/` file) only then, so a picture
+  left on the desk leaves nothing behind; let go off the page, it goes back to its place. Every photo,
+  old or new, is drawn in a white frame with washi over its top corners. Beside a card the 📷 button
+  puts a photo straight on the page, and it stays selected so it can be placed.
+- **Tap zones**: `?debug=taps` (in a parent's preview, like the other overlays) outlines each one with
+  its size, in red if it is under 44 px.
+- **Tweezers**: press a photo, stamp, footprint trail, text or tape to select it and drag it in the same
   move; the handles resize and turn it, ✕ removes it, and a tap on bare paper lets go. They work with
   a finger in *Pen only* too. They never touch lines, never open the keyboard, and a drag on bare paper
   only pans when zoomed in, so a missed grab can't turn the page.
-- **Sponge**: rubbing or tapping takes stamps, footprint trails and text off the page, one undo step
+- **Sponge**: rubbing or tapping takes stamps, footprint trails, text and tape off the page, one undo step
   per rub, with a brief wipe (`wipeFx`: each item drawn once on a small canvas that fades; none with
   reduced motion). Lines stay (they are the eraser's) and so do photos (✕). The page keeps its animal
   tags. In *Pen only* it follows the eraser and takes only the pen, so a resting hand can't wipe.
 - **Stamping**: the stamp comes down on the page with `navigator.vibrate(15)` and a short thunk made
   by Web Audio (`js/fx.js`, no sound file). A tap on bare paper stamps; a tap on something already
   there selects it, or with ABC edits text. A stamp's box follows its silhouette's shape.
-- **Ruler**: it lies on the book, not on a page, so it zooms and pans with the pages, stays out when
-  they turn, and is never saved or exported. Drag it out of the pouch or tap it; tap it there, or drag
+- **Ruler**: it lies on the book, not on a page, so it zooms and pans with the page, stays out when
+  it turns, and is never saved or exported. Drag it out of its loop or tap it; tap it there, or drag
   it back, to put it away. One finger moves it. Two fingers both on it turn it, however late the
   second comes; one on it and one off it is a pan or zoom. A line started within 30 page units of a
   long edge follows that edge to the ruler's ends. A pen on the ruler draws along the nearer edge and
   never moves it, and touches don't move it while a pen is down. With a mouse, the wheel over it turns it.
-- **Spread**: landscape lies open at two pages, paired in list order (1–2, 3–4, …), and either can be
-  drawn on. Undo goes back through both in the order things were done, and the ⋯ menu says which page
-  its page actions are for. An odd page out has a blank page beside it, saved only at its first mark;
-  a first mark on the right of two blanks keeps the left one too. Portrait shows one page, and
-  rotating keeps that page open.
 - **Gestures**: one finger draws. Two fingers pan and pinch-zoom, up to 4×: the page moves by CSS
   transform during the gesture, and when it ends a screen-sized canvas redraws the view sharply, so
-  zooming never needs a bigger page bitmap. At the fitted size a two-finger swipe turns the page, only
-  when it is clearly sideways, at least 80 px, and the fingers' distance never changed by 5% or 12 px,
-  whichever is more: a pinch can't turn the page. A second finger within 200 ms of the first makes a gesture and drops what the
+  zooming never needs a bigger page bitmap. At the fitted size a two-finger swipe turns the page (up for
+  the next, down for the one before; sideways in the panel, where up and down pans), only
+  when it is clearly in that direction, at least 80 px, and the fingers' distance never changed by 5% or
+  12 px, whichever is more: a pinch can't turn the page. A second finger within 200 ms of the first makes a gesture and drops what the
   first had started; later, the line carries on. With a mouse, the wheel pans and ctrl + wheel zooms.
-- **Canvas**: at most 1.5 device pixels per CSS pixel. Each page is a cached bitmap: the mark being
+- **Canvas**: at most 1.5 device pixels per CSS pixel. The page is a cached bitmap: the mark being
   made is on a live layer, and a finished one is added to the bitmap on its own. Eraser redraws go by
   the frame. A highlighter line is multiplied onto the page, drawn as one path: piece by piece its
   joints would show. The live layer has no page under it, so while one is being drawn the browser
@@ -684,7 +708,7 @@ notebook and back in the real app.
   the first time each page opens it dips down a little and back (not with reduced motion).
 - **The full notebook from the panel**: the open book in the bar's top corner, or a pinch outward from
   the fitted page past 1.3× (a shorter one springs back), opens `#/notes/<card>` on the same page. It
-  saves first; then the kraft and the page grow to the screen by transform alone, and stay a moment
+  saves first; then the desk and the page grow to the screen by transform alone, and stay a moment
   while the full notebook draws under them (none of it with reduced motion). A pinch on a selected
   item still resizes it. Back returns to the same card and side with the panel open, through
   `js/card-return.js` as from the globe: on the page the full notebook ended on if that page is
@@ -694,6 +718,8 @@ notebook and back in the real app.
   (✕ removes one, "＋" adds an animal this explorer has collected). Placing a stamp adds its animal;
   removing the stamp leaves the tag. The header's title is the first animal's name ("+ N more" when
   there are several); a page with no animals is a free page (隨手記). Tag changes are undoable.
+  When the tag that put a page in the list in view comes off, the page stays open with a short note
+  saying where it went, and the tabs carry on through the same list from where it was.
   The badge on a card's binder tile counts that animal's pages.
 - **Opening**: with a card open, the notebook steps through that animal's pages (oldest first),
   starting on the one edited last; "＋" adds a page tagged with it. An animal with no pages gets a
@@ -702,21 +728,20 @@ notebook and back in the real app.
   **contents**: binder groups with the animals that have pages (page count, a thumbnail of the
   latest), each page under every animal it is tagged with ("also in" the others), then the free
   pages and "＋ New free page". Pages never move; the contents is a view of their tags. From a card's
-  notebook, "‹ <animal>" goes back to it. On its own the contents has no rails: back and ⋯ share a
-  slim row over a list the full width of the screen.
-- **Tools**: pencil and pen in 9 colours (white too) and two sizes, highlighter (cyan, yellow or
+  notebook, "‹ <animal>" goes back to it. On its own the contents has no roll or tray: back and ⋯
+  share a slim row over a list, a sheet of kraft on the desk, the full width of the screen.
+- **Tools**: pencil and pen in 9 colours (white too) and five thicknesses, highlighter (cyan, yellow or
   magenta), ruler, eraser (whole lines of any tool; everything else has its ✕), text, stamps
   (collected cards' silhouettes, or the group emoji), footprint roller (cat paw, hoof, bird, bear),
-  photos, undo and redo (Ctrl/⌘+Z). Text, stamps and footprints take the ink. The settings are kept
+  washi tape, photos, undo and redo (Ctrl/⌘+Z). Text, stamps and footprints take the ink. The settings are kept
   per profile on the device (`notesTools`, never sent). With the tweezers or a stamp in the hand, one
   tap on a photo, stamp, footprint trail or text selects it; with a pencil, pen or highlighter a tap
-  there is a dot like any other. A photo just added stays selected whichever tool is in the hand, so
-  it can be placed. Drag it inside its box, use
+  there is a dot like any other. Drag it inside its box, use
   the handles outside the box or a two-finger pinch on it to resize and turn it, ✕ to remove it; a
   tap elsewhere lets go. Resizing a trail stretches its path, not its prints.
-  Beside a card the toolbar stays a toolbar, with its own tools (no pen, highlighter, ruler, tweezers
-  or sponge: the open book is one tap away) and the
-  rails' settings. It never scrolls: one row when it all fits (measured, as the labels' width
+  Beside a card the toolbar stays a toolbar, with its own tools (no pen, highlighter, ruler, tweezers,
+  sponge or tape: the open book is one tap away), thin and thick for the slider's second and fourth
+  notches, and the same settings. It never scrolls: one row when it all fits (measured, as the labels' width
   depends on the language), otherwise two rows of 44 px controls with the colours behind a swatch. The
   roller's feet always open from one button in a small picker.
 - **Pen or finger**: the first time a pen touches the page, the notebook switches to *Pen only*
@@ -727,11 +752,14 @@ notebook and back in the real app.
   `photos/*.jpg`) and shares or downloads it; *Restore from a backup* adds pages that aren't there
   yet and never overwrites; *Save this page as a picture* makes a PNG. Where the browser supports
   it (not Safari), *Also save to a folder* writes the same files into a folder you pick.
-- **Page file** (`version: 2`): `paper` (`dots`/`grid`), `header` (`date`), `tags` (card ids, in
+- **Page file** (`version: 2`): `w`, `h` (1120, 1400), `paper` (`dots`/`grid`), `header` (`date`), `tags` (card ids, in
   order), `createdAt`, `editedAt` (content or tags last changed), and
-  `items` in page units (1000 × 1400): `s` a line (`p` = x, y, pressure…; `k` is `pen` or
+  `items` in page units: `s` a line (`p` = x, y, pressure…; `k` is `pen` or
   `highlighter`, and none means pencil, so pages from before these draw as they did; `t` is taken: it
-  is every item's type), `x` text, `m` stamp, `f` footprints, `p` photo (`id` of a file in `photos/`). Version 1 pages (`header.cardId`, `links`, no
+  is every item's type), `x` text, `m` stamp, `f` footprints, `p` photo (`id` of a file in `photos/`), `w` a strip of tape (`k` its colour, `x`, `y` its
+  centre, `l` its length, `s` its width, `r` its turn). Pages from when the paper was 5:7 have `w` 1000:
+  as they load, `widenPage` moves what is on them 60 units in, so they lie centred on the wider paper
+  with the same height; their file only changes when the page next does. Version 1 pages (`header.cardId`, `links`, no
   tags) are tagged with what they were linked to (header card, cards drawn next to, stamped animals)
   when they load; their index records the same way, once. Backups list each page's `tags`
   (manifest `version: 2`); version 1 backups still restore. Field Notes never sync: `notes` and
