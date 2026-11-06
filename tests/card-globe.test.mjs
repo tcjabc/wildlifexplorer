@@ -71,9 +71,9 @@ test('which side was showing', () => {
 test('the router keeps the card screen when leaving it, and gives it back coming from the globe', () => {
   const app = src('js/app.js');
   assert.match(app, /cardReturn\.remember\(viewer\.snapshot\(\)\)/);
-  assert.match(app, /const restore = shown\.name === 'globe' \? cardReturn\.take\(card\.id\) : null;/);
+  assert.match(app, /const restore = \['globe', 'notes'\]\.includes\(shown\.name\) \? cardReturn\.take\(card\.id\) : null;/);
   // Asked before the binder is drawn behind the card (which changes what is shown).
-  assert.ok(app.indexOf("const restore = shown.name === 'globe'") < app.indexOf("if (binderGroup() !== card.group) renderMain"), 'restore is decided first');
+  assert.ok(app.indexOf("const restore = ['globe', 'notes']") < app.indexOf("if (binderGroup() !== card.group) renderMain"), 'restore is decided first');
   const viewer = src('js/viewer.js');
   assert.match(viewer, /restore\?\.side === 'back'\) v\.f = 1/);
   assert.match(viewer, /start: notes/, 'the notebook opens where it was');
@@ -134,4 +134,34 @@ test('the globe\'s data is not installed with the app: it is kept on its first o
     const s = JSON.parse(src(`lang/${lang}.json`));
     for (const k of ['globe.offline', 'globe.retry', 'globe.backToCard', 'card.mapToGlobe']) assert.ok(s[k], `${lang} ${k}`);
   }
+});
+
+const SCOPE = { kind: 'animal', id: 'sika-deer' };
+const STARTED = { expanded: true, view: 'pages', scope: SCOPE, pageId: 'p1' };
+const TAGS = { p1: ['sika-deer'], p2: ['sika-deer', 'formosan-black-bear'], other: ['formosan-black-bear'], free: [] };
+const tagsOf = id => TAGS[id] ?? [];
+
+test('back from the full notebook: the page it ended on, when that is one of this card\'s', () => {
+  const ended = { view: 'pages', scope: { kind: 'animal', id: 'formosan-black-bear' }, pageId: 'p2' };
+  assert.deepEqual(cardReturn.panelAfterFull('sika-deer', STARTED, ended, tagsOf), { expanded: true, view: 'pages', scope: SCOPE, pageId: 'p2' }, 'and in this card\'s own list');
+});
+
+test('back from the full notebook: never another animal\'s page, nor a free page, beside this card', () => {
+  for (const pageId of ['other', 'free']) {
+    const ended = { view: 'pages', scope: { kind: 'animal', id: 'formosan-black-bear' }, pageId };
+    assert.deepEqual(cardReturn.panelAfterFull('sika-deer', STARTED, ended, tagsOf), STARTED, pageId);
+  }
+  assert.deepEqual(cardReturn.panelAfterFull('sika-deer', STARTED, { view: 'contents', scope: null, pageId: null }, tagsOf), STARTED, 'ended in the contents');
+  assert.deepEqual(cardReturn.panelAfterFull('sika-deer', STARTED, { view: 'pages', scope: SCOPE, pageId: null }, tagsOf), STARTED, 'ended on a blank draft');
+});
+
+test('the full notebook takes its start from the panel only when the panel opened it', () => {
+  cardReturn.remember({ cardId: 'sika-deer', side: 'front', viaMap: false, viaFull: false, notes: STARTED });
+  assert.equal(cardReturn.panelOf('sika-deer'), null, 'the card was left for somewhere else');
+  cardReturn.remember({ cardId: 'sika-deer', side: 'front', viaMap: false, viaFull: true, notes: STARTED });
+  assert.equal(cardReturn.panelOf('formosan-black-bear'), null);
+  assert.deepEqual(cardReturn.panelOf('sika-deer'), STARTED);
+  cardReturn.leaveFull('sika-deer', { view: 'pages', scope: SCOPE, pageId: 'p2' }, tagsOf);
+  assert.equal(cardReturn.take('sika-deer').notes.pageId, 'p2');
+  assert.equal(cardReturn.take('sika-deer'), null, 'once');
 });

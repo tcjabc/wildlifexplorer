@@ -1,10 +1,11 @@
-// Coming back to a card from the globe: which side was showing (the front, the open spread
-// or the Fact File) and where the notebook was (collapsed or expanded, its view and page).
-// The card screen leaves this when it closes for another screen (app.js); opening the same
-// card straight from the globe takes it back, once. Kept in memory only.
+// Coming back to a card from the globe or the full notebook: which side was showing (the front,
+// the open spread or the Fact File) and where the notebook was (collapsed or expanded, its view
+// and page). The card screen leaves this when it closes for another screen (app.js); opening the
+// same card straight from there takes it back, once. Kept in memory only.
 //
-//   { cardId, side: 'front' | 'inside' | 'back', notes: null | { expanded, view, scope, pageId }, viaMap }
+//   { cardId, side: 'front' | 'inside' | 'back', notes: null | { expanded, view, scope, pageId }, viaMap, viaFull }
 // viaMap: the globe was opened from the card's map, so "Back to card" can go back in history.
+// viaFull: the full notebook was opened from the card's panel, and opens where the panel was.
 
 let saved = null;
 
@@ -22,6 +23,24 @@ export function take(cardId) {
 // Whether the globe now showing was opened from this card's map (so history.back() returns
 // to it), without using the state up.
 export const cameFromMap = cardId => Boolean(saved?.viaMap && saved.cardId === cardId);
+
+// Where the panel was, when the full notebook now opening for this card was opened from it.
+export const panelOf = cardId => (saved?.viaFull && saved.cardId === cardId ? saved.notes : null);
+
+// Where the panel opens after the full notebook: on the page it ended on when that is one of this
+// card's, in the card's own list. Otherwise where it was, so that going through other animals'
+// pages in the full notebook never leaves one of them beside this card.
+//   ended: where() of the full notebook. tagsOf(pageId): that page's animals.
+export function panelAfterFull(cardId, started, ended, tagsOf) {
+  const ours = ended?.view === 'pages' && ended.pageId && tagsOf(ended.pageId).includes(cardId);
+  return ours ? { ...started, view: 'pages', scope: { kind: 'animal', id: cardId }, pageId: ended.pageId } : started;
+}
+
+// The full notebook is closing: what the card will come back to.
+export function leaveFull(cardId, ended, tagsOf) {
+  const started = panelOf(cardId);
+  if (started) saved = { ...saved, notes: panelAfterFull(cardId, started, ended, tagsOf) };
+}
 
 // Which maps open the globe: a card with a range file, shown in the viewer (onMap given; a
 // pack reveal has none).

@@ -1,5 +1,5 @@
-// The rails' objects, drawn as SVG: the pen pouch and what is in it, the ink pad, the stamps and
-// the ruler. Flat colours from tokens (css/notes.css gives each .nb-a-* its fill), no blur, no
+// The rails' objects, drawn as SVG: the pen pouch and what is in it, the ink pad, the sponge, the
+// stamps, the tweezers, the wooden tokens at the foot of the left rail and the ruler. Flat colours from tokens (css/notes.css gives each .nb-a-* its fill), no blur, no
 // filters. The art only; js/notebook.js makes the buttons around it and says what they do.
 //
 // The pouch is drawn standing up, in a rail --nb-rail wide. Lying on its side in a band is the
@@ -95,6 +95,39 @@ export const inkPadArt = () => art(64, 52,
   rect('tin-rim', 6, 17, 52, 28, 3),
   rect('ink', 9, 20, 46, 22, 2),
   line('felt', 'M13 26h38M13 32h38M13 38h38'));
+
+// ---------- the sponge ----------
+// A rounded block: its top, the thicker side under it, and the holes.
+export const spongeArt = () => art(64, 44,
+  path('sponge-dark', 'M5 13Q4 7 12 6Q22 2 34 5Q48 2 56 7Q62 9 60 17V33Q60 39 52 39Q40 42 30 40Q18 42 10 39Q4 37 4 31Z'),
+  path('sponge', 'M5 13Q4 7 12 6Q22 2 34 5Q48 2 56 7Q62 9 60 17Q61 27 52 28Q40 31 30 29Q18 31 10 28Q3 26 5 13Z'),
+  ellipse('sponge-pore', 14, 13, 3, 2), ellipse('sponge-pore', 26, 10, 2, 1.5), ellipse('sponge-pore', 38, 12, 3.2, 2.2),
+  ellipse('sponge-pore', 50, 11, 2.2, 1.6), ellipse('sponge-pore', 20, 21, 2.4, 1.7), ellipse('sponge-pore', 33, 21, 1.8, 1.3),
+  ellipse('sponge-pore', 46, 21, 3, 2), ellipse('sponge-pore', 12, 33, 1.8, 1.3), ellipse('sponge-pore', 40, 34, 2, 1.3));
+
+// ---------- the tweezers ----------
+// Lying with their tips towards the page.
+export const tweezersArt = () => art(64, 44,
+  path('metal-dark', 'M63 16Q63 13 59 13L15 9L2 20L5 21.5L17 15L58 19V25L17 29L5 22.5L2 24L15 35L59 31Q63 31 63 28Z'),
+  path('metal', 'M63 16Q63 13 59 13L15 9L2 20L5 20.5L17 13.5L60 17.5Z'),
+  path('metal', 'M63 28Q63 31 59 31L15 35L2 24L5 23.5L17 30.5L60 26.5Z'),
+  rect('metal-dark', 52, 17, 11, 10, 2),
+  line('grip', 'M28 11.5v4M32 12v4M36 12.4v4M28 32.5v-4M32 32v-4M36 31.6v-4'));
+
+// ---------- the tokens at the foot of the left rail ----------
+// Round pieces of the same wood as the stamps, the sign carved in. Each is 44 px, a tap's size.
+const SIGNS = {
+  undo: 'M31 30A10 10 0 0 0 22 16H13M19 10L13 16L19 22',
+  redo: 'M13 30A10 10 0 0 1 22 16H31M25 10L31 16L25 22',
+  pen: 'M12 32L14.5 24L27 11.5L32.5 17L20 29.5ZM24.5 14L30 19.5M14.5 24L20 29.5',
+  finger: 'M20 33L13.5 25.5C12 23.5 14.5 21.5 16.5 23L19 25V12.5A2.2 2.2 0 0 1 23.4 12.5V20L29.5 21.5C31.5 22 32.5 23.5 32 25.5L30.5 33',
+};
+export const tokenArt = sign => art(44, 44,
+  circle('wood-dark', 22, 23, 20.5), circle('wood', 22, 21, 20), ellipse('wood-light', 15, 11, 7, 3.6, -30),
+  line('carve', SIGNS[sign]));
+
+// ---------- the open book on the panel's bar ----------
+export const openBookArt = () => art(28, 24, line('book', 'M14 6C11 4 6 3.5 2 4.5V20C6 19 11 19.5 14 21C17 19.5 22 19 26 20V4.5C22 3.5 17 4 14 6ZM14 6V21'));
 
 // ---------- the stamps ----------
 const body = (...face) => [

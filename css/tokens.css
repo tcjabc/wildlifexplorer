@@ -164,6 +164,7 @@
   --nb-rubber: #f6f1e7;       --nb-rubber-shade: #d9d2c3; --nb-sleeve: #2f6fb0;      --nb-sleeve-band: #f3c53c;
   --nb-ruler: #efc94f;        --nb-ruler-glass: rgb(244 214 110 / 0.8); --nb-ruler-ink: #4a3715;
   --nb-panda: #f7f4ec;        --nb-panda-dark: #2b2724;
+  --nb-sponge: #e9c452;       --nb-sponge-dark: #c49a35; --nb-sponge-pore: #a97f2a;
   --nb-tool-shine: rgb(255 255 255 / 0.32); --nb-tool-shade: rgb(0 0 0 / 0.16);
 
   /* IUCN Red List badge colours (the Red List's own palette) */
@@ -291,6 +292,7 @@
   --nb-stamp-lift: 6px; /* the stamp in use, lifted from the row */
   --nb-press: 4px;      /* how far a stamp goes down when it stamps */
   --nb-ghost-w: 104px;  /* the stamp coming down on the page */
+  --z-grow: 70;         /* the panel growing into the full notebook: over the card screen (60) */
   --nb-thumb-w: 72px;   /* a page in the contents (the latest page of an animal) */
   --nb-thumb-w-sm: 40px; /* a page row in the contents */
   /* The animal tags on a page, under the OBSERVED stamp (in page units: 1000 × 1400). */

@@ -496,8 +496,8 @@ function setCard(card) {
 
 // fromEl: the binder tile to zoom out of. onDismiss: called when the child closes the
 // card themselves (swipe down or ←), so the app can update the address.
-// restore: what js/card-return.js kept when this card was left for the globe (its side and
-// the notebook), to come back to exactly that.
+// restore: what js/card-return.js kept when this card was left for the globe or the full
+// notebook (its side and the notebook), to come back to exactly that.
 export function open(card, { fromEl, main, onDismiss, restore = null } = {}) {
   if (v) teardown();
   const scrim = h('div', { class: 'viewer__scrim' });
@@ -523,7 +523,7 @@ export function open(card, { fromEl, main, onDismiss, restore = null } = {}) {
   v = { el, pane, scrim, zoomer, stage, hint, hintRow, bar, sheet, dock, main, fromEl, onDismiss, p: 0, f: 0, z: 0, cancel: null };
   setCard(card);
   // Collapsed or expanded, as this explorer left it last time (kept on this device), or as it
-  // was when the card was left for the globe (and on the same page).
+  // was when the card was left for the globe or the full notebook (and on that page).
   const notes = restore?.notes;
   if (dock && (notes ? notes.expanded : state.profile?.notesPanel === 'expanded')) setNotebook(true, { remember: false, layout: false, start: notes });
   if (restore?.side === 'back') v.f = 1;
@@ -604,7 +604,7 @@ function setNotebook(open, { remember = true, layout = true, start = null } = {}
   d.el.dataset.state = open ? 'expanded' : 'collapsed';
   v.el.dataset.notebook = open ? 'expanded' : 'collapsed';
   if (open) {
-    d.book = notebook({ cardId: v.card.id, beside: true, lead: d.collapse, start });
+    d.book = notebook({ cardId: v.card.id, beside: true, lead: d.collapse, start, onFull: openFullNotes });
     mount(d.body, d.book.el);
   } else {
     d.book?.destroy();
@@ -623,7 +623,7 @@ export function openNotes() { setNotebook(true); }
 export function snapshot() {
   if (!v) return null;
   return {
-    cardId: v.card.id, side: sideOf(v), viaMap: Boolean(v.toGlobe),
+    cardId: v.card.id, side: sideOf(v), viaMap: Boolean(v.toGlobe), viaFull: Boolean(v.toFull),
     notes: v.dock ? { expanded: v.dock.expanded, ...(v.dock.book?.where() ?? {}) } : null,
   };
 }
@@ -635,6 +635,13 @@ function openGlobe(card) {
   haptic(8);
   v.toGlobe = true;
   location.hash = `#/globe/${encodeURIComponent(card.id)}`;
+}
+// The full notebook, on the panel's page and still this card's. As with the globe, Back to the
+// card (or the device's back button) comes back to snapshot().
+function openFullNotes() {
+  if (!v) return;
+  v.toFull = true;
+  location.hash = `#/notes/${encodeURIComponent(v.card.id)}`;
 }
 export function toggleNotes(open = !v?.dock?.expanded) { setNotebook(open); }
 

@@ -18,7 +18,7 @@ try { pw = await import('playwright'); } catch { /* not installed */ }
 const have = () => { try { return pw && existsSync(pw.chromium.executablePath()); } catch { return false; } };
 const skip = !have() && 'chromium not installed';
 
-const TYPES = { '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json' };
+const TYPES = { '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml' };
 const PAGE = `<!doctype html><meta name=viewport content="width=device-width, initial-scale=1">
 ${['tokens', 'app', 'card', 'notes'].map(n => `<link rel=stylesheet href="/css/${n}.css">`).join('')}
 <body class="is-immersive"><main class="main" id="main" data-view="notes"></main>
@@ -129,6 +129,8 @@ async function open(viewport = LANDSCAPE) {
   };
   return f;
 }
+// Picks up the tweezers, from the right rail.
+const tweezers = f => f.page.click('.nb-rack[data-rack="tweezers"]');
 const zoomOf = m => (m === 'none' ? 1 : Number(m.match(/matrix\(([^,]+)/)[1]));
 const run = (name, fn, viewport) => test(name, { skip }, async () => {
   const f = await open(viewport);
@@ -295,13 +297,14 @@ run('a second finger soon after the first is a gesture; a late one leaves the li
   assert.equal(zoomOf(await f.transform()), 1);
 });
 
-run('a tap selects text, a drag inside its box moves it, and a tap elsewhere lets go without a dot', async f => {
+run('tweezers: a tap selects text, a drag moves it, a tap elsewhere lets go, and none of it leaves a mark', async f => {
   const [a] = await f.seed([[label(300, 500)], []]);
   await f.show(a);
+  await tweezers(f);
   const px = await f.page.evaluate(() => { const s = document.querySelector('.nb__sheet').getBoundingClientRect(); return { x: s.x + (360 * s.width) / 1000, y: s.y + (520 * s.height) / 1400 }; });
   await f.tap(px);
   assert.ok(await f.box('.nb-sel'), 'selected, and the click ending the tap did not land on ✕');
-  assert.equal((await f.items(a)).length, 1, 'the tap left no dot');
+  assert.deepEqual(await f.items(a), [label(300, 500)], 'a tap leaves it where it was, and no dot');
   await f.drag(px, { x: px.x + 100, y: px.y + 60 });
   const [moved] = await f.items(a);
   assert.equal(moved.t, 'x');
@@ -310,12 +313,135 @@ run('a tap selects text, a drag inside its box moves it, and a tap elsewhere let
   assert.equal(await f.box('.nb-sel'), undefined, 'let go');
   assert.equal((await f.items(a)).length, 1, 'no dot');
   await f.tap({ x: 200, y: 700 });
-  assert.equal((await f.items(a)).length, 2, 'with nothing selected a tap is a dot');
+  assert.equal((await f.items(a)).length, 1, 'tweezers never mark the page');
+});
+
+run('tweezers: one press selects and drags, in a single move', async f => {
+  const [a] = await f.seed([[label(300, 500)], []]);
+  await f.show(a);
+  await tweezers(f);
+  const at = { x: 69 + 360 * 0.571, y: 520 * 0.571 };
+  await f.drag(at, { x: at.x + 100, y: at.y + 60 });
+  const [moved] = await f.items(a);
+  assert.ok(moved.x > 400 && moved.y > 550, JSON.stringify(moved));
+  assert.ok(await f.box('.nb-sel'), 'and it stays selected');
+});
+
+run('tweezers never touch a line, and a drag on bare paper never turns the page', async f => {
+  const lines = [stroke(100, 300), stroke(100, 500)];
+  const [a] = await f.seed([lines, [], [], []]);
+  await f.show(a);
+  await tweezers(f);
+  await f.tap({ x: 69 + 150 * 0.571, y: 300 * 0.571 });
+  assert.equal(await f.box('.nb-sel'), undefined, 'a line can\'t be selected');
+  await f.drag({ x: 69 + 150 * 0.571, y: 500 * 0.571 }, { x: 400, y: 400 });
+  assert.deepEqual(await f.items(a), lines);
+  await f.drag({ x: 500, y: 600 }, { x: 150, y: 610 });
+  assert.equal(await f.place(), 1, 'a missed grab keeps the page');
+  await f.two([{ x: 800, y: 300 }, { x: 1000, y: 300 }], [{ x: 500, y: 300 }, { x: 700, y: 300 }]);
+  assert.equal(await f.place(), 3, 'two fingers still turn it');
+});
+
+run('tweezers work with a finger in pen-only mode', async f => {
+  const [a] = await f.seed([[label(300, 500)], []]);
+  await f.show(a);
+  await f.page.evaluate(() => { t.state.profile.notesInput = 'pen'; });
+  await tweezers(f);
+  const at = { x: 69 + 360 * 0.571, y: 520 * 0.571 };
+  await f.drag(at, { x: at.x + 100, y: at.y });
+  assert.ok((await f.items(a))[0].x > 400);
+});
+
+run('an animal stamp can be moved, resized and turned with the tweezers, and removed with ✕', async f => {
+  const [id] = await rail.collect(f, 1);
+  const stamp = { t: 'm', c: '#444444', card: id, x: 400, y: 700, s: 180, r: 0 };
+  const [a] = await f.seed([[stamp], []]);
+  await f.show(a);
+  await tweezers(f);
+  const c = { x: 69 + 400 * 0.571, y: 700 * 0.571 };
+  await f.tap(c);
+  const grab = async sel => { const b = await f.box(sel); return { x: b.x + b.w / 2, y: b.y + b.h / 2 }; };
+  const h = await grab('.nb-sel__resize');
+  await f.drag(h, { x: h.x + 60, y: h.y + 60 });
+  const [big] = await f.items(a);
+  assert.ok(big.s > 260, String(big.s));
+  const r = await grab('.nb-sel__rotate');
+  await f.drag(r, { x: r.x + 80, y: r.y + 80 });
+  const [turned] = await f.items(a);
+  assert.ok(Math.abs(turned.r) > 0.2, String(turned.r));
+  await f.tap(await grab('.nb-sel__del'));
+  assert.equal((await f.items(a)).length, 0);
+});
+
+run('a wide silhouette is selected and wiped by all of its width, not just a square in the middle', async f => {
+  const [id] = await f.page.evaluate(() => {
+    const wide = t.state.cards.filter(c => c.silhouette?.file);
+    for (const c of wide) t.state.collected[c.id] = { cardId: c.id };
+    return wide.map(c => c.id);
+  });
+  const [a] = await f.seed([[{ t: 'm', c: '#444444', card: id, x: 500, y: 700, s: 200, r: 0 }], []]);
+  await f.show(a);
+  await f.wait(300); // its picture arrives
+  const ratio = await f.page.evaluate(src => new Promise(done => { const i = new Image(); i.onload = () => done(i.naturalWidth / i.naturalHeight); i.src = src; }), await f.page.evaluate(c => t.state.byId.get(c).silhouette.file, id));
+  assert.ok(ratio > 1.2, String(ratio));
+  const px = (x, y) => ({ x: 69 + x * 0.571, y: y * 0.571 });
+  await tweezers(f);
+  await f.tap(px(500 + (100 * ratio) - 12, 700)); // near its far end, well outside a 200 square
+  const box = await f.box('.nb-sel');
+  assert.ok(box, 'selected');
+  assert.ok(Math.abs(box.w - 200 * ratio * 0.571) < 3, `${box.w}`);
+  await f.page.click('.nb-rack[data-rack="sponge"]');
+  await f.tap(px(500 - (100 * ratio) + 12, 700));
+  assert.equal((await f.items(a)).length, 0);
+});
+
+run('with a pencil, pen or highlighter a tap on a stamp, text or photo is a dot', async f => {
+  const items = [label(100, 300), { t: 'p', id: 'missing', x: 500, y: 900, w: 400, h: 300, r: 0 }];
+  const [a] = await f.seed([items, []]);
+  await f.show(a);
+  for (const tool of ['pen', 'highlighter', 'pencil']) {
+    await rail.pick(f, tool);
+    await f.tap({ x: 69 + 160 * 0.571, y: 320 * 0.571 });
+    await f.tap({ x: 69 + 500 * 0.571, y: 900 * 0.571 });
+    assert.equal(await f.box('.nb-sel'), undefined, tool);
+  }
+  const after = await f.items(a);
+  assert.deepEqual(after.slice(0, 2), items);
+  assert.deepEqual(after.slice(2).map(i => i.t), Array(6).fill('s'));
+});
+
+run('with the eraser, and for a finger in pen-only mode, a tap selects nothing', async f => {
+  const [a] = await f.seed([[label(100, 300)], []]);
+  await f.show(a);
+  await rail.pick(f, 'eraser');
+  const at = { x: 69 + 160 * 0.571, y: 320 * 0.571 };
+  await f.tap(at);
+  assert.equal(await f.box('.nb-sel'), undefined);
+  await rail.pick(f, 'pencil');
+  await f.page.evaluate(() => { t.state.profile.notesInput = 'pen'; });
+  await f.tap(at);
+  assert.equal(await f.box('.nb-sel'), undefined);
+  assert.equal((await f.items(a)).length, 1);
+});
+
+run('a photo just added stays selected with the pencil in hand, so it can be placed', async f => {
+  const [a] = await f.seed([[], []]);
+  await f.show(a);
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64');
+  await f.page.setInputFiles('input[accept="image/*"]', { name: 'p.png', mimeType: 'image/png', buffer: png });
+  await f.page.waitForSelector('.nb-sel');
+  const b = await f.box('.nb__sheet'), c = { x: b.x + b.w / 2, y: b.y + b.h / 2 };
+  await f.wait(500);
+  await f.drag(c, { x: c.x + 60, y: c.y + 40 });
+  const [photo] = await f.items(a);
+  assert.equal(photo.t, 'p');
+  assert.ok(photo.x > 560, String(photo.x));
 });
 
 run('✕ ignores a tap straight after selecting, and works after that', async f => {
   const [a] = await f.seed([[label(300, 500)], []]);
   await f.show(a);
+  await tweezers(f);
   const px = await f.page.evaluate(() => { const s = document.querySelector('.nb__sheet').getBoundingClientRect(); return { x: s.x + (360 * s.width) / 1000, y: s.y + (520 * s.height) / 1400 }; });
   await f.send('touchStart', [{ ...px, id: 1 }]);
   await f.send('touchEnd', []);
@@ -331,6 +457,7 @@ run('a pinch on the selected item resizes it and leaves the page\'s zoom alone',
   const [a] = await f.seed([[{ t: 'p', id: 'missing', x: 500, y: 700, w: 400, h: 300, r: 0 }], []]);
   await f.show(a);
   const c = await f.page.evaluate(() => { const s = document.querySelector('.nb__sheet').getBoundingClientRect(); return { x: s.x + s.width / 2, y: s.y + s.height / 2 }; });
+  await tweezers(f);
   await f.tap(c);
   await f.two([{ x: c.x - 30, y: c.y }, { x: c.x + 30, y: c.y }], [{ x: c.x - 60, y: c.y }, { x: c.x + 60, y: c.y }]);
   const [photo] = await f.items(a);
@@ -442,7 +569,9 @@ for (const [name, viewport, across] of [['a tablet', LANDSCAPE, true], ['a phone
     else assert.ok(start.y + start.h <= page.y + 1 && page.y + page.h <= end.y + 1);
     const inside = (b, r) => b.x >= r.x - 1 && b.y >= r.y - 1 && b.x + b.w <= r.x + r.w + 1 && b.y + b.h <= r.y + r.h + 1;
     for (const sel of ['.nb__back', '.nb__pouch', '.nb__railfoot', '.nb-undo']) assert.ok(inside(await f.box(sel), start), sel);
-    for (const sel of ['.nb__new', '.nb__rack', '.nb-rack--ink', '.nb__rack-room']) assert.ok(inside(await f.box(sel), end), sel);
+    for (const sel of ['.nb__new', '.nb__rack', '.nb-rack--ink', '.nb-rack[data-rack="sponge"]', '.nb-rack[data-rack="tweezers"]', '.nb__rack-room']) assert.ok(inside(await f.box(sel), end), sel);
+    const rack = await f.box('.nb__rack');
+    assert.ok(await f.page.evaluate(() => { const r = document.querySelector('.nb__rack'); return r.scrollHeight <= r.clientHeight + 1 && r.scrollWidth <= r.clientWidth + 1; }), `nothing spills out of ${JSON.stringify(rack)}`);
     assert.ok((await f.box('.nb__back')).x < (await f.box('.nb__pouch')).x + (across ? 68 : 1), 'back comes first');
     assert.ok((await f.box('.nb__new'))[across ? 'y' : 'x'] < (await f.box('.nb__rack'))[across ? 'y' : 'x'], 'new page before the stamps');
     const taps = await f.page.evaluate(() => [...document.querySelectorAll('.nb-pt, .nb-rack')].map(b => { const r = b.getBoundingClientRect(); return Math.min(r.width, r.height); }));
@@ -744,9 +873,10 @@ run('the ABC stamp places text in the ink, which can be turned like any stamp', 
   await f.page.keyboard.type('Otter');
   await f.page.keyboard.press('Enter');
   await f.wait(550);
-  await rail.pick(f, 'pencil');
+  await tweezers(f);
   await f.tap({ x: 270, y: 515 });
   assert.ok(await f.box('.nb-sel'));
+  assert.equal(await f.box('.nb-text'), undefined, 'tweezers open no keyboard');
   await f.two([{ x: 230, y: 515 }, { x: 310, y: 515 }], [{ x: 230, y: 480 }, { x: 310, y: 550 }]);
   const [text] = await f.items(a);
   assert.equal(text.v, 'Otter');
@@ -804,13 +934,213 @@ run('the panel beside a card uses the settings the rails set: colours, thickness
   assert.equal(await f.page.evaluate(() => t.state.profile.notesTools.pencil.colour), 'red', 'and back the other way');
 }, { width: 1000, height: 800 });
 
-run('the contents hide the rails\' objects; back and the menu stay', async f => {
+for (const [name, viewport] of [['a tablet', LANDSCAPE], ['a tablet in portrait', PORTRAIT], ['a phone', PHONE_SIDE], ['a phone in portrait', PHONE_UP]]) {
+  run(`${name}: the contents have no rails, only back and the menu in a slim row over a list the full width`, async f => {
+    const pages = await f.seed(Array.from({ length: 24 }, () => []));
+    await f.show(pages[0]);
+    await rail.pick(f, 'ruler');
+    await f.page.click('.nb__ribbon');
+    await f.wait(200);
+    for (const sel of ['.nb__pouch', '.nb__rack', '.nb__railfoot', '.nb-ruler']) assert.equal(await f.box(sel).then(b => b?.w ?? 0), 0, sel);
+    const back = await f.box('.nb__back'), menu = await f.box('.nb__rail--end .btn:not(.nb__new)'), list = await f.box('.nb__contents');
+    assert.ok(back.w >= 43 && menu.w >= 43);
+    assert.ok(Math.abs(back.y - menu.y) < 1, 'one row');
+    assert.ok(back.x < 20 && menu.x + menu.w > viewport.width - 20, 'at its ends');
+    assert.equal(Math.round(list.w), viewport.width);
+    assert.ok(list.y >= back.y + back.h && list.y < 70, String(list.y));
+    assert.ok(list.y + list.h <= viewport.height + 1);
+    await f.page.click('.nb-toc__page');
+    await f.wait(300);
+    assert.ok((await f.box('.nb__pouch')).w > 0, 'the rails come back with a page');
+  }, viewport);
+}
+
+// ---------- the sponge ----------
+const STAMP = { t: 'm', c: '#444444', card: 'none', x: 300, y: 1000, s: 180, r: 0 };
+const TRAIL = { t: 'f', c: '#444444', k: 'paw', p: [100, 700, 300, 700] };
+const at = (x, y) => ({ x: 69 + x * 0.571, y: y * 0.571 });
+
+run('the sponge rubs off stamps, trails and text in one undo step, and leaves lines and photos', async f => {
+  const photo = { t: 'p', id: 'missing', x: 700, y: 1000, w: 300, h: 200, r: 0 };
+  const start = [stroke(100, 300), label(100, 500), TRAIL, STAMP, photo];
+  const [a] = await f.seed([start, []]);
+  await f.show(a);
+  await f.page.click('.nb-rack[data-rack="sponge"]');
+  assert.deepEqual(await f.page.evaluate(() => [...document.querySelectorAll('.nb-rack[data-raised]')].map(b => b.dataset.rack)), ['sponge']);
+  await f.drag(at(150, 280), at(300, 1000), 24);
+  assert.deepEqual((await f.items(a)).map(i => i.t), ['s', 'p'], 'over the line and past the rest');
+  await f.tap(at(700, 1000));
+  assert.deepEqual((await f.items(a)).map(i => i.t), ['s', 'p'], 'photos keep their ✕');
+  await f.page.click('.nb-undo');
+  await f.wait(550);
+  assert.deepEqual(await f.items(a), start, 'undo puts each back in its place');
+  await f.page.click('.nb__railfoot .nb-tool:nth-child(3)');
+  await f.wait(550);
+  assert.deepEqual((await f.items(a)).map(i => i.t), ['s', 'p'], 'and redo takes them again');
+});
+
+run('a tap of the sponge takes one stamp, and the page keeps its animal tag', async f => {
+  const [id] = await rail.collect(f, 1);
+  const [a] = await f.seed([[{ ...STAMP, card: id }], []]);
+  await f.page.evaluate(async ([i, card]) => { const p = await t.notes.loadPage(i); p.tags = [card]; await t.notes.savePage(p); }, [a, id]);
+  await f.show(a, { start: { view: 'pages', scope: { kind: 'animal', id }, pageId: a } });
+  await f.page.click('.nb-rack[data-rack="sponge"]');
+  await f.send('touchStart', [{ ...at(300, 1000), id: 1 }]);
+  await f.wait(30);
+  assert.ok(await f.box('.nb-wipe'), 'it wipes off');
+  await f.send('touchEnd', []);
+  await f.wait(550);
+  assert.equal(await f.box('.nb-wipe'), undefined, 'and the wipe is gone');
+  assert.equal(await f.box('.nb-ghost'), undefined);
+  assert.equal((await f.items(a)).length, 0);
+  assert.deepEqual((await f.page.evaluate(i => t.notes.loadPage(i), a)).tags, [id]);
+});
+
+run('the sponge has no wipe with reduced motion, and takes the stamp all the same', async f => {
+  await f.page.emulateMedia({ reducedMotion: 'reduce' });
+  const [a] = await f.seed([[STAMP], []]);
+  await f.show(a);
+  await f.page.click('.nb-rack[data-rack="sponge"]');
+  await f.send('touchStart', [{ ...at(300, 1000), id: 1 }]);
+  await f.wait(30);
+  assert.equal(await f.box('.nb-wipe'), undefined);
+  await f.send('touchEnd', []);
+  await f.wait(550);
+  assert.equal((await f.items(a)).length, 0);
+});
+
+run('a resting finger can\'t wipe in pen-only mode, and the pouch eraser still takes only lines', async f => {
+  const start = [stroke(100, 300), STAMP];
+  const [a] = await f.seed([start, []]);
+  await f.show(a);
+  await rail.pick(f, 'eraser');
+  await f.tap(at(300, 1000));
+  assert.deepEqual(await f.items(a), start, 'the eraser leaves a stamp');
+  await f.page.evaluate(() => { t.state.profile.notesInput = 'pen'; });
+  await f.page.click('.nb-rack[data-rack="sponge"]');
+  await f.tap(at(300, 1000));
+  assert.deepEqual(await f.items(a), start, 'a finger on the sponge does nothing with only a pen drawing');
+});
+
+// ---------- the rails' last details ----------
+run('the ink pad and the stamps\' rubber show the ink in use', async f => {
   const [a] = await f.seed([[], []]);
   await f.show(a);
-  await rail.pick(f, 'ruler');
-  await f.page.click('.nb__ribbon');
-  await f.wait(200);
-  for (const sel of ['.nb__pouch', '.nb__rack', '.nb__railfoot', '.nb-ruler']) assert.equal(await f.box(sel).then(b => b?.w ?? 0), 0, sel);
-  assert.ok((await f.box('.nb__back')).w > 0);
-  assert.ok((await f.box('.nb__rail--end .btn:not(.nb__new)')).w > 0);
+  const fills = () => f.page.evaluate(() => [...document.querySelectorAll('.nb__rack .nb-a-ink')].map(e => getComputedStyle(e).fill));
+  const tint = id => f.page.evaluate(c => { const d = document.createElement('i'); d.style.color = getComputedStyle(document.documentElement).getPropertyValue(`--pencil-${c}`); document.body.append(d); const v = getComputedStyle(d).color; d.remove(); return v; }, id);
+  assert.deepEqual([...new Set(await fills())], [await tint('graphite')]);
+  await f.page.click('.nb-rack--ink');
+  await f.page.click('.nb-pop--rail [data-colour="red"]');
+  await f.wait(50);
+  const now = await fills(), red = await tint('red');
+  assert.equal(now.length, 4, 'the pad and three stamps');
+  assert.deepEqual([...new Set(now)], [red]);
 });
+
+run('undo, redo and pen or finger are wooden tokens on the rails; the panel keeps its icons', async f => {
+  const [a] = await f.seed([[], []]);
+  await f.show(a);
+  const foot = () => f.page.evaluate(() => [...document.querySelectorAll('.nb__railfoot .nb-token')].map(b => { const r = b.getBoundingClientRect(); return { art: Boolean(b.querySelector('svg')), w: r.width, h: r.height, op: getComputedStyle(b).opacity }; }));
+  const tokens = await foot();
+  assert.equal(tokens.length, 3);
+  for (const k of tokens) { assert.ok(k.art); assert.ok(k.w >= 44 && k.h >= 44, JSON.stringify(k)); assert.equal(k.op, '1', 'never faint, even with nothing to undo'); }
+  const input = () => f.page.evaluate(() => document.querySelector('.nb__railfoot .nb-input path:last-child').getAttribute('d'));
+  const finger = await input();
+  await f.page.click('.nb__railfoot .nb-input');
+  await f.wait(50);
+  assert.notEqual(await input(), finger, 'it shows which');
+  await f.page.evaluate(() => { window.book.destroy(); document.body.className = ''; document.getElementById('main').dataset.view = 'binder'; document.getElementById('main').style.height = '700px'; });
+  await f.page.evaluate(i => { t.open(i, { beside: true, lead: document.createElement('span') }); }, a);
+  await f.wait(300);
+  assert.equal(await f.page.evaluate(() => document.querySelector('.nb__tools .nb-undo').textContent), '↶');
+});
+
+// The pouch's tips at the baseline tablet's size and in portrait bands: what a tap at the middle of
+// each tool's row finds, and how big that row is.
+for (const [name, viewport] of [['landscape', LANDSCAPE], ['portrait', PORTRAIT]]) {
+  run(`${name}: each tool in the pouch has its own 44 px of tip to tap`, async f => {
+    const [a] = await f.seed([[], []]);
+    await f.show(a);
+    const zones = await f.page.evaluate(() => [...document.querySelectorAll('.nb-pt')].map(b => {
+      const r = b.getBoundingClientRect();
+      return { id: b.dataset.pt, w: r.width, h: r.height, hit: document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2).closest('.nb-pt')?.dataset.pt };
+    }));
+    assert.equal(zones.length, 5);
+    for (const z of zones) { assert.ok(Math.min(z.w, z.h) >= 44, JSON.stringify(z)); assert.equal(z.hit, z.id); }
+  }, viewport);
+}
+
+// ---------- beside a card ----------
+const panel = async (f, id) => {
+  await f.page.evaluate(() => { document.body.className = ''; document.getElementById('main').dataset.view = 'binder'; document.getElementById('main').style.height = '700px'; document.getElementById('main').style.width = '640px'; document.getElementById('main').style.padding = '0'; });
+  await f.page.evaluate(i => { window.fulled = 0; t.open(i, { beside: true, lead: document.createElement('span'), onFull: () => { window.fulled++; } }); }, id);
+  await f.page.waitForFunction(() => document.querySelector('.nb__sheet canvas').width > 1);
+  await f.wait(1600); // past the nudge
+};
+const fulled = f => f.page.evaluate(() => window.fulled);
+
+run('the panel\'s open book button is 44 px, labelled, in its top corner, and opens the full notebook', async f => {
+  const [a] = await f.seed([[], []]);
+  await panel(f, a);
+  const b = await f.box('.nb__full'), bar = await f.box('.nb__bar');
+  assert.ok(b.w >= 44 && b.h >= 44);
+  assert.ok(b.x + b.w >= bar.x + bar.w - 12 && b.y < bar.y + 12, 'in the corner of the bar');
+  await f.page.setViewportSize({ width: 400, height: 700 });
+  await f.page.evaluate(() => { document.getElementById('main').style.width = '400px'; });
+  await f.wait(200);
+  const narrow = await f.box('.nb__full'), wrapped = await f.box('.nb__bar');
+  assert.ok(wrapped.h > 60 && narrow.y < wrapped.y + 12 && narrow.x + narrow.w >= wrapped.x + wrapped.w - 12, 'and when the bar wraps');
+  const clear = await f.page.evaluate(() => { const r = document.querySelector('.nb__full').getBoundingClientRect(); return [...document.querySelectorAll('.nb__pages > *')].every(e => { const b = e.getBoundingClientRect(); return b.right <= r.left || b.top >= r.bottom || !b.width; }); });
+  assert.ok(clear, 'over nothing');
+  assert.equal(await f.page.evaluate(() => document.querySelector('.nb__full').getAttribute('aria-label')), 'Open the full notebook');
+  await f.page.click('.nb__full');
+  await f.page.waitForFunction(() => document.querySelector('.nb-grow'));
+  assert.equal(await fulled(f), 0, 'it grows first');
+  await f.wait(350);
+  assert.equal(await fulled(f), 1);
+  await f.wait(400);
+  assert.equal(await f.box('.nb-grow'), undefined, 'and leaves nothing behind');
+}, { width: 640, height: 700 });
+
+run('a pinch past 1.3× on the panel opens the full notebook, saving first; a shorter one goes back', async f => {
+  const [a] = await f.seed([[], []]);
+  await panel(f, a);
+  await f.two([{ x: 270, y: 400 }, { x: 370, y: 400 }], [{ x: 260, y: 400 }, { x: 380, y: 400 }]); // ×1.2
+  assert.equal(await fulled(f), 0);
+  assert.equal(zoomOf(await f.transform()), 1, 'back to the fitted page');
+  await f.drag({ x: 200, y: 300 }, { x: 300, y: 300 }); // something to save
+  await f.send('touchStart', [{ x: 270, y: 400, id: 1 }, { x: 370, y: 400, id: 2 }]);
+  for (let i = 1; i <= 8; i++) { await f.send('touchMove', [{ x: 270 - i * 5, y: 400, id: 1 }, { x: 370 + i * 5, y: 400, id: 2 }]); await f.wait(16); }
+  await f.wait(500);
+  assert.equal(await fulled(f), 1, 'crossing it is enough, before the fingers lift');
+  await f.send('touchEnd', []);
+  await f.wait(100);
+  assert.equal(await fulled(f), 1, 'once');
+  assert.equal((await f.items(a)).length, 1);
+}, { width: 640, height: 700 });
+
+run('with reduced motion the full notebook opens at once, with nothing growing', async f => {
+  await f.page.emulateMedia({ reducedMotion: 'reduce' });
+  const [a] = await f.seed([[], []]);
+  await panel(f, a);
+  await f.page.click('.nb__full');
+  await f.wait(60);
+  assert.equal(await fulled(f), 1);
+  assert.equal(await f.box('.nb-grow'), undefined);
+}, { width: 640, height: 700 });
+
+run('a pinch on a selected item in the panel resizes it and opens nothing; no onFull, no button', async f => {
+  const [a] = await f.seed([[{ t: 'p', id: 'missing', x: 500, y: 500, w: 500, h: 500, r: 0 }], []]);
+  await panel(f, a);
+  await f.page.click('.nb__tools [data-tool="stamp"]');
+  await f.page.keyboard.press('Escape');
+  await f.page.evaluate(() => document.querySelector('.nb-pick').close());
+  const s = await f.box('.nb__sheet'), c = { x: s.x + s.w / 2, y: s.y + (500 * s.h) / 1400 };
+  await f.tap(c);
+  await f.two([{ x: c.x - 40, y: c.y }, { x: c.x + 40, y: c.y }], [{ x: c.x - 80, y: c.y }, { x: c.x + 80, y: c.y }]);
+  assert.equal(await fulled(f), 0);
+  assert.ok((await f.items(a))[0].w > 800);
+  await f.page.evaluate(i => { t.open(i, { beside: true, lead: document.createElement('span') }); }, a);
+  await f.wait(300);
+  assert.equal(await f.box('.nb__full'), undefined);
+}, { width: 640, height: 700 });

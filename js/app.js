@@ -85,9 +85,10 @@ function route() {
   if (next.name === 'card') {
     const card = store.state.byId.get(next.args[0]);
     if (!card || !store.isVisible(card)) { location.replace('#/binder'); return; }
-    // Straight back from the globe: the same side and notebook as when the card was left.
-    // (Asked before the binder is drawn behind the card, which changes what is shown.)
-    const restore = shown.name === 'globe' ? cardReturn.take(card.id) : null;
+    // Straight back from the globe or the full notebook: the same side and notebook as when the
+    // card was left. (Asked before the binder is drawn behind the card, which changes what is shown.)
+    if (shown.name === 'notes') notesView.handBack();
+    const restore = ['globe', 'notes'].includes(shown.name) ? cardReturn.take(card.id) : null;
     if (binderGroup() !== card.group) renderMain({ name: 'binder', args: [card.group] });
     setNav('binder');
     if (viewer.isOpen()) viewer.show(card);

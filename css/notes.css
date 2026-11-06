@@ -33,6 +33,10 @@
 /* Beside a card the bar holds Collapse too: squeezed buttons, so it fits one row in the half. */
 .nb--beside .nb__bar { gap: var(--s-1); padding: var(--s-1) var(--s-2); }
 .nb--beside .nb__bar .btn--icon { width: var(--tap-xs); height: var(--tap-xs); min-width: var(--tap-xs); min-height: var(--tap-xs); }
+/* The open book stays in the panel's top corner, however the rest of the bar wraps. */
+.nb__bar--full { position: relative; }
+.nb--beside .nb__bar--full { padding-right: calc(var(--tap-xs) + var(--s-2) + var(--s-1)); }
+.nb__bar .nb__full { position: absolute; top: var(--s-1); right: var(--s-2); display: grid; place-items: center; padding: 0; }
 
 /* Never scrolls: one row when everything fits (js/notebook.js measures it), otherwise the
    two-row layout below (data-toolbar="compact"). */
@@ -182,8 +186,11 @@
 /* The foot of the left rail: the camera for now, undo, redo, pen or finger. */
 .nb__railfoot { flex: none; display: flex; flex-direction: column; align-items: center; gap: var(--s-1); margin-top: auto; color: var(--nb-kraft-ink); }
 .nb__railfoot .nb-tool { width: var(--tap-xs); height: var(--tap-xs); }
-.nb__railfoot .nb-input { justify-content: center; width: var(--tap-xs); min-height: var(--tap-xs); padding: 0; background: var(--c-shine-faint); border-color: transparent; }
-.nb__railfoot .nb-input .bi { display: none; }
+.nb__railfoot .nb-input { justify-content: center; width: var(--tap-xs); min-height: var(--tap-xs); padding: 0; background: none; border: 0; }
+/* Undo, redo and pen or finger are wooden tokens. With nothing to undo, the sign is worn flat. */
+.nb__railfoot .nb-token { padding: 0; border: 0; }
+.nb__railfoot .nb-token:disabled { opacity: 1; }
+.nb__railfoot .nb-token:disabled .nb-l-carve { stroke: var(--nb-wood-dark); }
 .nb[data-orient="portrait"] .nb__railfoot { flex-direction: row; margin: 0 0 0 auto; }
 .nb[data-rails="short"] .nb__rail--start {
   display: grid; align-items: start; justify-items: center;
@@ -228,10 +235,14 @@
 /* The ink pad and the stamps, with room for the Polaroid. */
 .nb__rack { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--s-3); }
 .nb[data-orient="portrait"] .nb__rack { flex-direction: row; }
-.nb[data-rails="narrow"] .nb__rack { gap: var(--s-1); }
+.nb[data-rails="narrow"] .nb__rack { flex-wrap: wrap; gap: var(--s-1); padding: var(--s-1) 0; }
+/* Short: new page and the menu side by side, so the rack has the rest of the height. */
+.nb[data-rails="short"] .nb__rail--end { display: grid; justify-items: center; grid-template: "new menu" auto "rack rack" minmax(0, 1fr) / minmax(0, 1fr) minmax(0, 1fr); }
+.nb[data-rails="short"] .nb__new { grid-area: new; }
+.nb[data-rails="short"] .nb__rack { grid-area: rack; }
 .nb[data-rails="short"] .nb__rack { display: grid; grid-template-columns: repeat(2, var(--nb-stamp-w)); align-content: center; gap: var(--s-1); }
 .nb-rack { position: relative; flex: none; width: var(--nb-stamp-w); padding: 0; border: 0; background: none; cursor: pointer; touch-action: manipulation; }
-.nb-rack--ink { display: grid; place-items: center; min-height: var(--tap-xs); }
+.nb-rack--ink, .nb-rack[data-rack="sponge"], .nb-rack[data-rack="tweezers"] { display: grid; place-items: center; min-height: var(--tap-xs); }
 .nb-rack > .nb-art { width: 100%; height: auto; transition: transform var(--t-fast) var(--ease-bounce); }
 .nb-rack[data-raised] > .nb-art { transform: translateY(calc(var(--nb-stamp-lift) * -1)); }
 .nb__rack-room { flex: none; width: var(--nb-stamp-w); aspect-ratio: 1; }
@@ -272,6 +283,9 @@
 .nb-a-panda { fill: var(--nb-panda); }
 .nb-a-panda-dark { fill: var(--nb-panda-dark); }
 .nb-a-carve-fill { fill: var(--nb-carve); }
+.nb-a-sponge { fill: var(--nb-sponge); }
+.nb-a-sponge-dark { fill: var(--nb-sponge-dark); }
+.nb-a-sponge-pore { fill: var(--nb-sponge-pore); }
 .nb-a-ruler-glass { fill: var(--nb-ruler-glass); stroke: var(--nb-ruler-ink); stroke-width: 1.5; }
 .nb-a-digit { fill: var(--nb-ruler-ink); font-family: var(--font); font-size: 26px; font-weight: var(--fw-bold); }
 [class^="nb-l-"] { fill: none; stroke-linecap: round; stroke-linejoin: round; }
@@ -281,6 +295,8 @@
 .nb-l-felt { stroke: var(--nb-tool-shade); stroke-width: 1.5; stroke-dasharray: 2 4; }
 .nb-l-carve { stroke: var(--nb-carve); stroke-width: 2.4; }
 .nb-l-panda-mouth { stroke: var(--nb-panda-dark); stroke-width: 1.6; }
+.nb-l-grip { stroke: var(--nb-metal-dark); stroke-width: 1.2; }
+.nb-l-book { stroke: currentColor; stroke-width: 2; }
 .nb-l-ruler-small { stroke: var(--nb-ruler-ink); stroke-width: 1.5; }
 .nb-l-ruler-big { stroke: var(--nb-ruler-ink); stroke-width: 2.5; }
 
@@ -290,6 +306,14 @@
 /* The stamp coming down. */
 .nb-ghost { position: absolute; z-index: 5; width: var(--nb-ghost-w); pointer-events: none; transform: translate(-50%, -100%); }
 .nb-ghost .nb-art { width: 100%; height: auto; }
+/* What the sponge took, fading off the paper. */
+.nb__sel-layer > .nb-wipe { position: absolute; pointer-events: none; }
+/* Tweezers pick things up. */
+.nb[data-tool="tweezers"] .nb__desk { cursor: grab; }
+/* The panel growing into the full notebook: kraft and the page, over everything until it is drawn. */
+.nb-grow { position: fixed; inset: 0; z-index: var(--z-grow); overflow: hidden; pointer-events: none; }
+.nb-grow__back { position: absolute; inset: 0; transform-origin: 0 0; background: var(--nb-kraft); }
+.nb-grow__page { position: absolute; transform-origin: 0 0; box-shadow: var(--shadow-3); }
 
 /* The ribbon marks the place in the book, down its outer edge (--nb-place: 0 first, 1 last). */
 .nb__ribbon {
@@ -334,7 +358,11 @@
 /* The contents: in place of the page and its tools. */
 .nb[data-view="contents"] .nb__tools, .nb[data-view="contents"] .nb__deskwrap,
 .nb[data-view="contents"] :is(.nb__nav, .nb__count, .nb__new, .nb__pouch, .nb__rack, .nb__railfoot) { display: none; }
-.nb[data-view="contents"] .nb__rail--end > :last-child { margin: auto 0 0 auto; }
+/* No rails here: back and the menu share a slim row over a list the full width of the screen. */
+.nb.nb--immersive[data-view="contents"] { grid-template: "start end" auto "stage stage" minmax(0, 1fr) / minmax(0, 1fr) minmax(0, 1fr); }
+.nb.nb--immersive[data-view="contents"] .nb__rail { display: flex; flex-direction: row; min-height: 0; padding: var(--s-1) var(--s-2); }
+.nb.nb--immersive[data-view="contents"] .nb__rail--end { justify-content: flex-end; }
+.nb.nb--immersive[data-view="contents"] .nb__rail .btn--icon { width: var(--tap-xs); height: var(--tap-xs); min-width: var(--tap-xs); min-height: var(--tap-xs); }
 .nb__contents {
   flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
   padding: var(--s-3) var(--s-3) var(--s-6); color: var(--nb-kraft-ink); touch-action: pan-y;
