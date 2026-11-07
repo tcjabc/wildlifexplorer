@@ -7,7 +7,8 @@
   display: flex; flex-direction: column;
   touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
 }
-.viewer__scrim { position: absolute; inset: 0; background: var(--c-overlay); opacity: 0; }
+/* The desk the card lies on, the same one as under Field Notes. It fades in as the camera zooms. */
+.viewer__scrim { position: absolute; inset: 0; background: var(--desk-colour) var(--desk-texture) 0 0 / var(--desk-texture-size); opacity: 0; }
 /* Pictures never start the browser's own drag (it would cancel a page turn). */
 .viewer img { -webkit-user-drag: none; }
 .viewer__bar {

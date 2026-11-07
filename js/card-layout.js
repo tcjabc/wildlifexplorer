@@ -18,13 +18,14 @@ export const PHONE_MAX = 600;       // px: narrower screens are phones
 export const MIN_CARD_BESIDE = 340; // px: the smallest closed card beside the expanded panel
 export const EDGE = { threshold: 24, resist: 0.35 }; // dragging past a pan edge
 export const PANEL_SHARE = 0.5;     // the expanded notebook's share of the stage width (--nb-panel-share)
+export const FILL = 0.97;           // the share of its space the card fills: a thin strip of desk round it
 
 // The expanded panel's width on a stage W px wide.
 export const panelWidth = (W, share = PANEL_SHARE) => W * share;
 
 // The card's scale for a space, rounded so its width is a whole number of pixels.
 export function fitScale(W, Hs, P, H) {
-  const s = Math.max(0.05, Math.min((W * 0.92) / P, (Hs * 0.9) / H));
+  const s = Math.max(0.05, Math.min((W * FILL) / P, (Hs * FILL) / H));
   return Math.floor(P * s) / P;
 }
 
