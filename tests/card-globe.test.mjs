@@ -89,7 +89,7 @@ test('only a card with a range, open in the viewer, gets a map that opens the gl
   assert.equal(opensGlobe({ range: 'data/ranges/x.json' }, undefined), false, 'in a pack reveal: a plain map');
   // Pack reveals build the cover without onMap.
   assert.match(src('js/reveal.js'), /coverPage\(card\)/);
-  assert.match(src('js/viewer.js'), /coverPage\(card, \{ onCredit, onMap \}\)/);
+  assert.match(src('js/viewer.js'), /coverPage\(card, \{ onCredit, onMap, onCall \}\)/);
 });
 
 test('the map is a tap target only: a drag that starts on it is still the card\'s', () => {

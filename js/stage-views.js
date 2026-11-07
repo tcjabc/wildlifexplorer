@@ -1,14 +1,14 @@
 // The stage: the large picture side of an open card. It shows one view at a time. Every view is a
 // builder here, under the name js/headings.js knows it by (see there for adding one):
 //   build(card, ctx, heading) → { el, replay?, stop?, layout? }
-//     ctx: { onCredit, onMap }. heading: the heading that asked for it, or null.
+//     ctx: { onCredit, onMap, onCall }. heading: the heading that asked for it, or null.
 //     replay: run its animation again. stop: it is leaving, stop whatever it started.
 //     layout(w, h): the stage has this size now, in card px (when shown, and whenever it changes).
 import { h, mount, reducedMotion } from './dom.js';
 import { bi, label, t, tx } from './i18n.js';
 import { state } from './store.js';
 import { picture, statusBadge } from './components.js';
-import { mapButton, relatedItem, relatedOf } from './cardparts.js';
+import { callable, mapButton, relatedItem, relatedOf } from './cardparts.js';
 import { animalImg, comparePanel, partner, whoImg } from './compare.js';
 import { PARTNERS, countFor, modesFor, startWith } from './compare-data.js';
 import { lookalikePanel, lookalikesOf } from './lookalikes.js';
@@ -20,9 +20,9 @@ import { placeMap, worldMap } from './worldmap.js';
 const KINDS = [['photo', '📷'], ['illustration', '🎨']];
 
 // The card's pictures, photo first, kept as separate files. With both, two buttons swap them.
-function gallery(card, { onCredit }) {
+function gallery(card, { onCredit, onCall }) {
   const kinds = KINDS.filter(([k]) => card[k]?.file);
-  const frame = h('div', { class: 'stage-pic' });
+  const frame = callable(card, h('div', { class: 'stage-pic' }), onCall);
   let showing = kinds[0]?.[0];
   const pick = h('div', { class: 'stage-pic__kinds', role: 'radiogroup', 'aria-label': label('card.pictureKind') });
   function show(kind) {

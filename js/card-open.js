@@ -6,8 +6,8 @@
 // is the page on the left, on the back of the cover; above it, it sits in the menu page's own slot.
 // place() moves it, so what is on the stage carries on.
 import { h, mount } from './dom.js';
-import { bi, t, tx } from './i18n.js';
-import { state } from './store.js';
+import { bi, getMode, t, tx } from './i18n.js';
+import { speechRate, state } from './store.js';
 import { statusBadge, taiwanBadge } from './components.js';
 import { comingSoonKey, glossed, preview, readOrder, relatedItem, relatedOf, statCells, statRows } from './cardparts.js';
 import { headingsFor } from './headings.js';
@@ -15,6 +15,8 @@ import { plainPair } from './glossary.js';
 import { lookalikesOf } from './lookalikes.js';
 import { nameBi } from './zhuyin.js';
 import { stageFor } from './stage-views.js';
+import { speak, stop } from './speech.js';
+import { stopCall } from './card-call.js';
 
 // The statistics that go with a heading, by their mode in statRows.
 const ROWS = { size: ['length', 'height', 'wingspan', 'weight', 'lifespan'], babies: ['development', 'young'], food: ['diet'] };
@@ -22,10 +24,10 @@ const ROWS = { size: ['length', 'height', 'wingspan', 'weight', 'lifespan'], bab
 const continentsOf = card => (card.continents ?? [])
   .map(id => state.regions.continents.find(r => r.id === id)?.name).filter(Boolean);
 
-export function openCard(card, { onCredit, onMap } = {}) {
+export function openCard(card, { onCredit, onMap, onCall } = {}) {
   const ctx = { preview: preview(), lookalikes: lookalikesOf(card).length, related: relatedOf(card).length };
   const grid = headingsFor(card, ctx);
-  const stage = stageFor(card, { onCredit, onMap });
+  const stage = stageFor(card, { onCredit, onMap, onCall });
   const rows = statRows(card);
   const rowsOf = x => rows.filter(r => ROWS[x.id]?.includes(r.mode));
   let current = null;
@@ -65,7 +67,8 @@ export function openCard(card, { onCredit, onMap } = {}) {
   const slot = h('div', { class: 'open__slot' });
   const text = h('div', { class: 'open__text', 'data-scroll': '', tabindex: '0', 'aria-live': 'polite' });
 
-  function select(id) {
+  // quiet: coming back to a heading that was already lit, nothing to say.
+  function select(id, { quiet = false } = {}) {
     const x = grid.find(g => g.id === id && g.enabled) ?? null;
     current = x?.id ?? null;
     buttons.forEach(b => {
@@ -76,6 +79,10 @@ export function openCard(card, { onCredit, onMap } = {}) {
     stage.show(x?.view ?? 'gallery', x);
     mount(text, x ? panel(x) : home());
     text.scrollTop = 0;
+    if (quiet) return;
+    stopCall();
+    // Its name first, so the icon gets a word to go with it, then its text.
+    if (x) speak(spoken(), { mode: getMode(), rate: speechRate() }); else stop();
   }
 
   // A grey heading is still in the grid and still part of the card for a swipe that starts on it,
@@ -88,7 +95,7 @@ export function openCard(card, { onCredit, onMap } = {}) {
 
   const menu = h('div', { class: 'cpage cpage--menu', 'data-group': card.group },
     slot, h('div', { class: 'hgrid' }, buttons), text);
-  select(null);
+  select(null, { quiet: true });
 
   // What read-aloud says now: the heading's name, then its text.
   function spoken() {

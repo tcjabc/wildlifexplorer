@@ -7,7 +7,7 @@ import { state, groupById, isVisible } from './store.js';
 import { picture, statusBadge, taiwanBadge, cardNo } from './components.js';
 import { worldMap } from './worldmap.js';
 import { opensGlobe } from './card-return.js';
-import { hasMap } from './headings.js';
+import { hasCall, hasMap } from './headings.js';
 import { nameBi } from './zhuyin.js';
 import { glossBi } from './glossary.js';
 import { lengthText, weightText, imperial } from './units.js';
@@ -29,8 +29,11 @@ import { lengthText, weightText, imperial } from './units.js';
  *   profile?: { image?: 'photo' | 'illustration', callouts: Callout[] },
  *   stats?: { development?: Development, youngCount?: Range, young?: Pair, [k: string]: any },
  *   related?: Related[], taxonomy?: Record<string, { sci: string, en: string, zh: string }>,
- *   stage?: Record<string, string> }} Card
+ *   stage?: Record<string, string>, factHeadings?: string[],
+ *   call?: { file: string, author: string, license: string, licenseUrl: string, sourceUrl: string } }} Card
  *   stage: a heading's stage view, where it isn't the usual one (js/headings.js).
+ *   factHeadings: a topic card's heading for each of its facts, in order (js/headings.js).
+ *   call: the animal's call, played by tapping its picture (js/card-call.js). None yet.
  */
 
 const filled = p => p && (p.en || p.zh);
@@ -92,7 +95,16 @@ export function mapButton(card, map, onMap, cls) {
     map, h('span', { class: 'map-open__icon', 'aria-hidden': 'true' }, '🌏'));
 }
 
-export function coverPage(card, { onCredit, onMap } = {}) {
+// A picture that plays the animal's call when tapped, if it has one and the viewer is listening.
+// Its own buttons (the credit, the photo or illustration) stay theirs.
+export function callable(card, el, onCall) {
+  if (!onCall || !hasCall(card)) return el;
+  el.classList.add('has-call');
+  el.addEventListener('click', e => { if (!e.target.closest('button')) onCall(card); });
+  return el;
+}
+
+export function coverPage(card, { onCredit, onMap, onCall } = {}) {
   const g = groupById(card.group);
   const facts = factsOf(card);
   const img = card.photo ?? card.illustration;
@@ -100,12 +112,12 @@ export function coverPage(card, { onCredit, onMap } = {}) {
   return h('div', { class: 'cpage cpage--cover', 'data-group': card.group },
     headerStrip(card, groupChip(g)),
     taxStrip(card),
-    h('div', { class: 'cover__photo' },
+    callable(card, h('div', { class: 'cover__photo' },
       picture(card, { kind: img ? kind : undefined }),
       img && h('button', {
         class: 'cover__credit', type: 'button', 'aria-label': label('card.credit'),
         onclick: () => onCredit?.(kind),
-      }, kind === 'photo' ? '📷' : '🎨')),
+      }, kind === 'photo' ? '📷' : '🎨')), onCall),
     h('div', { class: 'cover__names' }, h('h1', { class: 'cover__name' }, nameBi(card.name, 'bi--cover'))),
     h('div', { class: 'cover__bottom' },
       facts.length > 0 && h('section', { class: 'cover__features' },
@@ -203,7 +215,7 @@ export const readOrder = card => [card.name, ...factsOf(card)];
 // Every picture used on this card, for the credit sheet.
 export function cardCredits(card) {
   const rows = [
-    ['photo', 'card.photo'], ['illustration', 'card.illustration'], ['silhouette', 'credits.silhouette'],
+    ['photo', 'card.photo'], ['illustration', 'card.illustration'], ['silhouette', 'credits.silhouette'], ['call', 'credits.call'],
   ].filter(([k]) => card[k]?.file).map(([k, key]) => {
     const img = card[k];
     const href = safeUrl(img.sourceUrl);

@@ -4,8 +4,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import {
-  SPECIES_HEADINGS, TOPIC_HEADINGS, VIEW_HAS, headingSet, headingsFor, isTopic, textOf, viewFor,
+  SPECIES_HEADINGS, TOPIC_HEADINGS, VIEW_HAS, hasCall, headingSet, headingsFor, isTopic, textOf, viewFor,
 } from '../js/headings.js';
+import { KEY_ORDER } from '../scripts/lib/card-schema.mjs';
 import { COUNT_MAX, PARTNERS, countFor, modesFor, sizeOf, startWith } from '../js/compare-data.js';
 
 const cards = JSON.parse(await readFile(new URL('../data/animals.json', import.meta.url), 'utf8'));
@@ -116,4 +117,16 @@ test('the partners\' pictures have the shape the scenes draw them at', async () 
     assert.ok(Math.abs(h / w - p.ratio) < 0.001, p.id);
     assert.equal(p.across ? w : h, p.cm, `${p.id}: 1 unit = 1 cm`);
   }
+});
+
+test('only a sound in audio/calls/ counts as a card\'s call', () => {
+  assert.equal(hasCall({}), false);
+  assert.equal(hasCall({ call: { file: 'audio/calls/bear.m4a' } }), true);
+  assert.equal(hasCall({ call: { file: 'https://example.com/bear.m4a' } }), false);
+  assert.equal(hasCall({ call: { file: 'audio/calls/../secret.m4a' } }), false);
+  assert.ok(cards.every(c => !c.call), 'none yet');
+});
+
+test('new card fields keep their place in the data', () => {
+  for (const k of ['factHeadings', 'stage', 'call']) assert.ok(KEY_ORDER.includes(k), k);
 });

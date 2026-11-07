@@ -9,7 +9,7 @@ function link(url, text) {
 }
 
 export function render(main) {
-  const items = state.cards.flatMap(card => ['photo', 'illustration', 'silhouette']
+  const items = state.cards.flatMap(card => ['photo', 'illustration', 'silhouette', 'call']
     .filter(k => card[k]?.file)
     .map(k => ({ card, kind: k, img: card[k] })));
   // Standalone lookalikes (no card of their own) are always shown, so never blurred.
@@ -30,7 +30,9 @@ export function render(main) {
     items.length
       ? h('ul', { class: 'credits' }, items.map(({ card, kind, img, entry }) => h('li', { class: 'credits__item', 'data-group': card.group },
         // Thumbnails of cards not collected yet are blurred so the credits don't spoil them.
-        h('img', { class: ['credits__thumb', kind === 'silhouette' && 'credits__thumb--silhouette', !entry && !isVisible(card) && 'is-secret'], src: kind === 'silhouette' ? img.file : thumbOf(img.file), alt: '', loading: 'lazy' }),
+        kind === 'call'
+          ? h('span', { class: 'credits__emoji', 'aria-hidden': 'true' }, '🔊')
+          : h('img', { class: ['credits__thumb', kind === 'silhouette' && 'credits__thumb--silhouette', !entry && !isVisible(card) && 'is-secret'], src: kind === 'silhouette' ? img.file : thumbOf(img.file), alt: '', loading: 'lazy' }),
         h('div', { class: 'credits__text' },
           h('p', { class: 'credits__name' }, bi(card.name), ' ',
             h('span', { class: 'chip' }, tx(`credits.${kind}`)), entry && h('span', { class: 'chip' }, tx('credits.lookalike'))),

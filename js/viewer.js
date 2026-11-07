@@ -31,6 +31,7 @@ import { openCard } from './card-open.js';
 import { cardNo, groupTitle } from './components.js';
 import { track, spring, tween, clamp, lerp, haptic } from './gesture.js';
 import { speak, stop, isSpeaking, speechSupported } from './speech.js';
+import { playCall, stopCall } from './card-call.js';
 import { notebook } from './notebook.js';
 import { closePopover } from './glossary.js';
 import { releaseOutcome } from './gesture-release.js';
@@ -48,10 +49,11 @@ export const openCardId = () => v?.card.id ?? null;
 // ---------- building the card ----------
 
 function buildBook(card, onCredit, onMap) {
-  const open = openCard(card, { onCredit, onMap });
+  const onCall = playCall;
+  const open = openCard(card, { onCredit, onMap, onCall });
   const left = h('div', { class: 'cpage cpage--stage', 'data-group': card.group });
   const leaf = h('div', { class: 'leaf' },
-    h('div', { class: 'face face--front' }, coverPage(card, { onCredit, onMap })),
+    h('div', { class: 'face face--front' }, coverPage(card, { onCredit, onMap, onCall })),
     h('div', { class: 'face face--back face--y' }, left));
   const base = h('div', { class: 'base' }, h('div', { class: 'face face--front' }, open.menu));
   const root = h('div', { class: 'card3d' }, base, leaf);
@@ -198,6 +200,8 @@ function settle(prop, target, velocity = 0, after) {
       draw();
       // The comparison animation plays as the card finishes opening.
       if (prop === 'p' && target === 1) v.built.open.replay();
+      // Shut, the card has nothing more to say.
+      if (prop === 'p' && target === 0) { stop(); stopCall(); }
       after?.();
     },
   });
@@ -457,6 +461,7 @@ function buildBar(card) {
 
 function setCard(card) {
   closePopover();
+  stopCall();
   v.built?.open.destroy();
   v.card = card;
   v.built = buildBook(card, openCredits, openGlobe);
@@ -505,7 +510,7 @@ export function open(card, { fromEl, main, onDismiss, restore = null } = {}) {
   const notes = restore?.notes;
   if (dock && (notes ? notes.expanded : state.profile?.notesPanel === 'expanded')) setNotebook(true, { remember: false, layout: false, start: notes });
   if (restore?.side === 'inside') v.p = 1;
-  if (restore?.heading) v.built.open.select(restore.heading);
+  if (restore?.heading) v.built.open.select(restore.heading, { quiet: true });
   if (main && fromEl) {
     const m = main.getBoundingClientRect(), r = fromEl.getBoundingClientRect();
     main.style.setProperty('transform-origin', `${r.left + r.width / 2 - m.left}px ${r.top + r.height / 2 - m.top}px`);
@@ -543,6 +548,7 @@ function teardown() {
   stopMotion();
   stopZoom();
   stop();
+  stopCall();
   window.removeEventListener('resize', v.onResize);
   ['transform', 'transform-origin'].forEach(p => v.main?.style.removeProperty(p));
   v.el.remove();

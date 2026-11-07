@@ -155,6 +155,7 @@
 .tax__zh { margin-left: 0.3em; font-style: normal; }
 .cover__photo { position: relative; flex: 1 1 auto; min-height: 0; background: var(--c-bg-deep); }
 .cover__photo .pic { position: absolute; inset: 0; object-fit: cover; }
+.has-call { cursor: pointer; }
 .cover__credit {
   position: absolute; left: var(--s-2); bottom: var(--s-2);
   width: var(--size-dot); height: var(--size-dot); border: 0; border-radius: 50%;

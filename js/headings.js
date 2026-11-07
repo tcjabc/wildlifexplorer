@@ -44,6 +44,9 @@ export const headingSet = card => (isTopic(card) ? TOPIC_HEADINGS : SPECIES_HEAD
 // A topic card's three facts, until it says which heading each belongs to ("factHeadings").
 const TOPIC_FACTS = ['what', 'wow', 'dyk'];
 
+// Sounds live in audio/calls/, like the pictures in img/: nothing else is ever played.
+export const hasCall = c => /^audio\/calls\/[a-z0-9-]+\.(m4a|mp3|ogg)$/.test(c.call?.file ?? '');
+
 export const hasMap = c => Boolean(c.map?.areas?.length || c.range || c.mapBounds);
 
 // Can this card show a view? ctx: { preview, lookalikes, related } (how many it has to show).
