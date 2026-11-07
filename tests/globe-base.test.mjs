@@ -1,10 +1,10 @@
-// The ?globe=webgl spike (js/globe-base.js): its numbers. In Chromium: tests/globe-base-browser.test.mjs.
+// The base renderer (js/globe-base.js): its numbers. In Chromium: tests/globe-base-browser.test.mjs.
 // Run: npm test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { rampBytes, rampValue, textureBytes, BASE_DPR } from '../js/globe-base.js';
+import { rampBytes, monthRange, textureBytes } from '../js/globe-base.js';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 
@@ -18,16 +18,16 @@ test('the colour scale as pixels: its ends, and a point between two stops', () =
   assert.deepEqual([...px.slice(4, 8)], [128, 0, 0, 255]);
 });
 
-test('a byte of a number texture: 0 is no data, 1 and 255 the ends of the scale', () => {
-  assert.equal(rampValue(0, STOPS), null);
-  assert.equal(rampValue(1, STOPS), -30);
-  assert.equal(rampValue(255, STOPS), 50);
-  assert.equal(rampValue(128, STOPS), 10);
+test('a month\'s byte to the scale: the shader\'s sum lands on the right place', () => {
+  const [x, y] = monthRange(STOPS), at = byte => (byte / 255) * x + y;
+  const near = (a, b) => assert.ok(Math.abs(a - b) < 1e-6, `${a} is not ${b}`);
+  near(at(1 + (20 / 100) * 254), 0);   // -30 °C: the bottom of the scale
+  near(at(1 + (100 / 100) * 254), 1);  // +50 °C: the top
+  near(at(1 + (60 / 100) * 254), 0.5); // +10 °C: the middle
 });
 
-test('GPU memory, and the pixel ratio cap', () => {
+test('GPU memory', () => {
   assert.equal(textureBytes(2048, 1024), 8 * 1024 * 1024);
-  assert.equal(BASE_DPR, 1.5);
 });
 
 test('the renderer works offline and its textures are the globe\'s files', () => {

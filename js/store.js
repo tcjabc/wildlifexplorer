@@ -41,7 +41,8 @@ export function debugOn(name) {
     if (q === 'off') {
       for (const k of Object.keys(sessionStorage)) if (k.startsWith('we-debug-')) sessionStorage.removeItem(k);
     } else if (q) sessionStorage.setItem(`we-debug-${q}`, '1');
-    return Boolean(state.profile?.parent.preview) && sessionStorage.getItem(`we-debug-${name}`) === '1';
+    // The frame rate needs no preview: it is for checking on the kids' own profile on the tablet.
+    return (name === 'fps' || Boolean(state.profile?.parent.preview)) && sessionStorage.getItem(`we-debug-${name}`) === '1';
   } catch { return false; }
 }
 // After this device's role changed (cloud/sync.js): read it again.

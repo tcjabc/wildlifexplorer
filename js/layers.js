@@ -9,9 +9,6 @@ import { RELIEF_TILES } from './globe-tiles.js';
 const DIR = 'assets/layers/';
 const DEG = Math.PI / 180;
 
-// Phones get 2K pictures, bigger screens 4K (a 4K texture takes ~45 MB of GPU memory).
-const size = () => (Math.min(screen.width, screen.height) >= 700 ? '4k' : '2k');
-
 const jsonCache = new Map();
 function getJson(url) {
   if (!jsonCache.has(url)) {
@@ -122,13 +119,14 @@ export const DEPTHS = [200, 1000, 4000, 6000];
 const FORESTS = ['tropical', 'temperate', 'boreal'];
 
 // What each layer's info panel says is in js/globe-info.js.
-// base: its picture for the ?globe=webgl spike (js/globe-base.js), in place of load().
+// gpu({ col, month }): what the layer shows on the base renderer (js/globe-base.js). load() is for
+// when that isn't there; a layer with no gpu() always uses load(), over the plain map.
 export const LAYERS = [
   {
     id: 'relief', emoji: '🏔️',
-    base: () => ({ kind: 'picture', tex: `${DIR}relief-2k.webp`, hill: 0.25 }),
+    gpu: () => ({ base: { kind: 'picture', tex: `${DIR}relief-2k.webp`, hill: 0.25, tiles: RELIEF_TILES } }),
     async load() {
-      return { raster: { mode: 'relief', tex: `${DIR}relief-${size()}.webp`, aux: `${DIR}height-2k.webp`, bump: 5, tiles: RELIEF_TILES } };
+      return { raster: { mode: 'relief', tex: `${DIR}relief-2k.webp`, aux: `${DIR}height-2k.webp`, bump: 5, tiles: RELIEF_TILES } };
     },
   },
   {
@@ -163,7 +161,7 @@ export const LAYERS = [
   },
   {
     id: 'temp', emoji: '🌡️', months: true,
-    base: ({ col, bands }) => ({ kind: 'ramp', tex: `${DIR}temp-mean-2k.webp`, stops: tempStops(col), bands, hill: 0.35 }),
+    gpu: ({ col }) => ({ base: { kind: 'ramp', tex: `${DIR}temp-mean-2k.webp`, stops: tempStops(col), bands: 10, hill: 0.35 } }),
     async load({ month }) {
       return { raster: { mode: 'picture', tex: `${DIR}temp-${String(month).padStart(2, '0')}.webp` } };
     },

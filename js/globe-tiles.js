@@ -1,13 +1,13 @@
 // Topography zoom tiles (scripts/make-layers.mjs tiles): once the globe is zoomed in past the
 // point where the base picture starts to blur, the tiles in view are fetched and put into the
-// sphere's detail window (js/globegl.js), a DETAIL × DETAIL block of tiles round the view's
+// renderer's detail window (js/globe-base.js, or js/globegl.js), a DETAIL × DETAIL block of tiles round the view's
 // centre. Only tiles in sight are fetched, a few at a time; the service worker keeps them in
 // their own cache, capped at about 25 MB (sw.js). Decoded tiles are kept for a while (KEEP)
 // so turning back and forth doesn't fetch them again.
 export const RELIEF_TILES = {
   dir: 'assets/layers/relief-tiles/', level: 8192, tile: 512, cols: 16, rows: 8,
-  // From this zoom (the 4096 px picture is about one texel a screen pixel at 2.3).
-  fromK: 2.4,
+  // From this zoom (the 2048 px picture is about one texel a screen pixel at 1.2).
+  fromK: 1.6,
 };
 export const DETAIL = 4;
 const KEEP = 24, AT_ONCE = 4;
@@ -35,7 +35,7 @@ export function tileCap(col, row, { cols, rows } = RELIEF_TILES) {
   return { c: m, r: reach };
 }
 
-// sphere: from js/globegl.js. onLoad: a tile arrived (redraw).
+// sphere: the renderer. onLoad: a tile arrived (redraw).
 export function createTiles(sphere, onLoad, spec = RELIEF_TILES) {
   const images = new Map();   // "row-col" -> decoded image, oldest first
   const pending = new Set();

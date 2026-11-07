@@ -45,8 +45,8 @@ test('a tile\'s cap: its middle, and a reach that covers its corners', () => {
   assert.ok(r > (11.25 * Math.PI) / 180 && r < (20 * Math.PI) / 180, `reach ${(r * 180) / Math.PI}°`);
 });
 
-test('the globe uses the tiles only for relief, from zoom 2.4, and the picture shader falls back to the base', () => {
-  assert.equal(T.fromK, 2.4);
+test('the globe uses the tiles only for relief, from zoom 1.6, and the picture shader falls back to the base', () => {
+  assert.equal(T.fromK, 1.6);
   assert.match(src('js/layers.js'), /mode: 'relief'[^\n]*tiles: RELIEF_TILES/);
   const gl = src('js/globegl.js');
   assert.match(gl, /base = mix\(base, d\.rgb \/ max\(d\.a, 1e-4\), d\.a\);/, 'clear where no tile is: the base shows');

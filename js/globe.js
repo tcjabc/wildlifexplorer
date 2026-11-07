@@ -11,6 +11,7 @@
 import { h, reducedMotion } from './dom.js';
 import { track, tween, clamp } from './gesture.js';
 import { createTiles } from './globe-tiles.js';
+import { createBase } from './globe-base.js';
 
 const DEG = Math.PI / 180;
 const MIN_K = 1, MAX_K = 40;
@@ -21,7 +22,8 @@ const SPIN_IN_MS = 1500; // and ease into the turn over this long
 const SPIN = 4;          // degrees per second when turning by itself
 const GLIDE = 420;       // ms: how long a flick keeps spinning
 const MAX_LAT = 80;
-const PLAIN_BASE = { kind: 'flat', hill: 0.5 }; // ?globe=webgl: the plain map
+const PLAIN_BASE = { kind: 'flat', hill: 0.5 }; // the plain map on the base renderer
+const MAX_DPR = 1.5;     // sharper costs the baseline tablet more than it shows
 
 // How much of its slow turn the globe is doing, 0 to 1: only fully zoomed out, and only after
 // idle ms without a touch.
@@ -361,11 +363,12 @@ export function traceRing(sink, v, B, f = 0) {
 // debug: show the frame rate and drawing time while the globe moves (?debug=fps).
 // onLand(ok): the land loaded (true) or couldn't be fetched (false: offline the first time);
 // retry() tries again.
-// glBase (the ?globe=webgl spike): the base layers come from js/globe-base.js where it can.
-// onBase(ok): that stopped (the context was lost) or came back, so the layer is shown again.
-export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase, glBase = false, debug = false } = {}) {
-  // Bottom to top: sea and land, the picture layer (WebGL, made when first needed), the
-  // overlay. Only the bottom canvas takes taps.
+// onBase(ok): the base renderer stopped (its context was lost) or came back, so the layer is shown again.
+export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase, debug = false } = {}) {
+  // Bottom to top: the base layer (WebGL, js/globe-base.js), the 2D canvas for what lies on it, and
+  // the overlay. Without the base renderer the 2D canvas draws sea and land itself, with the picture
+  // layers (js/globegl.js, made when first needed) between it and the overlay. Only the 2D canvas
+  // takes taps.
   const canvas = h('canvas', { class: 'globe__canvas', 'aria-hidden': 'true' });
   const overCanvas = h('canvas', { class: 'globe__canvas globe__canvas--over', 'aria-hidden': 'true' });
   stage.prepend(canvas, overCanvas);
@@ -374,8 +377,9 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
   const col = tokens(stage);
   let layer = null;          // see setLayer
   let sphere = null;         // js/globegl.js, once a picture layer has been shown
-  let base = null;           // js/globe-base.js, under everything (?globe=webgl)
+  let base = null;           // js/globe-base.js, under everything; null without WebGL
   let tiles = null;          // js/globe-tiles.js, once a layer with zoom tiles has been shown
+  let tilesFor = null;       // the renderer they go to
   let home = null;
   const getHome = () => loadHome().then(p => { home = p; dirty = true; }).catch(() => {});
   getHome();
@@ -404,16 +408,17 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
   const reduced = reducedMotion();
 
   let gone = false;
-  const baseMade = glBase ? import('./globe-base.js').then(({ createBase, BASE_DPR }) => {
-    if (gone) return;
+  {
     const el = h('canvas', { class: 'globe__canvas globe__canvas--gl', 'aria-hidden': 'true', hidden: true });
-    base = createBase(el, { colours: col, shade: 'assets/layers/shade-2k.webp', onChange: ok => { dirty = true; onBase?.(ok); } });
-    if (!base) return;
-    stage.prepend(el);
-    dprCap = BASE_DPR;
-    resize();
-    return base.set(layer?.sea ? null : layer?.base ?? PLAIN_BASE).then(() => { dirty = true; });
-  }).catch(() => { base = null; }) : null;
+    base = createBase(el, {
+      colours: col, shade: 'assets/layers/shade-2k.webp', still: reduced,
+      onChange: ok => { dirty = true; onBase?.(ok); }, onDraw: () => { dirty = true; },
+    });
+    if (base) {
+      stage.prepend(el);
+      base.set(PLAIN_BASE).then(() => { dirty = true; }).catch(() => {});
+    }
+  }
   const getLand = () => loadLand().then(l => { if (gone) return; polys = l; dirty = true; onLand?.(true); }, () => { if (!gone) onLand?.(false); });
   getLand();
 
@@ -487,7 +492,10 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
     for (const c of [baseCtx, overCtx]) { c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, w, ht); }
     const { cx, cy, r } = basis();
     const gl = base?.ready();
-    if (gl) base.draw(B, size);
+    if (gl) {
+      if (layer?.base?.tiles) tiles?.update(B, view.k);
+      if (base.draw(B, size)) dirty = true;
+    }
 
     // A thin glow of atmosphere outside the rim while the globe still fits on screen,
     // then the sea. No shading on the disc itself: it would read as a bowl.
@@ -990,23 +998,21 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
     flight = tween({ from: 0, to: 1, duration, onUpdate: t => zoomAt(x, y, from * (to / from) ** t), onDone: () => { flight = null; } });
   }
 
-  let dprCap = 2;
-  function resize(w = size.w, ht = size.h) {
-    const dpr = Math.min(dprCap, window.devicePixelRatio || 1);
+  const ro = new ResizeObserver(([entry]) => {
+    const { width: w, height: ht } = entry.contentRect;
+    const dpr = Math.min(MAX_DPR, window.devicePixelRatio || 1);
     for (const c of [canvas, overCanvas]) { c.width = Math.round(w * dpr); c.height = Math.round(ht * dpr); }
     size = { w, h: ht, dpr, r: Math.min(w, ht) * RADIUS };
     applyRoom();
     dirty = true;
-  }
-  const ro = new ResizeObserver(([entry]) => resize(entry.contentRect.width, entry.contentRect.height));
+  });
   ro.observe(stage);
   raf = requestAnimationFrame(frame);
 
   return {
     ready: loadLand(),
-    // Whether the base layers come from js/globe-base.js (null until it is known): only then has a
-    // layer's `base` any use.
-    usesBase: async () => { await baseMade; return Boolean(base && !base.lost); },
+    // Whether the base layers come from js/globe-base.js just now: only then has a layer's gpu() any use.
+    get usesBase() { return Boolean(base && !base.lost); },
     get k() { return view.k; },
     get radius() { return size.r * fit; },
     redraw() { dirty = true; },
@@ -1041,15 +1047,13 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
     //   plates: { far, near, motion, colour, halo, gap, arrow, arrowEdge }: plate boundaries (drawPlates)
     //   raster: a js/globegl.js spec, drawn above sea and land; with tiles (js/globe-tiles.js
     //           RELIEF_TILES), sharper pictures fetched for the view once zoomed in
-    //   base:   a js/globe-base.js layer, under the 2D canvases. Only with glBase. Shapes on the sea
-    //           must lie under the land, so a layer with `sea` stays on the 2D canvas; every other
-    //           layer has the plain map under it
+    //   base:   a js/globe-base.js layer, under the 2D canvases; with tiles, as for raster. A layer
+    //           with none has the plain map there, and what it has lies on top
     // Resolves when the layer is showing; rejects if its pictures can't be shown.
     async setLayer(next) {
       layer = next;
       dirty = true;
-      await baseMade;
-      await base?.set(next?.sea ? null : next?.base ?? PLAIN_BASE);
+      await base?.set(next?.base ?? PLAIN_BASE);
       if (next?.raster && !sphere) {
         const { createSphere } = await import('./globegl.js');
         const glCanvas = h('canvas', { class: 'globe__canvas globe__canvas--gl', 'aria-hidden': 'true' });
@@ -1058,8 +1062,9 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
         overCanvas.before(glCanvas);
       }
       await sphere?.set(next?.raster ?? null);
-      if (next?.raster?.tiles) tiles ??= createTiles(sphere, () => { dirty = true; }, next.raster.tiles);
-      else tiles?.clear();
+      const wanted = next?.base?.tiles ?? next?.raster?.tiles, to = next?.base ? base : sphere;
+      if (wanted && tilesFor !== to) { tiles?.clear(); tiles = createTiles(to, () => { dirty = true; }, wanted); tilesFor = to; }
+      if (!wanted) tiles?.clear();
       dirty = true;
     },
     // Change the layer's settings (e.g. where the sun is) without reloading it.

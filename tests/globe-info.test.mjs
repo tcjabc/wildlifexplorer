@@ -165,7 +165,7 @@ test('the key swatches are 24 px, in the map\'s own colours, with their marks in
   // The topography swatches are the picture's colours where those lands are.
   const { createRequire } = await import('node:module');
   const sharp = createRequire(import.meta.url)('sharp');
-  const { data, info } = await sharp(new URL('../assets/layers/relief-4k.webp', import.meta.url).pathname.replace(/^\/([A-Z]:)/, '$1')).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  const { data, info } = await sharp(new URL('../assets/layers/relief-2k.webp', import.meta.url).pathname.replace(/^\/([A-Z]:)/, '$1')).removeAlpha().raw().toBuffer({ resolveWithObject: true });
   const at = (lon, lat) => { const x = Math.floor(((lon + 180) / 360) * info.width), y = Math.floor(((90 - lat) / 180) * info.height), i = (y * info.width + x) * 3; return [data[i], data[i + 1], data[i + 2]]; };
   const hex = name => tokens.match(new RegExp(`${name}: #([0-9a-f]{6})`))[1].match(/../g).map(x => parseInt(x, 16));
   const near = (a, b) => Math.max(...a.map((v, i) => Math.abs(v - b[i]))) < 40;

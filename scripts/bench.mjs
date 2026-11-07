@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Frames per second and frame times. Never run automatically: only when asked for (CLAUDE.md, TESTING).
-//   npm run bench -- globe [--webgl] [--bands=10]   the globe on this machine's GPU: fps while it
+//   npm run bench -- globe                          the globe on this machine's GPU: fps while it
 //                                                   turns, drags and zooms, per layer
 //   npm run bench -- notes                          what a very full Field Notes page costs to draw
 // Results say what this machine does, not what the kids' tablet does. --throttle=6 (the CPU) and
@@ -74,8 +74,7 @@ async function notesBench(page, base, cdp) {
 }
 
 async function globeBench(page, base, cdp) {
-  const webgl = Boolean(flag('webgl')), bands = Number(flag('bands')) || 0;
-  const url = `${base}/?debug=fps${webgl ? '&globe=webgl' : ''}${bands ? `&bands=${bands}` : ''}`;
+  const url = `${base}/?debug=fps`;
   await page.goto(url);
   await page.waitForTimeout(800);
   await page.evaluate(async () => {

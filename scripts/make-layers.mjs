@@ -113,7 +113,6 @@ async function tiles() {
 
 async function relief() {
   const tif = await find(await unpacked('relief'), /\.tif$/i);
-  await webp(tif, 'relief-4k.webp', 4096);
   await webp(tif, 'relief-2k.webp', 2048);
   // Height for the bump lighting: grey, sea level 0.
   const png = await download(SOURCES.height, path.join(RAW, path.basename(SOURCES.height)));
@@ -253,7 +252,7 @@ async function temp() {
   }
 }
 
-// ---------- the WebGL base layers (?globe=webgl, js/globe-base.js) ----------
+// ---------- the WebGL base layers (js/globe-base.js) ----------
 
 // Land as a mask, from the very outlines the coastline is drawn from, so the two line up.
 async function landMask(W, H) {

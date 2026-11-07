@@ -1,5 +1,5 @@
-// The ?globe=webgl spike in Chromium: it draws under the 2D canvases, stays out of the way without
-// the flag, and gives way when the context is lost. Its numbers are in tests/globe-base.test.mjs.
+// The base renderer in Chromium: it draws under the 2D canvases, and gives way when the context is
+// lost. Its numbers are in tests/globe-base.test.mjs.
 //
 // Skipped when the browser isn't installed: npx playwright install chromium
 // Run: npm run test:browser -- tests/globe-base-browser.test.mjs
@@ -23,12 +23,11 @@ const PAGE = `<!doctype html><link rel=stylesheet href="/css/tokens.css"><link r
 <body><div class="globe__stage" id="stage" style="position:fixed;inset:0"></div>
 <script type=module>
 import { createGlobe } from '/js/globe.js';
-import { LAYERS, tempStops } from '/js/layers.js';
-const q = new URLSearchParams(location.search);
+import { LAYERS } from '/js/layers.js';
 window.changes = [];
-window.globe = createGlobe(document.getElementById('stage'), { glBase: q.has('gl'), onBase: ok => window.changes.push(ok) });
+window.globe = createGlobe(document.getElementById('stage'), { onBase: ok => window.changes.push(ok) });
 const col = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-window.temp = () => LAYERS.find(l => l.id === 'temp').base({ col });
+window.temp = () => LAYERS.find(l => l.id === 'temp').gpu({ col, month: 1 });
 window.ready = true;
 </script>`;
 
@@ -65,30 +64,26 @@ const run = (name, query, fn) => test(name, { skip }, async () => {
 
 const canvases = page => page.evaluate(() => [...document.querySelectorAll('#stage canvas')].map(c => ({ cls: c.className, hidden: c.hidden, w: c.width })));
 
-run('without the flag: only the two 2D canvases, at the pixel ratio they had', '', async page => {
-  const list = await canvases(page);
-  assert.equal(list.length, 2);
-  assert.equal(list[0].w, 1600);
-});
-
-run('with the flag: a WebGL canvas under the 2D ones, the same size, at the capped pixel ratio', '?gl', async page => {
+run('a WebGL canvas under the 2D ones, the same size, at the capped pixel ratio', '', async page => {
   await page.waitForTimeout(300);
   const list = await canvases(page);
   assert.equal(list.length, 3);
   assert.match(list[0].cls, /--gl/);
   assert.equal(list[0].hidden, false);
   assert.deepEqual(list.map(c => c.w), [1200, 1200, 1200]);
-  assert.equal(await page.evaluate(() => window.globe.usesBase()), true);
+  assert.equal(await page.evaluate(() => window.globe.usesBase), true);
 });
 
-run('a layer with shapes on the sea stays on the 2D canvas; a number layer shows on the GPU', '?gl', async page => {
+run('a layer on the GPU, and one with shapes on the sea over the plain map, both keep the canvas', '', async page => {
+  await page.evaluate(async () => window.globe.setLayer(await window.temp()));
+  await page.waitForTimeout(200);
+  assert.equal((await canvases(page))[0].hidden, false);
   await page.evaluate(() => window.globe.setLayer({ sea: [] }));
-  assert.equal((await canvases(page))[0].hidden, true);
-  await page.evaluate(() => window.globe.setLayer({ base: window.temp() }));
+  await page.waitForTimeout(200);
   assert.equal((await canvases(page))[0].hidden, false);
 });
 
-run('context lost: the canvas goes, the view hears so; restored: back it comes', '?gl', async page => {
+run('context lost: the canvas goes, the view hears so; restored: back it comes', '', async page => {
   await page.waitForTimeout(300);
   await page.evaluate(() => {
     const c = document.querySelector('.globe__canvas--gl');
@@ -97,10 +92,11 @@ run('context lost: the canvas goes, the view hears so; restored: back it comes',
   });
   await page.waitForFunction(() => window.changes.length === 1);
   assert.equal((await canvases(page))[0].hidden, true);
-  assert.equal(await page.evaluate(() => window.globe.usesBase()), false);
+  assert.equal(await page.evaluate(() => window.globe.usesBase), false);
   await page.evaluate(() => window.lose.restoreContext());
   await page.waitForFunction(() => window.changes.length === 2);
   assert.deepEqual(await page.evaluate(() => window.changes), [false, true]);
+  await page.waitForTimeout(300);
   assert.equal((await canvases(page))[0].hidden, false);
-  assert.equal(await page.evaluate(() => window.globe.usesBase()), true);
+  assert.equal(await page.evaluate(() => window.globe.usesBase), true);
 });
