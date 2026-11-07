@@ -32,11 +32,15 @@ export function sizeOf(card) {
   return null;
 }
 
+// The picture a comparison draws: the card's silhouette, unless the card says otherwise. A cherry's
+// silhouette is its fruit, for stamps; beside a child it has to be the tree (compare.silhouette).
+export const compareImage = card => card.compare?.silhouette?.file ?? card.silhouette?.file ?? null;
+
 export function modesFor(card) {
   const n = numbers(card);
   const s = card.stats ?? {};
   return {
-    length: Boolean(card.silhouette?.file && sizeOf(card)),
+    length: Boolean(compareImage(card) && sizeOf(card)),
     weight: Boolean(n.weightKg),
     lifespan: Boolean(n.lifespanYears),
     diet: Boolean(s.dietIcons?.length || filled(s.diet)),

@@ -174,7 +174,9 @@ export function statRows(card) {
   const s = card.stats ?? {};
   const rows = STAT_ROWS.map(([mode, icon, key, numKey, unit]) => {
     const text = mode === 'diet' ? (filled(s.diet) ? s.diet : null) : statText(s[mode], s[numKey], unit);
-    return text && { mode, icon, key, text, note: s[mode]?.note };
+    // A tree's height has its own word in Chinese.
+    const name = mode === 'height' && card.group === 'plants' ? 'card.treeHeight' : key;
+    return text && { mode, icon, key: name, text, note: s[mode]?.note };
   });
   const young = s.youngCount?.todo && !preview() ? null : statText(s.young, s.youngCount, null);
   return [...rows, devRow(s), young && { mode: 'young', icon: '🐣', key: 'card.young', text: young }].filter(Boolean);
@@ -215,9 +217,9 @@ export const readOrder = card => [card.name, ...factsOf(card)];
 // Every picture used on this card, for the credit sheet.
 export function cardCredits(card) {
   const rows = [
-    ['photo', 'card.photo'], ['illustration', 'card.illustration'], ['silhouette', 'credits.silhouette'], ['call', 'credits.call'],
-  ].filter(([k]) => card[k]?.file).map(([k, key]) => {
-    const img = card[k];
+    ['photo', 'card.photo'], ['illustration', 'card.illustration'], ['silhouette', 'credits.silhouette'], ['call', 'credits.call'], ['compare', 'credits.silhouette'],
+  ].filter(([k]) => (k === 'compare' ? card.compare?.silhouette : card[k])?.file).map(([k, key]) => {
+    const img = k === 'compare' ? card.compare.silhouette : card[k];
     const href = safeUrl(img.sourceUrl);
     const lic = safeUrl(img.licenseUrl);
     return h('li', null,

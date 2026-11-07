@@ -149,6 +149,7 @@
   "compare.partner.salt": "A grain of salt",
   "compare.count.sand": "{n} {many} = 1 grain of sand",
   "compare.count.salt": "{n} grains of salt = 1 {one}",
+  "card.treeHeight": "Height",
   "heading.babies": "Babies",
   "heading.size": "Size",
   "heading.status": "Status",

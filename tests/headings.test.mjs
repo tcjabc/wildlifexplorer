@@ -7,7 +7,7 @@ import {
   SPECIES_HEADINGS, TOPIC_HEADINGS, VIEW_HAS, hasCall, headingSet, headingsFor, isTopic, textOf, viewFor,
 } from '../js/headings.js';
 import { KEY_ORDER } from '../scripts/lib/card-schema.mjs';
-import { COUNT_MAX, EVERYDAY, PARTNERS, countFor, modesFor, sizeOf, startWith, whoOf } from '../js/compare-data.js';
+import { COUNT_MAX, EVERYDAY, PARTNERS, compareImage, countFor, modesFor, sizeOf, startWith, whoOf } from '../js/compare-data.js';
 
 const cards = JSON.parse(await readFile(new URL('../data/animals.json', import.meta.url), 'utf8'));
 const species = cards.filter(c => !isTopic(c));
@@ -89,7 +89,7 @@ test('on today\'s 30 species cards: what is lit and what is grey', () => {
   assert.deepEqual(species.map(c => c.id).filter(id => !on('food').includes(id)), ['taiwan-barbet']);
   assert.deepEqual(species.map(c => c.id).filter(id => !on('babies').includes(id)), ['red-and-white-giant-flying-squirrel', 'eurasian-otter']);
   assert.deepEqual(species.map(c => c.id).filter(id => !on('status').includes(id)), ['atlas-moth', 'tardigrade-water-bear']);
-  assert.deepEqual(species.map(c => c.id).filter(id => !on('size').includes(id)), ['taiwan-cherry']);
+  assert.deepEqual(species.map(c => c.id).filter(id => !on('size').includes(id)), []);
 });
 
 test('a size number with a source names one that is on the card', () => {
@@ -133,6 +133,16 @@ test('a card can have partners of its own, and they are all known', () => {
   const list = ['sand', 'hair', 'salt'];
   assert.equal(startWith('length', { heightCm: 95 }, list), 'sand', 'no child on the list: the first on it');
   assert.equal(startWith('length', { heightCm: 95 }, ['you', 'adult', 'car']), 'you');
+});
+
+test('a comparison can draw another picture than the card\'s silhouette', () => {
+  const cherry = cards.find(c => c.id === 'taiwan-cherry');
+  assert.equal(compareImage(cherry), 'assets/cherry-tree.svg');
+  assert.match(cherry.silhouette.file, /^img\/silhouettes\//, 'the stamp stays the fruit');
+  assert.equal(compareImage({ silhouette: { file: 'a.svg' } }), 'a.svg');
+  assert.equal(compareImage({}), null);
+  assert.deepEqual(sizeOf(cherry), { cm: 550, across: false });
+  assert.deepEqual(whoOf(cherry), ['you', 'adult', 'car']);
 });
 
 test('the water bear: 2 of them to a grain of sand, 2 grains of salt to one of them, and no count for a hair', () => {

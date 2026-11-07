@@ -11,7 +11,7 @@ import { bi, t, tx } from './i18n.js';
 import { state, groupById, currentAge } from './store.js';
 import { lengthText } from './units.js';
 import { haptic } from './gesture.js';
-import { CHILD_RATIO, PARTNERS, numbers, sizeOf } from './compare-data.js';
+import { CHILD_RATIO, PARTNERS, compareImage, numbers, sizeOf } from './compare-data.js';
 
 const cssNum = name => parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
 
@@ -74,8 +74,8 @@ export function partner(id = 'you') {
 }
 
 export const whoImg = (who, cls) => h('img', { class: ['cmp__you', cls], src: who.img, alt: '' });
-export const animalImg = (card, cls) => card.silhouette?.file
-  ? h('img', { class: ['cmp__animal', cls], src: card.silhouette.file, alt: '' })
+export const animalImg = (card, cls) => compareImage(card)
+  ? h('img', { class: ['cmp__animal', cls], src: compareImage(card), alt: '' })
   : h('span', { class: ['cmp__emoji', cls], 'aria-hidden': 'true' }, groupById(card.group)?.emoji);
 
 // ---------- length ----------

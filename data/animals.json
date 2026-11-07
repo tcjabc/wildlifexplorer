@@ -6214,6 +6214,27 @@
       "north": 39.83
     },
     "range": "data/ranges/taiwan-cherry.json",
+    "stats": {
+      "heightCm": {
+        "min": 300,
+        "max": 800
+      }
+    },
+    "compare": {
+      "height": 550,
+      "partners": [
+        "you",
+        "adult",
+        "car"
+      ],
+      "silhouette": {
+        "file": "assets/cherry-tree.svg",
+        "author": "WildFile",
+        "license": "CC0 1.0",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+        "sourceUrl": "https://github.com/tcjabc/wildlifexplorer"
+      }
+    },
     "related": [],
     "silhouette": {
       "file": "img/silhouettes/taiwan-cherry-4d43e4.svg",
@@ -6258,7 +6279,8 @@
       "factFile.behaviour",
       "factFile.foodAndHunting",
       "factFile.conservation",
-      "factFile.didYouKnow"
+      "factFile.didYouKnow",
+      "stats"
     ],
     "_sources": [
       {
@@ -6280,6 +6302,20 @@
       {
         "title": "Future plant database: 山櫻花 (bell-shaped hanging flowers, drupe)",
         "url": "https://future.url.tw/plant/view/215"
+      },
+      {
+        "title": "Flora of China via naturelib: Prunus campanulata (tree or shrub 3–8 m)",
+        "url": "https://naturelib.net/plantae/prunus-campanulata/",
+        "for": [
+          "stats.heightCm"
+        ]
+      },
+      {
+        "title": "Flora of New Zealand: Prunus campanulata (3–8 m high when mature)",
+        "url": "https://nzflora.info/factsheet/Taxon/Prunus-campanulata.html",
+        "for": [
+          "stats.heightCm"
+        ]
       }
     ]
   }

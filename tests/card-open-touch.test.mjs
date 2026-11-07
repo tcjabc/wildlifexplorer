@@ -240,6 +240,21 @@ both('the water bear has partners of its own, and 2 of it make a grain of sand',
   assert.deepEqual(await f.said(), ['1', '2 grains of salt = 1 water bear']);
 });
 
+both('the cherry is drawn as a tree, with its own partners', async f => {
+  await f.card('taiwan-cherry');
+  await f.swipe();
+  await f.tap('.hbtn[data-heading="size"]');
+  await f.wait(800);
+  const who = await f.page.evaluate(() => [...document.querySelectorAll('.stage-cmp__who [data-value]')].map(b => b.dataset.value));
+  assert.deepEqual(who, ['you', 'adult', 'car']);
+  const tree = await f.page.evaluate(() => { const i = [...document.querySelectorAll('.cmp-len__img')].find(x => x.src.endsWith('cherry-tree.svg')); return i && i.getBoundingClientRect().height; });
+  const adult = await f.page.evaluate(() => { const i = [...document.querySelectorAll('.cmp-len__img')].find(x => x.src.endsWith('grown-up.svg')); return i && i.getBoundingClientRect().height; });
+  assert.ok(Math.abs(tree / adult - 550 / 170) < 0.15, `one scale: ${tree} and ${adult}`);
+  assert.equal(await f.page.evaluate(() => document.querySelectorAll('.count__fig').length), 3, 'about 3 grown-ups to the top of the tree');
+  await f.page.evaluate(async () => (await import('/js/i18n.js')).setMode('zh'));
+  assert.match(await f.page.evaluate(() => document.querySelector('.open__text').textContent), /樹高/);
+});
+
 both('Size: the comparison fills the stage, the partners swap, and the row counts aloud', async f => {
   await f.card('formosan-black-bear');
   await f.swipe();

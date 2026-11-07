@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 550" width="500" height="550">
+<!-- A Taiwan cherry tree 5.5 m tall (1 unit = 1 cm), for size comparisons. Drawn for WildFile, CC0. -->
+<g fill="#000">
+  <path d="M222 550c10-60 12-120 8-180l-62-70 16-14 54 56c0-30 2-58 8-84h22c6 30 8 58 8 88l58-64 16 14-68 82c-4 60-2 118 8 172z"/>
+  <circle cx="250" cy="130" r="118"/>
+  <circle cx="130" cy="190" r="104"/>
+  <circle cx="370" cy="190" r="104"/>
+  <circle cx="86" cy="280" r="72"/>
+  <circle cx="414" cy="280" r="72"/>
+  <circle cx="190" cy="270" r="86"/>
+  <circle cx="310" cy="270" r="86"/>
+</g>
+</svg>

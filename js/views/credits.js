@@ -11,7 +11,8 @@ function link(url, text) {
 export function render(main) {
   const items = state.cards.flatMap(card => ['photo', 'illustration', 'silhouette', 'call']
     .filter(k => card[k]?.file)
-    .map(k => ({ card, kind: k, img: card[k] })));
+    .map(k => ({ card, kind: k, img: card[k] }))
+    .concat(card.compare?.silhouette?.file ? [{ card, kind: 'silhouette', img: card.compare.silhouette }] : []));
   // Standalone lookalikes (no card of their own) are always shown, so never blurred.
   const entries = Object.values(state.lookalikes.entries ?? {}).flatMap(e => ['photo', 'silhouette']
     .filter(k => e[k]?.file)
