@@ -29,6 +29,7 @@ window.changes = [];
 window.globe = createGlobe(document.getElementById('stage'), { homeCountry: 'JP', onBase: ok => window.changes.push(ok) });
 const col = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 window.temp = () => LAYERS.find(l => l.id === 'temp').gpu({ col, month: 1 });
+window.layer = id => LAYERS.find(l => l.id === id).gpu({ col });
 window.ready = true;
 </script>`;
 
@@ -94,6 +95,16 @@ run('the plain map asks for zoom tiles only once zoomed in, and its picture stay
   assert.ok(tiles().length > 0 && tiles().length <= 16, `${tiles().length} tiles`);
   assert.equal((await canvases(page))[0].hidden, false);
 });
+
+for (const id of ['forests', 'depth']) {
+  run(`${id} asks for zoom tiles too, once zoomed in`, '', async (page, requests) => {
+    await page.evaluate(async name => window.globe.setLayer(await window.layer(name)), id);
+    await page.evaluate(() => window.globe.flyTo(121, 24, 6, { duration: 0 }));
+    await page.waitForFunction(() => performance.getEntriesByType('resource').some(e => e.name.includes('/relief-tiles/') && e.responseEnd > 0));
+    assert.ok(requests.some(u => u.includes('/relief-tiles/')));
+    assert.equal((await canvases(page))[0].hidden, false);
+  });
+}
 
 run('a layer on the GPU, and one with shapes on the sea over the plain map, both keep the canvas', '', async page => {
   await page.evaluate(async () => window.globe.setLayer(await window.temp()));

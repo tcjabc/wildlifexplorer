@@ -106,7 +106,7 @@ export const LAYERS = [
   },
   {
     id: 'forests', emoji: '🌳',
-    gpu: ({ col }) => ({ base: { kind: 'classes', tex: `${DIR}forests-2k.webp`, colours: FORESTS.map(k => col(`--c-forest-${k}`)), hill: 0.5 } }),
+    gpu: ({ col }) => ({ base: { kind: 'classes', tex: `${DIR}forests-2k.webp`, colours: FORESTS.map(k => col(`--c-forest-${k}`)), hill: 0.5, tiles: RELIEF_TILES } }),
     async load({ col }) {
       return { land: await shapesBy('forests', 'kind', FORESTS, k => col(`--c-forest-${k}`)) };
     },
@@ -151,7 +151,7 @@ export const LAYERS = [
     gpu: ({ col }) => {
       const zone = ['--c-map-sea', ...DEPTHS.map((d, i) => `--c-depth-${i + 1}`)].map(col);
       const stops = [{ v: 0, colour: zone[0] }, ...zone.map((colour, i) => ({ v: (i + 0.5) / 5, colour })), { v: 1, colour: zone[4] }];
-      return { base: { kind: 'ramp', tex: `${DIR}depth-2k.webp`, stops, bands: 5, sea: true, hill: 0.5 } };
+      return { base: { kind: 'ramp', tex: `${DIR}depth-2k.webp`, stops, bands: 5, sea: true, hill: 0.5, tiles: RELIEF_TILES } };
     },
     async load({ col }) {
       return { sea: await shapesBy('depth', 'depth', DEPTHS, (d, i) => col(`--c-depth-${i + 1}`), { curve: DEPTH_CURVE, nearK: DEPTH_NEAR_K }) };

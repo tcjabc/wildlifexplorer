@@ -8,12 +8,12 @@
 // it, from the north west) and a thin atmosphere (a gradient, no blur).
 //
 // A layer is a texture and options (see gpu() in js/layers.js):
-//   { kind: 'flat', hill, tiles?, night? }   land and sea in flat colours; night: { sun, shade, twilight };
-//                                            tiles: the hillshade from the zoom tiles once zoomed in, sharper
-//   { kind: 'picture', tex, hill, tiles? }   a picture on the land, the shared ocean around it
-//   { kind: 'ramp', tex, stops, bands, hill, sea? } a number per pixel (1…255 along the scale), coloured by
+//   { kind: 'flat', hill, tiles?, night? }   land and sea in flat colours; night: { sun, shade, twilight }
+//   { kind: 'picture', tex, hill, tiles? }   a picture on the land, the shared ocean around it; tiles: a sharper one
+//   { kind: 'ramp', tex, stops, bands, hill, sea?, tiles? } a number per pixel (1…255 along the scale), coloured by
 //                                            the scale, smoothly or in `bands` steps; sea: land stays land
-//   { kind: 'classes', tex, colours, hill }  up to three coverages, one to a channel, on the land
+//   { kind: 'classes', tex, colours, hill, tiles? } up to three coverages, one to a channel, on the land
+// On every kind but a picture, tiles: the land's hillshade from the zoom tiles once zoomed in, sharper.
 //   { kind: 'months', stops, bands, hill, pos } Temperature (js/globe-months.js). Two months' numbers are
 //                                            mixed first and coloured after, so band edges move
 //
@@ -24,7 +24,7 @@ import { slotOf, blendAt, heldBlend, fetchOrder, ease, nearestMonth, MONTH_FILES
 
 const RIM = 0.07;       // the atmosphere, as a share of the radius
 const RAMP_N = 256;
-// The plain map's hillshade from the zoom tiles: as strong as in shade-2k.webp, with the broad
+// The hillshade from the zoom tiles: as strong as in shade-2k.webp, with the broad
 // tints taken out by a blur of TILE_HILL_LOD mip levels, faded in over TILE_HILL_FADE of zoom.
 const TILE_HILL_GAIN = 2.2, TILE_HILL_LOD = 6, TILE_HILL_FADE = 0.8;
 const COAST_PX = 1.5;
@@ -101,12 +101,12 @@ void main() {
   } else if (uKind == 2) {
     float v = clamp((texture2D(uLayer, uv).r * 255.0 - 1.0) / 254.0, 0.0, 1.0);
     col = ramped(v);
-    if (uSeaOnly > 0.5) col = mix(col, uLand, shade.g);
+    if (uSeaOnly > 0.5) col = mix(col, uLand, land);
   } else if (uKind == 3) {
     vec3 c = texture2D(uLayer, uv).rgb;
-    col = mix(col, uClass0, c.r * shade.g);
-    col = mix(col, uClass1, c.g * shade.g);
-    col = mix(col, uClass2, c.b * shade.g);
+    col = mix(col, uClass0, c.r * land);
+    col = mix(col, uClass1, c.g * land);
+    col = mix(col, uClass2, c.b * land);
   } else if (uKind == 4) {
     float a = dot(texture2D(uLayer, uv), uChA), b = dot(texture2D(uLayerB, uv), uChB);
     float v = clamp(mix(a, b, uMix) * uRange.x + uRange.y, 0.0, 1.0);
@@ -146,7 +146,7 @@ export function monthRange(stops) {
   return [(255 * perByte) / (hi - lo), (MONTH_MIN - perByte - lo) / (hi - lo)];
 }
 
-// How much of the hillshade comes from the zoom tiles at zoom k: none where they start, all of it a
+// How much of a layer's hillshade comes from the zoom tiles at zoom k: none where they start, all of it a
 // little later, so it doesn't change at a stroke.
 export const tileHill = (k, fromK) => Math.min(1, Math.max(0, (k - fromK) / TILE_HILL_FADE));
 // The mip bias that keeps the blur at TILE_HILL_LOD at any zoom. A bias counts from the level the
@@ -384,7 +384,7 @@ export function createBase(canvas, { colours, shade, onChange, onDraw, still = f
       }
       const on = Boolean(detail?.win && layer.tiles);
       gl.uniform1f(loc.uDetailOn, on ? 1 : 0);
-      const sharper = layer.kind === 'flat' && layer.tiles;
+      const sharper = layer.tiles && layer.kind !== 'picture';
       gl.uniform1f(loc.uTileHill, on && sharper ? tileHill(k, layer.tiles.fromK) : 0);
       gl.uniform1f(loc.uCoast, sharper ? coastEdge(B.r * size.dpr, SHADE_W) : 1);
       if (on) {
