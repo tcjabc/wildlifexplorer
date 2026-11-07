@@ -282,7 +282,7 @@ Every card has the same grid (`js/headings.js`, tested on every card in `tests/h
 | Place | Species cards | Stage | Topic cards | Stage |
 |---|---|---|---|---|
 | 1 | 🏠 Habitat | photo | ❓ What is it? | photo |
-| 2 | 🍃 Food & Hunting | diet plate, or photo | ⚙️ How it works | photo |
+| 2 | 🍃 Food & Hunting | diet plate, or photo | How it works (a gear) | photo |
 | 3 | 🥚 Babies | babies to count, or photo | 👀 Who to look for | `related` cards, or photo |
 | 4 | 🐾 Behaviour | the Profile magnifier, or photo | 🕒 When | photo |
 | 5 | 📏 Size | creature comparison | ⭐ Wow! | photo |
