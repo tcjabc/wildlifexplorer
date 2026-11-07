@@ -6035,6 +6035,28 @@
       "north": 99.66
     },
     "range": "data/ranges/tardigrade-water-bear.json",
+    "stats": {
+      "lengthCm": {
+        "min": 0.05
+      }
+    },
+    "compare": {
+      "partners": [
+        "sand",
+        "hair",
+        "salt"
+      ],
+      "counted": {
+        "one": {
+          "en": "water bear",
+          "zh": "水熊蟲"
+        },
+        "many": {
+          "en": "water bears",
+          "zh": "水熊蟲"
+        }
+      }
+    },
     "related": [],
     "silhouette": {
       "file": "img/silhouettes/tardigrade-water-bear-0813c8.svg",
@@ -6069,7 +6091,8 @@
       "factFile.breeding",
       "factFile.behaviour",
       "factFile.foodAndHunting",
-      "factFile.didYouKnow"
+      "factFile.didYouKnow",
+      "stats"
     ],
     "_sources": [
       {
@@ -6095,6 +6118,13 @@
       {
         "title": "Live Science: tardigrade facts (habitat)",
         "url": "https://www.livescience.com/amp/57985-tardigrade-facts.html"
+      },
+      {
+        "title": "Wikipedia: tardigrade (usually about 0.5 mm long when fully grown)",
+        "url": "https://en.wikipedia.org/wiki/Tardigrade",
+        "for": [
+          "stats.lengthCm"
+        ]
       }
     ]
   },

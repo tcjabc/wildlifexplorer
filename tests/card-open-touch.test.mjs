@@ -201,17 +201,43 @@ run('in both languages it says English first, then Chinese', async f => {
 });
 
 both('a grey heading does nothing when tapped, and a swipe that starts on it still closes the card', async f => {
-  await f.card('tardigrade-water-bear');
+  await f.card('atlas-moth');
   await f.swipe();
-  assert.equal(await f.page.evaluate(() => document.querySelector('.hbtn[data-heading="size"]').getAttribute('aria-disabled')), 'true');
+  assert.equal(await f.page.evaluate(() => document.querySelector('.hbtn[data-heading="status"]').getAttribute('aria-disabled')), 'true');
   await f.forget();
-  await f.tap('.hbtn[data-heading="size"]');
+  await f.tap('.hbtn[data-heading="status"]');
   assert.deepEqual(await f.lit(), []);
   assert.deepEqual(await f.said(), []);
-  const b = await f.box('.hbtn[data-heading="size"]');
+  const b = await f.box('.hbtn[data-heading="status"]');
   const y = b.y + b.h / 2;
   await f.drag({ x: b.x + b.w / 2, y }, { x: b.x + b.w / 2 + 400, y });
   await f.rests('front');
+});
+
+both('the water bear has partners of its own, and 2 of it make a grain of sand', async f => {
+  await f.card('tardigrade-water-bear');
+  await f.swipe();
+  await f.tap('.hbtn[data-heading="size"]');
+  await f.wait(800);
+  const who = await f.page.evaluate(() => [...document.querySelectorAll('.stage-cmp__who [data-value]')].map(b => b.dataset.value));
+  assert.deepEqual(who, ['sand', 'hair', 'salt']);
+  assert.match(await f.page.evaluate(() => document.querySelector('.cmp-len').textContent), /0\.5 mm/);
+  const pics = await f.page.evaluate(() => [...document.querySelectorAll('.cmp-len__img')].map(i => i.getBoundingClientRect().width));
+  assert.ok(Math.abs(pics[0] / pics[1] - 2) < 0.1, `one scale: ${pics}`);
+  await f.forget();
+  await f.tap('.count');
+  await f.tap('.count');
+  assert.deepEqual(await f.said(), ['1', '2 water bears = 1 grain of sand']);
+  await f.tap('.stage-cmp__who [data-value="hair"]');
+  await f.wait(800);
+  assert.equal(await f.page.evaluate(() => document.querySelectorAll('.count').length), 0, 'nothing to count against a hair');
+  assert.match(await f.page.evaluate(() => document.querySelector('.cmp-len').textContent), /0\.07 mm/);
+  await f.tap('.stage-cmp__who [data-value="salt"]');
+  await f.wait(800);
+  await f.forget();
+  await f.tap('.count');
+  await f.tap('.count');
+  assert.deepEqual(await f.said(), ['1', '2 grains of salt = 1 water bear']);
 });
 
 both('Size: the comparison fills the stage, the partners swap, and the row counts aloud', async f => {

@@ -17,8 +17,12 @@ const pair = (text, unitKey) => {
   return { en: `${text} ${u.en}`, zh: `${text} ${u.zh}` };
 };
 
-// Lengths as { en, zh }. Imperial: inches below 3 ft, feet above.
+const mm = v => { const x = v * 10; return String(x < 0.1 ? Math.round(x * 100) / 100 : Math.round(x * 10) / 10); };
+
+// Lengths as { en, zh }. Under 1 cm in millimetres, also for imperial: an inch means nothing at this
+// size. Imperial: inches below 3 ft, feet above.
 export function lengthText(cm, cmMax = null) {
+  if ((cmMax ?? cm) < 1) return pair(span(cm, cmMax, mm), 'mm');
   if (!imperial()) return pair(span(cm, cmMax, num), 'cm');
   const big = (cmMax ?? cm) >= 3 * 12 * CM_PER_IN;
   const f = big ? v => num(v / CM_PER_IN / 12) : v => num(v / CM_PER_IN);

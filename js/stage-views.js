@@ -10,7 +10,7 @@ import { state } from './store.js';
 import { picture, statusBadge } from './components.js';
 import { callable, mapButton, relatedItem, relatedOf } from './cardparts.js';
 import { animalImg, comparePanel, partner, whoImg } from './compare.js';
-import { PARTNERS, countFor, modesFor, startWith } from './compare-data.js';
+import { PARTNERS, countFor, modesFor, startWith, whoOf } from './compare-data.js';
 import { lookalikePanel, lookalikesOf } from './lookalikes.js';
 import { countRow } from './count-row.js';
 import { hasMap } from './headings.js';
@@ -104,7 +104,7 @@ function babies(card, ctx) {
 }
 
 const MODES = [['length', '📏', 'card.length'], ['weight', '⚖️', 'card.weight'], ['lifespan', '⏳', 'card.lifespan']];
-const WHO = [['you', '🧒', 'compare.you'], ...Object.values(PARTNERS).map(p => [p.id, p.icon, `compare.partner.${p.id}`])];
+const whoChoice = id => (id === 'you' ? ['you', '🧒', 'compare.you'] : [id, PARTNERS[id].icon, `compare.partner.${id}`]);
 
 // A row of choices, one of them on. onPick(value). items: [value, icon, label key].
 function chooser(items, on, onPick, { cls, words = true, name }) {
@@ -127,7 +127,7 @@ function compare(card) {
   const others = looks.length ? lookalikePanel(card, looks) : null;
   const panel = comparePanel(card);
   let mode = modes[0]?.[0] ?? null;
-  let who = startWith(mode, state.profile);
+  let who = startWith(mode, state.profile, whoOf(card));
   let view = mode ? 'you' : 'animal';
 
   const count = h('div', { class: 'stage-cmp__count' });
@@ -135,11 +135,12 @@ function compare(card) {
     const c = mode === 'lifespan' ? null : countFor(card, mode, partner(who));
     if (!c) { mount(count); return; }
     const figure = () => (c.side === 'who' ? whoImg(partner(who), 'count__img') : animalImg(card, 'count__img'));
-    const done = c.side === 'who' ? t(`compare.count.${who}`, { n: c.n }) : t('compare.count.animal', { n: c.n, name: card.name });
+    const { one, many } = card.compare?.counted ?? {};
+    const done = c.side === 'who' || PARTNERS[who]?.micro ? t(`compare.count.${who}`, { n: c.n, one, many }) : t('compare.count.animal', { n: c.n, name: card.name });
     mount(count, countRow({ count: c.n, figure, done }));
   }
 
-  const whoRow = chooser(WHO, who, value => { who = value; draw(); }, { cls: 'stage-cmp__who', name: 'compare.with' });
+  const whoRow = chooser(whoOf(card).map(whoChoice), who, value => { who = value; draw(); }, { cls: 'stage-cmp__who', name: 'compare.with' });
   function draw() {
     if (view === 'animal') { others.show(); return; }
     whoRow.hidden = mode === 'lifespan'; // a car has no birthdays: lifespans are the child's

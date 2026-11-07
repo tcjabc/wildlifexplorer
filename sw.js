@@ -129,6 +129,9 @@ const SHELL = [
   'assets/grown-up.svg',
   'assets/cat.svg',
   'assets/car.svg',
+  'assets/sand-grain.svg',
+  'assets/salt-grain.svg',
+  'assets/hair.svg',
 ];
 
 const thumbOf = file => 'img/thumbs/' + file.split('/').pop().replace(/\.[^.]+$/, '') + '.webp';

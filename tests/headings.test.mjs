@@ -7,7 +7,7 @@ import {
   SPECIES_HEADINGS, TOPIC_HEADINGS, VIEW_HAS, hasCall, headingSet, headingsFor, isTopic, textOf, viewFor,
 } from '../js/headings.js';
 import { KEY_ORDER } from '../scripts/lib/card-schema.mjs';
-import { COUNT_MAX, PARTNERS, countFor, modesFor, sizeOf, startWith } from '../js/compare-data.js';
+import { COUNT_MAX, EVERYDAY, PARTNERS, countFor, modesFor, sizeOf, startWith, whoOf } from '../js/compare-data.js';
 
 const cards = JSON.parse(await readFile(new URL('../data/animals.json', import.meta.url), 'utf8'));
 const species = cards.filter(c => !isTopic(c));
@@ -89,7 +89,7 @@ test('on today\'s 30 species cards: what is lit and what is grey', () => {
   assert.deepEqual(species.map(c => c.id).filter(id => !on('food').includes(id)), ['taiwan-barbet']);
   assert.deepEqual(species.map(c => c.id).filter(id => !on('babies').includes(id)), ['red-and-white-giant-flying-squirrel', 'eurasian-otter']);
   assert.deepEqual(species.map(c => c.id).filter(id => !on('status').includes(id)), ['atlas-moth', 'tardigrade-water-bear']);
-  assert.deepEqual(species.map(c => c.id).filter(id => !on('size').includes(id)), ['tardigrade-water-bear', 'taiwan-cherry']);
+  assert.deepEqual(species.map(c => c.id).filter(id => !on('size').includes(id)), ['taiwan-cherry']);
 });
 
 test('a size number with a source names one that is on the card', () => {
@@ -123,8 +123,23 @@ test('the partners\' pictures have the shape the scenes draw them at', async () 
     const svg = await readFile(new URL(`../${p.img}`, import.meta.url), 'utf8');
     const [, , w, h] = svg.match(/viewBox="([\d. ]+)"/)[1].split(' ').map(Number);
     assert.ok(Math.abs(h / w - p.ratio) < 0.001, p.id);
-    assert.equal(p.across ? w : h, p.cm, `${p.id}: 1 unit = 1 cm`);
+    if (!p.micro) assert.equal(p.across ? w : h, p.cm, `${p.id}: 1 unit = 1 cm`);
   }
+});
+
+test('a card can have partners of its own, and they are all known', () => {
+  assert.deepEqual(whoOf({}), EVERYDAY);
+  for (const c of cards) for (const id of whoOf(c)) assert.ok(id === 'you' || PARTNERS[id], `${c.id}: ${id}`);
+  const list = ['sand', 'hair', 'salt'];
+  assert.equal(startWith('length', { heightCm: 95 }, list), 'sand', 'no child on the list: the first on it');
+  assert.equal(startWith('length', { heightCm: 95 }, ['you', 'adult', 'car']), 'you');
+});
+
+test('the water bear: 2 of them to a grain of sand, 2 grains of salt to one of them, and no count for a hair', () => {
+  const bear = cards.find(c => c.id === 'tardigrade-water-bear');
+  assert.deepEqual(countFor(bear, 'length', PARTNERS.sand), { n: 2, side: 'animal' });
+  assert.deepEqual(countFor(bear, 'length', PARTNERS.salt), { n: 2, side: 'who' });
+  assert.equal(countFor(bear, 'length', PARTNERS.hair), null);
 });
 
 test('only a sound in audio/calls/ counts as a card\'s call', () => {

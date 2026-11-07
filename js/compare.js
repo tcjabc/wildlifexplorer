@@ -87,7 +87,7 @@ function lengthScene(card, run, who) {
   const pic = animalImg(card, 'cmp-len__img');
   ground.append(
     h('figure', { class: 'cmp-len__item' }, kidImg,
-      h('figcaption', null, bi(who.name), h('span', { class: 'cmp__num' }, bi(lengthText(who.cm))))),
+      h('figcaption', null, bi(who.name), h('span', { class: 'cmp__num' }, bi(lengthText(who.showCm ?? who.cm))))),
     h('figure', { class: 'cmp-len__item' }, pic,
       h('figcaption', null, bi(card.name), h('span', { class: 'cmp__num' }, bi(lengthText(size.cm))))));
 

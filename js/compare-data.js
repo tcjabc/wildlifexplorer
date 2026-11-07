@@ -50,7 +50,17 @@ export const PARTNERS = {
   adult: { id: 'adult', icon: '🧑', img: 'assets/grown-up.svg', cm: 170, across: false, ratio: 170 / 60, kg: 70 },
   cat: { id: 'cat', icon: '🐈', img: 'assets/cat.svg', cm: 48, across: true, ratio: 30 / 48, kg: 4 },
   car: { id: 'car', icon: '🚗', img: 'assets/car.svg', cm: 430, across: true, ratio: 150 / 430, kg: 1400 },
+  // For what is far too small to stand beside a child (a card's compare.partners). micro: the count
+  // has its own words. A grain of coarse sand is up to 1 mm, table salt about 0.3 mm (sieves put it
+  // at 0.1–0.7 mm) and a hair about 0.07 mm thick (17–181 µm): showCm is what its label says.
+  sand: { id: 'sand', icon: '🏖️', img: 'assets/sand-grain.svg', cm: 0.1, across: true, ratio: 84 / 100, micro: true },
+  hair: { id: 'hair', icon: '〰️', img: 'assets/hair.svg', cm: 0.15, across: true, ratio: 30 / 300, micro: true, showCm: 0.007, noCount: true },
+  salt: { id: 'salt', icon: '🧂', img: 'assets/salt-grain.svg', cm: 0.03, across: true, ratio: 1, micro: true },
 };
+
+// Who a card can be compared with, the child being 'you'. A card can have its own list.
+export const EVERYDAY = ['you', 'adult', 'cat', 'car'];
+export const whoOf = card => card.compare?.partners ?? EVERYDAY;
 export const CHILD_RATIO = 120 / 48; // assets/child.svg
 
 // The most figures a row can have to tap and count.
@@ -62,10 +72,14 @@ export const COUNT_MAX = 20;
 export function countFor(card, mode, who) {
   const a = mode === 'weight' ? numbers(card).weightKg : mode === 'length' ? sizeOf(card)?.cm : null;
   const b = mode === 'weight' ? who.kg : who.cm;
-  if (!a || !b) return null;
+  if (!a || !b || who.noCount) return null;
   const n = Math.round(Math.max(a, b) / Math.min(a, b));
   return n < 2 || n > COUNT_MAX ? null : { n, side: a >= b ? 'who' : 'animal' };
 }
 
-// Who a comparison starts with: the child if their profile has the number it needs.
-export const startWith = (mode, profile) => ((mode === 'weight' ? profile?.weightKg : profile?.heightCm) != null ? 'you' : 'adult');
+// Who a comparison starts with: the child if their profile has the number it needs, otherwise the
+// grown-up, and on a card without them the first on its list.
+export function startWith(mode, profile, list = EVERYDAY) {
+  const want = (mode === 'weight' ? profile?.weightKg : profile?.heightCm) != null ? 'you' : 'adult';
+  return list.includes(want) ? want : list[0];
+}
