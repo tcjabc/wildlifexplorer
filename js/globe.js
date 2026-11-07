@@ -173,11 +173,15 @@ export function loadLand() {
   return land;
 }
 
-// The home country's outline (assets/home.json, same format as globe.json), drawn with a
-// glow above every layer.
+// The home country's outline, above every layer: one line in its own colour on the coastline's
+// halo, CSS px at every zoom, and nothing else marks it. Only countries with a file are drawn
+// (assets/home.json, same format as globe.json: Taiwan), and none if no home country is set.
+export const HOME_LINE = 2.5;
+export const HOME_GLOW = 4;
+const HOME_FILES = { TW: 'assets/home.json' };
 let homeShape = null;
-function loadHome() {
-  homeShape ??= fetch('assets/home.json').then(r => { if (!r.ok) throw new Error(`${r.status} assets/home.json`); return r.json(); }).then(d => {
+function loadHome(file) {
+  homeShape ??= fetch(file).then(r => { if (!r.ok) throw new Error(`${r.status} ${file}`); return r.json(); }).then(d => {
     const unflat = flat => { const out = []; for (let i = 0; i < flat.length; i += 2) out.push([flat[i] * d.unit, flat[i + 1] * d.unit]); return out; };
     return prepare(d.polys.map(rings => rings.map(unflat)));
   });
@@ -202,7 +206,7 @@ function tokens(el) {
   const v = name => s.getPropertyValue(name).trim();
   return {
     sea: v('--c-map-sea'), land: v('--c-map-land'), grid: v('--c-shine'), glow: v('--c-map-glow'),
-    home: v('--c-map-home'), homeEdge: v('--c-shade-strong'), coast: v('--c-map-coast'), coastHalo: v('--c-map-coast-halo'),
+    home: v('--c-map-home'), coast: v('--c-map-coast'), coastHalo: v('--c-map-coast-halo'),
     group: g => v(`--g-${g}`),
   };
 }
@@ -364,7 +368,8 @@ export function traceRing(sink, v, B, f = 0) {
 // onLand(ok): the land loaded (true) or couldn't be fetched (false: offline the first time);
 // retry() tries again.
 // onBase(ok): the base renderer stopped (its context was lost) or came back, so the layer is shown again.
-export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase, debug = false } = {}) {
+// homeCountry: the explorer's, an ISO code, or null.
+export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase, homeCountry = null, debug = false } = {}) {
   // Bottom to top: the base layer (WebGL, js/globe-base.js), the 2D canvas for what lies on it, and
   // the overlay. Without the base renderer the 2D canvas draws sea and land itself, with the picture
   // layers (js/globegl.js, made when first needed) between it and the overlay. Only the 2D canvas
@@ -381,7 +386,8 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
   let tiles = null;          // js/globe-tiles.js, once a layer with zoom tiles has been shown
   let tilesFor = null;       // the renderer they go to
   let home = null;
-  const getHome = () => loadHome().then(p => { home = p; dirty = true; }).catch(() => {});
+  const homeFile = HOME_FILES[homeCountry];
+  const getHome = () => { if (homeFile) loadHome(homeFile).then(p => { home = p; dirty = true; }).catch(() => {}); };
   getHome();
 
   const view = { lon: saved.lon, lat: saved.lat, k: saved.k, dx: 0, dy: 0 };
@@ -567,17 +573,15 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
     }
     if (home) {
       ctx.lineJoin = 'round';
-      // A dark edge so it stands out on every layer, a soft glow, then the bright line.
-      for (const [width, alpha, colour] of [[5, 0.45, col.homeEdge], [9, 0.3, col.home], [2.5, 1, col.home]]) {
-        ctx.globalAlpha = alpha; ctx.lineWidth = width; ctx.strokeStyle = colour;
-        for (const p of home) {
-          if (!inSight(p)) continue;
-          ctx.beginPath();
-          for (const ring of p.rings) trace(ring);
-          ctx.stroke();
-        }
+      ctx.beginPath();
+      for (const p of home) {
+        if (!inSight(p)) continue;
+        for (const ring of p.rings) trace(ring);
       }
-      ctx.globalAlpha = 1;
+      ctx.strokeStyle = col.coastHalo; ctx.lineWidth = HOME_GLOW;
+      ctx.stroke();
+      ctx.strokeStyle = col.home; ctx.lineWidth = HOME_LINE;
+      ctx.stroke();
     }
     ctx.restore();
 

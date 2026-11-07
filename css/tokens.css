@@ -68,7 +68,7 @@
   --c-map-land: #9ccf8f;
   --c-map-spot: #d7263d;
   --c-map-glow: rgb(120 190 235 / 0.45);  /* thin atmosphere around the globe */
-  --c-map-home: #ffcf3f;                  /* home country outline, above every layer */
+  --c-map-home: #ff2daa;                  /* home country outline, above every layer; nothing else on the globe is magenta */
   --c-map-coast: rgb(14 22 32 / 0.9);        /* the coastline on the globe, on every layer */
   --c-map-coast-halo: rgb(255 255 255 / 0.9); /* and the light halo under it */
 
@@ -80,9 +80,9 @@
   --c-forest-tropical: #1e8f3e;
   --c-forest-temperate: #7fbf4d;
   --c-forest-boreal: #2f6b57;
-  --c-reef: #ff6f91;
-  --c-reef-fill: rgb(255 111 145 / 0.6); /* reefs on the globe: --c-reef, see-through */
-  --c-reef-edge: #c2365e;               /* and their edge */
+  --c-reef: #ff7f50;
+  --c-reef-fill: rgb(255 127 80 / 0.6); /* reefs on the globe: --c-reef, see-through */
+  --c-reef-edge: #c4532a;               /* and their edge */
   --c-plate: #b3261e;                   /* plate boundaries on the globe */
   --c-plate-halo: rgb(255 255 255 / 0.7); /* the light edge round them */
   --c-plate-gap: #fff3ef;               /* the stripe inside a double line (pulling apart) */

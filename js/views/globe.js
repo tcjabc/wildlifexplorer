@@ -287,6 +287,7 @@ export function render(main, [cardId] = []) {
   const debug = debugOn('fps');
   globe = createGlobe(stage, {
     debug,
+    homeCountry: state.profile?.homeCountry ?? null,
     onBase: () => { if (globe) choose(shownLayer); },
     onLand: ok => { offline.hidden = ok; },
     onFrame: layout,

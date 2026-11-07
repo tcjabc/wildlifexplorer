@@ -34,5 +34,5 @@ test('the renderer works offline and its textures are the globe\'s files', () =>
   const sw = readFileSync(new URL('../sw.js', import.meta.url), 'utf8');
   assert.match(sw, /'js\/globe-base\.js'/);
   assert.match(sw, /GLOBE_FILE = .*assets\\\/\(layers\\\//);
-  for (const f of ['shade-2k', 'temp-mean-2k', 'relief-2k']) assert.ok(existsSync(`${ROOT}assets/layers/${f}.webp`), f);
+  for (const f of ['shade-2k', 'forests-2k', 'depth-2k', 'relief-2k', 'temp-months-1']) assert.ok(existsSync(`${ROOT}assets/layers/${f}.webp`), f);
 });
