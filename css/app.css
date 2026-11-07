@@ -960,6 +960,11 @@ a.gzone__animal { text-decoration: underline; }
 .stars .is-on { color: var(--c-accent); text-shadow: 0 3px 0 var(--c-accent-deep); }
 
 /* ---------- Parents ---------- */
+/* Every control here is at least --tap-grown. */
+.parents { --tap: var(--tap-grown); }
+.parents .seg__btn { min-height: var(--tap); }
+.parents .seg { max-width: 100%; flex-wrap: wrap; }
+.parents__cards { display: flex; flex-direction: column; gap: var(--s-4); }
 /* The question and its number pad (components.js). */
 .gate { display: grid; gap: var(--s-3); justify-items: center; }
 .gate:focus { outline: none; }
@@ -1113,11 +1118,14 @@ dialog.picker::backdrop { background: var(--c-bg); }
   .quiz__pic--small { max-height: calc(40 * var(--dvh)); }
 }
 
-/* Landscape: the gate's question beside its keys. */
+/* Landscape: the gate's question beside its keys, and the grown-ups' cards in two columns, each
+   as tall as what is in it, so a short card leaves no gap beside a long one. */
 @media (min-width: 700px) and (orientation: landscape) {
   .gate { grid-template-columns: minmax(0, var(--gate-ask-w)) auto; justify-content: center; align-items: center; column-gap: var(--s-5); }
   .gate__question { font-size: var(--fs-lg); }
   .gate__entry { width: 100%; }
+  .parents__cards { display: block; columns: 2; column-gap: var(--s-4); }
+  .parents__cards > * { break-inside: avoid; margin-bottom: var(--s-4); }
 }
 
 /* Wide/landscape: binder tabs stand up along the right edge, like a real binder. */

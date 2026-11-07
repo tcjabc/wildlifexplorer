@@ -217,15 +217,16 @@ function draw(main) {
 
   mount(main, h('section', { class: 'page parents' },
     title(),
-    accountPanel(),
-    who,
-    SECTIONS.map(s => h('div', { class: 'panel', 'data-section': s.id },
-      h('h2', { class: 'panel__title' }, h('span', { 'aria-hidden': 'true' }, `${s.icon} `), tx(s.title, { name: p.name })),
-      s.render(p, redraw))),
-    backupPanel(redraw),
-    devicePanel(),
-    h('a', { class: 'panel panel--link', href: '#/credits' },
-      h('span', { 'aria-hidden': 'true' }, '📷'), tx('more.credits'), h('span', { 'aria-hidden': 'true' }, '›'))));
+    h('div', { class: 'parents__cards' },
+      accountPanel(),
+      who,
+      SECTIONS.map(s => h('div', { class: 'panel', 'data-section': s.id },
+        h('h2', { class: 'panel__title' }, h('span', { 'aria-hidden': 'true' }, `${s.icon} `), tx(s.title, { name: p.name })),
+        s.render(p, redraw))),
+      backupPanel(redraw),
+      devicePanel(),
+      h('a', { class: 'panel panel--link', href: '#/credits' },
+        h('span', { 'aria-hidden': 'true' }, '📷'), tx('more.credits'), h('span', { 'aria-hidden': 'true' }, '›')))));
 }
 
 // The explorers changed (here, or pulled from the family account). Only the selected

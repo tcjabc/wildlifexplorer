@@ -239,6 +239,7 @@
   --tap-lg: 72px;
   --tap-sm: 48px;       /* secondary controls (credit line) */
   --tap-xs: 44px;       /* badges and squeezed controls on phones */
+  --tap-grown: 64px;    /* the smallest control on the grown-ups' page */
   --gate-key: var(--tap-lg); /* the grown-ups' number pad */
   --gate-ask-w: 360px;  /* its question, beside the keys in landscape */
   --lang-btn-w: 88px;   /* the language button: fits EN+中, so the header stays put */
