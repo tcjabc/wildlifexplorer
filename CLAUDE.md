@@ -21,10 +21,10 @@
 - The Supabase project URL and publishable key are public by design and live only in `js/config.js`. The secret/service_role key, the database password and Supabase access tokens never go in the repo (not even in `.env.example`).
 - Check staged files for secrets before every commit.
 - No personal data about the family in the repo (names, photos, locations).
-- Progress data stays on the device (IndexedDB). It is sent only to the family's own Supabase project, and only after a parent signs in. Height, weight, age, quiz scores and Field Notes stay on the device.
-- Home country is never sent in any request to wildfile.app or a third party: no URL, header or body carries it, and no file is fetched because of it (the home outlines are one file for everyone). It is kept on the device. The one other place it may be stored is the parent's own Supabase account, through sync, once that is built; `toRow` doesn't send it today.
+- Progress data stays on the device (IndexedDB). It is sent only to the family's own Supabase project, and only after a parent signs in. Quiz scores and Field Notes stay on the device.
+- Home country is stored only on the device and in the parent's own Supabase account (the explorer's profile row, once a parent signs in, under RLS). It is never in any other request, to wildfile.app or a third party: no URL, header or body carries it, and no file is fetched because of it (the home outlines are one file for everyone). Age, height and weight go to the same two places.
 - Before any family other than ours uses accounts, the app needs a privacy notice (what is stored, where, for how long, how to delete it).
-  It must say that deleting a family's last parent account deletes that family's data on the server (migration 4); devices keep their local copy. And that a family's grown-ups see each other's email addresses (migration 5).
+  It must say that deleting a family's last parent account deletes that family's data on the server (migration 4); devices keep their local copy. And that a family's grown-ups see each other's email addresses (migration 5). And that each explorer's age, height, weight and home country are stored in the family's account, where all its grown-ups can see them (migration 6).
 - `index.html` has a Content Security Policy meta tag allowing only same-origin resources, plus `connect-src` to the Supabase project URL (nothing else). The same CSP is sent as an HTTP header on wildfile.app (see DEPLOYMENT).
 - Escape or sanitise any text inserted into the DOM. Never use `innerHTML` with data from JSON or external sources.
 
@@ -59,6 +59,7 @@
 - "Automatically expose new tables" is off: every migration that adds a table has explicit GRANTs (nothing to `anon`) and RLS enabled with policies limited to the caller's family.
 - Pulled rows are merged by `js/cloud/merge.js` with the same rules as the merge triggers in `supabase/migrations/`; the fake server in `tests/fixtures/server.mjs` copies them too. Change all three together.
 - Settings conflicts are decided by device clocks (`client_updated_at`), so a device with a badly wrong clock can win. Accepted for now.
+- The Welcome details (age, height, weight, home country) have their own clock, `details_at` (migration 6). A device that never had them sends no time, so it can't clear them. The migration goes live before the app: an app that sends these columns to a server without them has every profile refused.
 - Invites (migration 5): clients reach `family_invites` and memberships only through the `security definer` functions there, each checking the caller's role (owner: invite, cancel, remove a parent; parent: leave). Keep it that way: no table grants to `anon` or `authenticated`. Every grown-up is in exactly one family (`unique (user_id)`).
 - New accounts only for invited emails: the Before User Created auth hook `public.hook_before_user_created` (enabled in the dashboard, not by a migration). It runs as `supabase_auth_admin`, which may read only `family_invites.email` and `expires_at`. Sign-ups must stay on for it to work; turn the hook on first and off last.
 - Re-run the RLS check after every migration: `npx supabase db query --remote -f supabase/tests/rls_check.sql`. CLI 3 targets a local stack by default; always pass `--remote`.

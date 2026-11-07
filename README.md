@@ -868,9 +868,11 @@ profiles, and kids never have accounts. The device keeps working offline and sta
 truth; it syncs with Supabase when online.
 
 - **Synced:** profile nickname, language, avatar colour, zhuyin, read-aloud speed, units, pack day
-  and time, packs (and whether they're opened), collected cards and badges.
-- **Never leaves the device:** height, weight, age, home country, quiz scores and Field Notes. No
-  request says what the home country is: its outline comes from one file that holds every country's.
+  and time, age, height, weight, home country, packs (and whether they're opened), collected cards
+  and badges. Every grown-up in the family can see them.
+- **Never leaves the device:** quiz scores and Field Notes.
+- **Home country** goes nowhere but the family's own account: no other request says what it is. Its
+  outline on the globe comes from one file that holds every country's.
 - **Signing in:** For grown-ups → ☁️ Family account. A grown-up types their email, then the code
   from the email (or opens the email's link on this device, which asks before signing in). Signing
   out keeps the explorers on the device. The code is in `js/cloud/auth.js` (plain `fetch`, tests
