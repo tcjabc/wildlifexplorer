@@ -193,6 +193,7 @@ export async function createProfile(fields) {
     parent: { ...parentTemplate(), preview: Boolean(s.preview) },
     timeline: { epoch: 1, startAt: now },
     settingsAt: now,
+    detailsAt: now,
   }, now);
   await db.put('profiles', p);
   if (!state.profiles.length && !watching()) await moveLegacy(p);
@@ -226,10 +227,13 @@ async function moveLegacy(p) {
 
 // patch: Welcome-form fields, settings (zhuyin, rate) and/or parent: { … } (merged).
 // The settings the family account keeps (cloud/sync.js). settingsAt changes only when one
-// of them does, so on the server a newer height (device-only) can't beat an older avatar.
+// of them does, and detailsAt only when a Welcome detail does: they are merged apart, so on
+// the server a newer height can't beat an older avatar.
 const SYNCED_SETTINGS = p => [p.name, p.lang, p.avatar, p.zhuyin, p.rate,
   p.parent.dropDay, p.parent.dropTime, p.parent.length, p.parent.temp];
 const sameSettings = (a, b) => SYNCED_SETTINGS(a).every((v, i) => v === SYNCED_SETTINGS(b)[i]);
+const SYNCED_DETAILS = p => [p.age, p.heightCm, p.weightKg, p.homeCountry];
+const sameDetails = (a, b) => SYNCED_DETAILS(a).every((v, i) => v === SYNCED_DETAILS(b)[i]);
 
 // Profile changes start from the stored record, read in the same transaction, so a pull
 // that just wrote it isn't undone by the copy in state.
@@ -263,6 +267,7 @@ export async function updateProfile(id, patch) {
       parent: { ...prev.parent, ...patch.parent },
     }, now);
     if (!sameSettings(prev, rec)) rec.settingsAt = now;
+    if (!sameDetails(prev, rec)) rec.detailsAt = now;
     return rec;
   });
   if (!next) return;

@@ -6,7 +6,7 @@ import { AuthError } from '../../js/cloud/auth.js';
 
 export const FAMILY = '11111111-1111-4111-8111-111111111111';
 const KEYS = { profiles: ['id'], packs: ['profile_id', 'epoch', 'drop_id'], collection: ['profile_id', 'epoch', 'card_id'], badges: ['profile_id', 'epoch', 'badge_id'] };
-const TIMES = ['timeline_start_at', 'client_updated_at', 'created_at', 'deleted_at', 'due_at', 'granted_at', 'opened_at', 'collected_at', 'earned_at'];
+const TIMES = ['timeline_start_at', 'client_updated_at', 'details_at', 'age_as_of', 'created_at', 'deleted_at', 'due_at', 'granted_at', 'opened_at', 'collected_at', 'earned_at'];
 export const keyOf = (table, r) => KEYS[table].map(k => r[k]).join(':');
 
 // Microseconds since 1970, from a time with any number of fraction digits.
@@ -22,11 +22,13 @@ const pg = micro => {
 const least = (a, b) => (a == null ? b : b == null ? a : us(b) < us(a) ? b : a);
 
 const SETTINGS = ['name', 'lang', 'avatar', 'zhuyin', 'rate', 'length_unit', 'temp_unit', 'drop_day', 'drop_time', 'client_updated_at'];
+const DETAILS = ['age', 'age_as_of', 'height_cm', 'weight_kg', 'home_country', 'details_at'];
 // The triggers' rules (merge_profile, merge_pack, merge_collection, merge_badge).
 const MERGE = {
   profiles(old, row) {
     row.created_at = old.created_at;
     if (us(row.client_updated_at) < us(old.client_updated_at)) for (const k of SETTINGS) row[k] = old[k];
+    if (row.details_at == null || (old.details_at != null && us(row.details_at) < us(old.details_at))) for (const k of DETAILS) row[k] = old[k];
     if (row.timeline_epoch <= old.timeline_epoch) {
       row.timeline_epoch = old.timeline_epoch;
       row.timeline_start_at = old.timeline_start_at;

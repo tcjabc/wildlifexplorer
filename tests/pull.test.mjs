@@ -65,13 +65,14 @@ before(async () => {
   B = await device();
 });
 
-test('a new device gets the family\'s explorers and progress, with its own device-only fields empty', async () => {
+test('a new device gets the family\'s explorers, their Welcome details and progress, with device-only fields empty', async () => {
   // B has an explorer of its own, kept on B only.
   await B.db.put('profiles', explorer(SAM, 'Sam', { createdAt: '2026-08-01T00:00:00.000Z' }));
   await B.sync.setUp([]);
   const mia = await B.db.get('profiles', MIA);
   assert.equal(mia.name, 'Mia');
-  assert.deepEqual([mia.age, mia.heightCm, mia.weightKg, mia.homeCountry, mia.parent.preview], [null, null, null, null, false]);
+  assert.deepEqual([mia.age, mia.ageAsOf, mia.heightCm, mia.weightKg, mia.homeCountry], [7, AT, 120, 22, 'TW']);
+  assert.equal(mia.parent.preview, false);
   assert.equal(mia.notesInput, undefined);
   assert.equal((await B.db.get('profiles', LEO)).avatar, 4);
   const packs = await B.db.all('packs', MIA);
@@ -101,19 +102,63 @@ test('a second pull starts just before the last one ended and changes nothing', 
   assert.deepEqual(await B.db.all('outbox'), []);
 });
 
-test('newer settings from another device come down; this device\'s height and preview stay', async () => {
+test('newer settings from another device come down; this device\'s preview stays', async () => {
   const mia = await A.db.get('profiles', MIA);
   await A.db.put('profiles', { ...mia, lang: 'zh', parent: { ...mia.parent, dropDay: 3 }, settingsAt: later() });
   await A.sync.run();
   const before = await B.db.get('profiles', MIA);
-  await B.db.put('profiles', { ...before, heightCm: 131, parent: { ...before.parent, preview: true } }); // device-only
+  await B.db.put('profiles', { ...before, parent: { ...before.parent, preview: true } }); // device-only
   await B.sync.run();
   const after = await B.db.get('profiles', MIA);
   assert.equal(after.lang, 'zh');
   assert.equal(after.parent.dropDay, 3);
-  assert.equal(after.heightCm, 131);
+  assert.equal(after.heightCm, 120);
   assert.equal(after.parent.preview, true);
-  assert.equal((await A.db.get('profiles', MIA)).heightCm, 120);
+  assert.equal((await A.db.get('profiles', MIA)).parent.preview, true);
+});
+
+test('a detail changed on one device reaches the others, and so does clearing one', async () => {
+  const leo = await A.db.get('profiles', LEO);
+  const at = later(2);
+  await A.db.put('profiles', { ...leo, heightCm: 133, homeCountry: 'JP', detailsAt: at });
+  await A.sync.run();
+  await B.sync.run();
+  const b = await B.db.get('profiles', LEO);
+  assert.deepEqual([b.age, b.ageAsOf, b.heightCm, b.weightKg, b.homeCountry, b.detailsAt], [7, AT, 133, 22, 'JP', at]);
+  await B.db.put('profiles', { ...b, homeCountry: null, detailsAt: later(3) });
+  await B.sync.run();
+  await A.sync.run();
+  assert.equal((await A.db.get('profiles', LEO)).homeCountry, null);
+  assert.deepEqual([await A.db.all('outbox'), await B.db.all('outbox')], [[], []]);
+});
+
+test('a device that never had the details can\'t clear them by changing a setting; it gets them', async () => {
+  const b = await B.db.get('profiles', LEO);
+  const { detailsAt, ...rest } = b;
+  await B.db.tx(['profiles'], 'readwrite', a => a.putFromServer('profiles', { ...rest, age: null, ageAsOf: null, heightCm: null, weightKg: null, homeCountry: null }));
+  await B.db.put('profiles', { ...(await B.db.get('profiles', LEO)), avatar: 6, settingsAt: later() });
+  await B.sync.run();
+  assert.equal(server.rows.profiles.get(LEO).height_cm, 133);
+  assert.equal(server.rows.profiles.get(LEO).avatar, 6);
+  assert.equal((await B.db.get('profiles', LEO)).heightCm, 133);
+  await A.sync.run();
+  const a = await A.db.get('profiles', LEO);
+  assert.deepEqual([a.avatar, a.heightCm], [6, 133]);
+  assert.equal(detailsAt, a.detailsAt);
+});
+
+test('details from before they were synced go up when everything is pulled again', async () => {
+  const row = server.rows.profiles.get(LEO);
+  for (const k of ['age', 'age_as_of', 'height_cm', 'weight_kg', 'home_country', 'details_at']) row[k] = null;
+  const { detailsAt, ...old } = await A.db.get('profiles', LEO); // as an older version left it
+  await A.db.tx(['profiles'], 'readwrite', a => a.putFromServer('profiles', old));
+  await A.db.remove('meta', 'syncPull');
+  await A.sync.run(); // sees the server has none
+  assert.equal((await A.db.get('profiles', LEO)).heightCm, 133, 'an empty row clears nothing');
+  await A.sync.run();
+  assert.equal(server.rows.profiles.get(LEO).height_cm, 133);
+  assert.equal(server.rows.profiles.get(LEO).details_at != null, true);
+  assert.deepEqual(await A.db.all('outbox'), []);
 });
 
 test('settings changed on both devices: the later change wins on both', async () => {

@@ -7,7 +7,7 @@ import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
 import 'fake-indexeddb/auto';
 import * as db from '../js/db.js';
-import { createSync, toRow, statusKey } from '../js/cloud/sync.js';
+import { createSync, toRow, statusKey, Invalid } from '../js/cloud/sync.js';
 import { AuthError } from '../js/cloud/auth.js';
 import { createServer, FAMILY, keyOf } from './fixtures/server.mjs';
 import { buildV3, ADA, BEN, CAT, DAN } from './fixtures/v3.mjs';
@@ -15,7 +15,8 @@ import { buildV3, ADA, BEN, CAT, DAN } from './fixtures/v3.mjs';
 // Exactly the columns each table has (supabase/migrations): nothing else may be sent.
 const COLUMNS = {
   profiles: ['id', 'family_id', 'name', 'lang', 'avatar', 'zhuyin', 'rate', 'length_unit', 'temp_unit', 'drop_day',
-    'drop_time', 'timeline_epoch', 'timeline_start_at', 'client_updated_at', 'created_at', 'deleted_at'],
+    'drop_time', 'timeline_epoch', 'timeline_start_at', 'client_updated_at', 'created_at', 'deleted_at',
+    'age', 'age_as_of', 'height_cm', 'weight_kg', 'home_country', 'details_at'],
   packs: ['profile_id', 'family_id', 'epoch', 'drop_id', 'seq', 'card_ids', 'due_at', 'granted_at', 'opened_at'],
   collection: ['profile_id', 'family_id', 'epoch', 'card_id', 'collected_at', 'drop_id'],
   badges: ['profile_id', 'family_id', 'epoch', 'badge_id', 'earned_at'],
@@ -58,8 +59,12 @@ test('first sign-in: the ticked explorers go up with their progress, profiles fi
     assert.ok(c.body.every(r => r.family_id === FAMILY));
   }
   const all = JSON.stringify(server.calls);
-  for (const secret of ['heightCm', 'weightKg', '"age"', 'homeCountry', 'preview', 'notifiedAt', 'sizes', 'page-1']) {
+  for (const secret of ['preview', 'notifiedAt', 'sizes', 'page-1', 'notesInput', 'notesTools']) {
     assert.equal(all.includes(secret), false, secret);
+  }
+  // The Welcome details go on the explorer's row, and nowhere else.
+  for (const c of server.calls.filter(x => x.table !== 'profiles')) {
+    for (const detail of ['"age"', 'height_cm', 'weight_kg', 'home_country']) assert.equal(JSON.stringify(c.body).includes(detail), false, detail);
   }
   assert.deepEqual([...server.rows.profiles.keys()].sort(), [ADA, BEN].sort());
   // Ada: only epoch 3 is live (older epochs were marked deleted by version 3's resets).
@@ -267,16 +272,26 @@ test('an explorer deleted before the first sync can\'t be added later', async ()
   assert.deepEqual((await db.getMeta('sync')).localOnly, [CAT]);
 });
 
-test('toRow: settingsAt decides the settings\' time, and device-only fields never appear', () => {
+test('toRow: settingsAt decides the settings\' time, the Welcome details are sent, and device-only fields never appear', () => {
   const p = {
-    id: ADA, name: 'Ada', lang: 'both', avatar: 1, zhuyin: true, rate: 'slow', age: 7, heightCm: 120, weightKg: 22,
-    homeCountry: 'TW', notesInput: 'pen', notesTools: { ink: 'red', stampCard: 'emu' }, notesPanel: 'expanded', globePanel: 'collapsed', parent: { dropDay: 6, dropTime: '09:00', length: 'metric', temp: 'C', preview: true },
+    id: ADA, name: 'Ada', lang: 'both', avatar: 1, zhuyin: true, rate: 'slow', age: 7, ageAsOf: '2026-08-01T00:00:00.000Z', heightCm: 120.5, weightKg: 22,
+    homeCountry: 'TW', detailsAt: '2026-09-15T00:00:00.000Z', notesInput: 'pen', notesTools: { ink: 'red', stampCard: 'emu' }, notesPanel: 'expanded', globePanel: 'collapsed', parent: { dropDay: 6, dropTime: '09:00', length: 'metric', temp: 'C', preview: true },
     timeline: { epoch: 2, startAt: '2026-09-01T00:00:00.000Z' }, createdAt: '2026-08-01T00:00:00.000Z',
     updatedAt: '2026-11-01T00:00:00.000Z', settingsAt: '2026-10-01T00:00:00.000Z', deletedAt: null,
   };
   const row = toRow('profiles', p, FAMILY);
   assert.equal(row.client_updated_at, '2026-10-01T00:00:00.000Z');
   assert.deepEqual(Object.keys(row).sort(), [...COLUMNS.profiles].sort());
+  assert.deepEqual([row.age, row.age_as_of, row.height_cm, row.weight_kg, row.home_country, row.details_at],
+    [7, p.ageAsOf, 120.5, 22, 'TW', p.detailsAt]);
+  // From before details were synced: the last write stands in. With none at all, no time.
+  assert.equal(toRow('profiles', { ...p, detailsAt: undefined }, FAMILY).details_at, p.updatedAt);
+  const none = toRow('profiles', { ...p, age: null, ageAsOf: null, heightCm: null, weightKg: null, homeCountry: null, detailsAt: undefined }, FAMILY);
+  assert.deepEqual([none.age, none.height_cm, none.weight_kg, none.home_country, none.details_at], [null, null, null, null, null]);
+  // Held back rather than refused by the server.
+  for (const bad of [{ age: 200 }, { age: 7.5 }, { heightCm: 10 }, { weightKg: 900 }, { homeCountry: 'japan' }]) {
+    assert.throws(() => toRow('profiles', { ...p, ...bad }, FAMILY), Invalid, JSON.stringify(bad));
+  }
   assert.equal(toRow('profiles', { ...p, settingsAt: undefined }, FAMILY).client_updated_at, p.updatedAt);
   assert.equal(toRow('collection', { profileId: ADA, epoch: 1, cardId: 'emu', collectedAt: p.createdAt, deletedAt: p.updatedAt }, FAMILY), null);
 });

@@ -7,6 +7,7 @@ import { countryOptions } from './countries.js';
 import { restoreError } from './backup.js';
 import { grownUpCheck } from './components.js';
 import { cmFromFtIn, ftInFromCm, kgFromLb, lbFromKg } from './units.js';
+import { RANGES } from './cloud/merge.js';
 
 export function initial(name) {
   const s = (name ?? '').trim();
@@ -56,7 +57,6 @@ export function showPicker() {
 }
 
 const LANGS = [['en', 'lang.en', 'lang.enName'], ['zh', 'lang.zh', 'lang.zhName'], ['both', 'lang.bothFace', 'lang.both']];
-const RANGES = { age: [0, 120], heightCm: [40, 250], weightKg: [3, 300] };
 
 // The Welcome form. profile: the one to edit, or null for a new one. prefill: starting
 // values for a new one. onRestore(file): offered on the very first run, for grown-ups who

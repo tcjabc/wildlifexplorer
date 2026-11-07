@@ -83,6 +83,23 @@ test('settingsAt changes with a setting the family account keeps, not with heigh
   assert.ok((await readAll()).outbox.some(e => e.id === `profiles:${BEN}`));
 });
 
+test('detailsAt changes with a Welcome detail, not with a setting, and a new explorer has one', async () => {
+  const ben = () => store.state.profiles.find(p => p.id === BEN);
+  await store.updateProfile(BEN, { homeCountry: 'JP' });
+  const first = ben().detailsAt;
+  assert.equal(first, ben().updatedAt);
+  await new Promise(r => setTimeout(r, 5));
+  await store.updateProfile(BEN, { name: 'Ben', homeCountry: 'JP', parent: { dropDay: 4 } });
+  assert.equal(ben().detailsAt, first, 'nothing in the details changed');
+  for (const patch of [{ age: 30 }, { heightCm: 132 }, { weightKg: 40 }, { homeCountry: null }]) {
+    const before = ben().detailsAt;
+    await new Promise(r => setTimeout(r, 5));
+    await store.updateProfile(BEN, patch);
+    assert.ok(ben().detailsAt > before, JSON.stringify(patch));
+  }
+  assert.ok((await store.createProfile({ name: 'Zoe' })).detailsAt);
+});
+
 test('an edit right after a pull starts from the pulled record, not the copy in state', async () => {
   const db = await import('../js/db.js');
   const pulled = { ...(await db.get('profiles', BEN)), name: 'Ben (from the tablet)', settingsAt: new Date(Date.now() + 60e3).toISOString() };

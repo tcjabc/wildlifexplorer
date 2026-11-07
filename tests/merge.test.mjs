@@ -20,6 +20,7 @@ const profile = (over = {}) => ({
   avatar: 3, zhuyin: true, rate: 'normal', notesInput: 'pen', notesPenSeen: true,
   parent: { dropDay: 6, dropTime: '09:00', length: 'metric', temp: 'C', preview: true },
   timeline: { epoch: 1, startAt: '2026-09-01T09:00:00.000Z' }, settingsAt: '2026-10-01T00:00:00.000Z',
+  detailsAt: '2026-10-01T00:00:00.000Z',
   createdAt: '2026-09-01T09:00:00.000Z', updatedAt: '2026-10-01T00:00:00.000Z', deletedAt: null, ...over,
 });
 const profileRow = (over = {}) => served({ ...toRow('profiles', profile(), FAMILY), ...over });
@@ -29,7 +30,7 @@ test('a new explorer from the server: its synced fields, and device-only ones em
   assert.equal(ahead, false);
   assert.deepEqual(record, {
     id: PID, name: 'Ada', lang: 'both', avatar: 3, zhuyin: true, rate: 'normal',
-    age: null, ageAsOf: null, heightCm: null, weightKg: null, homeCountry: null,
+    age: 7, ageAsOf: '2026-01-01T00:00:00.000Z', heightCm: 120, weightKg: 22, homeCountry: 'TW', detailsAt: '2026-10-01T00:00:00.000Z',
     parent: { dropDay: 6, dropTime: '09:00', length: 'metric', temp: 'C', preview: false },
     timeline: { epoch: 1, startAt: '2026-09-01T09:00:00.000Z' }, settingsAt: '2026-10-01T00:00:00.000Z',
     createdAt: '2026-09-01T09:00:00.000Z', deletedAt: null, updatedAt: NOW,
@@ -56,6 +57,37 @@ test('newer settings from the server win, all of them, and device-only fields st
     parent: { dropDay: 2, dropTime: '17:30', length: 'imperial', temp: 'F', preview: true },
     settingsAt: '2026-10-05T00:00:00.000Z', updatedAt: NOW,
   }));
+});
+
+test('Welcome details: newer ones win, all of them, and settings don\'t decide it', () => {
+  const row = profileRow({ age: 8, age_as_of: '2026-10-04T00:00:00+00:00', height_cm: 125.5, weight_kg: null, home_country: 'JP', details_at: '2026-10-05T00:00:00+00:00', client_updated_at: '2026-09-15T00:00:00+00:00' });
+  const { record, ahead } = mergeProfile(profile(), row, NOW);
+  assert.equal(ahead, true, 'this device\'s settings are newer');
+  assert.deepEqual(record, profile({ age: 8, ageAsOf: '2026-10-04T00:00:00.000Z', heightCm: 125.5, weightKg: null, homeCountry: 'JP', detailsAt: '2026-10-05T00:00:00.000Z', updatedAt: NOW }));
+});
+
+test('Welcome details: older ones lose and this device\'s go up; on a tie the server\'s win', () => {
+  assert.equal(mergeProfile(profile(), profileRow({ home_country: 'JP', details_at: '2026-09-15T00:00:00+00:00' }), NOW), null, 'unchanged here; its outbox entry sends it');
+  const { record } = mergeProfile(profile(), profileRow({ home_country: 'JP' }), NOW);
+  assert.equal(record.homeCountry, 'JP');
+});
+
+test('Welcome details: an empty row clears nothing, and a record from before they synced goes up', () => {
+  const empty = { age: null, age_as_of: null, height_cm: null, weight_kg: null, home_country: null, details_at: null };
+  const { detailsAt, ...old } = profile();
+  const { record, ahead } = mergeProfile(old, profileRow(empty), NOW);
+  assert.equal(ahead, true);
+  assert.deepEqual(record, profile({ detailsAt: old.updatedAt, updatedAt: NOW }));
+  // A device that has none takes them; with none on either side nothing changes.
+  const none = { age: null, ageAsOf: null, heightCm: null, weightKg: null, homeCountry: null, detailsAt: null };
+  assert.equal(mergeProfile(profile(none), profileRow({ ...empty }), NOW), null);
+  assert.equal(mergeProfile(profile(none), profileRow(), NOW).record.homeCountry, 'TW');
+});
+
+test('a row with Welcome details this app can\'t use is refused', () => {
+  for (const bad of [{ age: 200 }, { age: 7.5 }, { height_cm: 10 }, { weight_kg: 900 }, { home_country: 'japan' }, { details_at: 'soon' }, { age_as_of: 'then' }]) {
+    assert.throws(() => mergeProfile(undefined, profileRow(bad), NOW), Invalid, JSON.stringify(bad));
+  }
 });
 
 test('older settings from the server lose; on a tie the server\'s win', () => {

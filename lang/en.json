@@ -410,7 +410,7 @@
   "parents.restoreFailed": "The backup couldn’t be restored. Nothing was changed.",
   "account.title": "Family account",
   "account.intro": "Optional. A grown-up signs in with their email; kids never need an account. The app works just the same without one.",
-  "account.syncs": "Each explorer’s settings, packs, cards and badges are saved to your family account. Height, weight, age, home country, quiz scores and Field Notes always stay on this device.",
+  "account.syncs": "Each explorer’s settings, age, height, weight, home country, packs, cards and badges are saved to your family account, where your family’s grown-ups can see them. Quiz scores and Field Notes always stay on this device.",
   "account.email": "Email",
   "account.send": "Send sign-in email",
   "account.sentTo": "We emailed a sign-in code to {email}.",

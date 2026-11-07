@@ -1,14 +1,15 @@
 // Rows pulled from the family account, merged into this device's records with the same
 // rules as the server's merge triggers (supabase/migrations), so every device ends up with
 // what the server has, whatever order they sync in:
-//   profiles    settings: the newer settingsAt wins (the server's on a tie); timeline: the
+//   profiles    settings: the newer settingsAt wins (the server's on a tie); Welcome details
+//               (age, height, weight, home country): the same with detailsAt; timeline: the
 //               higher epoch wins (the server's start on a tie); once deleted, always deleted
 //   packs       the server's details (it keeps the first grant); opened: the earliest time
 //   collection  the earliest collection, with the pack it came in
 //   badges      the earliest time it was earned
-// Settings are decided by the devices' clocks (settingsAt), so a device whose clock is far
-// ahead wins. Only the server's columns are read: device-only fields (height, weight, age,
-// home country, preview, Field Notes settings, when a pack was first shown) are never touched.
+// Settings and details are decided by the devices' clocks, so a device whose clock is far
+// ahead wins. Only the server's columns are read: device-only fields (preview, Field Notes
+// settings, when a pack was first shown) are never touched.
 //
 // Each merge takes the local record (or undefined) and the row, and returns null when the
 // local record stays as it is, else { record, ahead }. ahead: this device still has
@@ -23,6 +24,15 @@ export const HHMM = /^([01][0-9]|2[0-3]):[0-5][0-9]$/;
 export const iso = v => typeof v === 'string' && !Number.isNaN(Date.parse(v));
 export const isoOrNull = v => v == null || iso(v);
 export const epochOk = v => Number.isInteger(v) && v >= 1;
+// The Welcome details (the form checks them too: js/profiles.js).
+export const RANGES = { age: [0, 120], heightCm: [40, 250], weightKg: [3, 300] };
+const inRange = (v, [lo, hi]) => v == null || (Number.isFinite(v) && v >= lo && v <= hi);
+export const detailsOk = d => inRange(d.age, RANGES.age) && (d.age == null || Number.isInteger(d.age)) &&
+  inRange(d.heightCm, RANGES.heightCm) && inRange(d.weightKg, RANGES.weightKg) && isoOrNull(d.ageAsOf) &&
+  (d.homeCountry == null || /^[A-Z]{2}$/.test(d.homeCountry));
+// When an explorer's details last changed, or null if they have never had any. A record from
+// before details were synced has no time of its own: its last write stands in.
+export const detailsTime = r => r.detailsAt ?? ([r.age, r.heightCm, r.weightKg, r.homeCountry].some(v => v != null) ? r.updatedAt ?? null : null);
 
 export class Invalid extends Error {}
 export function check(ok, what) { if (!ok) throw new Invalid(what); }
@@ -46,6 +56,10 @@ export function mergeProfile(local, row, now) {
   check(Number.isInteger(row.drop_day) && HHMM.test(row.drop_time ?? ''), 'drop time');
   check(epochOk(row.timeline_epoch) && iso(row.timeline_start_at), 'timeline');
   check(iso(row.client_updated_at) && iso(row.created_at) && isoOrNull(row.deleted_at), 'times');
+  check(isoOrNull(row.age_as_of) && isoOrNull(row.details_at), 'details');
+  const details = { age: row.age ?? null, ageAsOf: isoOf(row.age_as_of), heightCm: row.height_cm ?? null, weightKg: row.weight_kg ?? null, homeCountry: row.home_country ?? null };
+  check(detailsOk(details), 'details');
+  const detailsAt = isoOf(row.details_at);
   const settings = { name: row.name, lang: row.lang, avatar: row.avatar, zhuyin: row.zhuyin, rate: row.rate };
   const units = { dropDay: row.drop_day, dropTime: row.drop_time, length: row.length_unit, temp: row.temp_unit };
   const settingsAt = isoOf(row.client_updated_at);
@@ -55,7 +69,7 @@ export function mergeProfile(local, row, now) {
   if (!local) {
     if (deletedAt) return null; // never on this device: nothing to keep
     return result(undefined, {
-      id: row.id, ...settings, age: null, ageAsOf: null, heightCm: null, weightKg: null, homeCountry: null,
+      id: row.id, ...settings, ...details, detailsAt,
       parent: { ...units, preview: false }, timeline, settingsAt,
       createdAt: isoOf(row.created_at), deletedAt: null,
     }, false, now);
@@ -65,6 +79,11 @@ export function mergeProfile(local, row, now) {
   if (ms(settingsAt) >= ms(local.settingsAt ?? local.updatedAt)) {
     Object.assign(next, settings, { parent: { ...local.parent, ...units }, settingsAt });
   } else ahead = true;
+  // None on the server yet, or older: this device's go up (with their time, so a record from
+  // before details were synced counts as changed and is sent).
+  const localAt = detailsTime(local);
+  if (detailsAt && (!localAt || ms(detailsAt) >= ms(localAt))) Object.assign(next, details, { detailsAt });
+  else if (localAt) { next.detailsAt = localAt; ahead = true; }
   if (timeline.epoch >= local.timeline.epoch) next.timeline = timeline;
   else ahead = true;
   next.deletedAt = earliest(local.deletedAt ?? null, deletedAt);

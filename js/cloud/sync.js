@@ -4,9 +4,9 @@
 // every change goes up, and the family's explorers come down. Each run pushes first (so the
 // server has merged this device's changes), then pulls.
 //
-// What is sent is an allow-list per table (toRow). Never: height, weight, age, home
-// country, preview, Field Notes settings, quiz scores, Field Notes, or when a pack was first
-// shown. Not sent at all: explorers the parent left unticked, explorers deleted before this
+// What is sent is an allow-list per table (toRow). The Welcome details (age, height, weight,
+// home country) go on the explorer's row. Never: preview, Field Notes settings, quiz scores,
+// Field Notes, or when a pack was first shown. Not sent at all: explorers the parent left unticked, explorers deleted before this
 // device's first sync, progress from before a "Start over" in version 3 (marked deleted), and
 // progress of an explorer already deleted.
 //
@@ -33,7 +33,7 @@
 // meta 'syncPull': { version, familyId, at: { table: updated_at of the last row pulled } }.
 import * as defaultDb from '../db.js';
 import { auth as defaultAuth, AuthError } from './auth.js';
-import { CARD, DROP, BADGE, HHMM, iso, isoOrNull, epochOk, Invalid, check, MERGE } from './merge.js';
+import { CARD, DROP, BADGE, HHMM, iso, isoOrNull, epochOk, detailsOk, detailsTime, Invalid, check, MERGE } from './merge.js';
 
 export { Invalid };
 
@@ -51,7 +51,8 @@ const OVERLAP_MS = 60e3;
 const PULL_EVERY_MS = 5 * 60e3;
 const SHOWN_GAP_MS = 5e3; // shown or focused again within this: no new run
 // Bump to pull everything again (when what is pulled, or how it is merged, changes).
-const PULL_VERSION = 1;
+// Version 2 brought the Welcome details: pulling again also sends up any the server hasn't got.
+const PULL_VERSION = 2;
 
 // Each table's primary key, for the upsert. In this order: progress needs its profile there.
 const TABLES = {
@@ -63,7 +64,7 @@ const TABLES = {
 const ORDER = Object.keys(TABLES);
 // What is pulled: the columns merge.js reads, and the cursor.
 const PULLED = {
-  profiles: 'id,name,lang,avatar,zhuyin,rate,length_unit,temp_unit,drop_day,drop_time,timeline_epoch,timeline_start_at,client_updated_at,created_at,deleted_at',
+  profiles: 'id,name,lang,avatar,zhuyin,rate,length_unit,temp_unit,drop_day,drop_time,timeline_epoch,timeline_start_at,client_updated_at,created_at,deleted_at,age,age_as_of,height_cm,weight_kg,home_country,details_at',
   packs: 'profile_id,epoch,drop_id,seq,card_ids,due_at,granted_at,opened_at',
   collection: 'profile_id,epoch,card_id,collected_at,drop_id',
   badges: 'profile_id,epoch,badge_id,earned_at',
@@ -85,6 +86,8 @@ export function toRow(store, r, familyId) {
       length_unit: p.length, temp_unit: p.temp, drop_day: p.dropDay, drop_time: p.dropTime,
       timeline_epoch: r.timeline?.epoch, timeline_start_at: r.timeline?.startAt,
       client_updated_at: r.settingsAt ?? r.updatedAt, created_at: r.createdAt, deleted_at: r.deletedAt ?? null,
+      age: r.age ?? null, age_as_of: r.ageAsOf ?? null, height_cm: r.heightCm ?? null, weight_kg: r.weightKg ?? null,
+      home_country: r.homeCountry ?? null, details_at: detailsTime(r),
     };
     const length = [...(row.name ?? '')].length;
     check(typeof row.name === 'string' && length >= 1 && length <= 24, 'name');
@@ -94,6 +97,7 @@ export function toRow(store, r, familyId) {
     check(Number.isInteger(row.drop_day) && row.drop_day >= 0 && row.drop_day <= 6 && HHMM.test(row.drop_time ?? ''), 'drop time');
     check(epochOk(row.timeline_epoch) && iso(row.timeline_start_at), 'timeline');
     check(iso(row.client_updated_at) && iso(row.created_at) && isoOrNull(row.deleted_at), 'times');
+    check(detailsOk(r) && isoOrNull(row.details_at), 'details');
     return row;
   }
   // Progress that version 3 marked deleted at a "Start over" is history this device keeps.
