@@ -21,7 +21,8 @@
 - The Supabase project URL and publishable key are public by design and live only in `js/config.js`. The secret/service_role key, the database password and Supabase access tokens never go in the repo (not even in `.env.example`).
 - Check staged files for secrets before every commit.
 - No personal data about the family in the repo (names, photos, locations).
-- Progress data stays on the device (IndexedDB). It is sent only to the family's own Supabase project, and only after a parent signs in. Height, weight, age, home country, quiz scores and Field Notes stay on the device.
+- Progress data stays on the device (IndexedDB). It is sent only to the family's own Supabase project, and only after a parent signs in. Height, weight, age, quiz scores and Field Notes stay on the device.
+- Home country is never sent in any request to wildfile.app or a third party: no URL, header or body carries it, and no file is fetched because of it (the home outlines are one file for everyone). It is kept on the device. The one other place it may be stored is the parent's own Supabase account, through sync, once that is built; `toRow` doesn't send it today.
 - Before any family other than ours uses accounts, the app needs a privacy notice (what is stored, where, for how long, how to delete it).
   It must say that deleting a family's last parent account deletes that family's data on the server (migration 4); devices keep their local copy. And that a family's grown-ups see each other's email addresses (migration 5).
 - `index.html` has a Content Security Policy meta tag allowing only same-origin resources, plus `connect-src` to the Supabase project URL (nothing else). The same CSP is sent as an HTTP header on wildfile.app (see DEPLOYMENT).
