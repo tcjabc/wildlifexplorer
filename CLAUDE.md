@@ -70,6 +70,7 @@ Run through `scripts/test.mjs` only, never `node --test` directly.
 - `npm run bench -- globe|notes`: FPS and frame times. Never automatically: only when the owner asks.
 - Limits on every command: 30 s a test, 5 min a run. No test sets its own longer timeout. Never use watch mode.
 - The browser and any dev server always close, even on failure: teardown in `finally`, and setup after a launch goes through `setUp` in `tests/fixtures/browser.mjs`.
+- Any dev server started for tests is stopped in teardown, or started with a timeout. It must never keep a background task open after the tests finish.
 - Never leave a test or benchmark running in the background without a timeout. If a background task runs past its timeout, kill its whole process tree and report it.
 - Performance on the kids' tablet: don't simulate the G Pad with CPU throttling or a software GPU unless the owner asks. Give a short manual checklist (URL, what to do, what number to note); the owner tests on the real device.
 - When reporting, say which tier ran and how long it took.
