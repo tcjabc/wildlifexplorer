@@ -1016,6 +1016,8 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
     ...(debug && {
       // The volcanoes drawn in the last frame, where (stage px): for tests.
       volcanoesShown: () => volcShown.map(s => ({ en: s.v.name.en, x: s.x, y: s.y })),
+      // [x, y, depth] of a place on the stage now: for checking the picture against the outlines.
+      at(lon, lat) { basis(); return project(toVec(lon, lat)); },
       bench(n = 60) {
         const times = [];
         for (let i = 0; i < n; i++) { view.lon = wrap(view.lon + 1); const t0 = performance.now(); draw(); baseCtx.getImageData(0, 0, 1, 1); overCtx.getImageData(0, 0, 1, 1); times.push(performance.now() - t0); } // reading a pixel back waits until the frame is really drawn

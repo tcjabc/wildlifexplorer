@@ -480,7 +480,16 @@ The hero button at the top of the Globe's toolbar opens a picker that switches o
   `assets/layers/` and `assets/home.json`. After re-running it (or `make-globe.mjs`), bump
   `LAYERS_VERSION` in `sw.js`.
 - Frame rate: grown-ups in preview can add `?debug=fps` to the address to see the globe's frames
-  per second and drawing time while it turns (`?debug=off` to stop).
+  per second and drawing time while it turns (`?debug=off` to stop). It also says which renderer is
+  drawing, and at what pixel ratio.
+- A spike, not what ships: `?globe=webgl` (`&bands=10` for Temperature in steps) draws the base layers
+  through one WebGL 1 shader (`js/globe-base.js`) on a canvas under the 2D ones, at a pixel ratio of at
+  most 1.5. Every layer shares the ocean colour, the land mask and hillshade (`shade-2k.webp`) and the
+  atmosphere. Plain map, Topography and Temperature come from it, and it lies under Forests, Day & night
+  and Plates; Depth and Reefs stay on the 2D canvas, since their shapes lie under the land. Temperature
+  there is the year's mean (`temp-mean-2k.webp`, a number per pixel), so its month slider does nothing, and
+  nothing sharpens as you zoom in. If WebGL is missing or its context is lost, the current layers show.
+  `node scripts/make-layers.mjs base` makes the two textures.
 - Colours live in `css/tokens.css` (`--c-depth-*`, `--c-forest-*`, `--c-temp-scale` …). The
   temperature pictures are painted with `--c-temp-scale`, so re-run `make-layers.mjs temp` if you change it.
 - Sources and licences: [CREDITS.md](CREDITS.md).

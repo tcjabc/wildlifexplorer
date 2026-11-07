@@ -4,7 +4,7 @@
 //  - The globe's own data (land, home outline) and its map layers: cache first, only once
 //    the globe or a layer is first shown (own LAYERS_VERSION).
 // Bump VERSION to throw away the app and image caches.
-const VERSION = 'v45';
+const VERSION = 'v46';
 const SHELL_CACHE = `shell-${VERSION}`;
 const IMAGE_CACHE = `images-${VERSION}`;
 // The globe's files (assets/globe.json, assets/home.json, assets/layers/): big, so only
