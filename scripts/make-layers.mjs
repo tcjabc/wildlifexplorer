@@ -12,6 +12,8 @@ import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import sharp from 'sharp';
 import mapshaper from 'mapshaper';
+import { decodeTopo, DEPTHS } from '../js/layers.js';
+import { toByte } from '../js/globe-months.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const RAW = path.join(ROOT, 'data-raw');
@@ -281,19 +283,46 @@ async function shade(W, H) {
     out[i * 3 + 1] = mask[i];
   }
   const file = path.join(OUT, 'shade-2k.webp');
-  await sharp(out, { raw: { width: W, height: H, channels: 3 } }).webp({ lossless: true, effort: 6 }).toFile(file);
+  await sharp(out, { raw: { width: W, height: H, channels: 3 } }).webp({ nearLossless: true, quality: 40, effort: 6 }).toFile(file);
   console.log(`  shade-2k.webp ${await kb(file)}`);
 }
 
-// temp-mean-2k.webp: the mean of the twelve monthly pictures, as a number and not a colour, so the
-// shader can colour it, band it, and later read it. 0: no data. 1…255: TEMP_MIN…TEMP_MAX °C.
-// The months are read back through the colour scale (the raw files are big and not kept), so this
-// is one year of daytime temperatures, not a long climatology.
-const TEMP_MIN = -30, TEMP_MAX = 50;
-async function tempMean(W, H) {
+// Polygons ([[ [lon, lat]… ]…]) as an SVG path on a W × H map.
+const svgPath = (polys, W, H) => polys.map(rings => rings.map(r => `M${r.map(([lon, lat]) => `${(((lon + 180) / 360) * W).toFixed(2)} ${(((90 - lat) / 180) * H).toFixed(2)}`).join('L')}Z`).join('')).join('');
+const topoShapes = async name => decodeTopo(JSON.parse(await readFile(path.join(OUT, `${name}.topo.json`), 'utf8')));
+const painted = (W, H, back, parts) => sharp(Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}"><rect width="${W}" height="${H}" fill="${back}"/>${parts}</svg>`));
+
+// forests-2k.webp: how much of each pixel is each kind of forest, one kind to a channel.
+async function forestMask(W, H) {
+  const shapes = await topoShapes('forests');
+  const part = (kind, fill) => `<path fill="${fill}" fill-rule="evenodd" d="${svgPath(shapes.filter(f => f.props.kind === kind).flatMap(f => f.polys), W, H)}"/>`;
+  const file = path.join(OUT, 'forests-2k.webp');
+  await painted(W, H, '#000', part('tropical', '#f00') + part('temperate', '#0f0') + part('boreal', '#00f')).webp({ lossless: true, effort: 6 }).toFile(file);
+  console.log(`  forests-2k.webp ${await kb(file)}`);
+}
+
+// depth-2k.webp: the ocean zone, as a number: the middle of its fifth of the scale, so the shader's
+// five bands draw the edges where the zones meet, smooth at any zoom.
+async function depthMap(W, H) {
+  const shapes = await topoShapes('depth');
+  const grey = z => { const b = 1 + Math.round(((z + 0.5) / 5) * 254); return `rgb(${b},${b},${b})`; };
+  const parts = DEPTHS.map((d, i) => `<path fill="${grey(i + 1)}" fill-rule="evenodd" d="${svgPath(shapes.filter(f => f.props.depth === d).flatMap(f => f.polys), W, H)}"/>`).join('');
+  const data = await painted(W, H, grey(0), parts).extractChannel(0).raw().toBuffer();
+  const file = path.join(OUT, 'depth-2k.webp');
+  await sharp(data, { raw: { width: W, height: H, channels: 1 } }).webp({ lossless: true, effort: 6 }).toFile(file);
+  console.log(`  depth-2k.webp ${await kb(file)}`);
+}
+
+// temp-months-1…3.webp: the twelve months as numbers, not colours, one to a channel, four to a file
+// (js/globe-months.js), so the shader can mix two months and colour them after. They are read back
+// through the colour scale, since the raw files are big and not kept, and small enough to fetch in
+// idle time. Places with no reading in a month (sea ice in its winter) take the nearest reading, so a
+// month never has a hole to fall through while it morphs.
+const MONTH_W = 720, MONTH_H = 360;
+async function tempMonths() {
   const stops = (await token('--c-temp-scale')).split(',').map(s => { const [v, c] = s.trim().split(/\s+/); return { v: Number(v), rgb: hex(c) }; });
   const scale = [];
-  for (let v = TEMP_MIN; v <= TEMP_MAX; v += 0.5) {
+  for (let v = stops[0].v; v <= stops.at(-1).v; v += 0.5) {
     const i = Math.max(1, stops.findIndex(st => v <= st.v)), a = stops[i - 1], b = stops[i], t = (v - a.v) / (b.v - a.v);
     scale.push({ v, rgb: a.rgb.map((x, k) => x + (b.rgb[k] - x) * t) });
   }
@@ -310,22 +339,56 @@ async function tempMean(W, H) {
     }
     return table[key];
   };
-  const sum = new Float32Array(W * H), n = new Uint8Array(W * H);
+  const N = MONTH_W * MONTH_H, out = [0, 1, 2].map(() => Buffer.alloc(N * 4));
   for (let month = 1; month <= 12; month++) {
-    const file = path.join(OUT, `temp-${String(month).padStart(2, '0')}.webp`);
-    const { data } = await sharp(file).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
-    for (let i = 0, p = 0; i < W * H; i++, p += 4) if (data[p + 3] >= 128) { sum[i] += valueOf(data[p], data[p + 1], data[p + 2]); n[i]++; }
+    const { data, info: { width: W, height: H } } = await sharp(path.join(OUT, `temp-${String(month).padStart(2, '0')}.webp`)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    const sum = new Float32Array(N), n = new Uint16Array(N);
+    for (let y = 0; y < H; y++) {
+      const cy = Math.min(MONTH_H - 1, Math.floor((y * MONTH_H) / H));
+      for (let x = 0; x < W; x++) {
+        const p = (y * W + x) * 4;
+        if (data[p + 3] < 128) continue;
+        const c = cy * MONTH_W + Math.min(MONTH_W - 1, Math.floor((x * MONTH_W) / W));
+        sum[c] += valueOf(data[p], data[p + 1], data[p + 2]);
+        n[c]++;
+      }
+    }
+    const v = Float32Array.from(sum, (t, i) => (n[i] ? t / n[i] : NaN));
+    // Gaps fill inwards from their edges, the map wrapping round at 180°.
+    for (let gaps = true; gaps;) {
+      gaps = false;
+      const next = v.slice();
+      for (let y = 0; y < MONTH_H; y++) {
+        for (let x = 0; x < MONTH_W; x++) {
+          const i = y * MONTH_W + x;
+          if (!Number.isNaN(v[i])) continue;
+          let t = 0, k = 0;
+          for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+            const yy = y + dy;
+            if (yy < 0 || yy >= MONTH_H) continue;
+            const u = v[yy * MONTH_W + ((x + dx + MONTH_W) % MONTH_W)];
+            if (!Number.isNaN(u)) { t += u; k++; }
+          }
+          if (k) next[i] = t / k; else gaps = true;
+        }
+      }
+      v.set(next);
+    }
+    const file = out[Math.floor((month - 1) / 4)], ch = (month - 1) % 4;
+    for (let i = 0; i < N; i++) file[i * 4 + ch] = toByte(v[i]);
   }
-  const out = Buffer.alloc(W * H);
-  for (let i = 0; i < W * H; i++) if (n[i]) out[i] = 1 + Math.round(((Math.max(TEMP_MIN, Math.min(TEMP_MAX, sum[i] / n[i])) - TEMP_MIN) / (TEMP_MAX - TEMP_MIN)) * 254);
-  const file = path.join(OUT, 'temp-mean-2k.webp');
-  await sharp(out, { raw: { width: W, height: H, channels: 1 } }).webp({ lossless: true, effort: 6 }).toFile(file);
-  console.log(`  temp-mean-2k.webp ${await kb(file)}`);
+  for (const [i, data] of out.entries()) {
+    const file = path.join(OUT, `temp-months-${i + 1}.webp`);
+    await sharp(data, { raw: { width: MONTH_W, height: MONTH_H, channels: 4 } }).webp({ lossless: true, effort: 6 }).toFile(file);
+    console.log(`  temp-months-${i + 1}.webp ${await kb(file)}`);
+  }
 }
 
 async function base() {
   await shade(2048, 1024);
-  await tempMean(2048, 1024);
+  await forestMask(2048, 1024);
+  await depthMap(2048, 1024);
+  await tempMonths();
 }
 
 // ---------- shapes (mapshaper) ----------

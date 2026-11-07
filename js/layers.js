@@ -5,6 +5,7 @@
 // layer.load({ col, month }) resolves to a spec for globe.setLayer() (see js/globe.js).
 import { prepare, toVec, prepareLines } from './globe.js';
 import { RELIEF_TILES } from './globe-tiles.js';
+import { TEMP_BANDS } from './globe-months.js';
 
 const DIR = 'assets/layers/';
 const DEG = Math.PI / 180;
@@ -131,6 +132,7 @@ export const LAYERS = [
   },
   {
     id: 'forests', emoji: '🌳',
+    gpu: ({ col }) => ({ base: { kind: 'classes', tex: `${DIR}forests-2k.webp`, colours: FORESTS.map(k => col(`--c-forest-${k}`)), hill: 0.5 } }),
     async load({ col }) {
       return { land: await shapesBy('forests', 'kind', FORESTS, k => col(`--c-forest-${k}`)) };
     },
@@ -145,29 +147,36 @@ export const LAYERS = [
   },
   {
     id: 'night', emoji: '🌙', live: true,
-    // City lights from lights.json (scripts/make-layers.mjs): [lon, lat, b (1–99)] in 0.01°,
-    // brightest first. Drawn by js/globe.js (drawNight), without WebGL.
+    // The shade is the shader's (js/globe-base.js), or without it drawNight's in js/globe.js. The city
+    // lights are drawn by drawNight on top, either way.
+    async gpu({ col }) {
+      const sun = sunVector();
+      return {
+        base: { kind: 'flat', hill: 0.5, night: { sun, shade: col('--c-night'), twilight: col('--c-twilight') } },
+        night: { sun, lights: await cityLights(), light: col('--c-city-lights'), lightsOnly: true },
+      };
+    },
     async load({ col }) {
-      const d = await getJson(`${DIR}lights.json`);
-      const n = d.points.length / 3, vecs = new Float32Array(n * 3), b = new Float32Array(n);
-      for (let i = 0; i < n; i++) {
-        vecs.set(toVec(d.points[i * 3] * d.unit, d.points[i * 3 + 1] * d.unit), i * 3);
-        b[i] = d.points[i * 3 + 2] / 99;
-      }
       const rgb255 = c => rgb(c).map(x => Math.round(x * 255));
-      return { night: { sun: sunVector(), lights: { vecs, b }, shade: rgb255(col('--c-night')), twilight: rgb255(col('--c-twilight')), light: col('--c-city-lights') } };
+      return { night: { sun: sunVector(), lights: await cityLights(), shade: rgb255(col('--c-night')), twilight: rgb255(col('--c-twilight')), light: col('--c-city-lights') } };
     },
     tick: () => ({ sun: sunVector() }),
   },
   {
     id: 'temp', emoji: '🌡️', months: true,
-    gpu: ({ col }) => ({ base: { kind: 'ramp', tex: `${DIR}temp-mean-2k.webp`, stops: tempStops(col), bands: 10, hill: 0.35 } }),
+    gpu: ({ col, month }) => ({ base: { kind: 'months', stops: tempStops(col), bands: TEMP_BANDS, hill: 0.35, pos: month } }),
     async load({ month }) {
       return { raster: { mode: 'picture', tex: `${DIR}temp-${String(month).padStart(2, '0')}.webp` } };
     },
   },
   {
     id: 'depth', emoji: '🌊',
+    // The zones as five bands of one scale: each colour holds across its fifth.
+    gpu: ({ col }) => {
+      const zone = ['--c-map-sea', ...DEPTHS.map((d, i) => `--c-depth-${i + 1}`)].map(col);
+      const stops = [{ v: 0, colour: zone[0] }, ...zone.map((colour, i) => ({ v: (i + 0.5) / 5, colour })), { v: 1, colour: zone[4] }];
+      return { base: { kind: 'ramp', tex: `${DIR}depth-2k.webp`, stops, bands: 5, sea: true, hill: 0.5 } };
+    },
     async load({ col }) {
       return { sea: await shapesBy('depth', 'depth', DEPTHS, (d, i) => col(`--c-depth-${i + 1}`), { curve: DEPTH_CURVE, nearK: DEPTH_NEAR_K }) };
     },
@@ -185,6 +194,17 @@ export const LAYERS = [
     },
   },
 ];
+
+// City lights from lights.json (scripts/make-layers.mjs): [lon, lat, b (1–99)] in 0.01°, brightest first.
+async function cityLights() {
+  const d = await getJson(`${DIR}lights.json`);
+  const n = d.points.length / 3, vecs = new Float32Array(n * 3), b = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    vecs.set(toVec(d.points[i * 3] * d.unit, d.points[i * 3 + 1] * d.unit), i * 3);
+    b[i] = d.points[i * 3 + 2] / 99;
+  }
+  return { vecs, b };
+}
 
 // plates.json: [kind letter, side, lon, lat, then steps from the point before] in 0.01°.
 export function plateLines(d) {

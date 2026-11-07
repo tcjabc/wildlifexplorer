@@ -517,7 +517,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
     fillAll(layer?.sea);
 
     // Graticule (near side only). A picture covers it, on either renderer.
-    if (!layer?.base) {
+    if (!['picture', 'months'].includes(layer?.base?.kind)) {
       ctx.strokeStyle = col.grid; ctx.lineWidth = 1;
       ctx.beginPath();
       for (const line of GRATICULE) {
@@ -534,7 +534,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
 
     if (polys && !gl) fillPolys(view.k >= NEAR_K ? polys.near : polys.far, col.land);
     fillAll(layer?.land);
-    if (layer?.night) drawNight(layer.night);
+    if (layer?.night) drawNight(gl || !layer.night.lightsOnly ? layer.night : { ...layer.night, lightsOnly: false });
     ctx.restore();
 
     // The picture layer, if any, between the two canvases.
@@ -811,7 +811,12 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
     lut = { key, px: new Uint32Array(bytes.buffer) };
     return lut.px;
   }
-  function drawNight({ sun, lights, shade, twilight, light }) {
+  function drawNight({ sun, lights, shade, twilight, light, lightsOnly }) {
+    const { cx, cy, r, w, h: ht } = B;
+    if (!lightsOnly) nightSide(sun, shade, twilight);
+    drawLights(sun, lights, light);
+  }
+  function nightSide(sun, shade, twilight) {
     const { cx, cy, r, w, h: ht } = B;
     const x0 = Math.max(0, Math.floor(cx - r)), y0 = Math.max(0, Math.floor(cy - r));
     const x1 = Math.min(w, Math.ceil(cx + r)), y1 = Math.min(ht, Math.ceil(cy + r));
@@ -843,9 +848,11 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
     shadeBuf.g.putImageData(shadeBuf.img, 0, 0);
     ctx.imageSmoothingEnabled = true;
     ctx.drawImage(shadeBuf.c, 0, 0, bw, bh, x0 - NIGHT_PX, y0 - NIGHT_PX, bw * NIGHT_PX, bh * NIGHT_PX);
-
-    // The lights: the brightest first, more of them zoomed in; on the near side, on screen,
-    // and only where the sun is down (fading in through the twilight).
+  }
+  // The lights: the brightest first, more of them zoomed in; on the near side, on screen,
+  // and only where the sun is down (fading in through the twilight).
+  function drawLights(sun, lights, light) {
+    const { cx, cy, r, w, h: ht } = B;
     const sprite = glow(light), { vecs, b } = lights;
     const n = lightCount(view.k, b.length), s0 = clamp(2.4 * Math.sqrt(view.k), 2.4, 10);
     ctx.globalCompositeOperation = 'lighter';
@@ -1070,6 +1077,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
     // Change the layer's settings (e.g. where the sun is) without reloading it.
     updateLayer(patch) {
       if (layer?.night) Object.assign(layer.night, patch);
+      base?.update(patch);
       if (layer?.raster) sphere?.update(patch);
       dirty = true;
     },
