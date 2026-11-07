@@ -240,6 +240,16 @@ both('the water bear has partners of its own, and 2 of it make a grain of sand',
   assert.deepEqual(await f.said(), ['1', '2 grains of salt = 1 water bear']);
 });
 
+run('the caption gives the card\'s statistic, not the size of the picture', async f => {
+  await f.card('bengal-tiger');
+  await f.swipe();
+  await f.tap('.hbtn[data-heading="size"]');
+  await f.wait(800);
+  const text = await f.page.evaluate(() => document.querySelector('.cmp-len').textContent);
+  assert.match(text, /164–211 cm/);
+  assert.doesNotMatch(text, /225/);
+});
+
 both('the cherry is drawn as a tree, with its own partners', async f => {
   await f.card('taiwan-cherry');
   await f.swipe();

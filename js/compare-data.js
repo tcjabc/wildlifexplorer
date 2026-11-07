@@ -32,6 +32,17 @@ export function sizeOf(card) {
   return null;
 }
 
+// The statistic under an animal in the comparison, as { min, max }: what the card says about its
+// size, not how big its picture is drawn. A card sized by height shows its height; compare.stat names
+// another one (a flying fox, drawn wings out, shows its wingspan).
+export function sizeStat(card) {
+  const s = card.stats ?? {};
+  const r = card.compare?.stat ? s[card.compare.stat]
+    : card.compare?.height ? s.heightCm ?? s.lengthCm
+      : s.lengthCm ?? s.heightCm ?? s.wingspanCm;
+  return typeof r === 'number' ? { min: r } : r ?? null;
+}
+
 // The picture a comparison draws: the card's silhouette, unless the card says otherwise. A cherry's
 // silhouette is its fruit, for stamps; beside a child it has to be the tree (compare.silhouette).
 export const compareImage = card => card.compare?.silhouette?.file ?? card.silhouette?.file ?? null;

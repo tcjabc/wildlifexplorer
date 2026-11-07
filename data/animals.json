@@ -1533,7 +1533,8 @@
       }
     },
     "compare": {
-      "width": 133
+      "width": 133,
+      "stat": "wingspanCm"
     },
     "related": [],
     "silhouette": {

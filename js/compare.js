@@ -11,7 +11,7 @@ import { bi, t, tx } from './i18n.js';
 import { state, groupById, currentAge } from './store.js';
 import { lengthText } from './units.js';
 import { haptic } from './gesture.js';
-import { CHILD_RATIO, PARTNERS, compareImage, numbers, sizeOf } from './compare-data.js';
+import { CHILD_RATIO, PARTNERS, compareImage, numbers, sizeOf, sizeStat } from './compare-data.js';
 
 const cssNum = name => parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
 
@@ -82,6 +82,7 @@ export const animalImg = (card, cls) => compareImage(card)
 
 function lengthScene(card, run, who) {
   const size = sizeOf(card);
+  const stat = sizeStat(card);
   const ground = h('div', { class: 'cmp-len' });
   const kidImg = whoImg(who, 'cmp-len__img');
   const pic = animalImg(card, 'cmp-len__img');
@@ -89,7 +90,7 @@ function lengthScene(card, run, who) {
     h('figure', { class: 'cmp-len__item' }, kidImg,
       h('figcaption', null, bi(who.name), h('span', { class: 'cmp__num' }, bi(lengthText(who.showCm ?? who.cm))))),
     h('figure', { class: 'cmp-len__item' }, pic,
-      h('figcaption', null, bi(card.name), h('span', { class: 'cmp__num' }, bi(lengthText(size.cm))))));
+      h('figcaption', null, bi(card.name), h('span', { class: 'cmp__num' }, bi(stat ? lengthText(stat.min, stat.max) : lengthText(size.cm))))));
 
   // Once the silhouette's shape is known, size both so 1 cm is the same on each.
   const layout = () => {

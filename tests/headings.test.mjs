@@ -7,7 +7,7 @@ import {
   SPECIES_HEADINGS, TOPIC_HEADINGS, VIEW_HAS, hasCall, headingSet, headingsFor, isTopic, textOf, viewFor,
 } from '../js/headings.js';
 import { KEY_ORDER } from '../scripts/lib/card-schema.mjs';
-import { COUNT_MAX, EVERYDAY, PARTNERS, compareImage, countFor, modesFor, sizeOf, startWith, whoOf } from '../js/compare-data.js';
+import { COUNT_MAX, EVERYDAY, PARTNERS, compareImage, countFor, modesFor, sizeOf, sizeStat, startWith, whoOf } from '../js/compare-data.js';
 
 const cards = JSON.parse(await readFile(new URL('../data/animals.json', import.meta.url), 'utf8'));
 const species = cards.filter(c => !isTopic(c));
@@ -143,6 +143,18 @@ test('a comparison can draw another picture than the card\'s silhouette', () => 
   assert.equal(compareImage({}), null);
   assert.deepEqual(sizeOf(cherry), { cm: 550, across: false });
   assert.deepEqual(whoOf(cherry), ['you', 'adult', 'car']);
+});
+
+test('the caption says what the card says, not how big the picture is drawn', () => {
+  const stat = id => sizeStat(cards.find(c => c.id === id));
+  assert.deepEqual(stat('bengal-tiger'), { min: 164, max: 211 });
+  assert.deepEqual(stat('hippopotamus'), { min: 330, max: 345 }, 'drawn by height, and it has no height');
+  assert.deepEqual(stat('taiwan-serow'), { min: 50, max: 70 });
+  assert.deepEqual(stat('western-lowland-gorilla'), { min: 140, max: 180 });
+  assert.deepEqual(stat('formosan-flying-fox'), { min: 124, max: 141 }, 'wings out: its wingspan');
+  assert.deepEqual(stat('atlas-moth'), { min: 20, max: 25 });
+  assert.deepEqual(stat('taiwan-cherry'), { min: 300, max: 800 });
+  assert.equal(sizeStat({ compare: { width: 50 } }), null);
 });
 
 test('a coiled snake has no count: its picture is 30 cm across, the snake 85 cm long', () => {

@@ -365,7 +365,9 @@ The inside uses these optional fields. Any you leave out are simply not shown.
   `cat`, `car`, `sand`, `hair`, `salt`: `PARTNERS` in `js/compare-data.js`); `silhouette`, a picture of its
   own for the comparison, with the usual credit fields, when the card's silhouette isn't the right one
   (a cherry's is its fruit); `counted`, `{ one, many }`, the words for the sand and salt counts; and
-  `noCount`, no row of figures for the length (a coiled snake). The silhouette itself is found by the build (from
+  `noCount`, no row of figures for the length (a coiled snake); and `stat`, which statistic the caption
+  shows, when it isn't the usual one (a flying fox, drawn wings out, shows `wingspanCm`). The caption
+  always gives the card's statistic, never the size of the picture. The silhouette itself is found by the build (from
   PhyloPic, CC0/PD/CC BY/CC BY-SA only) and stored in `silhouette`. If there is none for the exact
   species, a related animal's is used and the report says so.
 - **range** / **mapBounds**: where the animal lives, drawn as a soft filled shape in the group's
