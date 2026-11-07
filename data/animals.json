@@ -693,6 +693,9 @@
         "max": 7.6
       }
     },
+    "compare": {
+      "width": 85
+    },
     "related": [],
     "silhouette": {
       "file": "img/silhouettes/chinese-pangolin-06a2d0.svg",
@@ -2891,6 +2894,9 @@
         "max": 65
       }
     },
+    "compare": {
+      "width": 190
+    },
     "related": [],
     "silhouette": {
       "file": "img/silhouettes/cheetah-photo-e378d6.png",
@@ -4060,6 +4066,9 @@
         "max": 170
       }
     },
+    "compare": {
+      "height": 130
+    },
     "related": [],
     "silhouette": {
       "file": "img/silhouettes/western-lowland-gorilla-df2e2a.svg",
@@ -5031,6 +5040,9 @@
         }
       }
     },
+    "compare": {
+      "width": 30
+    },
     "related": [],
     "silhouette": {
       "file": "img/silhouettes/brown-spotted-pit-viper-2efefa.svg",
@@ -5211,16 +5223,16 @@
       }
     },
     "compare": {
-      "height": 30
+      "width": 30
     },
     "related": [],
     "silhouette": {
-      "file": "img/silhouettes/formosan-landlocked-salmon-e74227.svg",
-      "author": "Unknown",
+      "file": "img/silhouettes/formosan-landlocked-salmon-c9b05a.svg",
+      "author": "Steven Traver",
       "license": "CC0 1.0",
       "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-      "sourceUrl": "https://www.phylopic.org/images/da335376-7980-4e23-b310-4fa9ba042a9b",
-      "taxon": "Oncorhynchus masou"
+      "sourceUrl": "https://www.phylopic.org/images/82219991-3199-4f7d-afd9-d9bb466dcf71",
+      "taxon": "Oncorynchus mykiss"
     },
     "stamp": true,
     "taxonomy": {
@@ -5257,7 +5269,8 @@
     },
     "wikidata": "Q704366",
     "locked": [
-      "illustration"
+      "illustration",
+      "silhouette"
     ],
     "_draft": [
       "facts",
@@ -5415,12 +5428,12 @@
     },
     "related": [],
     "silhouette": {
-      "file": "img/silhouettes/atlas-moth-817479.svg",
-      "author": "Lauren Otolski",
+      "file": "img/silhouettes/atlas-moth-94a16f.svg",
+      "author": "Jamie Whitehouse",
       "license": "CC0 1.0",
       "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-      "sourceUrl": "https://www.phylopic.org/images/db83e712-f735-40b0-94f4-a5db2c3ee0b7",
-      "taxon": "Eacles imperialis"
+      "sourceUrl": "https://www.phylopic.org/images/2529b2ba-ac5a-438c-b4cc-f93fbfe75057",
+      "taxon": "Saturnia pavonia"
     },
     "stamp": true,
     "taxonomy": {
@@ -5457,7 +5470,8 @@
     },
     "wikidata": "Q167435",
     "locked": [
-      "illustration"
+      "illustration",
+      "silhouette"
     ],
     "_draft": [
       "facts",
