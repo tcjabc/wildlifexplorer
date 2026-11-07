@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Makes the Globe's map layers (assets/layers/) and the home outline (assets/home.json)
 // from big public datasets. Run: node scripts/make-layers.mjs [relief tiles night temp depth
-// forests reefs plates volcanoes home] (no names = all).
+// forests reefs plates volcanoes home base] (no names = all).
 //
 // Raw downloads go into data-raw/ (git-ignored) and are reused. Only the small processed
 // files are committed. Sources and licences: CREDITS.md.
@@ -251,6 +251,82 @@ async function temp() {
     await sharp(out, { raw: { width: W, height: H, channels: 4 } }).webp({ quality: 78, alphaQuality: 60, effort: 6 }).toFile(file);
     console.log(`  temp-${mm}.webp ${await kb(file)}${missing ? ` (${missing} pixels with unknown colours skipped)` : ''}`);
   }
+}
+
+// ---------- the WebGL base layers (?globe=webgl, js/globe-base.js) ----------
+
+// Land as a mask, from the very outlines the coastline is drawn from, so the two line up.
+async function landMask(W, H) {
+  const d = JSON.parse(await readFile(path.join(ROOT, 'assets/globe.json'), 'utf8'));
+  const x = lon => (((lon * d.unit + 180) / 360) * W).toFixed(2), y = lat => (((90 - lat * d.unit) / 180) * H).toFixed(2);
+  const ring = f => { let p = ''; for (let i = 0; i < f.length; i += 2) p += `${i ? 'L' : 'M'}${x(f[i])} ${y(f[i + 1])}`; return `${p}Z`; };
+  const paths = d.near.map(rings => `<path fill-rule="evenodd" d="${rings.map(ring).join('')}"/>`).join('');
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}"><rect width="${W}" height="${H}" fill="#000"/><g fill="#fff">${paths}</g></svg>`;
+  return sharp(Buffer.from(svg)).extractChannel(0).raw().toBuffer();
+}
+
+// shade-2k.webp: red is the hillshade (128 is flat, so the sea changes nothing), green the land
+// mask. The hillshade is Natural Earth's shaded relief in grey with its broad tints taken out
+// (all but what changes within a few pixels), which leaves the mountains and not the deserts.
+const SHADE_BLUR = 10, SHADE_GAIN = 2.2;
+async function shade(W, H) {
+  const tif = await find(await unpacked('relief'), /\.tif$/i);
+  // extractChannel: raw output is otherwise three channels, whatever went in.
+  const sharpGrey = await sharp(tif, big).resize(W, H, { kernel: 'lanczos3' }).greyscale().extractChannel(0).raw().toBuffer();
+  const soft = await sharp(sharpGrey, { raw: { width: W, height: H, channels: 1 } }).blur(SHADE_BLUR).extractChannel(0).raw().toBuffer();
+  const mask = await landMask(W, H);
+  const out = Buffer.alloc(W * H * 3);
+  for (let i = 0; i < W * H; i++) {
+    const land = mask[i] / 255;
+    out[i * 3] = Math.max(0, Math.min(255, Math.round(128 + (sharpGrey[i] - soft[i]) * SHADE_GAIN * land)));
+    out[i * 3 + 1] = mask[i];
+  }
+  const file = path.join(OUT, 'shade-2k.webp');
+  await sharp(out, { raw: { width: W, height: H, channels: 3 } }).webp({ lossless: true, effort: 6 }).toFile(file);
+  console.log(`  shade-2k.webp ${await kb(file)}`);
+}
+
+// temp-mean-2k.webp: the mean of the twelve monthly pictures, as a number and not a colour, so the
+// shader can colour it, band it, and later read it. 0: no data. 1…255: TEMP_MIN…TEMP_MAX °C.
+// The months are read back through the colour scale (the raw files are big and not kept), so this
+// is one year of daytime temperatures, not a long climatology.
+const TEMP_MIN = -30, TEMP_MAX = 50;
+async function tempMean(W, H) {
+  const stops = (await token('--c-temp-scale')).split(',').map(s => { const [v, c] = s.trim().split(/\s+/); return { v: Number(v), rgb: hex(c) }; });
+  const scale = [];
+  for (let v = TEMP_MIN; v <= TEMP_MAX; v += 0.5) {
+    const i = Math.max(1, stops.findIndex(st => v <= st.v)), a = stops[i - 1], b = stops[i], t = (v - a.v) / (b.v - a.v);
+    scale.push({ v, rgb: a.rgb.map((x, k) => x + (b.rgb[k] - x) * t) });
+  }
+  // Every colour to its place on the scale, at 6 bits a channel.
+  const table = new Float32Array(64 ** 3).fill(NaN);
+  const valueOf = (r, g, b) => {
+    const key = ((r >> 2) << 12) | ((g >> 2) << 6) | (b >> 2);
+    if (Number.isNaN(table[key])) {
+      let best = Infinity;
+      for (const st of scale) {
+        const d = (st.rgb[0] - r) ** 2 + (st.rgb[1] - g) ** 2 + (st.rgb[2] - b) ** 2;
+        if (d < best) { best = d; table[key] = st.v; }
+      }
+    }
+    return table[key];
+  };
+  const sum = new Float32Array(W * H), n = new Uint8Array(W * H);
+  for (let month = 1; month <= 12; month++) {
+    const file = path.join(OUT, `temp-${String(month).padStart(2, '0')}.webp`);
+    const { data } = await sharp(file).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    for (let i = 0, p = 0; i < W * H; i++, p += 4) if (data[p + 3] >= 128) { sum[i] += valueOf(data[p], data[p + 1], data[p + 2]); n[i]++; }
+  }
+  const out = Buffer.alloc(W * H);
+  for (let i = 0; i < W * H; i++) if (n[i]) out[i] = 1 + Math.round(((Math.max(TEMP_MIN, Math.min(TEMP_MAX, sum[i] / n[i])) - TEMP_MIN) / (TEMP_MAX - TEMP_MIN)) * 254);
+  const file = path.join(OUT, 'temp-mean-2k.webp');
+  await sharp(out, { raw: { width: W, height: H, channels: 1 } }).webp({ lossless: true, effort: 6 }).toFile(file);
+  console.log(`  temp-mean-2k.webp ${await kb(file)}`);
+}
+
+async function base() {
+  await shade(2048, 1024);
+  await tempMean(2048, 1024);
 }
 
 // ---------- shapes (mapshaper) ----------
@@ -586,7 +662,7 @@ async function home() {
 
 // ---------- main ----------
 
-const STEPS = { relief, tiles, night, temp, depth, forests, reefs, plates, volcanoes, home };
+const STEPS = { relief, tiles, night, temp, depth, forests, reefs, plates, volcanoes, home, base };
 const wanted = process.argv.slice(2);
 for (const w of wanted) if (!STEPS[w]) throw new Error(`Unknown layer "${w}" (have: ${Object.keys(STEPS).join(', ')})`);
 await mkdir(RAW, { recursive: true });
