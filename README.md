@@ -12,12 +12,15 @@ It runs at https://wildfile.app/ (Cloudflare) and works fully offline once it ha
   whole family; packs, binder, badges and quiz scores are per profile.
 - **Packs**: a pack of 3 cards arrives every week, starting with Series 1, Week 1 when the profile
   is made. A sheet says "New pack arrived!"; packs wait in **Packs** until the child opens them.
-- **Card view**: big photo (or the illustration when there is no photo), names, fun facts, habitat,
-  IUCN conservation badge, "Found in Taiwan" badge, and a credit line you can tap.
+- **Card view**: the camera zooms from the binder onto a wooden desk, with the card filling the page.
+  Open it and one large stage sits beside a fixed grid of eight picture headings, the same on every
+  card, so children who can't read yet learn them. Tapping a heading says its name, reads its text and
+  switches the stage to match.
 - **Badges**: for finishing a group, Bronze/Silver/Gold for continents and habitats, and secret
   badges. **Quiz**: picture → name, and true/false facts.
-- **Creature comparison**: You (the animal against your own size) or Animal (lookalikes side by
-  side, with how to tell them apart). **Globe**: filter the pins by continent or habitat, or hide
+- **Creature comparison**, on the whole stage: You (the animal against your own size, or a grown-up,
+  a cat or a car, with a row of figures to tap and count) or Animal (lookalikes side by side, with how
+  to tell them apart). **Globe**: filter the pins by continent or habitat, or hide
   them all with the paw button to see the map on its own.
 - **Field Notes**: a researcher's notebook per profile. Draw with a pencil, pen and highlighter
   (pen pressure and palm rejection), rule straight lines, write, stamp collected animals, roll
@@ -207,12 +210,16 @@ Each card looks like this:
 ```
 
 - **facts**: three `{ en, zh }` pairs. Empty facts are simply not shown. Short sentences
-  read aloud best. For topic cards the facts appear under "About this topic 認識這個主題".
-- **factFile**: the Fact File on the back of the card, written for older kids (pre-teen) with real
+  read aloud best. For topic cards the facts appear under "About this topic 認識這個主題" on the
+  cover, and under the headings inside (`factHeadings`).
+- **factHeadings**: on a topic card, the heading each fact goes under, in order, for example
+  `["what", "wow", "who"]`. Written by hand; the build never touches it. Without it: What, Wow, Did you
+  know. See "Inside a card".
+- **factFile**: the text under a card's headings, written for older kids (pre-teen) with real
   vocabulary. Each section (`habitat`, `breeding`, `behaviour`, `foodAndHunting`, `conservation`)
-  is a list of short paragraphs, each one `{ en, zh }` pair; `didYouKnow` is a list of 1–2 pairs,
-  shown in a callout. Empty slots are not shown, and the build report lists them under "Still to
-  write". Topic cards have no Fact File.
+  is a list of short paragraphs, each one `{ en, zh }` pair; `didYouKnow` is a list of 1–2 pairs.
+  A heading with nothing to show is greyed out. Empty slots are not shown, and the build report lists them under "Still to
+  write". Topic cards have no `factFile`.
   - **todo**: a paragraph (or `stats.development` / `stats.youngCount`) with `"todo": "what to
     check, and the source tried"` has not been confirmed. Only grown-ups in preview see it, marked
     with a dashed line; the build report lists every todo. Delete the key once it is checked.
@@ -227,7 +234,7 @@ Each card looks like this:
   dark one. Recomputed on every build from the tile's thumbnail (`scripts/lib/label-tone.mjs`);
   list it in `locked` to set it by hand. The build report checks the text against the pill over
   every pixel of the corner and lists any busy corners.
-- **_sources**: where the Fact File's facts come from (`[{ "title", "url" }]`), next to `_draft`.
+- **_sources**: where the `factFile`'s facts come from (`[{ "title", "url" }]`), next to `_draft`.
 - **status**: an IUCN code — `EX` `EW` `CR` `EN` `VU` `NT` `LC` `DD` `NE` — or `null`.
 - **photo / illustration**: to use your own picture, put it in `img/`, then fill in all five
   fields (`file`, `author`, `license`, `licenseUrl`, `sourceUrl`). The next build makes its thumbnail
@@ -255,20 +262,49 @@ You can re-run the build as often as you like:
 Commit `data/build-state.json` along with `animals.json`. If it is ever lost, the build treats
 every field that already has a value as yours and leaves it alone.
 
-### The inside and back of a card
+### Inside a card
 
-Cards are bi-folds like the original Wildlife Explorer cards, every page 4:5 (448 × 560 at design size):
+A card has a cover and an inside, both at design size 448 × 560 (4:5), scaled as a whole. There is no
+back: everything is under the headings.
 
-- **Front (Card)**: group, card number and series (S1), the taxonomy strip (order · family · genus
-  and species), the photo and name, **Key Features** (the first three facts) and **Where in the
-  World** (the small map, the IUCN status and "Found in Taiwan"; these appear only here).
-- **Back (Fact File)**: Habitat (with a bigger range map), Breeding, Behaviour, Food & Hunting,
-  Conservation and a "Did You Know?" callout, from `factFile`. It scrolls inside the card.
-- **Open (Profile spread)**: on the left the Profile picture with numbered labels drawn on it; on
-  the right Vital Statistics, Creature Comparisons (You / Animal) and Related Species.
+- **The cover**: group, card number and series (S1), the taxonomy strip (order · family · genus and
+  species), the photo and name, **Key Features** (the first three facts) and **Where in the World**
+  (the small map, the IUCN status and "Found in Taiwan"). Pack reveals show this too.
+- **The inside**: a large **stage** and a **menu**, a fixed 4 × 2 grid of heading buttons with the text
+  of the lit one underneath. Side by side where the space is wide; stacked, stage on top, where it is
+  tall (portrait, or beside the expanded notebook): `openLayout` in `js/card-layout.js`. Tapping a
+  heading lights it, says its name, reads its text and switches the stage. Tapping it again stops
+  and goes back to the gallery (the photo and illustration). A heading a card has nothing for is grey,
+  never missing, so nothing ever moves. Buttons never go under 64 px on the screen (`--tap-heading`).
 
-The open spread comes from these optional fields. Any you leave out are simply not shown, and a
-card with none of them doesn't open.
+Every card has the same grid (`js/headings.js`, tested on every card in `tests/headings.test.mjs`):
+
+| Place | Species cards | Stage | Topic cards | Stage |
+|---|---|---|---|---|
+| 1 | 🏠 Habitat | photo | ❓ What is it? | photo |
+| 2 | 🍃 Food & Hunting | diet plate, or photo | ⚙️ How it works | photo |
+| 3 | 🥚 Babies | babies to count, or photo | 👀 Who to look for | `related` cards, or photo |
+| 4 | 🐾 Behaviour | the Profile magnifier, or photo | 🕒 When | photo |
+| 5 | 📏 Size | creature comparison | ⭐ Wow! | photo |
+| 6 | 🌍 Where in the World | map | 🌍 Where | map |
+| 7 | ❤️ Status | Red List scale | ❤️ How we help | photo |
+| 8 | 💡 Did You Know? | photo | 💡 Did you know | photo |
+
+Topic cards are the four groups Exploring Behavior, World Explorer, Conservation Issues and How Animals
+Work. Their text is their `facts`, sorted by `factHeadings`. The map shows the range if there is one,
+otherwise a pin on the card's `place`, otherwise its `continents` lit up (`js/continents.js`).
+
+**A card's own stage**: `"stage": { "food": "profile" }` makes a heading show another view, if the card
+can. **A new kind of view** (a Stepper, say) is three small steps, listed at the top of `js/headings.js`:
+a line in `VIEW_HAS`, a builder in `STAGE_VIEWS` (`js/stage-views.js`), and its name in a heading's
+`views` or a card's `stage`.
+
+**An animal's call**: `"call": { "file": "audio/calls/formosan-black-bear.m4a", "author": …, "license": …,
+"licenseUrl": …, "sourceUrl": … }` plays when the cover photo or the gallery is tapped. No card has one
+yet. Before the first one: add `audio` to `ALLOW` in `scripts/build-site.mjs` and decide how the service
+worker keeps them. Mono AAC `.m4a`, 3–6 seconds, about 64 kbps, under 60 KB, at similar loudness.
+
+The inside uses these optional fields. Any you leave out are simply not shown.
 
 ```json
 "profile": {
@@ -300,24 +336,28 @@ card with none of them doesn't open.
   fraction of the picture's width (default 0.08; smaller = more zoom). The photo itself stays clean.
   Each callout is a numbered label drawn on the picture; tapping it rings the feature, opens a round
   magnifier in the emptiest corner (cut from the full-size image) and shows a box under the picture
-  with its name and `detail` (optional). Tap it again or the picture to close. Read-aloud reads
-  every feature in order. The build never touches `profile`, so hand-tuned values are safe.
+  with its name and `detail` (optional). Tap it again or the picture to close. It is on the stage
+  under 🐾 Behaviour. The build never touches `profile`, so hand-tuned values are safe.
 - **stats**: `length`, `weight`, `lifespan` and `diet` are the text shown. `lengthCm`, `weightKg` and
   `lifespanYears` are the numbers the comparisons use (the middle of `min`–`max`). If you only give
   the numbers, the text is made from them. `dietIcons` are emoji for the diet plate.
   `development` is gestation or incubation: `kind` is `"gestation"` (shown as Gestation 懷孕期) or
   `"incubation"` (Incubation 孵化期), `days` the time in days (`min`–`max`), with optional `en`/`zh`
-  text instead. `youngCount` is the number of young (or eggs) at a time, with optional `young` text.
+  text instead. `youngCount` is the number of young (or eggs) at a time, with optional `young` text;
+  under 🥚 Babies it is a row of babies (eggs with incubation) to tap and count, up to `max`.
 - **related**: related species, as card ids or `{ scientificName, name }` for animals with no card.
-  A card the profile has opens on tap; one not collected yet shows as a locked silhouette; an animal
+  They show on an open card with nothing lit, and on a topic card under 👀. A card the profile has opens on tap; one not collected yet shows as a locked silhouette; an animal
   with no card is a small entry with its names. Cards not built yet are left out.
-- **Creature comparison**: each statistic you can tap switches the comparison and replays its
-  animation: **length** (silhouettes side by side), **weight** (a balance; the lighter side fills with
-  copies until it levels out, with a counter and "= Elephant × n" for huge numbers), **lifespan**
-  (birthday timelines) and **diet** (a plate filling up). "You" is 120 cm, 23 kg and 6 years old
-  unless the profile has its own height, weight and age (Welcome form, or For grown-ups → Edit profile).
+- **Creature comparison** fills the stage under 📏 Size. Each scene plays an animation: **length**
+  (silhouettes side by side), **weight** (a balance; the lighter side fills with copies until it levels
+  out, with a counter and "= Elephant × n" for huge numbers) and **lifespan** (birthday timelines);
+  **diet** (a plate filling up) is under 🍃 instead. "You" is 120 cm, 23 kg and 6 years old unless the
+  profile has its own height, weight and age (Welcome form, or For grown-ups → Edit profile). A grown-up,
+  a cat and a car can stand in (`PARTNERS` in `js/compare-data.js`), and a profile without the number a
+  scene needs starts with the grown-up. Under the scene, a row of the smaller one's figures to tap and
+  count aloud ("1, 2, 3… 5 of you!"), from 2 to 20 of them.
 - **compare**: how big the animal's silhouette is in cm, either `width` (nose to tail tip) or
-  `height`. Leave it out to use `lengthCm`. The silhouette itself is found by the build (from
+  `height`. Leave it out to use `lengthCm`, `heightCm` or `wingspanCm`, in that order. The silhouette itself is found by the build (from
   PhyloPic, CC0/PD/CC BY/CC BY-SA only) and stored in `silhouette`. If there is none for the exact
   species, a related animal's is used and the report says so.
 - **range** / **mapBounds**: where the animal lives, drawn as a soft filled shape in the group's
@@ -362,9 +402,9 @@ the globe says so ("The globe needs the internet the first time…") with Try ag
 
 ### From a card to the globe
 
-A card's map (on the front, and the Habitat map on the Fact File) opens the globe at that
-animal's range: the whole map is the button, with a small 🌏 in its corner. It is a tap only: a
-drag that starts on the map still opens, flips or puts away the card. Only cards with a range
+A card's map (on the cover, and under 🌍 on the stage) opens the globe at that animal's range: the
+whole map is the button, with a small 🌏 in its corner. It is a tap only: a drag that starts on the
+map still opens or puts away the card. Only cards with a range
 file have it (`opensGlobe` in `js/card-return.js`), and not in pack reveals.
 
 - `#/globe/<card id>` lights the range up, turns to it and zooms so it fills about 40% of the
@@ -374,7 +414,7 @@ file have it (`opensGlobe` in `js/card-return.js`), and not in pack reveals.
   that card's own pin shows even when a filter would leave it out, until the filters change or
   another pin is picked.
 - "‹ Back to card" (Esc, or the device's back button) returns to the card as it was: the same
-  side (front, open or Fact File) and the notebook collapsed or expanded, on the same page
+  side (cover or open, on the same heading, without saying it again) and the notebook collapsed or expanded, on the same page
   (`js/card-return.js`, kept in memory only). `#/globe` on its own is the Globe tab as always.
 
 ### Globe map layers
@@ -510,25 +550,19 @@ The hero button at the top of the Globe's toolbar opens a picker that switches o
 - Sources and licences: [CREDITS.md](CREDITS.md).
 
 In the app, gestures on a card are decided by direction, from anywhere on the card or a 40 px
-margin around it. To the right of a closed card, an open zone about half a card wide (where the
-right page will appear) also opens it with a sideways drag, and the open spread can be closed from
-an 80 px margin around it. All of this stays below the top bar and never reaches the notebook
+margin around it. To the right of a closed card, an open zone about half a card wide also opens it
+with a sideways drag, and the open card can be closed from an 80 px margin around it. All of this stays below the top bar and never reaches the notebook
 (its spine, its panel or, on phones, its tab), so drawing never moves the card; on narrow screens
 the zones shrink to fit. A drag that starts at
 an in-between angle waits a few more pixels before deciding its direction. Grown-ups in preview can
 see these areas (the notebook's in purple): add `?debug=gestures` to the address (`?debug=off` to stop).
-On the front: sideways opens the card, up turns it over, down puts it back in the binder. On the
-back: down from the top of the Fact File turns it back to the front (otherwise a vertical drag
-scrolls). The open spread stays at the card's scale. When it fits beside the notebook, a sideways
-drag closes it. When it doesn't, a sideways drag pans it, stopping at its edges; once the left page
-is fully shown, dragging on past that edge (24 px with a little rubber-band resistance, then the
-usual quarter of the way) closes it. 📖 closes it in every case. Vertical drags scroll the pages.
+On the cover: sideways opens the card, down puts it back in the binder, and a hand shows the swipe.
+On the open card: sideways closes it; a vertical drag on a heading's text scrolls it. 📖 opens and
+closes it too, and ‹ › change cards.
 The layout rules are pure functions in `js/card-layout.js` (tested in `tests/card-layout.test.mjs`). Every gesture
 ends settled: it commits, springs back or dismisses, also when the pointer is cancelled, the
 capture is lost or the window loses focus. A quarter of the way or
-a quick flick is enough; less springs back, and a touch that hardly moves is a tap. On pages that
-scroll (the Fact File, Vital Statistics), a vertical drag scrolls first and only turns the card from
-the scroll's edge. The first time a closed card settles, its cover peeks open a little, once per card
+a quick flick is enough; less springs back, and a touch that hardly moves is a tap. The first time a closed card settles, its cover peeks open a little, once per card
 per explorer (not with reduced motion).
 
 ## Packs and drops
@@ -778,8 +812,8 @@ notebook and back in the real app.
   right). Tap it to expand it: it takes half the stage (`--nb-panel-share`, `PANEL_SHARE` in
   `js/card-layout.js`) and the card is centred and scaled in the other half. Always in landscape;
   in portrait only while the card stays at least 340 px wide, otherwise (and on phones, under
-  600 px) the panel covers the card. The open spread keeps its scale and pans behind the notebook,
-  so any part of it can be brought out. The panel has one bar: "Collapse ›" (which folds it
+  600 px) the panel covers the card. Beside the panel an open card stacks in the room that is left.
+  The panel has one bar: "Collapse ›" (which folds it
   back), the "All pages / Only this animal" chip and the page buttons; where it is too narrow it
   wraps between them rather than clip anything. The state is kept per profile on the device
   (`notesPanel`).
@@ -855,6 +889,8 @@ notebook and back in the real app.
 - Read-aloud uses the device's own voices. On iPad, voices can be added under
   Settings → Accessibility → Spoken Content → Voices (English (UK), Chinese (Taiwan)).
   In Both mode the English is read first, then the Chinese.
+- Tapping a heading on an open card reads it by itself, at the explorer's own reading speed: its name,
+  then its text. 🔊 reads it again, or the cover's facts on the cover.
 
 ## Offline and updates
 
