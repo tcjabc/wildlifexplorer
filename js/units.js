@@ -25,9 +25,11 @@ export function lengthText(cm, cmMax = null) {
   return pair(span(cm, cmMax, f), big ? 'ft' : 'in');
 }
 
+// Weights as { en, zh }. Under 1 kg (or 1 lb) in grams (or ounces), so a small bird isn't "0.1 kg".
 export function weightText(kg, kgMax = null) {
-  if (!imperial()) return pair(span(kg, kgMax, num), 'kg');
-  return pair(span(kg, kgMax, v => num(v / KG_PER_LB)), 'lb');
+  const top = kgMax ?? kg;
+  if (!imperial()) return top < 1 ? pair(span(kg, kgMax, v => num(v * 1000)), 'g') : pair(span(kg, kgMax, num), 'kg');
+  return top < KG_PER_LB ? pair(span(kg, kgMax, v => num((v / KG_PER_LB) * 16)), 'oz') : pair(span(kg, kgMax, v => num(v / KG_PER_LB)), 'lb');
 }
 
 export const tempText = c => (fahrenheit() ? `${Math.round(c * 9 / 5 + 32)}°F` : `${c}°C`);
