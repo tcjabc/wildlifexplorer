@@ -489,6 +489,9 @@ The hero button at the top of the Globe's toolbar opens a picker that switches o
   instead: the tile's light and dark less a blur of it (a mip level of the atlas), as `shade-2k.webp` was made.
   Its land mask's edge gets steeper as it zooms, so the land stops at the coastline instead of fading out. Coral reefs, plates, volcanoes, city lights, the coastline and the
   home outline are drawn on top, on the 2D canvases. `node scripts/make-layers.mjs base` makes the textures.
+- **Known issue, not fixed:** at high zoom the coastline and the home outline don't exactly match the
+  hillshade tiles. The lines are drawn from Natural Earth's outlines and the tiles come from its shaded
+  relief picture, two sources that were never lined up with each other, so they drift a little apart.
 - If WebGL is missing or its context is lost, the 2D canvas draws sea and land and `load()` in `js/layers.js` gives
   each layer as it was, with pictures through `js/globegl.js` (WebGL 2), until the context comes back.
 - Temperature is twelve months of numbers, not colours: `temp-months-1…3.webp`, 720 × 360, a month to a channel, -50 to
