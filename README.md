@@ -629,7 +629,7 @@ waiting on the desk), `js/notes-debug.js` (the tap zone overlay),
 `tests/notes-model.test.mjs`), `js/notes-tools.js` (the tools' shared settings) and
 `js/notes-ruler.js` (the ruler's geometry; both pure, tested in `tests/notes-tools.test.mjs`),
 `js/notes-store.js` (storage), `js/notes-io.js`
-(backup), `js/zip.js`, styles in `css/notes.css`. `tests/notes-touch.test.mjs` drives the notebook
+(backup), `js/zip.js`, styles in `css/notes.css`. `tests/notes-*-touch.test.mjs` drive the notebook
 with real touches in Chromium, and `tests/notes-full.test.mjs` the trip from the panel to the full
 notebook and back in the real app.
 

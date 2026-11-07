@@ -66,7 +66,7 @@
 ## TESTING
 Run through `scripts/test.mjs` only, never `node --test` directly.
 - `npm run test:fast` (also `npm test`): logic tests, no browser. The default after every change. Target under 60 s.
-- `npm run test:browser -- tests/<spec>.test.mjs`: headless browser specs. Only when a change touches rendering, gestures or layout there, and only the relevant specs, never the whole suite. A file that imports Playwright is a browser spec.
+- `npm run test:browser -- tests/<spec>.test.mjs`: headless browser specs. Only when a change touches rendering, gestures or layout there, and only the relevant specs, never the whole suite. A file that imports Playwright or `tests/fixtures/notes-browser.mjs` is a browser spec.
 - `npm run bench -- globe|notes`: FPS and frame times. Never automatically: only when the owner asks.
 - Limits on every command: 30 s a test, 5 min a run. No test sets its own longer timeout. Never use watch mode.
 - The browser and any dev server always close, even on failure: teardown in `finally`, and setup after a launch goes through `setUp` in `tests/fixtures/browser.mjs`.

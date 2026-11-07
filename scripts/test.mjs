@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // The test tiers (the rules are in CLAUDE.md, TESTING):
 //   npm run test:fast                                  no browser: every test that doesn't use Playwright
-//   npm run test:browser -- tests/notes-touch.test.mjs headless browser specs, named one by one
+//   npm run test:browser -- tests/notes-cap-touch.test.mjs  headless browser specs, named one by one
 //   npm run bench -- globe                             FPS and frame times: only when asked for
 // After `--`, node's test flags go through too, e.g. --test-name-pattern="panda".
 //
@@ -28,7 +28,7 @@ function refuse(message) {
 
 if (args.some(a => /^--watch/.test(a))) refuse('No watch mode: every run ends.');
 
-const usesBrowser = file => /from 'playwright'|import\('playwright'\)/.test(readFileSync(path.join(ROOT, file), 'utf8'));
+const usesBrowser = file => /from 'playwright'|import\('playwright'\)|fixtures\/notes-browser/.test(readFileSync(path.join(ROOT, file), 'utf8'));
 const allTests = () => readdirSync(path.join(ROOT, 'tests')).filter(f => f.endsWith('.test.mjs')).map(f => `tests/${f}`);
 const isFile = a => !a.startsWith('-');
 
