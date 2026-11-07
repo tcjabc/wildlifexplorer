@@ -10,7 +10,7 @@ import { auth, AuthError } from './cloud/auth.js';
 import { sync, statusKey } from './cloud/sync.js';
 import { family, REASONS } from './cloud/family.js';
 import { avatar } from './profiles.js';
-import { sumGate } from './components.js';
+import { grownUpGate } from './components.js';
 import { state as appState, loadRole } from './store.js';
 import { removeFiles } from './notes-store.js';
 import { CODE_LENGTH } from './config.js';
@@ -438,7 +438,7 @@ export function accountPanel() {
 }
 
 // "Already have a family account? Sign in", from the Welcome screen of a device with no
-// explorers yet: the grown-ups' sum, the same email and code (or link) as the panel, then
+// explorers yet: the grown-ups' question, the same email and code (or link) as the panel, then
 // the family's explorers come down. explorers(): how many this device has now. Resolves
 // true when there are some (the app shows the picker), false when the sheet was closed or
 // the family has none yet (the Welcome form carries on, and its explorer goes up). gate:
@@ -458,7 +458,7 @@ export function familySignIn({ explorers, gate = true }) {
     async function draw() {
       cancel.hidden = false;
       if (!passed) {
-        mount(body, sumGate(() => { passed = true; draw(); }));
+        mount(body, grownUpGate(() => { passed = true; draw(); }));
         focus();
         return;
       }

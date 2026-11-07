@@ -124,27 +124,34 @@ export const groupTitle = g =>
     h('span', { 'aria-hidden': 'true' }, g.emoji),
     bi(g.name));
 
-// "Grown-ups only: what is 5 + 7?" in front of grown-up things, answered on a number pad of
-// its own: the system keyboard never opens (in fullscreen it can cover the page). A wrong
-// answer asks a new sum; onPass() once it is right. Keys on a real keyboard work too.
-const MAX_DIGITS = 2; // the biggest sum is 18
-export function sumGate(onPass) {
-  const question = h('p', { class: 'gate__sum', 'aria-live': 'polite' });
+// "What is six times seven?" in front of grown-up things, in words, so a child who knows the
+// tables still has to read it. Answered on a number pad of its own: the system keyboard never
+// opens (in fullscreen it can cover the page). A wrong answer asks a new question; onPass() once
+// it is right. Keys on a real keyboard work too.
+const MAX_DIGITS = 2; // the biggest answer is 81
+const FACTOR_MIN = 2, FACTOR_MAX = 9;
+const factor = () => FACTOR_MIN + Math.floor(Math.random() * (FACTOR_MAX - FACTOR_MIN + 1));
+export function grownUpGate(onPass) {
+  const question = h('p', { class: 'gate__question', 'aria-live': 'polite' });
   const entry = h('output', { class: 'input gate__entry' });
-  let sum = 0, typed = '';
+  let answer = 0, asked = '', typed = '';
   const show = value => { typed = value; entry.textContent = value; };
   const press = digit => { if (typed.length < MAX_DIGITS) show(typed + digit); };
   const erase = () => show(typed.slice(0, -1));
   const ask = () => {
-    const a = 3 + Math.floor(Math.random() * 7), b = 4 + Math.floor(Math.random() * 6);
-    sum = a + b;
+    let a, b;
+    do { a = factor(); b = factor(); } while (`${a} ${b}` === asked);
+    asked = `${a} ${b}`;
+    answer = a * b;
     show('');
-    mount(question, tx('parents.gate', { a, b }));
+    mount(question, tx('parents.gate', { a: t(`parents.gate.${a}`), b: t(`parents.gate.${b}`) }));
   };
   const key = digit => h('button', { class: 'btn btn--soft gate__key', type: 'button', onclick: () => press(digit) }, digit);
 
   const form = h('form', { class: 'gate', tabindex: -1 },
-    question, entry,
+    h('div', { class: 'gate__ask' },
+      h('p', { class: 'gate__who muted' }, tx('parents.gateWho')),
+      question, entry),
     h('div', { class: 'gate__pad' },
       ['1', '2', '3', '4', '5', '6', '7', '8', '9'].map(key),
       h('button', { class: 'btn btn--soft gate__key', type: 'button', 'aria-label': label('parents.gateErase'), onclick: erase }, '←'),
@@ -154,7 +161,7 @@ export function sumGate(onPass) {
   form.addEventListener('submit', e => {
     e.preventDefault();
     if (!typed) return;
-    if (typed === String(sum)) { onPass(); return; }
+    if (typed === String(answer)) { onPass(); return; }
     ask();
     entry.classList.add('is-wrong');
   });
@@ -168,12 +175,12 @@ export function sumGate(onPass) {
   return form;
 }
 
-// The sum in a sheet of its own, in front of something a grown-up should do. Resolves true
+// The question in a sheet of its own, in front of something a grown-up should do. Resolves true
 // once it is right, false if the sheet was closed.
 export function grownUpCheck() {
   return new Promise(resolve => {
     const finish = passed => { dialog.close(); dialog.remove(); resolve(passed); };
-    const gate = sumGate(() => finish(true));
+    const gate = grownUpGate(() => finish(true));
     const dialog = h('dialog', { class: 'sheet sheet--form', 'aria-label': label('parents.title') }, gate,
       h('div', { class: 'sheet__actions' },
         h('button', { class: 'btn btn--soft', type: 'button', onclick: () => finish(false) }, tx('profile.cancel'))));

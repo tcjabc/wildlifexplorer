@@ -1,4 +1,4 @@
-// For grown-ups: every setting, behind a simple sum. Settings are per profile; pick whose at
+// For grown-ups: every setting, behind a times-table question. Settings are per profile; pick whose at
 // the top. Each panel is one entry in SECTIONS, so adding a setting means adding a section:
 //   { id, icon, title: string key, render: (profile, redraw) => node }
 import { $, h, mount } from '../dom.js';
@@ -9,7 +9,7 @@ import { offlineStatus } from '../offline.js';
 import { avatar, profileForm } from '../profiles.js';
 import { nextDropText, checkDrops } from '../packs.js';
 import { accountPanel } from '../account.js';
-import { sumGate } from '../components.js';
+import { grownUpGate } from '../components.js';
 import { backupProgress, restoreProgress, restoreText, restoreError } from '../backup.js';
 
 let gateOpen = false;
@@ -181,7 +181,7 @@ const devicePanel = () => h('div', { class: 'panel', 'data-section': 'device' },
 // ---------- Page ----------
 
 function renderGate(main) {
-  const gate = sumGate(() => { gateOpen = true; draw(main); });
+  const gate = grownUpGate(() => { gateOpen = true; draw(main); });
   mount(main, h('section', { class: 'page parents' }, title(), h('div', { class: 'panel' }, gate)));
   gate.focus();
 }
@@ -245,6 +245,6 @@ export function render(main) {
     renderGate(main);
   }
   const stops = [onChange('profiles', () => explorersChanged(main)), onChange('role', () => { if (gateOpen) draw(main); })];
-  // Drawn again in place (the language changed, a pack sheet closed): the sum stays passed.
+  // Drawn again in place (the language changed, a pack sheet closed): the gate stays passed.
   return ({ staying }) => { if (!staying) gateOpen = false; stops.forEach(stop => stop()); };
 }

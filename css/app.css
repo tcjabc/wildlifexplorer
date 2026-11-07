@@ -960,11 +960,13 @@ a.gzone__animal { text-decoration: underline; }
 .stars .is-on { color: var(--c-accent); text-shadow: 0 3px 0 var(--c-accent-deep); }
 
 /* ---------- Parents ---------- */
-/* The sum and its number pad (components.js). */
+/* The question and its number pad (components.js). */
 .gate { display: grid; gap: var(--s-3); justify-items: center; }
 .gate:focus { outline: none; }
-.gate__sum { font-size: var(--fs-md); font-weight: var(--fw-bold); text-align: center; }
-.gate__sum .bi { align-items: center; }
+.gate__ask { display: grid; gap: var(--s-3); justify-items: center; }
+.gate__who .bi { align-items: center; }
+.gate__question { font-size: var(--fs-md); font-weight: var(--fw-bold); text-align: center; }
+.gate__question .bi { align-items: center; }
 .gate__entry { display: grid; place-items: center; width: calc(3 * var(--gate-key) + 2 * var(--s-2)); }
 .gate__entry.is-wrong { border-color: var(--c-bad); animation: shake 0.4s; }
 .gate__pad { display: grid; grid-template-columns: repeat(3, var(--gate-key)); gap: var(--s-2); }
@@ -1109,6 +1111,13 @@ dialog.picker::backdrop { background: var(--c-bg); }
   .grid { grid-template-columns: repeat(auto-fill, minmax(var(--tile-min-lg), 1fr)); }
   .quiz__tf { grid-template-columns: minmax(var(--quiz-pic-min), 2fr) 3fr; }
   .quiz__pic--small { max-height: calc(40 * var(--dvh)); }
+}
+
+/* Landscape: the gate's question beside its keys. */
+@media (min-width: 700px) and (orientation: landscape) {
+  .gate { grid-template-columns: minmax(0, var(--gate-ask-w)) auto; justify-content: center; align-items: center; column-gap: var(--s-5); }
+  .gate__question { font-size: var(--fs-lg); }
+  .gate__entry { width: 100%; }
 }
 
 /* Wide/landscape: binder tabs stand up along the right edge, like a real binder. */

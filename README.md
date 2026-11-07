@@ -25,7 +25,7 @@ It runs at https://wildfile.app/ (Cloudflare) and works fully offline once it ha
   to a zip.
 - **Read aloud** (Web Speech API): English in an en-GB voice, Chinese in a zh-TW voice.
 - **Language**: EN / 中 / Both, per profile.
-- **For grown-ups** (behind a sum): pack day and time, units, preview, start over, delete.
+- **For grown-ups** (behind a times-table question): pack day and time, units, preview, start over, delete.
 - Progress is kept in IndexedDB on each device. Without signing in, nothing leaves the device.
 
 ## Folders
@@ -569,8 +569,8 @@ only the dates differ.
   that moment. Then flick each card up into the binder (or tap "Next card"), and see all three at
   the end. Completing every card in a group earns that group's badge.
 
-**For grown-ups**: the ⚙️ tab (answer the sum on its number pad; the system keyboard never opens). Adding an explorer on the
-picker asks the sum too; switching explorers from the avatar does not. Settings are per profile: pack day and
+**For grown-ups**: the 🔒 tab (answer the multiplication, written in words, on its number pad; the system keyboard never opens). Adding an explorer on the
+picker asks it too; switching explorers from the avatar does not. Settings are per profile: pack day and
 time, metric/imperial, °C/°F, Chinese names on cards, reading speed, *Preview* (shows every card without counting them as collected,
 handy for checking your facts, and lets packs arrive as soon as their cards are built, so you can
 try pack opening before the facts are done; use *Start over* afterwards), edit, *Start over from Series 1, Week 1*, and delete.
@@ -920,10 +920,10 @@ truth; it syncs with Supabase when online.
   Created → Postgres, `public.hook_before_user_created`; then Authentication → Sign In / Providers
   → Allow new users to sign up. Turn the hook on before sign-ups, and sign-ups off before the hook.
 - **A new device:** the Welcome screen has "Already have a family account? Sign in". Behind the
-  grown-ups' sum it is the same email and code (or link); then the family's explorers come down
+  grown-ups' question it is the same email and code (or link); then the family's explorers come down
   (`sync.join()`) and the picker shows them. If the family has no explorers yet, the Welcome form
   carries on and the new explorer goes up. Opening the email link on a device with no explorers
-  does the same without the sum.
+  does the same without the question.
 - **Saving to the family account** (`js/cloud/sync.js`): the first time a parent signs in on a
   device, they tick which explorers to add (an unticked explorer stays on that device only, and
   so does one deleted before then); the choice is remembered. After that every change is sent:
