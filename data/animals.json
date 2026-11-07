@@ -449,24 +449,24 @@
     },
     "stats": {
       "length": {
-        "en": "36–45 cm",
-        "zh": "36–45 公分",
+        "en": "50–60 cm",
+        "zh": "50–60 公分",
         "note": {
           "en": "without the tail",
           "zh": "不含尾巴"
         }
       },
       "lengthCm": {
-        "min": 36,
-        "max": 45
+        "min": 50,
+        "max": 60
       },
       "weight": {
-        "en": "4–8 kg",
-        "zh": "4–8 公斤"
+        "en": "5–12 kg",
+        "zh": "5–12 公斤"
       },
       "weightKg": {
-        "min": 4,
-        "max": 8
+        "min": 5,
+        "max": 12
       },
       "lifespan": {
         "en": "15–25 years",
@@ -579,6 +579,21 @@
       {
         "title": "Focus Taiwan: ban on new owners of Formosan macaques (2022)",
         "url": "https://focustaiwan.tw/society/202208100022"
+      },
+      {
+        "title": "Wikipedia: Formosan rock macaque (50–60 cm, 5–12 kg)",
+        "url": "https://en.wikipedia.org/wiki/Formosan_rock_macaque",
+        "for": [
+          "stats.lengthCm",
+          "stats.weightKg"
+        ]
+      },
+      {
+        "title": "Chinese Primatological Society: 台湾猕猴 (males 51.7–65 cm, females 48.5–53 cm)",
+        "url": "https://cps.nwu.edu.cn/en/info/1009/1025.htm",
+        "for": [
+          "stats.lengthCm"
+        ]
       }
     ]
   },
@@ -1699,8 +1714,8 @@
     "labelTone": "dark",
     "stats": {
       "lengthCm": {
-        "min": 45,
-        "max": 55
+        "min": 55,
+        "max": 65
       },
       "development": {
         "kind": "gestation",
@@ -1811,6 +1826,13 @@
         "url": "https://www.cdc.gov.tw/Uploads/files/201308/0675e0e3-d0d4-4666-96ef-07273e48e1aa.pdf",
         "for": [
           "stats.weightKg"
+        ]
+      },
+      {
+        "title": "Taiwan CDC species sheet: leopard cat (head and body 55–65 cm)",
+        "url": "https://www.cdc.gov.tw/Uploads/files/201308/0675e0e3-d0d4-4666-96ef-07273e48e1aa.pdf",
+        "for": [
+          "stats.lengthCm"
         ]
       }
     ]
@@ -3082,8 +3104,8 @@
     "labelTone": "light",
     "stats": {
       "heightCm": {
-        "min": 220,
-        "max": 400
+        "min": 250,
+        "max": 340
       },
       "development": {
         "kind": "gestation",
@@ -3181,6 +3203,13 @@
         "url": "https://animaldiversity.org/accounts/Loxodonta_africana/",
         "for": [
           "stats.weightKg"
+        ]
+      },
+      {
+        "title": "Wikipedia: African bush elephant (females 2.47–2.73 m, males 3.04–3.36 m at the shoulder)",
+        "url": "https://en.wikipedia.org/wiki/African_bush_elephant",
+        "for": [
+          "stats.heightCm"
         ]
       }
     ]
