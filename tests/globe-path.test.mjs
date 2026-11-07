@@ -6,7 +6,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { traceRing, prepare, hardPoints } from '../js/globe.js';
-import { decodeTopo, DEPTH_CURVE } from '../js/layers.js';
+import { DEPTH_CURVE } from '../js/layers.js';
+import { decodeTopo } from '../js/topo.js';
 
 const DEG = Math.PI / 180;
 // The same basis as js/globe.js basis(), for a view of w × h px at lon, lat, zoom k.

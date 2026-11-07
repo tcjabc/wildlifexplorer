@@ -12,6 +12,7 @@ import { h, reducedMotion } from './dom.js';
 import { track, tween, clamp } from './gesture.js';
 import { createTiles } from './globe-tiles.js';
 import { createBase } from './globe-base.js';
+import { decodeTopo } from './topo.js';
 
 const DEG = Math.PI / 180;
 const MIN_K = 1, MAX_K = 40;
@@ -174,25 +175,24 @@ export function loadLand() {
 }
 
 // The home country's outline, above every layer: one line in its own colour on the coastline's
-// halo, CSS px at every zoom, and nothing else marks it. One small file a country (assets/home/, by
-// the ISO code of js/countries.js), fetched only for the explorer's own: with none set, Taiwan's. A
-// country with no file draws nothing. Lines, not shapes: a big country goes over the horizon, and
-// is cut along the map's frame, and neither is its border.
+// halo, CSS px at every zoom, and nothing else marks it. Every country's is in one file, the same
+// for everyone, so no request says where an explorer is from (CLAUDE.md, SECURITY). Only the
+// explorer's own is decoded and drawn: with none set, Taiwan's. A code with no shape draws nothing.
+// Lines, not shapes: a big country goes over the horizon, and is cut along the map's frame, and
+// neither is its border.
 export const HOME_LINE = 2.5;
 export const HOME_GLOW = 4;
 export const DEFAULT_HOME = 'TW';
-export const homeFile = code => `assets/home/${/^[A-Z]{2}$/.test(code ?? '') ? code : DEFAULT_HOME}.json`;
+export const HOME_OUTLINES = 'assets/layers/home.topo.json';
 const homes = new Map();
-function loadHome(file) {
-  if (!homes.has(file)) {
-    const shape = fetch(file).then(r => { if (!r.ok) throw new Error(`${r.status} ${file}`); return r.json(); }).then(d => {
-      const unflat = flat => { const out = []; for (let i = 0; i < flat.length; i += 2) out.push([flat[i] * d.unit, flat[i + 1] * d.unit]); return out; };
-      return prepareLines(d.polys.flatMap(rings => rings.map(unflat)).flatMap(coastRuns));
-    });
-    shape.catch(() => homes.delete(file));
-    homes.set(file, shape);
+export function loadHome(code) {
+  if (!homes.has(code)) {
+    const shape = fetch(HOME_OUTLINES).then(r => { if (!r.ok) throw new Error(`${r.status} ${HOME_OUTLINES}`); return r.json(); })
+      .then(topo => prepareLines(decodeTopo(topo, p => p.code === code).flatMap(c => c.polys.flat()).flatMap(coastRuns)));
+    shape.catch(() => homes.delete(code));
+    homes.set(code, shape);
   }
-  return homes.get(file);
+  return homes.get(code);
 }
 
 // Lines of latitude and longitude every 30°, as short segments.
@@ -392,8 +392,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
   let tiles = null;          // js/globe-tiles.js, once a layer with zoom tiles has been shown
   let tilesFor = null;       // the renderer they go to
   let home = null;
-  const getHome = () => loadHome(homeFile(homeCountry)).then(p => { home = p; dirty = true; }).catch(() => {});
-  getHome();
+  const getHome = () => loadHome(homeCountry || DEFAULT_HOME).then(p => { home = p; dirty = true; }).catch(() => {});
 
   const view = { lon: saved.lon, lat: saved.lat, k: saved.k, dx: 0, dy: 0 };
   let size = { w: 1, h: 1, dpr: 1, r: 1 };
@@ -1037,6 +1036,8 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
     get radius() { return size.r * fit; },
     redraw() { dirty = true; },
     retry() { if (!polys) getLand(); if (!home) getHome(); },
+    // Fetch the home outlines: in idle time, once the globe has drawn.
+    loadHome: getHome,
     // ?debug=fps only: draw n frames in a row, turning 1° each, and time them (ms), to compare
     // drawing cost without depending on the display's frame rate.
     ...(debug && {

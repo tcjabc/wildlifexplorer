@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// Makes the Globe's map layers (assets/layers/) and the home outlines (assets/home/<code>.json)
-// from big public datasets. Run: node scripts/make-layers.mjs [relief tiles night temp depth
-// forests reefs plates volcanoes home base] (no names = all).
+// Makes the Globe's map layers and the home outlines (assets/layers/) from big public datasets.
+// Run: node scripts/make-layers.mjs [relief tiles night temp depth forests reefs plates volcanoes
+// home base] (no names = all).
 //
 // Raw downloads go into data-raw/ (git-ignored) and are reused. Only the small processed
 // files are committed. Sources and licences: CREDITS.md.
@@ -12,7 +12,8 @@ import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import sharp from 'sharp';
 import mapshaper from 'mapshaper';
-import { decodeTopo, DEPTHS } from '../js/layers.js';
+import { DEPTHS } from '../js/layers.js';
+import { decodeTopo } from '../js/topo.js';
 import { toByte } from '../js/globe-months.js';
 import { CODES } from '../js/countries.js';
 
@@ -20,6 +21,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const RAW = path.join(ROOT, 'data-raw');
 const OUT = path.join(ROOT, 'assets/layers');
 const HOME_SIMPLIFY = '40%'; // of a country's points kept: at the coastline's level of detail
+const HOME_QUANTIZATION = 36000; // steps across the map: a hundredth of a degree, like assets/globe.json
 const TEMP_YEAR = 2024;    // months shown by the temperature layer
 
 sharp.cache(false);
@@ -708,33 +710,19 @@ async function volcanoes() {
   console.log(`  volcanoes.json ${list.length} volcanoes (${list.filter(v => v[2]).length} notable, ${list.filter(v => v[6]).length} with a zh name), ${await kb(file)}`);
 }
 
-// One outline a country, under the ISO code the profile forms use (js/countries.js). ISO_A2_EH, not
-// ISO_A2: that one says -99 for France, Norway and others. Only the explorer's own file is ever
-// fetched. Natural Earth at this scale has no shape of its own for some territories, and has shapes
-// the forms don't offer: tests/home-outlines.test.mjs lists the first, this step prints the second.
+// Every country's outline in one file, so that fetching it says nothing about where an explorer is
+// from: one shape a country, under the ISO code the profile forms use (js/countries.js). ISO_A2_EH,
+// not ISO_A2: that one says -99 for France, Norway and others. Natural Earth at this scale has no
+// shape of its own for some territories (tests/home-outlines.test.mjs lists them), and has shapes
+// the forms don't offer, left out here: Kosovo, Somaliland, Northern Cyprus, Siachen Glacier.
 // (Run this from PowerShell on Windows: Git Bash's tar can't unpack to a C:\ path.)
 async function home() {
   const shp = await find(await unpacked('countries'), /ne_50m_admin_0_countries\.shp$/);
-  const tmp = path.join(RAW, 'countries-50m.json');
-  await ms(`-i "${shp}" encoding=utf8 -simplify ${HOME_SIMPLIFY} keep-shapes -o "${tmp}" format=geojson`);
-  const geo = JSON.parse(await readFile(tmp, 'utf8'));
-  const byCode = new Map(), skipped = [];
-  for (const f of geo.features) {
-    const code = f.properties.ISO_A2_EH;
-    if (!CODES.includes(code)) { skipped.push(f.properties.NAME); continue; }
-    const list = f.geometry.type === 'Polygon' ? [f.geometry.coordinates] : f.geometry.coordinates;
-    if (!byCode.has(code)) byCode.set(code, []);
-    for (const rings of list) byCode.get(code).push(rings.map(r => r.slice(0, -1).flatMap(([x, y]) => [Math.round(x * 100), Math.round(y * 100)])));
-  }
-  const dir = path.join(ROOT, 'assets/home');
-  await mkdir(dir, { recursive: true });
-  let total = 0;
-  for (const [code, polys] of byCode) {
-    const text = `${JSON.stringify({ source: 'Natural Earth 1:50m Admin 0 countries (public domain)', unit: 0.01, polys })}\n`;
-    await writeFile(path.join(dir, `${code}.json`), text);
-    total += text.length;
-  }
-  console.log(`  ${byCode.size} outlines, ${(total / 1024).toFixed(0)} KB; not a code the forms offer: ${skipped.join(', ') || 'none'}`);
+  const out = path.join(OUT, 'home.topo.json');
+  await ms(`-i "${shp}" encoding=utf8 -simplify ${HOME_SIMPLIFY} keep-shapes ` +
+    `-filter '/^(${CODES.join('|')})$/.test(ISO_A2_EH)' -rename-fields code=ISO_A2_EH -filter-fields code -dissolve code ` +
+    `-o "${out}" format=topojson quantization=${HOME_QUANTIZATION}`);
+  console.log(`  home.topo.json ${await kb(out)}`);
 }
 
 // ---------- main ----------

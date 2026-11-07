@@ -827,10 +827,11 @@ export function render(main, [cardId] = []) {
     show(L);
   }
   if (shownLayer) choose(shownLayer); else drawPanel(null, false);
-  // Once the globe is open and drawn: the months, so Temperature is ready when it is picked. The
-  // service worker keeps them for offline use.
+  // Once the globe is open and drawn: the home outlines, then the months, so Temperature is ready
+  // when it is picked. The service worker keeps them for offline use.
   globe.ready.then(() => whenIdle(() => {
     if (!globe) return;
+    globe.loadHome();
     if (globe.usesBase) globe.loadMonths(tempMonth);
     else import('../globegl.js').then(m => m.preloadPictures(tempLayer.pictures)).catch(() => {});
   })).catch(() => {});

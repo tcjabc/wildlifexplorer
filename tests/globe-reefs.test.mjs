@@ -4,7 +4,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync, statSync } from 'node:fs';
-import { decodeTopo, LAYERS, LAYER_CREDITS } from '../js/layers.js';
+import { LAYERS, LAYER_CREDITS } from '../js/layers.js';
+import { decodeTopo } from '../js/topo.js';
 
 const url = path => new URL(`../${path}`, import.meta.url);
 const src = path => readFileSync(url(path), 'utf8');

@@ -26,7 +26,7 @@ const PAGE = `<!doctype html><link rel=stylesheet href="/css/tokens.css"><link r
 import { createGlobe } from '/js/globe.js';
 import { LAYERS } from '/js/layers.js';
 window.changes = [];
-window.globe = createGlobe(document.getElementById('stage'), { onBase: ok => window.changes.push(ok) });
+window.globe = createGlobe(document.getElementById('stage'), { homeCountry: 'JP', onBase: ok => window.changes.push(ok) });
 const col = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 window.temp = () => LAYERS.find(l => l.id === 'temp').gpu({ col, month: 1 });
 window.ready = true;
@@ -52,18 +52,27 @@ const run = (name, query, fn) => test(name, { skip }, async () => {
   const browser = await pw.chromium.launch();
   try {
     const page = await (await browser.newContext({ viewport: { width: 800, height: 600 }, deviceScaleFactor: 2 })).newPage();
-    const errors = [];
+    const errors = [], requests = [];
     page.on('pageerror', e => errors.push(e.message));
+    page.on('request', r => requests.push(r.url()));
     await page.goto(url + query);
     await page.waitForFunction(() => window.ready);
     await page.evaluate(() => window.globe.ready);
     await page.waitForTimeout(500);
-    await fn(page);
+    await fn(page, requests);
     assert.deepEqual(errors, []);
   } finally { await browser.close(); }
 });
 
 const canvases = page => page.evaluate(() => [...document.querySelectorAll('#stage canvas')].map(c => ({ cls: c.className, hidden: c.hidden, w: c.width })));
+
+run('the home outlines wait until asked for, and no request says which country', '', async (page, requests) => {
+  const outlines = () => requests.filter(u => u.endsWith('/assets/layers/home.topo.json'));
+  assert.equal(outlines().length, 0, 'not while the globe is first drawing');
+  await page.evaluate(() => window.globe.loadHome());
+  assert.equal(outlines().length, 1);
+  assert.deepEqual(requests.filter(u => u.includes('JP') || u.includes('assets/home')), []);
+});
 
 run('a WebGL canvas under the 2D ones, the same size, at the capped pixel ratio', '', async page => {
   await page.waitForTimeout(300);

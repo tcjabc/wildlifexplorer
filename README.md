@@ -477,7 +477,7 @@ The hero button at the top of the Globe's toolbar opens a picker that switches o
 - To rebuild the files: `node scripts/make-layers.mjs` (all) or name some, e.g.
   `node scripts/make-layers.mjs temp depth`. It downloads the raw datasets into `data-raw/`
   the first time (about 300 MB), needs only Node (sharp and mapshaper), and writes
-  `assets/layers/` and `assets/home/`. After re-running it (or `make-globe.mjs`), bump
+  `assets/layers/`. After re-running it (or `make-globe.mjs`), bump
   `LAYERS_VERSION` in `sw.js`.
 - Frame rate: add `?debug=fps` to the address to see the globe's frames per second and drawing time
   while it turns, on any profile (`?debug=off` to stop). It also says which renderer is drawing, and at
@@ -495,10 +495,11 @@ The hero button at the top of the Globe's toolbar opens a picker that switches o
   plays the year until anything is touched (none of it with reduced motion). The textures are fetched in idle time
   after the globe has drawn. Without the base renderer the monthly pictures are fetched the same way and crossfade
   over 300 ms. `scripts/make-era5.mjs` is a stub for a real climatology.
-- The home outline follows the explorer's home country: one small file a country in `assets/home/` (Natural
-  Earth 1:50m, `node scripts/make-layers.mjs home`), fetched only for the explorer's own and kept by the service worker,
-  or Taiwan's with none set. 13 territories the forms offer have no outline (`tests/home-outlines.test.mjs`).
-  Magenta (`--c-map-home`) means home and nothing else on the globe.
+- The home outline follows the explorer's home country, or Taiwan with none set. Every country's is in one TopoJSON
+  file, `assets/layers/home.topo.json` (Natural Earth 1:50m, `node scripts/make-layers.mjs home`), the same for everyone,
+  so no request says where an explorer is from. It is fetched in idle time after the globe has drawn and kept by the
+  service worker, and only the explorer's own is decoded and drawn. 13 territories the forms offer have no outline
+  (`tests/home-outlines.test.mjs`). Magenta (`--c-map-home`) means home and nothing else on the globe.
 - Colours live in `css/tokens.css` (`--c-depth-*`, `--c-forest-*`, `--c-temp-scale` …). The
   temperature pictures are painted with `--c-temp-scale`, so re-run `make-layers.mjs temp` if you change it.
 - Sources and licences: [CREDITS.md](CREDITS.md).
@@ -868,7 +869,8 @@ truth; it syncs with Supabase when online.
 
 - **Synced:** profile nickname, language, avatar colour, zhuyin, read-aloud speed, units, pack day
   and time, packs (and whether they're opened), collected cards and badges.
-- **Never leaves the device:** height, weight, age, home country, quiz scores and Field Notes.
+- **Never leaves the device:** height, weight, age, home country, quiz scores and Field Notes. No
+  request says what the home country is: its outline comes from one file that holds every country's.
 - **Signing in:** For grown-ups → ☁️ Family account. A grown-up types their email, then the code
   from the email (or opens the email's link on this device, which asks before signing in). Signing
   out keeps the explorers on the device. The code is in `js/cloud/auth.js` (plain `fetch`, tests

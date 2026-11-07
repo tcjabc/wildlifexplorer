@@ -6,6 +6,7 @@
 import { prepare, toVec, prepareLines } from './globe.js';
 import { RELIEF_TILES } from './globe-tiles.js';
 import { TEMP_BANDS } from './globe-months.js';
+import { decodeTopo } from './topo.js';
 
 const DIR = 'assets/layers/';
 const DEG = Math.PI / 180;
@@ -18,33 +19,6 @@ function getJson(url) {
     jsonCache.set(url, p);
   }
   return jsonCache.get(url);
-}
-
-// TopoJSON (as written by mapshaper) → [{ props, polys: [[ [lon, lat]… ]…] }]. A ring made
-// of several arcs lists where each one starts (ring.joins): there it meets another outline.
-export function decodeTopo(topo) {
-  const { scale: [sx, sy], translate: [tx, ty] } = topo.transform;
-  const arcs = topo.arcs.map(arc => {
-    let x = 0, y = 0;
-    return arc.map(([dx, dy]) => { x += dx; y += dy; return [x * sx + tx, y * sy + ty]; });
-  });
-  const ring = ids => {
-    const out = [], joins = [];
-    for (const id of ids) {
-      const a = id < 0 ? arcs[~id].slice().reverse() : arcs[id];
-      if (ids.length > 1) joins.push(out.length ? out.length - 1 : 0);
-      out.push(...(out.length ? a.slice(1) : a));
-    }
-    // A closed ring repeats its first point at the end; the joins point into the open ring.
-    if (out.length > 1 && out[0][0] === out[out.length - 1][0] && out[0][1] === out[out.length - 1][1]) out.pop();
-    out.joins = joins.filter(i => i < out.length);
-    return out;
-  };
-  const geoms = Object.values(topo.objects)[0].geometries;
-  return geoms.filter(g => g.arcs).map(g => ({
-    props: g.properties ?? {},
-    polys: (g.type === 'Polygon' ? [g.arcs] : g.arcs).map(rings => rings.map(ring)),
-  }));
 }
 
 // Where the sun is overhead right now, as a unit vector (accurate to a fraction of a
@@ -76,7 +50,7 @@ export const tempStops = col => col('--c-temp-scale').split(',').map(s => {
 // [{ polys (far), near, fill, curve, edge }] for globe.setLayer(). curve > 0 draws the outlines
 // as gentle curves (js/globe.js traceRing); edge: an outline colour.
 async function shapesBy(name, prop, values, fill, { curve = 0, nearK, edge } = {}) {
-  const [far, near] = (await Promise.all([`${DIR}${name}-far.topo.json`, `${DIR}${name}.topo.json`].map(getJson))).map(decodeTopo);
+  const [far, near] = (await Promise.all([`${DIR}${name}-far.topo.json`, `${DIR}${name}.topo.json`].map(getJson))).map(t => decodeTopo(t));
   const pick = (shapes, v) => prepare(shapes.filter(s => s.props[prop] === v).flatMap(s => s.polys), { edges: curve > 0 });
   return values.map((v, i) => ({ polys: pick(far, v), near: pick(near, v), fill: fill(v, i), curve, nearK, edge }));
 }
