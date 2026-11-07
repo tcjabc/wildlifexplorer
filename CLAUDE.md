@@ -63,6 +63,17 @@
 - Re-run the RLS check after every migration: `npx supabase db query --remote -f supabase/tests/rls_check.sql`. CLI 3 targets a local stack by default; always pass `--remote`.
 - Auth email goes out through custom SMTP (Resend, from noreply@wildfile.app). Until accounts are opened to other families, test sign-in with the owner's address only.
 
+## TESTING
+Run through `scripts/test.mjs` only, never `node --test` directly.
+- `npm run test:fast` (also `npm test`): logic tests, no browser. The default after every change. Target under 60 s.
+- `npm run test:browser -- tests/<spec>.test.mjs`: headless browser specs. Only when a change touches rendering, gestures or layout there, and only the relevant specs, never the whole suite. A file that imports Playwright is a browser spec.
+- `npm run bench -- globe|notes`: FPS and frame times. Never automatically: only when the owner asks.
+- Limits on every command: 30 s a test, 5 min a run. No test sets its own longer timeout. Never use watch mode.
+- The browser and any dev server always close, even on failure: teardown in `finally`, and setup after a launch goes through `setUp` in `tests/fixtures/browser.mjs`.
+- Never leave a test or benchmark running in the background without a timeout. If a background task runs past its timeout, kill its whole process tree and report it.
+- Performance on the kids' tablet: don't simulate the G Pad with CPU throttling or a software GPU unless the owner asks. Give a short manual checklist (URL, what to do, what number to note); the owner tests on the real device.
+- When reporting, say which tier ran and how long it took.
+
 ## WORKING STYLE
 - Ask before adding dependencies. Prefer none at runtime; build-script dev dependencies are fine.
 - Test on a local preview before saying something is done.
