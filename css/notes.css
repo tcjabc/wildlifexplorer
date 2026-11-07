@@ -110,6 +110,9 @@
 .nb-pop .nb-colour { width: var(--tap-xs); height: var(--tap-xs); }
 .nb-pop--three { grid-template-columns: repeat(3, var(--tap-xs)); } /* the nine colours */
 .nb-pop--three.nb-pop--feet { grid-template-columns: repeat(4, var(--tap-xs)); }
+.nb-pop--three.nb-pop--stamps { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: var(--tap-xs); } /* one short row */
+.nb-tool--stamp { padding: var(--s-1); }
+.nb-tool--stamp img { width: 100%; height: 100%; object-fit: contain; }
 /* Narrow notebooks: smaller page buttons in the bar. */
 @container (max-width: 520px) {
   .nb__bar { gap: var(--s-1); padding: var(--s-1) var(--s-2); }
@@ -601,6 +604,15 @@
 .nb-pick__item img { height: var(--tap); width: auto; object-fit: contain; }
 .nb-pick__item .bi { align-items: center; text-align: center; }
 .nb-pick__emoji { font-size: var(--fs-xl); line-height: 1; }
+/* All the stamps, the binder's way, in the sheet: tabs above in any orientation, the page scrolling. */
+.nb-pick--binder { width: min(100%, var(--nb-pick-w)); }
+.nb-pick__binder { flex-direction: column; align-items: stretch; }
+.nb-pick__binder .tabs { position: static; flex-direction: row; width: auto; max-height: none; overflow-x: auto; overflow-y: hidden; padding: var(--s-2) var(--s-2) 0; margin: 0 calc(-1 * var(--s-2)); }
+.nb-pick__binder .tab { display: flex; flex-direction: column; width: auto; min-width: var(--tab-min); min-height: var(--tap-lg); padding: var(--s-2) var(--s-3); border: 0; border-radius: var(--r-md) var(--r-md) 0 0; font: inherit; font-size: var(--fs-xs); font-weight: var(--fw-bold); cursor: pointer; transform: translateY(8px); }
+.nb-pick__binder .tab.is-active { transform: none; }
+.nb-pick__binder .binder__page { min-height: 0; max-height: calc(45 * var(--dvh)); overflow-y: auto; border-radius: 0 var(--r-lg) var(--r-lg) var(--r-lg); }
+.nb-pick__binder .grid { grid-template-columns: repeat(auto-fill, minmax(var(--nb-pick-tile), 1fr)); gap: var(--s-3); }
+.nb-pick__binder .tile { padding: 0; font: inherit; cursor: pointer; }
 
 /* Field Notes as a page of the app: the whole screen, with no app header or tab bar. */
 body.is-immersive { grid-template-rows: minmax(0, 1fr); padding-bottom: 0; }

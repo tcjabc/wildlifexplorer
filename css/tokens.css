@@ -377,6 +377,8 @@
   --zoom-bg-scale: 0.4;
   --tabs-w: 176px;      /* binder tab column in landscape */
   --tile-min: 150px;
+  --nb-pick-w: 720px;   /* the sheet with every stamp in it */
+  --nb-pick-tile: 120px; /* and a tile in it */
   --tile-min-lg: 190px;
   --content-max: 1200px;
 

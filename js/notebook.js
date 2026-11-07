@@ -13,8 +13,8 @@
 // the five tools in their loops, and the colours. The tool in use lies out on the desk beside the
 // roll where there is room (measured), or else slides partly out of its loop. The tray: the ink
 // pad, the sponge (rubs stamps, trails, text and tape off the page, nothing else), three stamps: ABC
-// (text), the panda (a collected animal: a tap moves to the next, a long press lists them) and the
-// footprints, the tweezers, the washi tape (drag across the page to lay a strip), the magnifying
+// (text), the panda (a collected animal: a tap shows a short row of them, a long press all of them,
+// laid out like the binder) and the footprints, the tweezers, the washi tape (drag across the page to lay a strip), the magnifying
 // glass and the pile of Polaroids (js/notes-polaroid.js).
 //
 // The ruler lies on the book, not on a page, and is never saved. One finger moves it (pulled from
@@ -62,7 +62,7 @@ import { PAGE_W, PAGE_H } from './notes-store.js';
 import { titleOf, withTag, withoutTag, tagsAfterStamp, freePages, openFor, movedTrail, pageFull, bitmapsIn, contents as contentsOf } from './notes-model.js';
 import { renderPage, renderItem, appendItem, drawStroke, hitItem, boundsOf, pencilColour, highlightColour } from './notes-render.js';
 import { fitScale, bookBox, tabFit, tabsShown, paginate, deskSpot, stackDepth, clampView, pinchView, settleView, swipeTurn, secondFingerCounts, isTap, pixelRatio, railFit, popPlace, keyboardLift, atFit, pinchOpensFull, fullPageBox } from './notes-view.js';
-import { PENCILS, DRAWING, INKED, SIZES, WASHI, paletteOf, widthOf, isFine, cleanTools, colourOf, sizeOf, withColour, withSize, nextAnimal } from './notes-tools.js';
+import { PENCILS, DRAWING, INKED, SIZES, WASHI, paletteOf, widthOf, isFine, cleanTools, colourOf, sizeOf, withColour, withSize, canStamp, usedStamp, stampRow } from './notes-tools.js';
 import { RULER_L, RULER_H, onRuler, edgeAt, snapTo, clampRuler } from './notes-ruler.js';
 import { TOOL_ROWS, toolArt, inkPadArt, stampArt, spongeArt, tweezersArt, washiArt, pileArt, glassArt, underlineArt, tokenArt, openBookArt, rulerArt } from './notes-rails.js';
 import { bookFrame, snapshot, turnPage, fadePage, turnCover } from './notes-book.js';
@@ -71,6 +71,7 @@ import { polaroids } from './notes-polaroid.js';
 import { tabButton, fitLabels } from './notes-tabs.js';
 import { tapZones, heavyItems, timed } from './notes-debug.js';
 import { thunk } from './fx.js';
+import { groupTab, tileFace } from './components.js';
 import { exportPageImage, exportAll, importBackup, saveToFolder, folderSupported } from './notes-io.js';
 import { haptic, clamp } from './gesture.js';
 
@@ -177,7 +178,7 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
 
   const toolBtns = TOOLS.map(([id, icon]) => h('button', {
     type: 'button', class: 'nb-tool', 'data-tool': id, 'aria-pressed': 'false', 'aria-label': label(`notes.tool.${id}`),
-    onclick: () => setTool(id),
+    onclick: () => (id === 'stamp' && nb.tool === 'stamp' ? openStampPicker() : setTool(id)),
   }, h('span', { 'aria-hidden': 'true' }, icon)));
   const photoBtn = h('button', { type: 'button', class: 'nb-tool', 'aria-label': label('notes.tool.photo'), onclick: () => fileInput.click() }, h('span', { 'aria-hidden': 'true' }, '📷'));
   const colourBtns = PENCILS.map(id => h('button', {
@@ -308,6 +309,7 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     railPop.btn = btn;
     railPop.box.setAttribute('aria-label', label(key));
     railPop.box.classList.toggle('nb-pop--feet', key === 'notes.footPick');
+    railPop.box.classList.toggle('nb-pop--stamps', key === 'notes.pickStamp');
     mount(railPop.box, content);
     openPicker(railPop);
   }
@@ -846,7 +848,7 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     nb.stowed = false;
     if (DRAWING.includes(id)) nb.lastDraw = id;
     select(-1);
-    if (id === 'stamp' && !nb.set.stampCard) openStampPicker();
+    if (id === 'stamp' && !stampNow()) openStampPicker();
     drawTools();
   }
   // Tool settings: for this notebook now, and on the profile for the next one (the panel beside a
@@ -913,20 +915,27 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
       onclick: () => { closePicker(); saveSet({ ...nb.set, washi: id }); },
     })));
   }
-  // The panda stamp: picked up on its last animal, then each tap moves to the next. A long press
-  // lists them, for when there are many.
-  const collected = () => state.cards.filter(isCollected).map(c => c.id);
-  const stampNow = () => { const ids = collected(); return ids.includes(nb.set.stampCard) ? nb.set.stampCard : ids[0] ?? null; };
+  // The panda stamp: picked up on its last animal, with a short row of the likely ones beside it. A
+  // long press shows all of them.
+  const stampCards = () => state.cards.filter(c => isCollected(c) && canStamp(c, groupById(c.group)));
+  const stampNow = () => { const cards = stampCards(); return (cards.find(c => c.id === nb.set.stampCard) ?? cards[0])?.id ?? null; };
   let held = false, holdTimer = 0;
   function tapPanda() {
     if (held) { held = false; return; }
-    const ids = collected();
-    if (!ids.length) { openStampPicker(); return; }
-    const was = stampNow(), again = nb.tool === 'stamp';
-    const id = again ? nextAnimal(ids, was) : was;
+    const id = stampNow();
+    if (!id) { openStampPicker(); return; }
     if (id !== nb.set.stampCard) saveSet({ ...nb.set, stampCard: id });
-    setTool('stamp');
-    if (again) toast(bi(state.byId.get(id).name));
+    if (nb.tool !== 'stamp') setTool('stamp');
+    const can = card => stampCards().some(c => c.id === card);
+    const pack = state.packs.filter(p => p.openedAt).at(-1)?.cardIds ?? [];
+    const row = stampRow({ linked: leaf.page?.tags ?? [], recent: nb.set.stampRecent, pack, can });
+    openRailPop(rackBtns.stamp, null, 'notes.pickStamp', (row.length ? row : [id]).map(cardId => {
+      const card = state.byId.get(cardId);
+      return h('button', {
+        type: 'button', class: 'nb-tool nb-tool--stamp', 'data-card': cardId, 'aria-pressed': String(cardId === id), 'aria-label': label('notes.stampOf', { name: card.name }),
+        onclick: () => { closePicker(); saveSet({ ...nb.set, stampCard: cardId }); },
+      }, h('img', { src: card.silhouette.file, alt: '' }));
+    }), h('button', { type: 'button', class: 'nb-tool', 'aria-label': label('notes.pickStamp'), onclick: () => { closePicker(); openStampPicker(); } }, h('span', { 'aria-hidden': 'true' }, '⋯')));
   }
   if (!beside) {
     const b = rackBtns.stamp, letGo = () => clearTimeout(holdTimer);
@@ -1741,6 +1750,7 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
 
   // ---------- stamps and tags: picking a collected animal ----------
   function pickAnimal({ icon, titleKey, emptyKey, cards, onPick }) {
+    pickSheet.classList.remove('nb-pick--binder');
     mount(pickSheet,
       h('h2', { class: 'sheet__title' }, h('span', { 'aria-hidden': 'true' }, icon), tx(titleKey)),
       cards.length
@@ -1754,9 +1764,31 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
       h('div', { class: 'sheet__actions' }, h('button', { class: 'btn btn--soft', type: 'button', onclick: () => pickSheet.close() }, tx('card.close'))));
     pickSheet.showModal();
   }
+  // Every stamp this explorer has, the binder's way: its groups as tabs, one group's tiles at a time.
   function openStampPicker() {
-    pickAnimal({ icon: '🐾', titleKey: 'notes.pickStamp', emptyKey: 'notes.noStamps', cards: state.cards.filter(isCollected),
-      onPick: card => { nb.tool = 'stamp'; saveSet({ ...nb.set, stampCard: card.id }); } });
+    const cards = stampCards();
+    if (!cards.length) { pickAnimal({ icon: '🐾', titleKey: 'notes.pickStamp', emptyKey: 'notes.noStamps', cards }); return; }
+    const groups = state.groups.filter(g => cards.some(c => c.group === g.id));
+    const now = state.byId.get(stampNow());
+    let group = groups.find(g => g.id === now.group);
+    const tabs = h('nav', { class: 'tabs', 'aria-label': label('nav.groups') });
+    const grid = h('div', { class: 'grid' });
+    const page = h('div', { class: 'binder__page' }, grid);
+    const binder = h('section', { class: 'binder nb-pick__binder' }, tabs, page);
+    const pick = card => { pickSheet.close(); nb.tool = 'stamp'; saveSet({ ...nb.set, stampCard: card.id }); };
+    const draw = () => {
+      binder.dataset.group = group.id;
+      mount(tabs, groups.map(g => groupTab(g, { active: g === group, count: String(cards.filter(c => c.group === g.id).length), onclick: () => { group = g; draw(); } })));
+      mount(grid, cards.filter(c => c.group === group.id).map(card => h('button', { type: 'button', class: 'tile', 'data-group': card.group, 'data-card': card.id, onclick: () => pick(card) }, tileFace(card))));
+      page.scrollTop = 0;
+    };
+    draw();
+    mount(pickSheet,
+      h('h2', { class: 'sheet__title' }, h('span', { 'aria-hidden': 'true' }, '🐾'), tx('notes.pickStamp')),
+      binder,
+      h('div', { class: 'sheet__actions' }, h('button', { class: 'btn btn--soft', type: 'button', onclick: () => pickSheet.close() }, tx('card.close'))));
+    pickSheet.classList.add('nb-pick--binder');
+    pickSheet.showModal();
   }
   // Only animals this explorer has collected, and not already on the page.
   function openTagPicker() {
@@ -1766,11 +1798,12 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
   }
   // A stamp also tags the page with its animal (once); removing the stamp leaves the tag.
   function placeStamp(x, y, screenX, screenY) {
-    const card = nb.set.stampCard;
+    const card = stampNow();
     if (!card) { openStampPicker(); return; }
     if (tooFull()) return;
     stampAsset(card);
     stampFx('stamp', screenX, screenY);
+    if (nb.set.stampRecent[0] !== card) saveSet({ ...nb.set, stampCard: card, stampRecent: usedStamp(nb.set.stampRecent, card) });
     const before = [...(leaf.page.tags ?? [])], after = tagsAfterStamp(before, card);
     commit({
       kind: 'add', index: leaf.page.items.length, item: { t: 'm', c: pencilColour(nb.set.ink), card, x, y, s: STAMP_SIZE, r: 0 },

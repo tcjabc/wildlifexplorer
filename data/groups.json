@@ -1,14 +1,14 @@
 [
-  { "id": "mammals",          "csv": "Mammals",               "emoji": "🐘", "name": { "en": "Mammals",               "zh": "哺乳類" } },
-  { "id": "birds",            "csv": "Birds",                 "emoji": "🦜", "name": { "en": "Birds",                 "zh": "鳥類" } },
-  { "id": "reptiles",         "csv": "Reptiles & Amphibians", "emoji": "🐢", "name": { "en": "Reptiles & Amphibians", "zh": "爬蟲類與兩生類" } },
-  { "id": "fish",             "csv": "Fish",                  "emoji": "🐠", "name": { "en": "Fish",                  "zh": "魚類" } },
-  { "id": "invertebrates",    "csv": "Invertebrates",         "emoji": "🦋", "name": { "en": "Invertebrates",         "zh": "無脊椎動物" } },
-  { "id": "prehistoric",      "csv": "Prehistoric",           "emoji": "🦖", "name": { "en": "Prehistoric",           "zh": "史前生物" } },
-  { "id": "microscopic",      "csv": "Microscopic",           "emoji": "🦠", "name": { "en": "Microscopic",           "zh": "微觀世界" } },
+  { "id": "mammals",          "csv": "Mammals",               "emoji": "🐘", "name": { "en": "Mammals",               "zh": "哺乳類" }, "stampable": true },
+  { "id": "birds",            "csv": "Birds",                 "emoji": "🦜", "name": { "en": "Birds",                 "zh": "鳥類" }, "stampable": true },
+  { "id": "reptiles",         "csv": "Reptiles & Amphibians", "emoji": "🐢", "name": { "en": "Reptiles & Amphibians", "zh": "爬蟲類與兩生類" }, "stampable": true },
+  { "id": "fish",             "csv": "Fish",                  "emoji": "🐠", "name": { "en": "Fish",                  "zh": "魚類" }, "stampable": true },
+  { "id": "invertebrates",    "csv": "Invertebrates",         "emoji": "🦋", "name": { "en": "Invertebrates",         "zh": "無脊椎動物" }, "stampable": true },
+  { "id": "prehistoric",      "csv": "Prehistoric",           "emoji": "🦖", "name": { "en": "Prehistoric",           "zh": "史前生物" }, "stampable": true },
+  { "id": "microscopic",      "csv": "Microscopic",           "emoji": "🦠", "name": { "en": "Microscopic",           "zh": "微觀世界" }, "stampable": true },
   { "id": "behavior",         "csv": "Exploring Behavior",    "emoji": "🐾", "name": { "en": "Exploring Behavior",    "zh": "動物行為" } },
   { "id": "how-animals-work", "csv": "How Animals Work",      "emoji": "🦴", "name": { "en": "How Animals Work",      "zh": "動物身體大揭密" } },
   { "id": "world-explorer",   "csv": "World Explorer",        "emoji": "🧭", "name": { "en": "World Explorer",        "zh": "世界探險" } },
   { "id": "conservation",     "csv": "Conservation Issues",   "emoji": "🌱", "name": { "en": "Conservation Issues",   "zh": "保育議題" } },
-  { "id": "plants",           "csv": "Plants",                "emoji": "🌿", "name": { "en": "Plants",                "zh": "植物" } }
+  { "id": "plants",           "csv": "Plants",                "emoji": "🌿", "name": { "en": "Plants",                "zh": "植物" }, "stampable": true }
 ]

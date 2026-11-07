@@ -9,6 +9,8 @@ export const DRAWING = ['pencil', 'pen', 'highlighter'];
 export const FEET = ['paw', 'hoof', 'bird', 'bear'];
 export const INKED = ['text', 'stamp', 'roller'];
 export const WASHI = ['yellow', 'green', 'blue', 'red'];
+const RECENT_STAMPS = 3;
+const ROW_STAMPS = 5; // a short row: it must fit a phone, with the button for all of them
 // The notches of the slider on the roll. Thin and thick are what the panel's button goes between.
 export const SIZES = ['hair', 'thin', 'mid', 'thick', 'bold'];
 const WIDTHS = {
@@ -30,6 +32,7 @@ export const DEFAULTS = {
   foot: 'paw',
   washi: 'yellow',
   stampCard: null,
+  stampRecent: [],
 };
 
 const oneOf = (list, v, fallback) => (list.includes(v) ? v : fallback);
@@ -47,6 +50,7 @@ export function cleanTools(raw) {
     foot: oneOf(FEET, r.foot, DEFAULTS.foot),
     washi: oneOf(WASHI, r.washi, DEFAULTS.washi),
     stampCard: typeof r.stampCard === 'string' && r.stampCard ? r.stampCard : null,
+    stampRecent: (Array.isArray(r.stampRecent) ? r.stampRecent : []).filter(id => typeof id === 'string' && id).slice(0, RECENT_STAMPS),
   };
 }
 
@@ -65,8 +69,15 @@ export function withSize(set, tool, size) {
   return { ...set, [id]: { ...set[id], size } };
 }
 
-// The stamp's next animal: the one after `current`, round to the first.
-export function nextAnimal(ids, current) {
-  if (!ids.length) return null;
-  return ids[(ids.indexOf(current) + 1) % ids.length];
+// Whether a card is a stamp: a living thing's group (group.stampable in data/groups.json), marked as
+// a stamp (card.stamp in data/animals.json), with a silhouette to cut it from.
+export const canStamp = (card, group) => Boolean(group?.stampable && card?.stamp && card.silhouette?.file);
+
+// The animals stamped last, the newest first.
+export const usedStamp = (recent, id) => [id, ...recent.filter(other => other !== id)].slice(0, RECENT_STAMPS);
+
+// The short row beside the panda stamp: this page's animal, the ones used last, this week's pack.
+//   linked: the page's tags. recent: ids, the newest first. pack: the pack's ids. can(id): may it stamp?
+export function stampRow({ linked = [], recent = [], pack = [], can }) {
+  return [...new Set([...linked.filter(can).slice(0, 1), ...recent, ...pack])].filter(can).slice(0, ROW_STAMPS);
 }

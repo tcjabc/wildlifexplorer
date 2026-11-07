@@ -1,7 +1,7 @@
 import { h, mount } from '../dom.js';
-import { bi, tx, label } from '../i18n.js';
+import { tx, label } from '../i18n.js';
 import { state, cardsIn, progress, groupById } from '../store.js';
-import { cardTile, groupTitle } from '../components.js';
+import { cardTile, groupTab, groupTitle } from '../components.js';
 
 let lastGroup = null;
 
@@ -17,14 +17,7 @@ export function render(main, [groupId]) {
   const tabs = h('nav', { class: 'tabs', 'aria-label': label('nav.groups') },
     state.groups.map(gr => {
       const gp = progress(gr.id);
-      const active = gr.id === g.id;
-      return h('a', {
-        class: ['tab', active && 'is-active'], href: `#/binder/${gr.id}`, 'data-group': gr.id,
-        'aria-current': active ? 'page' : null,
-      },
-      h('span', { class: 'tab__emoji', 'aria-hidden': 'true' }, gr.emoji),
-      h('span', { class: 'tab__name' }, bi(gr.name)),
-      h('span', { class: 'tab__count' }, `${gp.n}/${gp.total}`));
+      return groupTab(gr, { active: gr.id === g.id, href: `#/binder/${gr.id}`, count: `${gp.n}/${gp.total}` });
     }));
 
   const page = h('div', { class: 'binder__page' },

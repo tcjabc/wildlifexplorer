@@ -214,6 +214,7 @@
       "sourceUrl": "https://www.phylopic.org/images/51f6ff66-3344-4373-b6b0-e8beeb7fee33",
       "taxon": "Selenarctos thibetanus"
     },
+    "stamp": true,
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -507,6 +508,7 @@
       "sourceUrl": "https://www.phylopic.org/images/4e9c5666-79cc-4766-a7d3-d547514b0d77",
       "taxon": "Macaca mulatta"
     },
+    "stamp": true,
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -696,6 +698,7 @@
       "sourceUrl": "https://www.phylopic.org/images/f628f6fe-6e2d-4173-a20f-265dc7d2d04f",
       "taxon": "Manis culionensis"
     },
+    "stamp": true,
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -885,6 +888,7 @@
       "sourceUrl": "https://www.phylopic.org/images/dbf0cb01-952e-418c-909c-08c75c3d5ef4",
       "taxon": "Aepyceros melampus"
     },
+    "stamp": true,
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -1070,6 +1074,7 @@
       "sourceUrl": "https://www.phylopic.org/images/09e12cc6-4885-402c-95df-f331608e27c1",
       "taxon": "Odocoileus virginianus"
     },
+    "stamp": true,
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -1249,6 +1254,7 @@
       "derivedFrom": "https://commons.wikimedia.org/wiki/File:Muntiacus_reevesi_micrurus_230869896.jpg",
       "note": "Traced from the card photo (scripts/make-silhouette.mjs)."
     },
+    "stamp": true,
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -1432,6 +1438,7 @@
       "sourceUrl": "https://www.phylopic.org/images/9999598f-e938-4467-8088-57ef85bffe05",
       "taxon": "Pteropus medius"
     },
+    "stamp": true,
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -1939,6 +1946,7 @@
       "sourceUrl": "https://www.phylopic.org/images/ad8efb1e-2875-40d6-ade8-585e8c2d6d6e",
       "taxon": "Petaurista leucogenys"
     },
+    "stamp": true,
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -2601,6 +2609,7 @@
       "derivedFrom": "https://commons.wikimedia.org/wiki/File:Masai_Mara_National_Reserve_2021-08_-_cheetah_-_Acinonyx_jubatus.jpg",
       "note": "Traced from a photo (scripts/make-silhouette.mjs)."
     },
+    "stamp": true,
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -2783,6 +2792,7 @@
       "sourceUrl": "https://www.phylopic.org/images/2a070808-0874-409d-81c0-d0c1995e54bb",
       "taxon": "Loxodonta africana"
     },
+    "stamp": true,
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -3419,6 +3429,7 @@
       "sourceUrl": "https://www.phylopic.org/images/0f140008-ea45-48a8-b868-9235db6fbddb",
       "taxon": "Diceros bicornis"
     },
+    "stamp": true,
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -3591,6 +3602,7 @@
       "sourceUrl": "https://www.phylopic.org/images/142e0571-3b5f-443d-a887-b572a224ea22",
       "taxon": "Gorilla gorilla"
     },
+    "stamp": true,
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -3764,6 +3776,7 @@
       "sourceUrl": "https://www.phylopic.org/images/f51db955-33ed-4846-b8cf-e5b4c8217ced",
       "taxon": "Urocissa flavirostris"
     },
+    "stamp": true,
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -3943,6 +3956,7 @@
       "sourceUrl": "https://www.phylopic.org/images/14269801-89fe-405c-a425-2286c54ee60d",
       "taxon": "Arborophila hyperythra"
     },
+    "stamp": true,
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -4122,6 +4136,7 @@
       "sourceUrl": "https://www.phylopic.org/images/14269801-89fe-405c-a425-2286c54ee60d",
       "taxon": "Arborophila hyperythra"
     },
+    "stamp": true,
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -4302,6 +4317,7 @@
       "sourceUrl": "https://www.phylopic.org/images/a2d2ea45-a95c-4654-acc6-58e16da87357",
       "taxon": "Psilopogon viridis"
     },
+    "stamp": true,
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -4480,6 +4496,7 @@
       "sourceUrl": "https://www.phylopic.org/images/a1cd1814-e0b4-409c-af18-8cb2f841569c",
       "taxon": "Vipera berus"
     },
+    "stamp": true,
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -4653,6 +4670,7 @@
       "sourceUrl": "https://www.phylopic.org/images/da335376-7980-4e23-b310-4fa9ba042a9b",
       "taxon": "Oncorhynchus masou"
     },
+    "stamp": true,
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -4837,6 +4855,7 @@
       "sourceUrl": "https://www.phylopic.org/images/db83e712-f735-40b0-94f4-a5db2c3ee0b7",
       "taxon": "Eacles imperialis"
     },
+    "stamp": true,
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -5184,6 +5203,7 @@
       "sourceUrl": "https://www.phylopic.org/images/0c393043-8916-49b7-95df-5216285e7d17",
       "taxon": "Tyrannosaurus rex"
     },
+    "stamp": true,
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -5352,6 +5372,7 @@
       "sourceUrl": "https://www.phylopic.org/images/0957b8c0-a052-4f7d-a1ac-95f2179c6582",
       "taxon": "Tardigrada"
     },
+    "stamp": true,
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -5500,6 +5521,7 @@
       "sourceUrl": "https://www.phylopic.org/images/44c956aa-5dde-42f9-92d5-52380d1a0312",
       "taxon": "Prunus avium"
     },
+    "stamp": true,
     "taxonomy": {
       "kingdom": {
         "sci": "Plantae",

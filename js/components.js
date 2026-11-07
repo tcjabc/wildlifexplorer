@@ -52,13 +52,29 @@ function notesBadge(card) {
   }, h('span', { 'aria-hidden': 'true' }, '📓'), String(n));
 }
 
+// A group's tab in the binder: a link (href), or a button (onclick).
+export function groupTab(g, { active, count, href = null, onclick = null }) {
+  return h(href ? 'a' : 'button', {
+    class: ['tab', active && 'is-active'], href, type: href ? null : 'button', onclick, 'data-group': g.id,
+    'aria-current': active ? 'page' : null,
+  },
+  h('span', { class: 'tab__emoji', 'aria-hidden': 'true' }, g.emoji),
+  h('span', { class: 'tab__name' }, bi(g.name)),
+  h('span', { class: 'tab__count' }, count));
+}
+
+// What a card's tile shows: its number, thumbnail (loaded when it comes into view) and name.
+export const tileFace = card => [
+  h('span', { class: 'tile__no' }, cardNo(card.number)),
+  h('span', { class: 'tile__pic' }, picture(card, { thumb: true })),
+  h('span', { class: 'tile__name' }, bi(card.name)),
+];
+
 export function cardTile(card) {
   const g = groupById(card.group);
   if (isVisible(card)) {
     return h('a', { class: 'tile', href: `#/card/${encodeURIComponent(card.id)}`, 'data-group': card.group, 'data-card': card.id },
-      h('span', { class: 'tile__no' }, cardNo(card.number)),
-      h('span', { class: 'tile__pic' }, picture(card, { thumb: true })),
-      h('span', { class: 'tile__name' }, bi(card.name)),
+      tileFace(card),
       // On the photo's corner: dark or light text from card.labelTone (set by the build; white
       // with a dark halo until a card has one).
       card.taiwan && h('span', { class: 'tile__tw', 'data-tone': card.labelTone ?? null, title: label('card.taiwan'), 'aria-hidden': 'true' }, '🇹🇼'),

@@ -779,7 +779,7 @@ run('a pen on the ruler draws along it and never moves it', async f => {
   assert.ok(line.p.filter((_, i) => i % 3 === 1).every(y => Math.abs(y - 748) < 0.01), 'the nearer edge');
 });
 
-run('the panda stamp: a tap picks it up, taps cycle the collected animals, and stamping links the page', async f => {
+run('the panda stamp: a tap picks it up on the first animal, more taps stay on it, and stamping links the page', async f => {
   const ids = await rail.collect(f, 3);
   const [a] = await f.seed([[], []]);
   await f.show(a);
@@ -788,10 +788,8 @@ run('the panda stamp: a tap picks it up, taps cycle the collected animals, and s
   await rail.rack(f, 'stamp');
   const first = await label();
   await rail.rack(f, 'stamp');
-  assert.notEqual(await label(), first);
   await rail.rack(f, 'stamp');
-  await rail.rack(f, 'stamp');
-  assert.equal(await label(), first, 'round again');
+  assert.equal(await label(), first, 'no cycling');
   await f.tap({ x: 450, y: 600 });
   const [item] = await f.items(a);
   assert.equal(item.t, 'm');
@@ -807,7 +805,13 @@ run('with no animals collected the panda stamp says how to get some', async f =>
   assert.ok(await f.page.evaluate(() => document.querySelector('.nb-pick').open));
 });
 
-run('a long press on the panda stamp lists the animals', async f => {
+// A page tagged with an animal, open in that animal's pages.
+async function tagged(f, id, tag) {
+  await f.page.evaluate(([i, c]) => t.notes.loadPage(i).then(p => { p.tags = [c]; return t.notes.savePage(p); }), [id, tag]);
+  await f.show(id, { start: { view: 'pages', scope: { kind: 'animal', id: tag }, pageId: id } });
+}
+
+run('a long press on the panda stamp shows them the binder\'s way: its groups as tabs, only stamps, thumbnails loaded lazily', async f => {
   await rail.collect(f, 3);
   const [a] = await f.seed([[], []]);
   await f.show(a);
@@ -816,7 +820,53 @@ run('a long press on the panda stamp lists the animals', async f => {
   await f.wait(650);
   await f.send('touchEnd', []);
   await f.wait(100);
-  assert.equal(await f.page.evaluate(() => document.querySelectorAll('.nb-pick .nb-pick__item').length), 3);
+  assert.equal(await f.page.evaluate(() => document.querySelectorAll('.nb-pick .tile').length), 3);
+  assert.deepEqual(await f.page.evaluate(() => [...document.querySelectorAll('.nb-pick .tile img')].map(i => i.loading)), ['lazy', 'lazy', 'lazy']);
+  assert.equal(await f.page.evaluate(() => document.querySelectorAll('.nb-pick .tab').length), 1);
+});
+
+run('the picker: another group\'s tab shows its stamps; a topic card and a card without the flag are never there', async f => {
+  const picked = await f.page.evaluate(() => {
+    const pick = g => t.state.cards.find(c => c.group === g);
+    const ids = [pick('mammals'), pick('birds'), pick('conservation'), t.state.cards.find(c => c.group === 'mammals' && !c.stamp)].map(c => c.id);
+    for (const id of ids) t.state.collected[id] = { cardId: id };
+    return ids;
+  });
+  const [a] = await f.seed([[], []]);
+  await f.show(a);
+  await rail.rack(f, 'stamp');
+  await f.page.click('.nb-pop--stamps .nb-tool:last-child');
+  assert.deepEqual(await f.page.evaluate(() => [...document.querySelectorAll('.nb-pick .tab')].map(e => e.dataset.group)), ['mammals', 'birds']);
+  await f.page.click('.nb-pick .tab[data-group="birds"]');
+  await f.page.click(`.nb-pick .tile[data-card="${picked[1]}"]`);
+  await f.tap({ x: 450, y: 600 });
+  assert.equal((await f.items(a))[0].card, picked[1]);
+});
+
+run('the panda: a tap never moves to another animal; the row is the page\'s animal, then the last used, and a pick takes', async f => {
+  const ids = await rail.collect(f, 4);
+  const [a] = await f.seed([[], []]);
+  await tagged(f, a, ids[2]);
+  await rail.rack(f, 'stamp');
+  const row = () => f.page.evaluate(() => [...document.querySelectorAll('.nb-pop--stamps [data-card]')].map(b => b.dataset.card));
+  assert.deepEqual(await row(), [ids[2]]);
+  await f.page.click(`.nb-pop--stamps [data-card="${ids[2]}"]`);
+  await f.tap({ x: 450, y: 600 });
+  assert.equal((await f.items(a))[0].card, ids[2]);
+  await rail.rack(f, 'stamp');
+  await rail.rack(f, 'stamp');
+  await f.page.mouse.click(5, 5);
+  await f.tap({ x: 600, y: 600 });
+  assert.equal((await f.items(a))[1].card, ids[2], 'tapping the panda changed nothing');
+});
+
+run('a stamp from before the rules still draws, and stays on the page', async f => {
+  const topic = await f.page.evaluate(() => t.state.cards.find(c => c.group === 'conservation').id);
+  const [a] = await f.seed([[{ t: 'm', c: '#444', card: topic, x: 600, y: 900, s: 180, r: 0 }], []]);
+  await f.show(a);
+  await f.wait(200);
+  assert.equal((await f.items(a)).length, 1);
+  assert.notDeepEqual(await rail.pixel(f, 600, 900), await rail.pixel(f, 600, 1200));
 });
 
 run('the ink pad colours what is stamped, and a tap on a stamp selects it rather than stamping over it', async f => {

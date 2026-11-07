@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  PENCILS, HIGHLIGHTS, DEFAULTS, SIZES, paletteOf, widthOf, isFine, cleanTools, colourOf, sizeOf, withColour, withSize, nextAnimal,
+  PENCILS, HIGHLIGHTS, DEFAULTS, SIZES, paletteOf, widthOf, isFine, cleanTools, colourOf, sizeOf, withColour, withSize, canStamp, usedStamp, stampRow,
 } from '../js/notes-tools.js';
 import { RULER_L, RULER_H, onRuler, edgeAt, snapTo, clampRuler } from '../js/notes-ruler.js';
 
@@ -45,12 +45,27 @@ test('the eraser has no colour of its own: its controls speak for the pencil', (
   assert.equal(colourOf(set, 'eraser'), 'blue');
 });
 
-test('the stamp cycles through the animals and round again', () => {
-  const ids = ['a', 'b', 'c'];
-  assert.equal(nextAnimal(ids, 'a'), 'b');
-  assert.equal(nextAnimal(ids, 'c'), 'a');
-  assert.equal(nextAnimal(ids, 'gone'), 'a');
-  assert.equal(nextAnimal([], 'a'), null);
+test('a stamp needs a group of living things, the card\'s flag and a silhouette', () => {
+  const card = { stamp: true, silhouette: { file: 'a.svg' } }, living = { stampable: true };
+  assert.equal(canStamp(card, living), true);
+  assert.equal(canStamp(card, {}), false, 'Behaviour, World Explorer, Conservation, How Animals Work');
+  assert.equal(canStamp({ ...card, stamp: undefined }, living), false);
+  assert.equal(canStamp({ stamp: true }, living), false);
+  assert.equal(canStamp(card, undefined), false);
+});
+
+test('the row: the page\'s animal, the last three used, this week\'s pack; once each, only stamps, and short', () => {
+  const can = id => id !== 'topic';
+  assert.deepEqual(stampRow({ linked: ['topic', 'owl', 'bat'], recent: ['fox', 'owl'], pack: ['eel', 'topic', 'fox'], can }), ['owl', 'fox', 'eel']);
+  assert.deepEqual(stampRow({ recent: ['a', 'b', 'c'], pack: ['d', 'e', 'f', 'g'], can }), ['a', 'b', 'c', 'd', 'e']);
+  assert.deepEqual(stampRow({ can }), []);
+});
+
+test('the last three used, the newest first', () => {
+  assert.deepEqual(usedStamp(['a', 'b', 'c'], 'd'), ['d', 'a', 'b']);
+  assert.deepEqual(usedStamp(['a', 'b', 'c'], 'c'), ['c', 'a', 'b']);
+  assert.deepEqual(cleanTools({ stampRecent: ['a', 7, '', 'b', 'c', 'd'] }).stampRecent, ['a', 'b', 'c']);
+  assert.deepEqual(cleanTools({ stampRecent: 'a' }).stampRecent, []);
 });
 
 test('ruler: what is on it, turned or not', () => {
