@@ -1,5 +1,6 @@
 // ?debug=taps (js/store.js debugOn): every tap zone in the notebook outlined with its size in CSS px,
 // red when it is under the 44 px a finger needs. For checking on a real screen; nothing else uses it.
+// ?debug=notes: see below.
 import { h } from './dom.js';
 
 const MIN = 44;

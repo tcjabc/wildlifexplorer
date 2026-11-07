@@ -40,7 +40,7 @@ js/                 app code (app.js is the entry point, views/ has one file per
 lang/en.json        every UI string in English
 lang/zh-TW.json     the same keys in Traditional Chinese
 data/card-list.csv  THE MASTER LIST — edit this to add cards
-data/groups.json    the 12 groups: id, CSV name, emoji, names
+data/groups.json    the 12 groups: id, CSV name, emoji, names, stampable (groups of living things)
 data/animals.json   the cards (generated, then hand-edited by you)
 data/build-state.json   the build's memory of what it wrote (don't edit; do commit)
 data/build-report.md    what needs your attention after each build
@@ -405,9 +405,9 @@ The hero button at the top of the Globe's toolbar opens a picker that switches o
 - Picture layers (topography, temperature) are drawn with WebGL 2 by `js/globegl.js`, on a
   canvas between the land and the pins. It is only created when such a layer is first switched
   on. Shape layers (forests, depth, reefs) are drawn like the land.
-- Over the picture layers the land's own outline is drawn as a clear dark line (`--c-map-coast`)
-  on a faint light halo (`--c-map-coast-halo`), 1.5 px for the whole globe to 2.5 px from zoom 8
-  (`coastWidth`, `drawCoast` in `js/globe.js`), so the coasts stay sharp when zoomed in and read
+- On every layer the land's own outline is drawn as a clear dark line (`--c-map-coast`) on a light
+  halo (`--c-map-coast-halo`), 1.5 px on 3 px at every zoom (`COAST_LINE`, `COAST_GLOW`, `drawCoast` in
+  `js/globe.js`; the canvas draws in screen px, so nothing scales them), so the coasts stay sharp when zoomed in and read
   on mountains, deserts, red and blue; the far or detailed
   outline as for the land. The stretches along the map's frame, where Natural Earth cuts its
   shapes (the antimeridian, the South Pole), are left out (`coastRuns`).
@@ -417,7 +417,7 @@ The hero button at the top of the Globe's toolbar opens a picker that switches o
   pulling apart (ridges, rifts: a double line), crashing together (subduction, collision: a line
   with teeth on the side of the plate that stays on top; from PB2002's names, where "A/B" means B
   dives under A, and the plate shapes; collisions with no plate diving get teeth on both sides),
-  sliding past (transforms: dashed). The coastline's widths and halo (`--c-plate`). Each major
+  sliding past (transforms: dashed). Widths from `coastWidth` (1.5 px to 2.5 px from zoom 8), on a halo (`--c-plate`). Each major
   plate gets its name (`plate.*` strings), where it is widest and only when it fits and misses
   the pins, and an arrow (`plates-motion.json`): Bird's poles are relative to the Pacific, so
   the build takes off the shell's net rotation (no-net-rotation frame); the longer the arrow, the
@@ -671,7 +671,7 @@ notebook and back in the real app.
   on the desk, or at its empty loop, it goes back and the pencil comes out, so a finger always draws
   something; the pencil itself goes back and stays raised, still in the hand.
 - **The tray** holds, in compartments, the ink pad (tap for the ink colour), the sponge, three stamps:
-  ABC (text), the panda (a collected animal: tap to move to the next, long press for the list) and the
+  ABC (text), the panda (a collected animal: tap for a short row of them, long press or ⋯ for all of them) and the
   footprints (tap again for the kind), the tweezers, the washi tape, the magnifying glass (+, − and
   back to the whole page, for zooming with no second finger or wheel) and the pile of Polaroids. ＋ and
   ⋯ sit beside it.
@@ -694,6 +694,26 @@ notebook and back in the real app.
   move; the handles resize and turn it, ✕ removes it, and a tap on bare paper lets go. They work with
   a finger in *Pen only* too. They never touch lines, never open the keyboard, and a drag on bare paper
   only pans when zoomed in, so a missed grab can't turn the page.
+- **The page's bitmap**: what is on a page is baked into one bitmap at the capped pixel ratio (`.nb__base`).
+  A new item goes on top of it. Undo, redo, a page turn and a zoom settling draw the page again; a pinch
+  or pan only scales the bitmap. What is selected is held out of the bitmap and drawn on the live layer,
+  so moving it draws only it; letting go bakes it back in. Stamps and footprints come from small kept
+  pictures (`js/notes-sprites.js`), one per animal, ink and size, about 24 MB at most.
+- **A full page**: a page takes 150 things placed (`PAGE_CAP` in `js/notes-model.js`): stamps, trails (one
+  each, however long), tape, text, photos, later stickers. Then a note on the desk says *Page full: turn
+  the page!* and nothing is placed. Lines don't count, since a few lines of handwriting would reach it.
+  Pages already fuller keep everything. `?debug=notes` in a parent's preview adds `wfNotes.heavy()` (a page
+  of 400 stamps and 20 trails) and `wfNotes.bench()` (what it costs to draw).
+- **Which animals are stamps**: a card in a `stampable` group (`data/groups.json`: never Behavior, How Animals
+  Work, World Explorer or Conservation) with `"stamp": true` in `data/animals.json` and a silhouette.
+  The build never writes `stamp`, so a hand edit stays. Stamps already on a page stay, whatever the card.
+  A tap on the panda shows a short row: this page's animal, the last three used, the latest pack. A long
+  press (or ⋯) shows all of them with the binder's tabs and tiles. Beside a card, a second tap on the stamp
+  tool does.
+- **The page's animal**: a page tagged with a living thing (the first one, if it has a silhouette) has that
+  silhouette faded into the paper's bottom right corner, with the dots fading inside it
+  (`--nb-backdrop`). It is part of the paper, in exports too: no item, not counted, and nothing rubs it out.
+  Taking the tag off takes it away.
 - **Sponge**: rubbing or tapping takes stamps, footprint trails, text and tape off the page, one undo step
   per rub, with a brief wipe (`wipeFx`: each item drawn once on a small canvas that fades; none with
   reduced motion). Lines stay (they are the eraser's) and so do photos (✕). The page keeps its animal
@@ -794,7 +814,9 @@ notebook and back in the real app.
   `items` in page units: `s` a line (`p` = x, y, pressure…; `k` is `pen` or
   `highlighter`, and none means pencil, so pages from before these draw as they did; `t` is taken: it
   is every item's type), `x` text, `m` stamp, `f` footprints, `p` photo (`id` of a file in `photos/`), `w` a strip of tape (`k` its colour, `x`, `y` its
-  centre, `l` its length, `s` its width, `r` its turn). Pages from when the paper was 5:7 have `w` 1000:
+  centre, `l` its length, `s` its width, `r` its turn). `k` is kept for stickers (`id`, `x`, `y`, `w`, `h`, `r`):
+  they draw, select and count, but nothing makes one yet. Their bitmaps belong in `assets.stickers`, decoded at the
+  size shown, and go with photos when their page is three pages back (`keepBitmaps`). A trail stays one `f` item however long. Pages from when the paper was 5:7 have `w` 1000:
   as they load, `widenPage` moves what is on them 60 units in, so they lie centred on the wider paper
   with the same height; their file only changes when the page next does. Version 1 pages (`header.cardId`, `links`, no
   tags) are tagged with what they were linked to (header card, cards drawn next to, stamped animals)

@@ -2023,6 +2023,36 @@ run('a pinch scales the bitmap: nothing is drawn on it, even on a very full page
 
 const fullPage = () => Array.from({ length: 150 }, (_, i) => tape(300 + (i % 5) * 100, 300 + Math.floor(i / 5) * 30));
 
+run('a full page: the note comes when the tap or the trail lands on something too', async f => {
+  const ids = await rail.collect(f, 1);
+  const [a] = await f.seed([fullPage(), []]);
+  await f.show(a);
+  const note = () => f.page.evaluate(() => document.querySelector('.nb__toast--note')?.textContent ?? '');
+  const clear = () => f.page.evaluate(() => document.querySelector('.nb__toast')?.remove());
+  const on = onPage(400, 400);
+  await rail.rack(f, 'washi');
+  await f.tap(on);
+  assert.match(await note(), /Page full/);
+  await clear();
+  await rail.rack(f, 'roller');
+  await f.send('touchStart', [{ ...on, id: 1 }]);
+  await f.send('touchMove', [{ x: on.x + 80, y: on.y, id: 1 }]);
+  await f.wait(30);
+  await f.send('touchEnd', []);
+  await f.wait(100);
+  assert.match(await note(), /Page full/);
+  assert.equal(await f.box('.nb-sel'), undefined, 'a trail that can\'t be laid selects nothing');
+  await clear();
+  await rail.rack(f, 'stamp');
+  await f.page.mouse.click(5, 5);
+  await f.tap(on);
+  assert.match(await note(), /Page full/);
+  await f.wait(450);
+  assert.equal((await f.items(a)).length, 150);
+  assert.equal(ids.length, 1);
+});
+
+
 run('a full page: a note on the desk and nothing placed; lines still draw, and old pages keep everything', async f => {
   const [a] = await f.seed([fullPage(), []]);
   await f.show(a);

@@ -27,6 +27,9 @@
 // by CSS transform; when it ends, a canvas the size of the screen redraws what is in view
 // sharply, so zooming in never needs a bigger page bitmap. The wheel pans, ctrl + wheel zooms.
 //
+// What is on a page is baked into one bitmap, the base canvas. What is selected is held out of it, on
+// the live layer, so moving it draws nothing else (see heldOut).
+//
 // The tweezers pick up a photo, stamp, footprint trail, text or tape: press it to select it and drag it
 // straight away, use the handles, or pinch on it to resize and turn it. A tap elsewhere lets go.
 // They never touch lines, and never turn the page. With a stamp in the hand a tap on something
@@ -1251,10 +1254,11 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
       if (had) { select(-1); return; }
       const [x, y] = s.tap, i = itemAt(x, y);
       if (nb.tool === 'text' && i >= 0 && leaf.page.items[i].t === 'x') editText(x, y);
-      else if (i >= 0 && selects()) tapSelect(x, y);
+      // On a full page nearly every tap lands on something: the note has to come all the same.
+      else if (i >= 0 && selects() && (tap || nb.tool !== 'roller')) { tapSelect(x, y); if (nb.tool !== 'tweezers') tooFull(); }
       else if (nb.tool === 'text') { if (!tooFull()) { stampFx('text', s.x, s.y); editText(x, y); } }
       else if (nb.tool === 'stamp') placeStamp(x, y, s.x, s.y);
-      else if (i < 0) tooFull();
+      else tooFull();
       return;
     }
     if (s.item.t === 'w') {
