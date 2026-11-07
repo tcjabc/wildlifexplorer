@@ -10,7 +10,7 @@
 // projector (onFrame) and places its own elements over the canvas.
 import { h, reducedMotion } from './dom.js';
 import { track, tween, clamp } from './gesture.js';
-import { createTiles } from './globe-tiles.js';
+import { createTiles, RELIEF_TILES } from './globe-tiles.js';
 import { createBase } from './globe-base.js';
 import { decodeTopo } from './topo.js';
 
@@ -23,7 +23,7 @@ const SPIN_IN_MS = 1500; // and ease into the turn over this long
 const SPIN = 4;          // degrees per second when turning by itself
 const GLIDE = 420;       // ms: how long a flick keeps spinning
 const MAX_LAT = 80;
-const PLAIN_BASE = { kind: 'flat', hill: 0.5 }; // the plain map on the base renderer
+const PLAIN_BASE = { kind: 'flat', hill: 0.5, tiles: RELIEF_TILES }; // the plain map on the base renderer
 const MAX_DPR = 1.5;     // sharper costs the baseline tablet more than it shows
 
 // How much of its slow turn the globe is doing, 0 to 1: only fully zoomed out, and only after
@@ -422,7 +422,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
     const el = h('canvas', { class: 'globe__canvas globe__canvas--gl', 'aria-hidden': 'true', hidden: true });
     base = createBase(el, {
       colours: col, shade: 'assets/layers/shade-2k.webp', still: reduced,
-      onChange: ok => { dirty = true; onBase?.(ok); }, onDraw: () => { dirty = true; },
+      onChange: ok => { tiles?.clear(); dirty = true; onBase?.(ok); }, onDraw: () => { dirty = true; },
     });
     if (base) stage.prepend(el);
   }
@@ -433,9 +433,18 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
     polys = l;
     dirty = true;
     onLand?.(true);
-    base?.set(layer?.base ?? PLAIN_BASE).then(() => { dirty = true; }).catch(() => {});
+    base?.set(layer?.base ?? PLAIN_BASE).then(() => { useTiles(layer); dirty = true; }).catch(() => {});
   }, () => { if (!gone) onLand?.(false); });
   getLand();
+
+  // What goes under a layer on the base renderer: its own, or the plain map. None for a raster.
+  const baseOf = l => (base && !l?.raster ? l?.base ?? PLAIN_BASE : null);
+  // Zoom tiles for this layer, on the renderer that shows it.
+  function useTiles(next) {
+    const wanted = baseOf(next)?.tiles ?? next?.raster?.tiles, to = baseOf(next) ? base : sphere;
+    if (wanted && tilesFor !== to) { tiles?.clear(); tiles = createTiles(to, () => { dirty = true; }, wanted); tilesFor = to; }
+    if (!wanted) tiles?.clear();
+  }
 
   // ---------- projection ----------
   let B = null; // basis for this frame: centre c, east e, north n, screen centre and radius
@@ -508,8 +517,8 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
     const { cx, cy, r } = basis();
     const gl = base?.ready();
     if (gl) {
-      if (layer?.base?.tiles) tiles?.update(B, view.k);
-      if (base.draw(B, size)) dirty = true;
+      if (baseOf(layer)?.tiles) tiles?.update(B, view.k);
+      if (base.draw(B, size, view.k)) dirty = true;
     }
 
     // A thin glow of atmosphere outside the rim while the globe still fits on screen,
@@ -1083,9 +1092,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
         overCanvas.before(glCanvas);
       }
       await sphere?.set(next?.raster ?? null);
-      const wanted = next?.base?.tiles ?? next?.raster?.tiles, to = next?.base ? base : sphere;
-      if (wanted && tilesFor !== to) { tiles?.clear(); tiles = createTiles(to, () => { dirty = true; }, wanted); tilesFor = to; }
-      if (!wanted) tiles?.clear();
+      useTiles(next);
       dirty = true;
     },
     // Temperature: to this place in the year (js/globe-months.js), morphing over ms, or at once.

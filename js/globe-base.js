@@ -8,7 +8,8 @@
 // it, from the north west) and a thin atmosphere (a gradient, no blur).
 //
 // A layer is a texture and options (see gpu() in js/layers.js):
-//   { kind: 'flat', hill, night? }           land and sea in flat colours; night: { sun, shade, twilight }
+//   { kind: 'flat', hill, tiles?, night? }   land and sea in flat colours; night: { sun, shade, twilight };
+//                                            tiles: the hillshade from the zoom tiles once zoomed in, sharper
 //   { kind: 'picture', tex, hill, tiles? }   a picture on the land, the shared ocean around it
 //   { kind: 'ramp', tex, stops, bands, hill, sea? } a number per pixel (1…255 along the scale), coloured by
 //                                            the scale, smoothly or in `bands` steps; sea: land stays land
@@ -23,6 +24,11 @@ import { slotOf, blendAt, heldBlend, fetchOrder, ease, nearestMonth, MONTH_FILES
 
 const RIM = 0.07;       // the atmosphere, as a share of the radius
 const RAMP_N = 256;
+// The plain map's hillshade from the zoom tiles: as strong as in shade-2k.webp, with the broad
+// tints taken out by a blur of TILE_HILL_LOD mip levels, faded in over TILE_HILL_FADE of zoom.
+const TILE_HILL_GAIN = 2.2, TILE_HILL_LOD = 6, TILE_HILL_FADE = 0.8;
+const COAST_PX = 1.5;
+const SHADE_W = 2048;   // shade-2k.webp
 const KINDS = { flat: 0, picture: 1, ramp: 2, classes: 3, months: 4 };
 
 const VERT = `
@@ -46,7 +52,12 @@ uniform vec3 uSun, uNightC, uTwilightC;
 uniform float uDetailOn;
 uniform vec4 uWin;        // detail window: first column, first row, columns, rows (tiles)
 uniform vec2 uGrid;       // tiles across and down the whole map
+uniform float uTileHill;  // 0 to 1: how much of the hillshade comes from the zoom tiles
+uniform float uTileSoft;  // the mip bias that blurs the atlas as far as the hillshade's blur
+uniform float uCoast;     // how much steeper the land mask's edge gets: 1 leaves it as it is
 const float PI = 3.14159265;
+
+float lum(vec4 c) { return dot(c.rgb / max(c.a, 0.0001), vec3(0.299, 0.587, 0.114)); }
 
 vec3 ramped(float v) {
   if (uBands > 0.0) v = (min(floor(v * uBands), uBands - 1.0) + 0.5) / uBands;
@@ -66,18 +77,26 @@ void main() {
   vec3 w = q.x * uE + q.y * uN + sqrt(1.0 - d * d) * uC;
   vec2 uv = vec2(atan(w.y, w.x) / (2.0 * PI) + 0.5, 0.5 - asin(clamp(w.z, -1.0, 1.0)) / PI);
   vec4 shade = texture2D(uShade, uv); // red: hillshade, 0.5 is flat. green: land.
-  vec3 plain = mix(uOcean, uLand, shade.g);
+  float land = clamp((shade.g - 0.5) * uCoast + 0.5, 0.0, 1.0);
+  vec3 plain = mix(uOcean, uLand, land);
   vec3 col = plain;
-  if (uKind == 1) {
-    vec3 pic = texture2D(uLayer, uv).rgb;
-    if (uDetailOn > 0.5) {
-      vec2 t = uv * uGrid;
-      vec2 at = vec2(mod(t.x - uWin.x + uGrid.x, uGrid.x), t.y - uWin.y);
-      if (at.x < uWin.z && at.y >= 0.0 && at.y < uWin.w) {
-        vec4 tile = texture2D(uDetail, at / uWin.zw);
-        pic = mix(pic, tile.rgb / max(tile.a, 0.0001), tile.a);
+  vec4 tile = vec4(0.0);
+  float hill = shade.r;
+  if (uDetailOn > 0.5) {
+    vec2 t = uv * uGrid;
+    vec2 at = vec2(mod(t.x - uWin.x + uGrid.x, uGrid.x), t.y - uWin.y);
+    if (at.x < uWin.z && at.y >= 0.0 && at.y < uWin.w) {
+      tile = texture2D(uDetail, at / uWin.zw);
+      if (uTileHill > 0.0) {
+        // The picture's light and dark, less its broad tints: what shade-2k.webp holds.
+        float sharp = 0.5 + (lum(tile) - lum(texture2D(uDetail, at / uWin.zw, uTileSoft))) * ${TILE_HILL_GAIN.toFixed(1)};
+        hill = mix(hill, mix(0.5, sharp, land), tile.a * uTileHill);
       }
     }
+  }
+  if (uKind == 1) {
+    vec3 pic = texture2D(uLayer, uv).rgb;
+    pic = mix(pic, tile.rgb / max(tile.a, 0.0001), tile.a);
     col = mix(uOcean, pic, shade.g);
   } else if (uKind == 2) {
     float v = clamp((texture2D(uLayer, uv).r * 255.0 - 1.0) / 254.0, 0.0, 1.0);
@@ -93,7 +112,7 @@ void main() {
     float v = clamp(mix(a, b, uMix) * uRange.x + uRange.y, 0.0, 1.0);
     col = mix(plain, ramped(v), uAppear);
   }
-  col *= 1.0 + uHill * (shade.r - 0.5) * 2.0;
+  col *= 1.0 + uHill * (hill - 0.5) * 2.0;
   if (uNight > 0.5) {
     float s = dot(w, uSun);
     float alpha = 0.66 * (1.0 - smoothstep(-0.22, 0.06, s)), dark = 1.0 - smoothstep(-0.3, 0.02, s);
@@ -104,7 +123,7 @@ void main() {
 }`;
 
 const NAMES = ['uCentre', 'uR', 'uDpr', 'uH', 'uE', 'uN', 'uC', 'uLayer', 'uShade', 'uRamp', 'uLayerB', 'uDetail', 'uKind', 'uBands', 'uHill', 'uSeaOnly',
-  'uMix', 'uAppear', 'uChA', 'uChB', 'uRange', 'uOcean', 'uLand', 'uClass0', 'uClass1', 'uClass2', 'uGlow', 'uNight', 'uSun', 'uNightC', 'uTwilightC', 'uDetailOn', 'uWin', 'uGrid'];
+  'uMix', 'uAppear', 'uChA', 'uChB', 'uRange', 'uOcean', 'uLand', 'uClass0', 'uClass1', 'uClass2', 'uGlow', 'uNight', 'uSun', 'uNightC', 'uTwilightC', 'uDetailOn', 'uWin', 'uGrid', 'uTileHill', 'uTileSoft', 'uCoast'];
 
 // The colour scale as n RGBA pixels, evenly from its first value to its last.
 //   stops: [{ v, colour: '#rrggbb' }]
@@ -126,6 +145,17 @@ export function monthRange(stops) {
   const lo = stops[0].v, hi = stops[stops.length - 1].v, perByte = (MONTH_MAX - MONTH_MIN) / 254;
   return [(255 * perByte) / (hi - lo), (MONTH_MIN - perByte - lo) / (hi - lo)];
 }
+
+// How much of the hillshade comes from the zoom tiles at zoom k: none where they start, all of it a
+// little later, so it doesn't change at a stroke.
+export const tileHill = (k, fromK) => Math.min(1, Math.max(0, (k - fromK) / TILE_HILL_FADE));
+// The mip bias that keeps the blur at TILE_HILL_LOD at any zoom. A bias counts from the level the
+// GPU would have used, which is where a texel is a device pixel; r: the globe's radius in device px.
+export const tileSoft = (r, level) => Math.max(0, TILE_HILL_LOD - Math.log2(level / (2 * Math.PI * r)));
+
+// How much steeper the land mask's edge must be for it to stay COAST_PX device px wide, however far
+// its texels are stretched. size: the mask's width in px; r: the globe's radius in device px.
+export const coastEdge = (r, size) => Math.max(1, (2 * Math.PI * r) / size / COAST_PX);
 
 // The GPU memory a texture takes, in bytes: RGBA, no mipmaps.
 export const textureBytes = (w, h) => w * h * 4;
@@ -255,7 +285,7 @@ export function createBase(canvas, { colours, shade, onChange, onDraw, still = f
     if (def !== asked || lost || gone) { if (tex) gl.deleteTexture(tex); return; }
     if (tex || !def.tex) { if (layerTex) gl.deleteTexture(layerTex.tex); layerTex = tex ? { url: def.tex, tex } : null; }
     if (def.stops) rampTexture(def.stops);
-    if (def.kind !== 'picture') dropDetail();
+    if (!def.tiles) dropDetail();
     layer = def;
     // Months already here: nothing to fade in from.
     if (def.kind === 'months') appearAt = months.some(Boolean) ? performance.now() - MORPH_MS : 0;
@@ -327,7 +357,7 @@ export function createBase(canvas, { colours, shade, onChange, onDraw, still = f
     },
     // B: the basis from globe.js for this frame; size: { w, h, dpr }. Returns whether it is still
     // moving by itself, and so wants another frame.
-    draw(B, size) {
+    draw(B, size, k = 1) {
       const W = Math.round(size.w * size.dpr), H = Math.round(size.h * size.dpr);
       if (canvas.width !== W || canvas.height !== H) { canvas.width = W; canvas.height = H; }
       if (canvas.hidden) canvas.hidden = false;
@@ -352,11 +382,15 @@ export function createBase(canvas, { colours, shade, onChange, onDraw, still = f
         gl.uniform3f(loc.uNightC, ...rgb3(night.shade));
         gl.uniform3f(loc.uTwilightC, ...rgb3(night.twilight));
       }
-      const on = Boolean(detail?.win) && layer.kind === 'picture';
+      const on = Boolean(detail?.win && layer.tiles);
       gl.uniform1f(loc.uDetailOn, on ? 1 : 0);
+      const sharper = layer.kind === 'flat' && layer.tiles;
+      gl.uniform1f(loc.uTileHill, on && sharper ? tileHill(k, layer.tiles.fromK) : 0);
+      gl.uniform1f(loc.uCoast, sharper ? coastEdge(B.r * size.dpr, SHADE_W) : 1);
       if (on) {
         gl.uniform4f(loc.uWin, ...detail.win);
         gl.uniform2f(loc.uGrid, ...detail.grid);
+        gl.uniform1f(loc.uTileSoft, tileSoft(B.r * size.dpr, layer.tiles.level));
         gl.activeTexture(gl.TEXTURE4); gl.bindTexture(gl.TEXTURE_2D, detail.tex);
       }
       let kind = KINDS[layer.kind], first = layerTex?.tex ?? shadeTex, second = shadeTex, moving = false;

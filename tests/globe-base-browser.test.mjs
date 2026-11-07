@@ -84,6 +84,17 @@ run('a WebGL canvas under the 2D ones, the same size, at the capped pixel ratio'
   assert.equal(await page.evaluate(() => window.globe.usesBase), true);
 });
 
+run('the plain map asks for zoom tiles only once zoomed in, and its picture stays drawn', '', async (page, requests) => {
+  const tiles = () => requests.filter(u => u.includes('/relief-tiles/'));
+  await page.waitForTimeout(300);
+  assert.equal(tiles().length, 0, 'none for the whole globe');
+  await page.evaluate(() => window.globe.flyTo(121, 24, 6, { duration: 0 }));
+  await page.waitForFunction(() => performance.getEntriesByType('resource').some(e => e.name.includes('/relief-tiles/') && e.responseEnd > 0));
+  await page.waitForTimeout(300);
+  assert.ok(tiles().length > 0 && tiles().length <= 16, `${tiles().length} tiles`);
+  assert.equal((await canvases(page))[0].hidden, false);
+});
+
 run('a layer on the GPU, and one with shapes on the sea over the plain map, both keep the canvas', '', async page => {
   await page.evaluate(async () => window.globe.setLayer(await window.temp()));
   await page.waitForTimeout(200);

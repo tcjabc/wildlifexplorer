@@ -485,7 +485,9 @@ The hero button at the top of the Globe's toolbar opens a picker that switches o
 - The base layers go through one WebGL 1 shader (`js/globe-base.js`) on a canvas under the 2D ones, at a pixel
   ratio of at most 1.5: Plain map, Topography (with its zoom tiles), Forests, Ocean depth, Day & night and
   Temperature. Every layer shares the ocean colour, the land mask and hillshade (`shade-2k.webp`, its light baked in
-  from the north west) and the atmosphere. Coral reefs, plates, volcanoes, city lights, the coastline and the
+  from the north west) and the atmosphere. Zoomed in, the Plain map takes its hillshade from Topography's zoom tiles
+  instead: the tile's light and dark less a blur of it (a mip level of the atlas), as `shade-2k.webp` was made.
+  Its land mask's edge gets steeper as it zooms, so the land stops at the coastline instead of fading out. Coral reefs, plates, volcanoes, city lights, the coastline and the
   home outline are drawn on top, on the 2D canvases. `node scripts/make-layers.mjs base` makes the textures.
 - If WebGL is missing or its context is lost, the 2D canvas draws sea and land and `load()` in `js/layers.js` gives
   each layer as it was, with pictures through `js/globegl.js` (WebGL 2), until the context comes back.

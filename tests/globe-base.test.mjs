@@ -4,7 +4,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { rampBytes, monthRange, textureBytes } from '../js/globe-base.js';
+import { coastEdge, tileHill, tileSoft, rampBytes, monthRange, textureBytes } from '../js/globe-base.js';
+import { RELIEF_TILES } from '../js/globe-tiles.js';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 
@@ -35,4 +36,24 @@ test('the renderer works offline and its textures are the globe\'s files', () =>
   assert.match(sw, /'js\/globe-base\.js'/);
   assert.match(sw, /GLOBE_FILE = .*assets\\\/\(layers\\\//);
   for (const f of ['shade-2k', 'forests-2k', 'depth-2k', 'relief-2k', 'temp-months-1']) assert.ok(existsSync(`${ROOT}assets/layers/${f}.webp`), f);
+});
+
+test('the hillshade from the zoom tiles on the plain map: none where they start, all of it soon after', () => {
+  assert.equal(tileHill(RELIEF_TILES.fromK - 0.5, RELIEF_TILES.fromK), 0);
+  assert.equal(tileHill(RELIEF_TILES.fromK, RELIEF_TILES.fromK), 0);
+  assert.ok(tileHill(RELIEF_TILES.fromK + 0.4, RELIEF_TILES.fromK) > 0);
+  assert.equal(tileHill(4, RELIEF_TILES.fromK), 1);
+});
+
+test('its blur stays the same size on the map at any zoom', () => {
+  // A bias counts from the level in use, so twice the radius needs one more.
+  const r = 1000, level = RELIEF_TILES.level;
+  assert.ok(Math.abs(tileSoft(r * 2, level) - tileSoft(r, level) - 1) < 1e-9);
+  assert.equal(tileSoft(1, level), 0, 'never sharper than the picture');
+});
+
+test('the land edge of the plain map stays thin however far the mask is stretched', () => {
+  assert.equal(coastEdge(300, 2048), 1, 'the whole globe: as it is');
+  assert.ok(coastEdge(4000, 2048) > 7, 'zoomed in: much steeper');
+  assert.ok(Math.abs(coastEdge(8000, 2048) - 2 * coastEdge(4000, 2048)) < 1e-9);
 });
