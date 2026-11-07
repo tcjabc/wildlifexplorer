@@ -163,6 +163,23 @@ begin
     raise exception 'FAIL: newer settings were not saved';
   end if;
 
+  -- The Welcome details: their own time decides, and no time at all changes nothing.
+  update public.profiles set home_country = 'TW', height_cm = 120, details_at = '2026-01-03T00:00:00Z'
+    where id = current_setting('rls.prof_a')::uuid;
+  update public.profiles set home_country = 'JP', details_at = '2026-01-02T00:00:00Z'
+    where id = current_setting('rls.prof_a')::uuid;
+  update public.profiles set height_cm = null, details_at = null
+    where id = current_setting('rls.prof_a')::uuid;
+  select * into p from public.profiles where id = current_setting('rls.prof_a')::uuid;
+  if p.home_country <> 'TW' or p.height_cm <> 120 or p.details_at <> '2026-01-03T00:00:00Z' then
+    raise exception 'FAIL: older or undated details overwrote newer ones';
+  end if;
+  update public.profiles set height_cm = null, details_at = '2026-01-04T00:00:00Z'
+    where id = current_setting('rls.prof_a')::uuid;
+  if (select height_cm from public.profiles where id = current_setting('rls.prof_a')::uuid) is not null then
+    raise exception 'FAIL: newer details could not clear a field';
+  end if;
+
   update public.profiles set timeline_epoch = 2, timeline_start_at = '2026-02-01T00:00:00Z'
     where id = current_setting('rls.prof_a')::uuid;
   update public.profiles set timeline_epoch = 1, timeline_start_at = '2026-03-01T00:00:00Z'
