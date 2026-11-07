@@ -31,11 +31,13 @@ import { lengthText, weightText, imperial } from './units.js';
  *   related?: Related[], taxonomy?: Record<string, { sci: string, en: string, zh: string }>,
  *   stage?: Record<string, string>, factHeadings?: string[],
  *   compare?: { width?: number, height?: number, partners?: string[], silhouette?: object, counted?: object, noCount?: boolean },
- *   call?: { file: string, author: string, license: string, licenseUrl: string, sourceUrl: string } }} Card
+ *   call?: { file: string, author: string, license: string, licenseUrl: string, sourceUrl: string },
+ *   narration?: Record<string, { en?: string, zh?: string }> }} Card
  *   stage: a heading's stage view, where it isn't the usual one (js/headings.js).
  *   factHeadings: a topic card's heading for each of its facts, in order (js/headings.js).
  *   call: the animal's call, played by tapping its picture (js/card-call.js). None yet.
  *   compare: how the creature comparison draws it (README, "compare").
+ *   narration: a recording to play when a heading is tapped (js/headings.js). None yet.
  */
 
 const filled = p => p && (p.en || p.zh);
@@ -212,9 +214,6 @@ export function relatedItem(r) {
       h('span', { class: 'related__q' }, '?')),
     h('span', { class: 'related__name' }, tx('compare.notYet')));
 }
-
-// What read-aloud says on the cover. The open card says what its heading says (js/card-open.js).
-export const readOrder = card => [card.name, ...factsOf(card)];
 
 // Every picture used on this card, for the credit sheet.
 export function cardCredits(card) {

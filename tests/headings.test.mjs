@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import {
-  SPECIES_HEADINGS, TOPIC_HEADINGS, VIEW_HAS, hasCall, headingSet, headingsFor, isTopic, textOf, viewFor,
+  SPECIES_HEADINGS, TOPIC_HEADINGS, VIEW_HAS, hasCall, headingSet, headingsFor, isTopic, narrationFiles, textOf, viewFor,
 } from '../js/headings.js';
 import { KEY_ORDER } from '../scripts/lib/card-schema.mjs';
 import { COUNT_MAX, EVERYDAY, PARTNERS, compareImage, countFor, modesFor, sizeOf, sizeStat, startWith, whoOf } from '../js/compare-data.js';
@@ -178,7 +178,19 @@ test('only a sound in audio/calls/ counts as a card\'s call', () => {
 });
 
 test('new card fields keep their place in the data', () => {
-  for (const k of ['factHeadings', 'stage', 'call']) assert.ok(KEY_ORDER.includes(k), k);
+  for (const k of ['factHeadings', 'stage', 'call', 'narration']) assert.ok(KEY_ORDER.includes(k), k);
+});
+
+test('a heading\'s narration: only recordings in audio/narration/, in the language, and none is fine', () => {
+  const card = { narration: { habitat: { en: 'audio/narration/a-en.m4a', zh: 'audio/narration/a-zh.m4a' }, food: { en: 'https://example.com/a.m4a' }, status: { zh: 'audio/narration/b-zh.m4a' } } };
+  assert.deepEqual(narrationFiles(card, 'habitat', 'en'), ['audio/narration/a-en.m4a']);
+  assert.deepEqual(narrationFiles(card, 'habitat', 'zh'), ['audio/narration/a-zh.m4a']);
+  assert.deepEqual(narrationFiles(card, 'habitat', 'both'), ['audio/narration/a-en.m4a', 'audio/narration/a-zh.m4a']);
+  assert.deepEqual(narrationFiles(card, 'status', 'en'), [], 'no English file');
+  assert.deepEqual(narrationFiles(card, 'food', 'en'), [], 'not from elsewhere');
+  assert.deepEqual(narrationFiles(card, 'behaviour'), []);
+  assert.deepEqual(narrationFiles({}, 'habitat'), []);
+  assert.ok(cards.every(c => !c.narration), 'none yet');
 });
 
 test('the topic cards light up what the owner put under each heading', () => {

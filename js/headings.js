@@ -47,6 +47,14 @@ const TOPIC_FACTS = ['what', 'wow', 'dyk'];
 // Sounds live in audio/calls/, like the pictures in img/: nothing else is ever played.
 export const hasCall = c => /^audio\/calls\/[a-z0-9-]+\.(m4a|mp3|ogg)$/.test(c.call?.file ?? '');
 
+// A heading's recorded narration, if the card has one: "narration": { "habitat": { "en": file, "zh":
+// file } }. The files to play, in order, for the language mode; none means nothing plays.
+const NARRATION = /^audio\/narration\/[a-z0-9-]+\.(m4a|mp3|ogg)$/;
+export function narrationFiles(card, heading, mode = 'both') {
+  const n = card.narration?.[heading] ?? {};
+  return (mode === 'zh' ? [n.zh] : mode === 'en' ? [n.en] : [n.en, n.zh]).filter(f => NARRATION.test(f ?? ''));
+}
+
 export const hasMap = c => Boolean(c.map?.areas?.length || c.range || c.mapBounds);
 
 // Can this card show a view? ctx: { preview, lookalikes, related } (how many it has to show).

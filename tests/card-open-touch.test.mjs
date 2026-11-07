@@ -1,5 +1,5 @@
 // The open card under real touches, in the real app (index.html, the router, the card screen) in
-// Chromium at the baseline tablet's size, landscape and portrait. Speech is recorded, not spoken.
+// Chromium at the baseline tablet's size, landscape and portrait. Any speech is recorded, not spoken.
 // Frame rates, voices and the feel of it on the tablet can't be tested here.
 //
 // Skipped when the browser isn't installed: npx playwright install chromium
@@ -106,6 +106,8 @@ async function open(viewport, profile = {}, reducedMotion = 'no-preference') {
       stage: () => page.evaluate(() => document.querySelector('.stage').firstElementChild?.className),
       said: () => page.evaluate(() => window.said.filter(Boolean).map(u => u.text)),
       forget: () => page.evaluate(() => { window.said.length = 0; }),
+      // What the count row shows.
+      shown: () => page.evaluate(() => document.querySelector('.count__say').innerText.replace(/\s+/g, ' ').trim()),
     };
     return f;
   });
@@ -158,7 +160,7 @@ both('every heading button is at least 64 px, all eight, in the same place on ev
   assert.deepEqual(seen[1].filter(b => !b.grey).map(b => b.c), colour.filter((_, i) => !seen[1][i].grey), 'the same colours');
 });
 
-both('a heading lights up, says its name then its text, and switches the stage; again goes back', async f => {
+both('a heading lights up without a sound and switches the stage; again goes back', async f => {
   await f.card('formosan-black-bear');
   await f.swipe();
   assert.deepEqual(await f.lit(), []);
@@ -167,37 +169,60 @@ both('a heading lights up, says its name then its text, and switches the stage; 
   await f.tap('.hbtn[data-heading="status"]');
   assert.deepEqual(await f.lit(), ['status']);
   assert.match(await f.stage(), /stage-status/);
-  const said = await f.said();
-  assert.equal(said[0], 'Status', 'its name first');
-  assert.ok(said.length > 2, 'then its text');
-  assert.doesNotMatch(said.join(' '), /\[\[/, 'no glossary marks read out');
   assert.match(await f.page.evaluate(() => document.querySelector('.open__text').textContent), /Red List/);
   await f.tap('.hbtn[data-heading="status"]');
   assert.deepEqual(await f.lit(), []);
   assert.match(await f.stage(), /stage-pic/, 'back to the gallery');
-  assert.equal(await f.page.evaluate(() => window.said.at(-1)), null, 'and it stops talking');
+  await f.wait(150);
+  assert.deepEqual(await f.said(), [], 'nothing was said');
 });
 
-run('it speaks at the profile\'s speed and in its language', async f => {
-  await f.card('formosan-black-bear');
-  await f.swipe();
-  await f.forget();
-  await f.tap('.hbtn[data-heading="habitat"]');
-  const u = await f.page.evaluate(() => window.said.filter(Boolean));
-  assert.equal(u[0].lang, 'en-GB');
-  assert.ok(u.every(x => x.lang === 'en-GB' && Math.abs(x.rate - 0.95) < 1e-6), JSON.stringify(u[0]));
-}, LANDSCAPE, { lang: 'en' });
+const readButton = '.viewer__bar .btn--read';
 
-run('in both languages it says English first, then Chinese', async f => {
+run('🔊 says the card\'s name and nothing else, cover or open, at the profile\'s speed', async f => {
+  await f.card('formosan-black-bear');
+  await f.forget();
+  await f.tap(readButton);
+  await f.wait(150);
+  let u = await f.page.evaluate(() => window.said.filter(Boolean));
+  assert.deepEqual(u.map(x => x.text), ['Formosan Black Bear']);
+  assert.equal(u[0].lang, 'en-GB');
+  assert.ok(Math.abs(u[0].rate - 0.95) < 1e-6);
+  await f.swipe();
+  await f.tap('.hbtn[data-heading="habitat"]');
+  await f.forget();
+  await f.page.evaluate(() => speechSynthesis.cancel());
+  await f.tap(readButton);
+  await f.wait(150);
+  if ((await f.said()).length === 0) { await f.tap(readButton); await f.wait(150); } // the first tap only stopped it
+  u = await f.page.evaluate(() => window.said.filter(Boolean));
+  assert.deepEqual(u.map(x => x.text), ['Formosan Black Bear'], 'still only the name, with a heading lit');
+});
+
+run('in both languages 🔊 says the name in English, then Chinese', async f => {
   await f.page.evaluate(async () => (await import('/js/i18n.js')).setMode('both'));
   await f.card('formosan-black-bear');
+  await f.forget();
+  await f.tap(readButton);
+  await f.wait(150);
+  assert.deepEqual(await f.page.evaluate(() => window.said.filter(Boolean).map(u => [u.lang, u.text])), [['en-GB', 'Formosan Black Bear'], ['zh-TW', '臺灣黑熊']]);
+});
+
+run('a heading plays its recording if the card has one, in the language, and nothing if it hasn\'t', async f => {
+  await f.page.evaluate(async () => {
+    const { state } = await import('/js/store.js');
+    state.byId.get('formosan-black-bear').narration = { habitat: { en: 'audio/narration/bear-habitat-en.m4a', zh: 'audio/narration/bear-habitat-zh.m4a' } };
+    window.played = [];
+    window.Audio = class { constructor(src) { this.src = src; window.played.push(src); } addEventListener() {} pause() {} play() { return Promise.resolve(); } };
+  });
+  await f.card('formosan-black-bear');
   await f.swipe();
   await f.forget();
+  await f.tap('.hbtn[data-heading="behaviour"]');
+  assert.deepEqual(await f.page.evaluate(() => window.played), [], 'no file: nothing plays');
   await f.tap('.hbtn[data-heading="habitat"]');
-  const langs = await f.page.evaluate(() => window.said.filter(Boolean).map(u => u.lang));
-  assert.equal(langs[0], 'en-GB');
-  assert.equal(langs.at(-1), 'zh-TW');
-  assert.deepEqual(langs, [...langs].sort(), 'not mixed');
+  assert.deepEqual(await f.page.evaluate(() => window.played), ['audio/narration/bear-habitat-en.m4a']);
+  assert.deepEqual(await f.said(), []);
 });
 
 both('a grey heading does nothing when tapped, and a swipe that starts on it still closes the card', async f => {
@@ -226,8 +251,10 @@ both('the water bear has partners of its own, and 2 of it make a grain of sand',
   assert.ok(Math.abs(pics[0] / pics[1] - 2) < 0.1, `one scale: ${pics}`);
   await f.forget();
   await f.tap('.count');
+  assert.equal(await f.shown(), '1');
   await f.tap('.count');
-  assert.deepEqual(await f.said(), ['1', '2 water bears = 1 grain of sand']);
+  assert.equal(await f.shown(), '2 water bears = 1 grain of sand');
+  assert.deepEqual(await f.said(), [], 'counting is silent');
   await f.tap('.stage-cmp__who [data-value="hair"]');
   await f.wait(800);
   assert.equal(await f.page.evaluate(() => document.querySelectorAll('.count').length), 0, 'nothing to count against a hair');
@@ -237,7 +264,7 @@ both('the water bear has partners of its own, and 2 of it make a grain of sand',
   await f.forget();
   await f.tap('.count');
   await f.tap('.count');
-  assert.deepEqual(await f.said(), ['1', '2 grains of salt = 1 water bear']);
+  assert.equal(await f.shown(), '2 grains of salt = 1 water bear');
 });
 
 run('the caption gives the card\'s statistic, not the size of the picture', async f => {
@@ -280,10 +307,14 @@ both('Size: the comparison fills the stage, the partners swap, and the row count
   assert.ok(Math.abs(pics[1] / pics[0] - 150 / 48) < 0.1, `one scale: ${pics}`);
   assert.equal(await f.page.evaluate(() => document.querySelectorAll('.count__fig').length), 3, '150 cm is about 3 cats');
   await f.forget();
+  await f.page.evaluate(() => { window.buzz = 0; navigator.vibrate = () => { window.buzz++; return true; }; });
+  await f.tap('.count');
+  assert.equal(await f.shown(), '1');
   await f.tap('.count');
   await f.tap('.count');
-  await f.tap('.count');
-  assert.deepEqual(await f.said(), ['1', '2', '3 cats!']);
+  assert.equal(await f.shown(), '3 cats!');
+  assert.deepEqual(await f.said(), [], 'counting is silent');
+  assert.ok(await f.page.evaluate(() => window.buzz) >= 3, 'with a vibration for each tap');
   assert.equal(await f.page.evaluate(() => document.querySelectorAll('.count__fig.is-lit').length), 3);
 });
 
@@ -298,7 +329,8 @@ run('with their height on the profile, the child comes first, and the figures ar
   await f.forget();
   await f.tap('.count');
   await f.tap('.count');
-  assert.deepEqual(await f.said(), ['1', '2 of you!']);
+  assert.equal(await f.shown(), '2 of you!');
+  assert.deepEqual(await f.said(), []);
 }, LANDSCAPE, { heightCm: 75, weightKg: 12 });
 
 both('Where: a range map fills the stage, and with no range the continent lights up', async f => {
@@ -340,12 +372,16 @@ run('back from the globe: the card is open on the same heading, and quiet', asyn
   assert.deepEqual(await f.said(), []);
 });
 
-run('Babies: a row to tap and count, from the card\'s number of young', async f => {
+run('Babies: a row to tap and count, silently, from the card\'s number of young', async f => {
   await f.card('taiwan-blue-magpie');
   await f.swipe();
   await f.tap('.hbtn[data-heading="babies"]');
   assert.match(await f.stage(), /stage-babies/);
   assert.equal(await f.page.evaluate(() => document.querySelectorAll('.count__fig').length), 8);
+  await f.forget();
+  await f.tap('.count');
+  assert.equal(await f.shown(), '1');
+  assert.deepEqual(await f.said(), []);
 });
 
 both('topic cards: their own set, in the same grid, with the facts where they were put', async f => {

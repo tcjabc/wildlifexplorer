@@ -14,12 +14,12 @@ It runs at https://wildfile.app/ (Cloudflare) and works fully offline once it ha
   is made. A sheet says "New pack arrived!"; packs wait in **Packs** until the child opens them.
 - **Card view**: the camera zooms from the binder onto a wooden desk, with the card filling the page.
   Open it and one large stage sits beside a fixed grid of eight picture headings, the same on every
-  card, so children who can't read yet learn them. Tapping a heading says its name, reads its text and
-  switches the stage to match.
+  card, so children who can't read yet learn them. Tapping a heading shows its text and switches the
+  stage to match. The only thing on a card that speaks is the 🔊 button, which says its name.
 - **Badges**: for finishing a group, Bronze/Silver/Gold for continents and habitats, and secret
   badges. **Quiz**: picture → name, and true/false facts.
 - **Creature comparison**, on the whole stage: You (the animal against your own size, or a grown-up,
-  a cat or a car, with a row of figures to tap and count) or Animal (lookalikes side by side, with how
+  a cat or a car, with a row of figures to tap and count, silently) or Animal (lookalikes side by side, with how
   to tell them apart). **Globe**: filter the pins by continent or habitat, or hide
   them all with the paw button to see the map on its own.
 - **Field Notes**: a researcher's notebook per profile. Draw with a pencil, pen and highlighter
@@ -274,8 +274,8 @@ back: everything is under the headings.
 - **The inside**: a large **stage** and a **menu**, a fixed 4 × 2 grid of heading buttons with the text
   of the lit one underneath. Side by side where the space is wide; stacked, stage on top, where it is
   tall (portrait, or beside the expanded notebook): `openLayout` in `js/card-layout.js`. Tapping a
-  heading lights it, says its name, reads its text and switches the stage. Tapping it again stops
-  and goes back to the gallery (the photo and illustration). A heading a card has nothing for is grey,
+  heading lights it, shows its text and switches the stage, without a sound. Tapping it again goes back
+  to the gallery (the photo and illustration). A heading a card has nothing for is grey,
   never missing, so nothing ever moves. Buttons never go under 64 px on the screen (`--tap-heading`).
 
 Every card has the same grid (`js/headings.js`, tested on every card in `tests/headings.test.mjs`):
@@ -304,6 +304,11 @@ a line in `VIEW_HAS`, a builder in `STAGE_VIEWS` (`js/stage-views.js`), and its 
 "licenseUrl": …, "sourceUrl": … }` plays when the cover photo or the gallery is tapped. No card has one
 yet. Before the first one: add `audio` to `ALLOW` in `scripts/build-site.mjs` and decide how the service
 worker keeps them. Mono AAC `.m4a`, 3–6 seconds, about 64 kbps, under 60 KB, at similar loudness.
+
+**A heading's narration**: `"narration": { "habitat": { "en": "audio/narration/bear-habitat-en.m4a", "zh":
+"audio/narration/bear-habitat-zh.m4a" } }` plays that recording when the heading is tapped, in the
+explorer's language (Both: English, then Chinese). No file, no sound. No card has one yet; they need the
+same setup as a call, and each recording its credit.
 
 The inside uses these optional fields. Any you leave out are simply not shown.
 
@@ -356,7 +361,7 @@ The inside uses these optional fields. Any you leave out are simply not shown.
   profile has its own height, weight and age (Welcome form, or For grown-ups → Edit profile). A grown-up,
   a cat and a car can stand in (`PARTNERS` in `js/compare-data.js`), and a profile without the number a
   scene needs starts with the grown-up. Under the scene, a row of the smaller one's figures to tap and
-  count aloud ("1, 2, 3… 5 of you!"), from 2 to 20 of them.
+  count, silently, with a short vibration ("1, 2, 3… 5 of you!" on the screen), from 2 to 20 of them.
 - **compare**: how big the animal's silhouette is in cm, either `width` or `height`, of the whole
   picture. That is the picture's size, not the animal's: where a tail curls or hangs, a true nose-to-tail
   length would make the animal far too tall, so size it so the body comes out right and check the
@@ -899,8 +904,8 @@ notebook and back in the real app.
 - Read-aloud uses the device's own voices. On iPad, voices can be added under
   Settings → Accessibility → Spoken Content → Voices (English (UK), Chinese (Taiwan)).
   In Both mode the English is read first, then the Chinese.
-- Tapping a heading on an open card reads it by itself, at the explorer's own reading speed: its name,
-  then its text. 🔊 reads it again, or the cover's facts on the cover.
+- On a card only 🔊 speaks, and it says the card's name, at the explorer's own reading speed. Headings and
+  counting are silent. The quiz has its own read-aloud buttons.
 
 ## Offline and updates
 

@@ -26,7 +26,7 @@ import { tx, label, getMode } from './i18n.js';
 import { state, cardsIn, isVisible, groupById, speechRate, watching, updateProfile, debugOn } from './store.js';
 import { dockMode, cardLayout, fitScale, openLayout, clipLeftOf } from './card-layout.js';
 import { sideOf } from './card-return.js';
-import { coverPage, cardCredits, readOrder } from './cardparts.js';
+import { coverPage, cardCredits } from './cardparts.js';
 import { openCard } from './card-open.js';
 import { cardNo, groupTitle } from './components.js';
 import { track, spring, tween, clamp, lerp, haptic } from './gesture.js';
@@ -416,9 +416,7 @@ function wireGestures() {
   }
 }
 
-// ---------- read aloud, credits, chrome ----------
-
-const readPairs = () => (v.p > 0.5 ? v.built.open.spoken() : readOrder(v.card));
+// ---------- the card's name, credits, chrome ----------
 
 function readButton() {
   if (!speechSupported) return null;
@@ -429,7 +427,7 @@ function readButton() {
     if (btn.classList.contains('is-speaking') && isSpeaking()) { stop(); return; }
     btn.classList.add('is-speaking');
     icon.textContent = '⏹';
-    speak(readPairs(), { mode: getMode(), rate: speechRate(), onend: idle });
+    speak([v.card.name], { mode: getMode(), rate: speechRate(), onend: idle }); // the only thing on a card that speaks
   });
   return btn;
 }

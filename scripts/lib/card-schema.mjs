@@ -18,7 +18,7 @@
 export const FACT_SECTIONS = ['habitat', 'breeding', 'behaviour', 'foodAndHunting', 'conservation'];
 
 export const KEY_ORDER = ['id', 'group', 'scientificName', 'name', 'facts', 'factHeadings', 'factFile', 'status', 'taiwan', 'continents', 'biomes',
-  'photo', 'illustration', 'labelTone', 'map', 'mapBounds', 'range', 'place', 'fossilSite', 'profile', 'stage', 'stats', 'compare', 'related', 'silhouette', 'stamp', 'call',
+  'photo', 'illustration', 'labelTone', 'map', 'mapBounds', 'range', 'place', 'fossilSite', 'profile', 'stage', 'stats', 'compare', 'related', 'silhouette', 'stamp', 'call', 'narration',
   'taxonomy', 'wikidata', 'locked', '_draft', '_sources'];
 
 export function orderKeys(card) {
