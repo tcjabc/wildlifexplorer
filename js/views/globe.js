@@ -285,8 +285,13 @@ export function render(main, [cardId] = []) {
   }
 
   const debug = debugOn('fps');
+  // The WebGL base layer spike: ?globe=webgl, and &bands=10 for Temperature in steps.
+  const query = new URLSearchParams(location.search);
+  const glBase = query.get('globe') === 'webgl', bands = Number(query.get('bands')) || 0;
   globe = createGlobe(stage, {
     debug,
+    glBase,
+    onBase: () => { if (globe) choose(shownLayer); },
     onLand: ok => { offline.hidden = ok; },
     onFrame: layout,
     onInteract: () => {
@@ -730,7 +735,8 @@ export function render(main, [cardId] = []) {
     wanted = L;
     hero.classList.add('is-loading');
     try {
-      const spec = await L.load({ col, month: tempMonth });
+      const onGpu = L.base && await globe.usesBase();
+      const spec = onGpu ? { base: L.base({ col, bands }) } : await L.load({ col, month: tempMonth });
       if (wanted !== L || !globe) return;
       await globe.setLayer(spec);
       setPlateLabels(spec.plates?.motion);

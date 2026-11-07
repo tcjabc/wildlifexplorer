@@ -56,6 +56,7 @@ const SHELL = [
   'js/globe.js',
   'js/zhuyin.js',
   'js/globegl.js',
+  'js/globe-base.js',
   'js/globe-info.js',
   'js/globe-filter.js',
   'js/globe-art.js',

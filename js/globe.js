@@ -21,6 +21,7 @@ const SPIN_IN_MS = 1500; // and ease into the turn over this long
 const SPIN = 4;          // degrees per second when turning by itself
 const GLIDE = 420;       // ms: how long a flick keeps spinning
 const MAX_LAT = 80;
+const PLAIN_BASE = { kind: 'flat', hill: 0.5 }; // ?globe=webgl: the plain map
 
 // How much of its slow turn the globe is doing, 0 to 1: only fully zoomed out, and only after
 // idle ms without a touch.
@@ -360,7 +361,9 @@ export function traceRing(sink, v, B, f = 0) {
 // debug: show the frame rate and drawing time while the globe moves (?debug=fps).
 // onLand(ok): the land loaded (true) or couldn't be fetched (false: offline the first time);
 // retry() tries again.
-export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug = false } = {}) {
+// glBase (the ?globe=webgl spike): the base layers come from js/globe-base.js where it can.
+// onBase(ok): that stopped (the context was lost) or came back, so the layer is shown again.
+export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase, glBase = false, debug = false } = {}) {
   // Bottom to top: sea and land, the picture layer (WebGL, made when first needed), the
   // overlay. Only the bottom canvas takes taps.
   const canvas = h('canvas', { class: 'globe__canvas', 'aria-hidden': 'true' });
@@ -371,6 +374,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
   const col = tokens(stage);
   let layer = null;          // see setLayer
   let sphere = null;         // js/globegl.js, once a picture layer has been shown
+  let base = null;           // js/globe-base.js, under everything (?globe=webgl)
   let tiles = null;          // js/globe-tiles.js, once a layer with zoom tiles has been shown
   let home = null;
   const getHome = () => loadHome().then(p => { home = p; dirty = true; }).catch(() => {});
@@ -400,6 +404,16 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
   const reduced = reducedMotion();
 
   let gone = false;
+  const baseMade = glBase ? import('./globe-base.js').then(({ createBase, BASE_DPR }) => {
+    if (gone) return;
+    const el = h('canvas', { class: 'globe__canvas globe__canvas--gl', 'aria-hidden': 'true', hidden: true });
+    base = createBase(el, { colours: col, shade: 'assets/layers/shade-2k.webp', onChange: ok => { dirty = true; onBase?.(ok); } });
+    if (!base) return;
+    stage.prepend(el);
+    dprCap = BASE_DPR;
+    resize();
+    return base.set(layer?.sea ? null : layer?.base ?? PLAIN_BASE).then(() => { dirty = true; });
+  }).catch(() => { base = null; }) : null;
   const getLand = () => loadLand().then(l => { if (gone) return; polys = l; dirty = true; onLand?.(true); }, () => { if (!gone) onLand?.(false); });
   getLand();
 
@@ -472,39 +486,45 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
     ctx = baseCtx;
     for (const c of [baseCtx, overCtx]) { c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, w, ht); }
     const { cx, cy, r } = basis();
+    const gl = base?.ready();
+    if (gl) base.draw(B, size);
 
     // A thin glow of atmosphere outside the rim while the globe still fits on screen,
     // then the sea. No shading on the disc itself: it would read as a bowl.
-    if (r < Math.max(w, ht)) {
+    if (!gl && r < Math.max(w, ht)) {
       const g = ctx.createRadialGradient(cx, cy, r * 0.98, cx, cy, r * 1.07);
       g.addColorStop(0, col.glow);
       g.addColorStop(1, 'transparent');
       ctx.fillStyle = g;
       ctx.beginPath(); ctx.arc(cx, cy, r * 1.07, 0, Math.PI * 2); ctx.fill();
     }
-    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.fillStyle = col.sea; ctx.fill();
+    if (!gl) {
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fillStyle = col.sea; ctx.fill();
+    }
 
     ctx.save();
     ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
 
     fillAll(layer?.sea);
 
-    // Graticule (near side only).
-    ctx.strokeStyle = col.grid; ctx.lineWidth = 1;
-    ctx.beginPath();
-    for (const line of GRATICULE) {
-      let pen = false;
-      for (let i = 0; i < line.length; i += 3) {
-        const [x, y, z] = project([line[i], line[i + 1], line[i + 2]]);
-        if (z < 0) { pen = false; continue; }
-        if (pen) ctx.lineTo(x, y); else ctx.moveTo(x, y);
-        pen = true;
+    // Graticule (near side only). A picture covers it, on either renderer.
+    if (!layer?.base) {
+      ctx.strokeStyle = col.grid; ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (const line of GRATICULE) {
+        let pen = false;
+        for (let i = 0; i < line.length; i += 3) {
+          const [x, y, z] = project([line[i], line[i + 1], line[i + 2]]);
+          if (z < 0) { pen = false; continue; }
+          if (pen) ctx.lineTo(x, y); else ctx.moveTo(x, y);
+          pen = true;
+        }
       }
+      ctx.stroke();
     }
-    ctx.stroke();
 
-    if (polys) fillPolys(view.k >= NEAR_K ? polys.near : polys.far, col.land);
+    if (polys && !gl) fillPolys(view.k >= NEAR_K ? polys.near : polys.far, col.land);
     fillAll(layer?.land);
     if (layer?.night) drawNight(layer.night);
     ctx.restore();
@@ -876,7 +896,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
         prev = t;
         frames++; sum += ms; max = Math.max(max, ms);
         if (t - from >= 1000) {
-          el.textContent = `${Math.round((frames * 1000) / (t - from))} fps · draw ${(sum / frames).toFixed(1)} ms (max ${max.toFixed(1)})`;
+          el.textContent = `${Math.round((frames * 1000) / (t - from))} fps · draw ${(sum / frames).toFixed(1)} ms (max ${max.toFixed(1)}) · ${base?.ready() ? 'webgl base' : 'current'} · dpr ${size.dpr}`;
           from = t; frames = 0; sum = 0; max = 0;
         }
       },
@@ -970,19 +990,23 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
     flight = tween({ from: 0, to: 1, duration, onUpdate: t => zoomAt(x, y, from * (to / from) ** t), onDone: () => { flight = null; } });
   }
 
-  const ro = new ResizeObserver(([entry]) => {
-    const { width: w, height: ht } = entry.contentRect;
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
+  let dprCap = 2;
+  function resize(w = size.w, ht = size.h) {
+    const dpr = Math.min(dprCap, window.devicePixelRatio || 1);
     for (const c of [canvas, overCanvas]) { c.width = Math.round(w * dpr); c.height = Math.round(ht * dpr); }
     size = { w, h: ht, dpr, r: Math.min(w, ht) * RADIUS };
     applyRoom();
     dirty = true;
-  });
+  }
+  const ro = new ResizeObserver(([entry]) => resize(entry.contentRect.width, entry.contentRect.height));
   ro.observe(stage);
   raf = requestAnimationFrame(frame);
 
   return {
     ready: loadLand(),
+    // Whether the base layers come from js/globe-base.js (null until it is known): only then has a
+    // layer's `base` any use.
+    usesBase: async () => { await baseMade; return Boolean(base && !base.lost); },
     get k() { return view.k; },
     get radius() { return size.r * fit; },
     redraw() { dirty = true; },
@@ -1015,10 +1039,15 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
     //   plates: { far, near, motion, colour, halo, gap, arrow, arrowEdge }: plate boundaries (drawPlates)
     //   raster: a js/globegl.js spec, drawn above sea and land; with tiles (js/globe-tiles.js
     //           RELIEF_TILES), sharper pictures fetched for the view once zoomed in
+    //   base:   a js/globe-base.js layer, under the 2D canvases. Only with glBase. Shapes on the sea
+    //           must lie under the land, so a layer with `sea` stays on the 2D canvas; every other
+    //           layer has the plain map under it
     // Resolves when the layer is showing; rejects if its pictures can't be shown.
     async setLayer(next) {
       layer = next;
       dirty = true;
+      await baseMade;
+      await base?.set(next?.sea ? null : next?.base ?? PLAIN_BASE);
       if (next?.raster && !sphere) {
         const { createSphere } = await import('./globegl.js');
         const glCanvas = h('canvas', { class: 'globe__canvas globe__canvas--gl', 'aria-hidden': 'true' });
@@ -1067,6 +1096,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
       untrack();
       ro.disconnect();
       sphere?.destroy();
+      base?.destroy();
       Object.assign(saved, { lon: view.lon, lat: view.lat, k: view.k });
     },
   };

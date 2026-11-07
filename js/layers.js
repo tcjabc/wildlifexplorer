@@ -122,9 +122,11 @@ export const DEPTHS = [200, 1000, 4000, 6000];
 const FORESTS = ['tropical', 'temperate', 'boreal'];
 
 // What each layer's info panel says is in js/globe-info.js.
+// base: its picture for the ?globe=webgl spike (js/globe-base.js), in place of load().
 export const LAYERS = [
   {
     id: 'relief', emoji: '🏔️',
+    base: () => ({ kind: 'picture', tex: `${DIR}relief-2k.webp`, hill: 0.25 }),
     async load() {
       return { raster: { mode: 'relief', tex: `${DIR}relief-${size()}.webp`, aux: `${DIR}height-2k.webp`, bump: 5, tiles: RELIEF_TILES } };
     },
@@ -161,6 +163,7 @@ export const LAYERS = [
   },
   {
     id: 'temp', emoji: '🌡️', months: true,
+    base: ({ col, bands }) => ({ kind: 'ramp', tex: `${DIR}temp-mean-2k.webp`, stops: tempStops(col), bands, hill: 0.35 }),
     async load({ month }) {
       return { raster: { mode: 'picture', tex: `${DIR}temp-${String(month).padStart(2, '0')}.webp` } };
     },
