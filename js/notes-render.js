@@ -23,6 +23,7 @@ export const highlightColour = id => css(`--hl-${id}`) || '#ffee58';
 // What drew a line. Pages from before there was anything but the pencil have no k.
 export const strokeKind = item => (item.k === 'pen' || item.k === 'highlighter' ? item.k : 'pencil');
 const GRID = 40;
+const BACKDROP = { w: 760, h: 560, margin: 44 }; // the animal in the paper's corner: the box it fits in
 const WASHI_ON_PHOTOS = 'yellow';
 
 // ---------- pencil grain ----------
@@ -342,6 +343,20 @@ function drawPaper(ctx, page) {
   }
 }
 
+// The page's animal, faded into the paper's bottom right corner. First the paper over the dots, so
+// they fade inside its shape, then the animal itself, faintly.
+function drawBackdrop(ctx, a) {
+  if (!drawn(a)) return;
+  const ratio = ratioOf(a), h = Math.min(BACKDROP.h, BACKDROP.w / ratio), w = h * ratio;
+  const x = PAGE_W - BACKDROP.margin - w, y = PAGE_H - BACKDROP.margin - h, px = h * pxPerUnit(ctx);
+  ctx.save();
+  ctx.globalAlpha = Number(css('--nb-backdrop-fade'));
+  ctx.drawImage(tinted(a, css('--nb-paper'), px), x, y, w, h);
+  ctx.globalAlpha = Number(css('--nb-backdrop-alpha'));
+  ctx.drawImage(tinted(a, css('--nb-backdrop'), px), x, y, w, h);
+  ctx.restore();
+}
+
 // Date, the animal's name (in the profile's language) and the red "Observed" stamp.
 function drawHeader(ctx, page, text) {
   const font = css('--font');
@@ -412,10 +427,12 @@ function flushPencil(ctx, l, { x, y, w, h }) {
 const grainy = item => item.t === 's' && strokeKind(item) === 'pencil';
 
 // headerText: { date, name, stamp } already in the profile's language.
+// backdrop: the card whose silhouette is part of this paper, or null. It is no item: nothing rubs it out.
 // skip: an item index not to draw (the one being moved, drawn on the live layer instead).
-export function renderPage(ctx, page, { assets, headerText, skip = -1 }) {
+export function renderPage(ctx, page, { assets, headerText, backdrop = null, skip = -1 }) {
   tokens.clear();
   drawPaper(ctx, page);
+  if (backdrop) drawBackdrop(ctx, assets.stamps.get(backdrop));
   drawHeader(ctx, page, headerText);
   const l = pencilLayer(ctx);
   let box = null, pencilled = false;

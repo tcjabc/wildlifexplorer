@@ -17,14 +17,14 @@ const today = () => new Date().toISOString().slice(0, 10);
 const safeName = s => (s ?? '').replace(/[^\p{L}\p{N}_-]+/gu, '-').replace(/^-|-$/g, '').slice(0, 40) || 'explorer';
 const ID = /^[A-Za-z0-9-]{1,64}$/; // page and photo ids become file names
 
-export async function exportPageImage(page, { assets, headerText }) {
+export async function exportPageImage(page, { assets, headerText, backdrop }) {
   const k = 1.5;
   const canvas = document.createElement('canvas');
   canvas.width = PAGE_W * k;
   canvas.height = PAGE_H * k;
   const ctx = canvas.getContext('2d');
   ctx.setTransform(k, 0, 0, k, 0, 0);
-  renderPage(ctx, page, { assets, headerText });
+  renderPage(ctx, page, { assets, headerText, backdrop });
   const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
   return shareFile(new File([blob], `field-notes-${today()}.png`, { type: 'image/png' }));
 }

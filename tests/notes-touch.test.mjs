@@ -806,7 +806,7 @@ run('with no animals collected the panda stamp says how to get some', async f =>
 });
 
 // A page tagged with an animal, open in that animal's pages.
-async function tagged(f, id, tag) {
+async function openTagged(f, id, tag) {
   await f.page.evaluate(([i, c]) => t.notes.loadPage(i).then(p => { p.tags = [c]; return t.notes.savePage(p); }), [id, tag]);
   await f.show(id, { start: { view: 'pages', scope: { kind: 'animal', id: tag }, pageId: id } });
 }
@@ -846,7 +846,7 @@ run('the picker: another group\'s tab shows its stamps; a topic card and a card 
 run('the panda: a tap never moves to another animal; the row is the page\'s animal, then the last used, and a pick takes', async f => {
   const ids = await rail.collect(f, 4);
   const [a] = await f.seed([[], []]);
-  await tagged(f, a, ids[2]);
+  await openTagged(f, a, ids[2]);
   await rail.rack(f, 'stamp');
   const row = () => f.page.evaluate(() => [...document.querySelectorAll('.nb-pop--stamps [data-card]')].map(b => b.dataset.card));
   assert.deepEqual(await row(), [ids[2]]);
@@ -856,7 +856,7 @@ run('the panda: a tap never moves to another animal; the row is the page\'s anim
   await rail.rack(f, 'stamp');
   await rail.rack(f, 'stamp');
   await f.page.mouse.click(5, 5);
-  await f.tap({ x: 600, y: 600 });
+  await f.tap(onPage(900, 1200));
   assert.equal((await f.items(a))[1].card, ids[2], 'tapping the panda changed nothing');
 });
 
@@ -2055,3 +2055,45 @@ run('a full page: a note on the desk and nothing placed; lines still draw, and o
   assert.equal((await f.items(a)).length, 151, 'a line is no object');
 });
 
+run('a page linked to an animal has its silhouette in the corner of the paper; a topic card or no link, plain paper', async f => {
+  const [animal, topic] = await f.page.evaluate(() => [t.state.cards.find(c => c.silhouette?.file && c.group === 'mammals').id, t.state.cards.find(c => c.group === 'conservation').id]);
+  const [a, b, c] = await f.seed([[], [], []]);
+  const ink = () => f.page.evaluate(() => {
+    const cv = document.querySelector('.nb__base'), x = cv.getContext('2d'), k = cv.width / 1120;
+    const d = x.getImageData(Math.round(600 * k), Math.round(900 * k), Math.round(480 * k), Math.round(460 * k)).data;
+    let n = 0;
+    for (let i = 0; i < d.length; i += 4) if (d[i] < 245 || d[i + 2] < 215) n++; // darker than paper; the dots count a little
+    return n;
+  });
+  await f.show(c);
+  await f.wait(300);
+  const freeInk = await ink();
+  await openTagged(f, b, topic);
+  await f.wait(300);
+  const topicInk = await ink();
+  await openTagged(f, a, animal);
+  await f.wait(300);
+  const animalInk = await ink();
+  assert.equal(topicInk, freeInk, 'a topic card stays plain');
+  assert.ok(animalInk > freeInk * 3, 'the animal is there');
+  await f.page.evaluate(() => document.querySelector('.nb-tag__x').click());
+  await f.wait(300);
+  assert.equal(await ink(), freeInk, 'taking the tag off takes the silhouette');
+});
+
+run('the silhouette is no object: not in the page, not counted, and the sponge leaves it', async f => {
+  const animal = await f.page.evaluate(() => t.state.cards.find(c => c.silhouette?.file && c.group === 'mammals').id);
+  const [a] = await f.seed([[], []]);
+  await openTagged(f, a, animal);
+  await f.wait(300);
+  const before = await f.page.evaluate(() => document.querySelector('.nb__base').toDataURL());
+  await rail.rack(f, 'sponge');
+  const at = onPage(850, 1150);
+  await f.send('touchStart', [{ ...at, id: 1 }]);
+  await f.send('touchMove', [{ x: at.x + 60, y: at.y, id: 1 }]);
+  await f.wait(40);
+  await f.send('touchEnd', []);
+  await f.wait(150);
+  assert.equal(await f.page.evaluate(() => document.querySelector('.nb__base').toDataURL()), before);
+  assert.deepEqual(await f.items(a), []);
+});

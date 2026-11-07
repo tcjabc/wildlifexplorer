@@ -461,7 +461,14 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
   // moving it redraws only it. Letting go bakes it back in, where it was among the rest.
   const heldOut = () => (drag ? drag.index : nb.selected);
   function renderLeaf(c) {
-    renderPage(c, leaf.page, { assets: nb.assets, headerText: headerText(leaf.page), skip: heldOut() });
+    renderPage(c, leaf.page, { assets: nb.assets, headerText: headerText(leaf.page), backdrop: backdropOf(leaf.page), skip: heldOut() });
+  }
+  // The animal in the corner of the paper: the page's first living thing with a silhouette. It is
+  // the page's look, not something on it: it follows the tags, and is in no item.
+  function backdropOf(page) {
+    const id = (page.tags ?? []).find(tag => { const card = state.byId.get(tag); return card?.silhouette?.file && groupById(card.group)?.stampable; }) ?? null;
+    if (id) stampAsset(id);
+    return id;
   }
   function paintDetail() {
     const on = view.k > 1.001 && !gest && !swipe?.panned;
@@ -1929,7 +1936,7 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
         open && item(leaf.page.paper === 'grid' ? '⠿' : '▦', leaf.page.paper === 'grid' ? 'notes.paperDots' : 'notes.paperGrid', async () => {
           leaf.page.paper = leaf.page.paper === 'grid' ? 'dots' : 'grid'; leaf.dirty = true; await flushSave(); redraw();
         }),
-        open && item('🖼️', 'notes.exportPage', () => exportPageImage(leaf.page, { assets: nb.assets, headerText: headerText(leaf.page) }).catch(() => toast(tx('notes.exportFailed')))),
+        open && item('🖼️', 'notes.exportPage', () => exportPageImage(leaf.page, { assets: nb.assets, headerText: headerText(leaf.page), backdrop: backdropOf(leaf.page) }).catch(() => toast(tx('notes.exportFailed')))),
         item('📦', 'notes.exportAll', async () => { await flushSave(); await exportAll().catch(() => toast(tx('notes.exportFailed'))); }),
         folderSupported() && item('📁', 'notes.toFolder', async () => { await flushSave(); await saveToFolder().catch(() => {}); }),
         item('📥', 'notes.import', () => importInput.click()),
