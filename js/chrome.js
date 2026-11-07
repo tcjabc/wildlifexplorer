@@ -11,7 +11,7 @@ const NAV = [
   { view: 'notes', icon: '📓', key: 'nav.notes', device: true },
   { view: 'quiz', icon: '🎯', key: 'nav.quiz', device: true },
   { view: 'badges', icon: '🏅', key: 'nav.badges' },
-  { view: 'parents', icon: '⚙️', key: 'parents.title' },
+  { view: 'parents', icon: '🔒', key: 'parents.title' },
 ];
 // device: kept on each device only (Field Notes, quiz scores), so not on a grown-up's device.
 const MODES = [['en', 'lang.en', 'lang.enName'], ['zh', 'lang.zh', 'lang.zhName'], ['both', 'lang.bothFace', 'lang.both']];
