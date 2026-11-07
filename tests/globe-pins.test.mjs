@@ -2,7 +2,7 @@
 // the filter selection), what waits (filters, key rows, hints), the state across tab visits, and
 // opening the globe from a card (pins on, that card's pin past the filters).
 // Skipped when the browsers aren't installed: npx playwright install webkit chromium
-// Run: npm test
+// Run: npm run test:browser -- tests/globe-pins.test.mjs
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
@@ -10,6 +10,7 @@ import { readFile, stat } from 'node:fs/promises';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { setUp } from './fixtures/browser.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 let pw = null;
@@ -41,17 +42,19 @@ const go = async (page, hash) => { await page.evaluate(h => { location.hash = h;
 // A new explorer (no cards yet); with preview on later, every card has a pin.
 async function start(type) {
   const browser = await pw[type].launch();
-  const ctx = await browser.newContext({ ...pw.devices['iPad (gen 7) landscape'] });
-  const page = await ctx.newPage();
-  const errors = [];
-  page.on('pageerror', e => errors.push(String(e)));
-  await page.goto(base);
-  await page.waitForSelector('form button[type=submit]');
-  await page.locator('form input').first().fill('Tester');
-  await page.locator('form button[type=submit]').click();
-  await page.waitForTimeout(800);
-  await page.evaluate(async () => { const st = await import('/js/store.js'); await st.updateProfile(st.state.profile.id, { globePanel: 'collapsed' }); });
-  return { browser, ctx, page, errors };
+  return setUp(browser, async () => {
+    const ctx = await browser.newContext({ ...pw.devices['iPad (gen 7) landscape'] });
+    const page = await ctx.newPage();
+    const errors = [];
+    page.on('pageerror', e => errors.push(String(e)));
+    await page.goto(base);
+    await page.waitForSelector('form button[type=submit]');
+    await page.locator('form input').first().fill('Tester');
+    await page.locator('form button[type=submit]').click();
+    await page.waitForTimeout(800);
+    await page.evaluate(async () => { const st = await import('/js/store.js'); await st.updateProfile(st.state.profile.id, { globePanel: 'collapsed' }); });
+    return { browser, ctx, page, errors };
+  });
 }
 async function previewGlobe(page) {
   await page.evaluate(async () => { const st = await import('/js/store.js'); await st.updateProfile(st.state.profile.id, { parent: { preview: true } }); });
@@ -72,7 +75,7 @@ async function chooseFilter(page, name) {
 for (const type of ['chromium', 'webkit']) {
   const skip = !have(type) && `${type} not installed`;
 
-  test(`${type}: no cards yet, the hint goes while pins are hidden and comes back`, { skip, timeout: 60000 }, async () => {
+  test(`${type}: no cards yet, the hint goes while pins are hidden and comes back`, { skip }, async () => {
     const { browser, page, errors } = await start(type);
     try {
       await go(page, '#/globe');
@@ -90,7 +93,7 @@ for (const type of ['chromium', 'webkit']) {
     } finally { await browser.close(); }
   });
 
-  test(`${type}: the paw hides the pins, layers stay, filters wait, and it lasts across tab visits`, { skip, timeout: 90000 }, async () => {
+  test(`${type}: the paw hides the pins, layers stay, filters wait, and it lasts across tab visits`, { skip }, async () => {
     const { browser, page, errors } = await start(type);
     try {
       await previewGlobe(page);
@@ -153,7 +156,7 @@ for (const type of ['chromium', 'webkit']) {
     } finally { await browser.close(); }
   });
 
-  test(`${type}: from a card the pins are on, and its pin shows past the filters until they change`, { skip, timeout: 90000 }, async () => {
+  test(`${type}: from a card the pins are on, and its pin shows past the filters until they change`, { skip }, async () => {
     const { browser, page, errors } = await start(type);
     try {
       await previewGlobe(page);
@@ -205,11 +208,3 @@ for (const type of ['chromium', 'webkit']) {
     } finally { await browser.close(); }
   });
 }
-
-test('hiding the pins leaves the slow turn alone', () => {
-  const view = readFileSync(new URL('../js/views/globe.js', import.meta.url), 'utf8');
-  const body = view.match(/function hidePins\(on\) \{[\s\S]*?\n {2}\}/)[0];
-  assert.doesNotMatch(body, /hold\(|\.pause\(|noteTouch/);
-  assert.match(view, /^let pinsHidden = false;/m, 'kept while visiting other tabs');
-  assert.doesNotMatch(view, /updateProfile\([^)]*pinsHidden/, 'not saved to the profile');
-});

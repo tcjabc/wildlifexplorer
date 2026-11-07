@@ -3,7 +3,7 @@
 // left. js/card-return.js has the rule for where the panel opens (tests/card-globe.test.mjs).
 //
 // Skipped when the browser isn't installed: npx playwright install chromium
-// Run: npm test
+// Run: npm run test:browser -- tests/notes-full.test.mjs
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
@@ -11,6 +11,7 @@ import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { setUp } from './fixtures/browser.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 let pw = null;
@@ -39,57 +40,59 @@ after(() => server?.close());
 // another and a free page. Returns the page ids, oldest first.
 async function open() {
   const browser = await pw.chromium.launch();
-  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 1, hasTouch: true, serviceWorkers: 'block' });
-  const page = await ctx.newPage();
-  const errors = [];
-  page.on('pageerror', e => errors.push(e.message));
-  await page.goto(url);
-  await page.waitForFunction(() => !document.body.classList.contains('is-loading'), null, { timeout: 10000 });
-  await page.evaluate(async () => { const s = await import('/js/store.js'); await s.createProfile({ name: 'Test', lang: 'en' }); });
-  await page.reload();
-  await page.click('.picker__item:not(.picker__item--add)', { timeout: 10000 });
-  await page.waitForSelector('main[data-view="binder"]', { timeout: 10000 });
-  const seeded = await page.evaluate(async () => {
-    const store = await import('/js/store.js'), notes = await import('/js/notes-store.js');
-    const [a, b] = store.state.cards.map(c => c.id);
-    for (const id of [a, b]) store.state.collected[id] = { cardId: id };
-    const add = async (tags, day) => {
-      const p = notes.blankPage({ tags });
-      p.createdAt = p.header.date = new Date(Date.UTC(2026, 0, day)).toISOString();
-      await notes.savePage(p);
-      return p.id;
+  return setUp(browser, async () => {
+    const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 1, hasTouch: true, serviceWorkers: 'block' });
+    const page = await ctx.newPage();
+    const errors = [];
+    page.on('pageerror', e => errors.push(e.message));
+    await page.goto(url);
+    await page.waitForFunction(() => !document.body.classList.contains('is-loading'), null, { timeout: 10000 });
+    await page.evaluate(async () => { const s = await import('/js/store.js'); await s.createProfile({ name: 'Test', lang: 'en' }); });
+    await page.reload();
+    await page.click('.picker__item:not(.picker__item--add)', { timeout: 10000 });
+    await page.waitForSelector('main[data-view="binder"]', { timeout: 10000 });
+    const seeded = await page.evaluate(async () => {
+      const store = await import('/js/store.js'), notes = await import('/js/notes-store.js');
+      const [a, b] = store.state.cards.map(c => c.id);
+      for (const id of [a, b]) store.state.collected[id] = { cardId: id };
+      const add = async (tags, day) => {
+        const p = notes.blankPage({ tags });
+        p.createdAt = p.header.date = new Date(Date.UTC(2026, 0, day)).toISOString();
+        await notes.savePage(p);
+        return p.id;
+      };
+      return { a, b, ids: [await add([a], 1), await add([a], 2), await add([a], 3), await add([b], 4), await add([], 5)] };
+    });
+    const f = {
+      browser, page, errors, ...seeded,
+      wait: ms => page.waitForTimeout(ms),
+      count: () => page.evaluate(() => document.querySelector('.nbdock .nb__count')?.textContent),
+      full: () => page.waitForSelector('.nb--immersive[data-view]'),
+      async panelOn(n) {
+        await page.evaluate(id => { location.hash = `#/card/${encodeURIComponent(id)}/notes`; }, f.a);
+        await page.waitForSelector('.nbdock .nb__full');
+        await page.waitForFunction(() => /\d/.test(document.querySelector('.nbdock .nb__count')?.textContent ?? ''));
+        for (let i = 0; i < 3 && (await f.count()) !== `${n} / 3`; i++) {
+          await page.click('.nbdock .nb__nav--prev');
+          await f.wait(150);
+        }
+        assert.equal(await f.count(), `${n} / 3`);
+      },
+      async openFull() {
+        await page.click('.nbdock .nb__full');
+        await f.full();
+        await f.wait(1000); // past the growing, the roll opening, and the page drawn
+      },
+      async back() {
+        await page.click('.nb__back');
+        await page.waitForSelector('.viewer .nbdock[data-state="expanded"] .nb__count');
+        await f.wait(300);
+      },
+      // The page open in the full notebook.
+      place: () => page.evaluate(() => document.querySelector('.nb-tabs').getAttribute('aria-label').match(/[0-9]+/)[0]),
     };
-    return { a, b, ids: [await add([a], 1), await add([a], 2), await add([a], 3), await add([b], 4), await add([], 5)] };
+    return f;
   });
-  const f = {
-    browser, page, errors, ...seeded,
-    wait: ms => page.waitForTimeout(ms),
-    count: () => page.evaluate(() => document.querySelector('.nbdock .nb__count')?.textContent),
-    full: () => page.waitForSelector('.nb--immersive[data-view]'),
-    async panelOn(n) {
-      await page.evaluate(id => { location.hash = `#/card/${encodeURIComponent(id)}/notes`; }, f.a);
-      await page.waitForSelector('.nbdock .nb__full');
-      await page.waitForFunction(() => /\d/.test(document.querySelector('.nbdock .nb__count')?.textContent ?? ''));
-      for (let i = 0; i < 3 && (await f.count()) !== `${n} / 3`; i++) {
-        await page.click('.nbdock .nb__nav--prev');
-        await f.wait(150);
-      }
-      assert.equal(await f.count(), `${n} / 3`);
-    },
-    async openFull() {
-      await page.click('.nbdock .nb__full');
-      await f.full();
-      await f.wait(1000); // past the growing, the roll opening, and the page drawn
-    },
-    async back() {
-      await page.click('.nb__back');
-      await page.waitForSelector('.viewer .nbdock[data-state="expanded"] .nb__count');
-      await f.wait(300);
-    },
-    // The page open in the full notebook.
-    place: () => page.evaluate(() => document.querySelector('.nb-tabs').getAttribute('aria-label').match(/[0-9]+/)[0]),
-  };
-  return f;
 }
 const run = (name, fn) => test(name, { skip }, async () => {
   const f = await open();

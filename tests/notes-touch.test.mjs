@@ -3,7 +3,7 @@
 // DevTools protocol. Frame rates and palms on the real tablet can't be tested here.
 //
 // Skipped when the browser isn't installed: npx playwright install chromium
-// Run: npm test
+// Run: npm run test:browser -- tests/notes-touch.test.mjs
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
@@ -11,6 +11,7 @@ import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { setUp } from './fixtures/browser.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 let pw = null;
@@ -84,54 +85,56 @@ const label = (x, y) => ({ t: 'x', c: '#444', s: 40, x, y, v: 'Hello' });
 
 async function open(viewport = LANDSCAPE) {
   const browser = await pw.chromium.launch();
-  const ctx = await browser.newContext({ viewport, deviceScaleFactor: 2, hasTouch: true });
-  const page = await ctx.newPage();
-  const errors = [];
-  page.on('pageerror', e => errors.push(e.message));
-  await page.goto(url);
-  await page.waitForFunction(() => window.ready);
-  const cdp = await ctx.newCDPSession(page);
-  const send = (type, touchPoints) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints });
-  const wait = ms => page.waitForTimeout(ms);
-  const f = {
-    browser, page, errors, wait, send,
-    seed: pages => page.evaluate(p => t.seed(p), pages),
-    async show(id, options) {
-      await page.evaluate(([i, o]) => t.open(i, o), [id, options]);
-      await page.waitForFunction(() => document.querySelector('.nb')?.dataset.view === 'pages' && document.querySelector('.nb__sheet canvas').width > 1);
-      await wait(100);
-      await page.waitForFunction(() => !document.getAnimations().length); // the roll has opened
-    },
-    items: id => page.evaluate(i => t.items(i), id),
-    where: () => page.evaluate(() => t.where().pageId),
-    // The page open, by what the tabs say.
-    place: () => page.evaluate(() => Number(document.querySelector('.nb-tabs').getAttribute('aria-label').match(/[0-9]+/)[0])),
-    transform: () => page.evaluate(() => getComputedStyle(document.querySelector('.nb__book')).transform),
-    box: sel => page.evaluate(s => { const r = document.querySelector(s)?.getBoundingClientRect(); return r && { x: r.x, y: r.y, w: r.width, h: r.height }; }, sel),
-    // One finger along a line.
-    async drag(from, to, steps = 8) {
-      await send('touchStart', [{ ...from, id: 1 }]);
-      for (let i = 1; i <= steps; i++) {
-        await send('touchMove', [{ x: from.x + ((to.x - from.x) * i) / steps, y: from.y + ((to.y - from.y) * i) / steps, id: 1 }]);
-        await wait(16);
-      }
-      await send('touchEnd', []);
-      await wait(550); // past the save
-    },
-    async tap(at) { await send('touchStart', [{ ...at, id: 1 }]); await wait(30); await send('touchEnd', []); await wait(550); },
-    // Two fingers, each from its start to its end.
-    async two([a0, b0], [a1, b1], steps = 8) {
-      await send('touchStart', [{ ...a0, id: 1 }, { ...b0, id: 2 }]);
-      for (let i = 1; i <= steps; i++) {
-        const at = (p, q) => ({ x: p.x + ((q.x - p.x) * i) / steps, y: p.y + ((q.y - p.y) * i) / steps });
-        await send('touchMove', [{ ...at(a0, a1), id: 1 }, { ...at(b0, b1), id: 2 }]);
-        await wait(16);
-      }
-      await send('touchEnd', []);
-      await wait(550);
-    },
-  };
-  return f;
+  return setUp(browser, async () => {
+    const ctx = await browser.newContext({ viewport, deviceScaleFactor: 2, hasTouch: true });
+    const page = await ctx.newPage();
+    const errors = [];
+    page.on('pageerror', e => errors.push(e.message));
+    await page.goto(url);
+    await page.waitForFunction(() => window.ready);
+    const cdp = await ctx.newCDPSession(page);
+    const send = (type, touchPoints) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints });
+    const wait = ms => page.waitForTimeout(ms);
+    const f = {
+      browser, page, errors, wait, send,
+      seed: pages => page.evaluate(p => t.seed(p), pages),
+      async show(id, options) {
+        await page.evaluate(([i, o]) => t.open(i, o), [id, options]);
+        await page.waitForFunction(() => document.querySelector('.nb')?.dataset.view === 'pages' && document.querySelector('.nb__sheet canvas').width > 1);
+        await wait(100);
+        await page.waitForFunction(() => !document.getAnimations().length); // the roll has opened
+      },
+      items: id => page.evaluate(i => t.items(i), id),
+      where: () => page.evaluate(() => t.where().pageId),
+      // The page open, by what the tabs say.
+      place: () => page.evaluate(() => Number(document.querySelector('.nb-tabs').getAttribute('aria-label').match(/[0-9]+/)[0])),
+      transform: () => page.evaluate(() => getComputedStyle(document.querySelector('.nb__book')).transform),
+      box: sel => page.evaluate(s => { const r = document.querySelector(s)?.getBoundingClientRect(); return r && { x: r.x, y: r.y, w: r.width, h: r.height }; }, sel),
+      // One finger along a line.
+      async drag(from, to, steps = 8) {
+        await send('touchStart', [{ ...from, id: 1 }]);
+        for (let i = 1; i <= steps; i++) {
+          await send('touchMove', [{ x: from.x + ((to.x - from.x) * i) / steps, y: from.y + ((to.y - from.y) * i) / steps, id: 1 }]);
+          await wait(16);
+        }
+        await send('touchEnd', []);
+        await wait(550); // past the save
+      },
+      async tap(at) { await send('touchStart', [{ ...at, id: 1 }]); await wait(30); await send('touchEnd', []); await wait(550); },
+      // Two fingers, each from its start to its end.
+      async two([a0, b0], [a1, b1], steps = 8) {
+        await send('touchStart', [{ ...a0, id: 1 }, { ...b0, id: 2 }]);
+        for (let i = 1; i <= steps; i++) {
+          const at = (p, q) => ({ x: p.x + ((q.x - p.x) * i) / steps, y: p.y + ((q.y - p.y) * i) / steps });
+          await send('touchMove', [{ ...at(a0, a1), id: 1 }, { ...at(b0, b1), id: 2 }]);
+          await wait(16);
+        }
+        await send('touchEnd', []);
+        await wait(550);
+      },
+    };
+    return f;
+  });
 }
 // Picks up the tweezers, from the tray.
 const tweezers = f => f.page.click('.nb-rack[data-rack="tweezers"]');

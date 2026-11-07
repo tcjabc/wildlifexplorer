@@ -11,13 +11,14 @@
 // drag is sent through the DevTools protocol.
 //
 // Skipped when the browsers aren't installed: npx playwright install webkit chromium
-// Run: npm test
+// Run: npm run test:browser -- tests/touch.test.mjs
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { setUp } from './fixtures/browser.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 let pw = null;
@@ -55,12 +56,14 @@ after(() => server?.close());
 
 async function open(type) {
   const browser = await pw[type].launch();
-  const ctx = await browser.newContext({ ...pw.devices['iPad (gen 7) landscape'] });
-  const page = await ctx.newPage();
-  await page.goto(url);
-  await page.waitForFunction(() => window.ready);
-  const log = () => page.evaluate(() => window.log.splice(0));
-  return { browser, ctx, page, log };
+  return setUp(browser, async () => {
+    const ctx = await browser.newContext({ ...pw.devices['iPad (gen 7) landscape'] });
+    const page = await ctx.newPage();
+    await page.goto(url);
+    await page.waitForFunction(() => window.ready);
+    const log = () => page.evaluate(() => window.log.splice(0));
+    return { browser, ctx, page, log };
+  });
 }
 const count = (log, name) => log.filter(x => x === name).length;
 

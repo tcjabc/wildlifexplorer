@@ -4,7 +4,7 @@
 // in WebKit, where Playwright can only tap a touchscreen, the drag is a mouse drag with the
 // touch's implicit capture recreated (see tests/touch.test.mjs).
 // Skipped when the browsers aren't installed: npx playwright install webkit chromium
-// Run: npm test
+// Run: npm run test:browser -- tests/volcano-touch.test.mjs
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
@@ -12,6 +12,7 @@ import { readFile, stat } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { setUp } from './fixtures/browser.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 let pw = null;
@@ -38,36 +39,38 @@ after(() => server?.close());
 
 async function openGlobe(type) {
   const browser = await pw[type].launch();
-  const ctx = await browser.newContext({ ...pw.devices['iPad (gen 7) landscape'] });
-  const page = await ctx.newPage();
-  const errors = [];
-  page.on('pageerror', e => errors.push(String(e)));
-  await page.goto(base);
-  await page.waitForSelector('form button[type=submit]');
-  await page.locator('form input').first().fill('Tester');
-  await page.locator('form button[type=submit]').click();
-  await page.waitForTimeout(800);
-  // Preview on (so ?debug=fps works), the panel folded out of the way.
-  await page.evaluate(async () => { const st = await import('/js/store.js'); await st.updateProfile(st.state.profile.id, { parent: { preview: true }, globePanel: 'collapsed' }); });
-  await page.goto(`${base}?debug=fps#/globe`);
-  await page.locator('.picker button, .picker [role=button], .picker a').filter({ hasText: 'Tester' }).first().click().catch(() => {});
-  await page.waitForTimeout(500);
-  await page.evaluate(() => { location.hash = '#/globe'; });
-  await page.waitForFunction(() => window.wfGlobe);
-  await page.waitForTimeout(1000);
-  await page.locator('.gtile--hero').click();
-  await page.locator('.gtile[data-layer=plates]').click();
-  await page.waitForFunction(() => wfGlobe.volcanoesShown().length > 0, null, { timeout: 15000 });
-  await page.evaluate(() => { wfGlobe.pause(true); wfGlobe.flyTo(121.6, 25.0, 6, { duration: 0 }); });
-  await page.waitForTimeout(1200);
-  const stage = await page.locator('.globe__stage').boundingBox();
-  const where = async name => { const v = (await page.evaluate(() => wfGlobe.volcanoesShown())).find(x => x.en.startsWith(name)); return v && { x: stage.x + v.x, y: stage.y + v.y }; };
-  const card = () => page.evaluate(() => { const c = document.querySelector('.gvolc'); return c.hidden ? null : c.textContent; });
-  return { browser, ctx, page, errors, where, card };
+  return setUp(browser, async () => {
+    const ctx = await browser.newContext({ ...pw.devices['iPad (gen 7) landscape'] });
+    const page = await ctx.newPage();
+    const errors = [];
+    page.on('pageerror', e => errors.push(String(e)));
+    await page.goto(base);
+    await page.waitForSelector('form button[type=submit]');
+    await page.locator('form input').first().fill('Tester');
+    await page.locator('form button[type=submit]').click();
+    await page.waitForTimeout(800);
+    // Preview on (so ?debug=fps works), the panel folded out of the way.
+    await page.evaluate(async () => { const st = await import('/js/store.js'); await st.updateProfile(st.state.profile.id, { parent: { preview: true }, globePanel: 'collapsed' }); });
+    await page.goto(`${base}?debug=fps#/globe`);
+    await page.locator('.picker button, .picker [role=button], .picker a').filter({ hasText: 'Tester' }).first().click().catch(() => {});
+    await page.waitForTimeout(500);
+    await page.evaluate(() => { location.hash = '#/globe'; });
+    await page.waitForFunction(() => window.wfGlobe);
+    await page.waitForTimeout(1000);
+    await page.locator('.gtile--hero').click();
+    await page.locator('.gtile[data-layer=plates]').click();
+    await page.waitForFunction(() => wfGlobe.volcanoesShown().length > 0, null, { timeout: 15000 });
+    await page.evaluate(() => { wfGlobe.pause(true); wfGlobe.flyTo(121.6, 25.0, 6, { duration: 0 }); });
+    await page.waitForTimeout(1200);
+    const stage = await page.locator('.globe__stage').boundingBox();
+    const where = async name => { const v = (await page.evaluate(() => wfGlobe.volcanoesShown())).find(x => x.en.startsWith(name)); return v && { x: stage.x + v.x, y: stage.y + v.y }; };
+    const card = () => page.evaluate(() => { const c = document.querySelector('.gvolc'); return c.hidden ? null : c.textContent; });
+    return { browser, ctx, page, errors, where, card };
+  });
 }
 
 for (const type of ['chromium', 'webkit']) {
-  test(`${type}: tap a volcano for its card, tap elsewhere to close; a drag from a volcano turns the globe`, { skip: !have(type) && `${type} not installed`, timeout: 60000 }, async () => {
+  test(`${type}: tap a volcano for its card, tap elsewhere to close; a drag from a volcano turns the globe`, { skip: !have(type) && `${type} not installed` }, async () => {
     const { browser, ctx, page, errors, where, card } = await openGlobe(type);
     try {
       const tatun = await where('Tatun');
