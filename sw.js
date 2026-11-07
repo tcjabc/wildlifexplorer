@@ -52,6 +52,8 @@ const SHELL = [
   'js/cardparts.js',
   'js/worldmap.js',
   'js/compare.js',
+  'js/compare-data.js',
+  'js/headings.js',
   'js/magnifier.js',
   'js/globe.js',
   'js/zhuyin.js',

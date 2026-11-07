@@ -10,6 +10,9 @@ import { bi, t, tx } from './i18n.js';
 import { state, groupById, currentAge } from './store.js';
 import { lengthText } from './units.js';
 import { haptic } from './gesture.js';
+import { numbers, sizeOf } from './compare-data.js';
+
+export { numbers, modesFor } from './compare-data.js';
 
 const cssNum = name => parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
 
@@ -29,31 +32,6 @@ const MAX_COPIES = 20;   // more than this and the balance shows a counter inste
 const MAX_TILT = 16;     // degrees
 const fmt = n => Math.round(n).toLocaleString('en');
 const filled = p => p && (p.en || p.zh);
-
-const mid = r => (r == null ? null : typeof r === 'number' ? r : r.max == null ? r.min : (r.min + r.max) / 2);
-
-// Numbers for the comparisons: lengthCm / weightKg / lifespanYears ({ min, max }, the midpoint
-// is used), or the older { min, max, unit } shape of length / weight / lifespan.
-export function numbers(card) {
-  const s = card.stats ?? {};
-  const old = (o, unit) => (o?.min != null && o.unit === unit ? o : null);
-  return {
-    lengthCm: mid(s.lengthCm ?? old(s.length, 'cm')),
-    weightKg: mid(s.weightKg ?? old(s.weight, 'kg')),
-    lifespanYears: mid(s.lifespanYears ?? old(s.lifespan, 'years')),
-  };
-}
-
-export function modesFor(card) {
-  const n = numbers(card);
-  const s = card.stats ?? {};
-  return {
-    length: Boolean(card.silhouette?.file && (card.compare?.width || card.compare?.height || n.lengthCm)),
-    weight: Boolean(n.weightKg),
-    lifespan: Boolean(n.lifespanYears),
-    diet: Boolean(s.dietIcons?.length || filled(s.diet)),
-  };
-}
 
 // ---------- animation helpers (all skipped with reduced motion) ----------
 
@@ -97,22 +75,21 @@ const animalImg = (card, cls) => card.silhouette?.file
 
 function lengthScene(card, run) {
   const you = child();
-  const n = numbers(card);
+  const size = sizeOf(card);
   const ground = h('div', { class: 'cmp-len' });
   const kidImg = youImg('cmp-len__img');
   const pic = animalImg(card, 'cmp-len__img');
-  const size = card.compare?.width ?? card.compare?.height ?? n.lengthCm;
   ground.append(
     h('figure', { class: 'cmp-len__item' }, kidImg,
       h('figcaption', null, tx('card.you'), h('span', { class: 'cmp__num' }, bi(lengthText(you.heightCm))))),
     h('figure', { class: 'cmp-len__item' }, pic,
-      h('figcaption', null, bi(card.name), h('span', { class: 'cmp__num' }, bi(lengthText(size))))));
+      h('figcaption', null, bi(card.name), h('span', { class: 'cmp__num' }, bi(lengthText(size.cm))))));
 
   // Once the silhouette's shape is known, size both so 1 cm is the same on each.
   const layout = () => {
     if (!run.alive) return;
     const ratio = pic.naturalHeight / pic.naturalWidth || 0.6;
-    const w = card.compare?.width ?? (card.compare?.height ? card.compare.height / ratio : n.lengthCm);
+    const w = size.across ? size.cm : size.cm / ratio;
     const tallest = Math.max(you.heightCm, w * ratio);
     const avail = cssNum('--compare-h');
     const availW = cssNum('--card-w') * 0.8;
