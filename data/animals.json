@@ -919,14 +919,18 @@
         "max": 30
       }
     },
+    "compare": {
+      "height": 85
+    },
     "related": [],
     "silhouette": {
-      "file": "img/silhouettes/taiwan-serow-18d819.svg",
-      "author": "Rick Wilhelmsen",
-      "license": "CC BY-SA 3.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
-      "sourceUrl": "https://www.phylopic.org/images/dbf0cb01-952e-418c-909c-08c75c3d5ef4",
-      "taxon": "Aepyceros melampus"
+      "file": "img/silhouettes/taiwan-serow-photo-c40c67.png",
+      "author": "Cheng-Tao Lin",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Capricornis_swinhoei_62912975.jpg",
+      "derivedFrom": "https://commons.wikimedia.org/wiki/File:Capricornis_swinhoei_62912975.jpg",
+      "taxon": "Capricornis swinhoei"
     },
     "stamp": true,
     "taxonomy": {
@@ -964,7 +968,8 @@
     "wikidata": "Q715983",
     "locked": [
       "photo",
-      "illustration"
+      "illustration",
+      "silhouette"
     ],
     "_draft": [
       "facts",
@@ -4487,12 +4492,13 @@
     },
     "related": [],
     "silhouette": {
-      "file": "img/silhouettes/swinhoe-s-pheasant-836d7f.svg",
-      "author": "Unknown",
-      "license": "Public domain",
-      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
-      "sourceUrl": "https://www.phylopic.org/images/14269801-89fe-405c-a425-2286c54ee60d",
-      "taxon": "Arborophila hyperythra"
+      "file": "img/silhouettes/swinhoe-s-pheasant-photo-5c9f0f.png",
+      "author": "Alnus",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Swinhoe%27s_Pheasant_0673.jpg",
+      "derivedFrom": "https://commons.wikimedia.org/wiki/File:Swinhoe%27s_Pheasant_0673.jpg",
+      "taxon": "Lophura swinhoii"
     },
     "stamp": true,
     "taxonomy": {
@@ -4563,6 +4569,9 @@
           "stats.weightKg"
         ]
       }
+    ],
+    "locked": [
+      "silhouette"
     ]
   },
   {
@@ -4678,12 +4687,13 @@
     },
     "related": [],
     "silhouette": {
-      "file": "img/silhouettes/mikado-pheasant-836d7f.svg",
-      "author": "Unknown",
-      "license": "Public domain",
-      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
-      "sourceUrl": "https://www.phylopic.org/images/14269801-89fe-405c-a425-2286c54ee60d",
-      "taxon": "Arborophila hyperythra"
+      "file": "img/silhouettes/mikado-pheasant-photo-e6ce25.png",
+      "author": "Snowyowls (photographer) / Jako (uploader)",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Mikado_Pheasant_398.jpg",
+      "derivedFrom": "https://commons.wikimedia.org/wiki/File:Mikado_Pheasant_398.jpg",
+      "taxon": "Syrmaticus mikado"
     },
     "stamp": true,
     "taxonomy": {
@@ -4720,7 +4730,8 @@
     },
     "wikidata": "Q715266",
     "locked": [
-      "illustration"
+      "illustration",
+      "silhouette"
     ],
     "_draft": [
       "facts",
