@@ -4714,6 +4714,9 @@
         "max": 0.123
       }
     },
+    "compare": {
+      "height": 21
+    },
     "related": [],
     "silhouette": {
       "file": "img/silhouettes/taiwan-barbet-9f025d.svg",
@@ -5086,6 +5089,9 @@
       "lengthCm": {
         "min": 30
       }
+    },
+    "compare": {
+      "height": 30
     },
     "related": [],
     "silhouette": {
