@@ -1,4 +1,4 @@
-// The coastline over the picture layers (topography, temperature): the land's rings as lines,
+// The coastline on the globe: the land's rings as lines,
 // without the stretches along the map's frame where Natural Earth cuts its shapes.
 // Run: npm test
 import { test } from 'node:test';
@@ -53,24 +53,32 @@ test('the real land: every coast segment kept, none along the frame', () => {
   }
 });
 
-test('drawn over the picture layers only, in a token colour, sharper lines zoomed in', () => {
+test('in a token colour, the near lines zoomed in', () => {
   const globe = src('js/globe.js');
-  assert.match(globe, /if \(layer\?\.raster && polys\?\.coast\) drawCoast\(view\.k >= NEAR_K \? polys\.coast\.near : polys\.coast\.far\);/);
+  assert.match(globe, /if \(polys\?\.coast\) drawCoast\(view\.k >= NEAR_K \? polys\.coast\.near : polys\.coast\.far\);/);
   assert.match(globe, /coast: v\('--c-map-coast'\)/);
   assert.match(src('css/tokens.css'), /--c-map-coast: rgb\([^)]*\/ 0\.\d+\);/);
 });
 
-test('a clear line: 1.5 px for the whole globe to 2.5 px zoomed in, dark, on a light halo', async () => {
+test('a clear line, the same at every zoom: 1.5 px, dark, on a 3 px light halo, on every layer', async () => {
+  const { COAST_LINE, COAST_GLOW } = await import('../js/globe.js');
+  assert.equal(COAST_LINE, 1.5);
+  assert.equal(COAST_GLOW, 3);
+  const tokens = src('css/tokens.css');
+  const dark = tokens.match(/--c-map-coast: rgb\((\d+) (\d+) (\d+) \/ ([\d.]+)\)/).slice(1).map(Number);
+  assert.ok(Math.max(...dark.slice(0, 3)) < 60 && dark[3] >= 0.8, 'near black, nearly opaque: shows on red and on blue');
+  const halo = tokens.match(/--c-map-coast-halo: rgb\(255 255 255 \/ ([\d.]+)\)/);
+  assert.ok(Number(halo[1]) >= 0.8, 'strong enough to lift an island off a hot sea');
+  const globe = src('js/globe.js');
+  assert.match(globe, /ctx\.strokeStyle = col\.coastHalo; ctx\.lineWidth = COAST_GLOW;\n\s*ctx\.stroke\(\);\n\s*ctx\.strokeStyle = col\.coast; ctx\.lineWidth = COAST_LINE;/, 'the halo first, then the line');
+  assert.match(globe, /\n\s*if \(polys\?\.coast\) drawCoast\(/, 'whatever the layer');
+});
+
+test('the plate boundaries: 1.5 px for the whole globe to 2.5 px zoomed in, on a halo', async () => {
   const { coastWidth, COAST_HALO } = await import('../js/globe.js');
   assert.equal(coastWidth(1), 1.5);
   assert.ok(coastWidth(2) > 1.5 && coastWidth(4) < 2.5);
   assert.equal(coastWidth(8), 2.5);
   assert.equal(coastWidth(40), 2.5);
   assert.ok(COAST_HALO > 0);
-  const tokens = src('css/tokens.css');
-  const dark = tokens.match(/--c-map-coast: rgb\((\d+) (\d+) (\d+) \/ ([\d.]+)\)/).slice(1).map(Number);
-  assert.ok(Math.max(...dark.slice(0, 3)) < 60 && dark[3] >= 0.8, 'near black, nearly opaque: shows on red and on blue');
-  assert.match(tokens, /--c-map-coast-halo: rgb\(255 255 255 \/ 0\.\d+\)/);
-  const globe = src('js/globe.js');
-  assert.match(globe, /ctx\.strokeStyle = col\.coastHalo; ctx\.lineWidth = w \+ COAST_HALO;\n\s*ctx\.stroke\(\);\n\s*ctx\.strokeStyle = col\.coast; ctx\.lineWidth = w;/, 'the halo first, then the line');
 });

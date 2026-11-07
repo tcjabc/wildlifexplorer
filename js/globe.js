@@ -86,9 +86,13 @@ const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t
 export const nightShade = sunDot => ({ alpha: NIGHT_ALPHA * smooth(0.06, -0.22, sunDot), dark: smooth(0.02, -0.3, sunDot) });
 export const lightsOn = sunDot => smooth(0.03, -0.12, sunDot);
 
-// The coastline over the picture layers: 1.5 px for the whole globe, thickening to 2.5 px by
-// zoom 8 (CSS px: the canvas is scaled for the device pixel ratio, so 3–5 device px on an
-// iPad), with a halo COAST_HALO px wider underneath.
+// The coastline, on every layer: a dark line COAST_LINE px wide on a light halo COAST_GLOW px wide.
+// CSS px at every zoom: the canvas is scaled for the device pixel ratio, and the lines are drawn
+// after the globe is projected, so nothing scales them (what non-scaling-stroke does in an SVG).
+export const COAST_LINE = 1.5;
+export const COAST_GLOW = 3;
+// The plate boundaries: 1.5 px for the whole globe, thickening to 2.5 px by zoom 8, with a halo
+// COAST_HALO px wider underneath.
 export const COAST_HALO = 2;
 export const coastWidth = k => 1.5 + clamp(Math.log2(Math.max(1, k)) / 3, 0, 1);
 // How many lights (the brightest first) are drawn at zoom k: 1,500 for the whole globe, more as
@@ -511,12 +515,12 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
       sphere.draw(B, size);
     }
 
-    // Above every layer: the coastline over a picture layer, the selected range, the home
+    // Above every layer: the coastline, the selected range, the home
     // outline, pin fans.
     ctx = overCtx;
     ctx.save();
     ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
-    if (layer?.raster && polys?.coast) drawCoast(view.k >= NEAR_K ? polys.coast.near : polys.coast.far);
+    if (polys?.coast) drawCoast(view.k >= NEAR_K ? polys.coast.near : polys.coast.far);
     if (layer?.plates) drawPlates(layer.plates);
     if (layer?.volcanoes) drawVolcanoes(layer.volcanoes); else volcShown = [];
 
@@ -552,11 +556,10 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
     onFrame?.({ project, ctx, k: view.k, radius: r });
   }
 
-  // The coastline: a clear dark line over a picture layer (whose own coasts blur when zoomed
-  // in), on a faint light halo so it reads on dark mountains and light deserts, on red and on
-  // blue. Lines stop at the horizon.
+  // The coastline: a clear dark line (picture layers' own coasts blur when zoomed in), on a light
+  // halo so it reads on dark mountains and light deserts, on red and on blue, and small islands
+  // don't sink into a hot sea. Lines stop at the horizon.
   function drawCoast(lines) {
-    const w = coastWidth(view.k);
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
     ctx.beginPath();
@@ -573,9 +576,9 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, debug =
       }
     }
     // One path, stroked twice: the halo, then the line.
-    ctx.strokeStyle = col.coastHalo; ctx.lineWidth = w + COAST_HALO;
+    ctx.strokeStyle = col.coastHalo; ctx.lineWidth = COAST_GLOW;
     ctx.stroke();
-    ctx.strokeStyle = col.coast; ctx.lineWidth = w;
+    ctx.strokeStyle = col.coast; ctx.lineWidth = COAST_LINE;
     ctx.stroke();
   }
 
