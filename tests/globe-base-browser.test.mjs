@@ -10,6 +10,7 @@ import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 
@@ -100,3 +101,47 @@ run('context lost: the canvas goes, the view hears so; restored: back it comes',
   assert.equal((await canvases(page))[0].hidden, false);
   assert.equal(await page.evaluate(() => window.globe.usesBase), true);
 });
+
+const sharp = createRequire(import.meta.url)('sharp');
+const pixel = async (png, x, y) => {
+  const { data, info } = await sharp(png).raw().toBuffer({ resolveWithObject: true });
+  return [...data.subarray((y * info.width + x) * info.channels, (y * info.width + x) * info.channels + 3)];
+};
+
+run('a month texture reaches the GPU byte for byte, its fourth channel too', '', async page => {
+  const gpu = await page.evaluate(async () => {
+    const img = new Image();
+    img.src = 'assets/layers/temp-months-1.webp';
+    await img.decode();
+    const gl = document.createElement('canvas').getContext('webgl');
+    gl.pixelStorei(gl.UNPACK_COLORSPACE_CONVERSION_WEBGL, gl.NONE);
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+    gl.bindTexture(gl.TEXTURE_2D, gl.createTexture());
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, gl.createFramebuffer());
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, gl.getParameter(gl.TEXTURE_BINDING_2D), 0);
+    const px = new Uint8Array(img.width * img.height * 4);
+    gl.readPixels(0, 0, img.width, img.height, gl.RGBA, gl.UNSIGNED_BYTE, px);
+    return { w: img.width, bytes: [...px.subarray(0, 720 * 4 * 20)], mid: [...px.subarray(180 * 720 * 4, 181 * 720 * 4)] };
+  });
+  const { data } = await sharp(`${ROOT}assets/layers/temp-months-1.webp`).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  assert.equal(gpu.w, 720);
+  assert.deepEqual(gpu.bytes, [...data.subarray(0, 720 * 4 * 20)]);
+  assert.deepEqual(gpu.mid, [...data.subarray(180 * 720 * 4, 181 * 720 * 4)]);
+});
+
+run('the months morph: the map changes, and at no moment is the globe cleared', '', async page => {
+  await page.evaluate(async () => { await window.globe.setLayer(await window.temp()); window.globe.loadMonths(1); });
+  await page.waitForTimeout(1500);
+  const shot = () => page.screenshot({ type: 'png' });
+  const january = await shot();
+  await page.evaluate(() => window.globe.month(7, 400));
+  const during = [];
+  for (let i = 0; i < 4; i++) during.push(await shot());
+  await page.waitForTimeout(500);
+  const july = await shot();
+  assert.ok(!(await sharp(january).raw().toBuffer()).equals(await sharp(july).raw().toBuffer()), 'July is not January');
+  const bg = await pixel(january, 5, 5);
+  for (const f of during) assert.notDeepEqual(await pixel(f, 800, 600), bg, 'the middle of the globe is drawn');
+});
+

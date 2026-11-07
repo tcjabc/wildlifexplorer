@@ -420,12 +420,17 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
       colours: col, shade: 'assets/layers/shade-2k.webp', still: reduced,
       onChange: ok => { dirty = true; onBase?.(ok); }, onDraw: () => { dirty = true; },
     });
-    if (base) {
-      stage.prepend(el);
-      base.set(PLAIN_BASE).then(() => { dirty = true; }).catch(() => {});
-    }
+    if (base) stage.prepend(el);
   }
-  const getLand = () => loadLand().then(l => { if (gone) return; polys = l; dirty = true; onLand?.(true); }, () => { if (!gone) onLand?.(false); });
+  // The land first: it is what the globe opens with. The base renderer's textures follow, and until
+  // they are here the 2D canvas draws it.
+  const getLand = () => loadLand().then(l => {
+    if (gone) return;
+    polys = l;
+    dirty = true;
+    onLand?.(true);
+    base?.set(layer?.base ?? PLAIN_BASE).then(() => { dirty = true; }).catch(() => {});
+  }, () => { if (!gone) onLand?.(false); });
   getLand();
 
   // ---------- projection ----------
@@ -546,7 +551,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
     // The picture layer, if any, between the two canvases.
     if (sphere) {
       if (layer?.raster?.tiles) tiles?.update(B, view.k);
-      sphere.draw(B, size);
+      if (sphere.draw(B, size)) dirty = true;
     }
 
     // Above every layer: the coastline, the selected range, the home
@@ -1068,7 +1073,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
       if (next?.raster && !sphere) {
         const { createSphere } = await import('./globegl.js');
         const glCanvas = h('canvas', { class: 'globe__canvas globe__canvas--gl', 'aria-hidden': 'true' });
-        sphere = createSphere(glCanvas);
+        sphere = createSphere(glCanvas, { still: reduced });
         if (!sphere) throw new Error('WebGL 2 is not available');
         overCanvas.before(glCanvas);
       }
@@ -1078,6 +1083,10 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
       if (!wanted) tiles?.clear();
       dirty = true;
     },
+    // Temperature: to this place in the year (js/globe-months.js), morphing over ms, or at once.
+    month(pos, ms = 0) { base?.month(pos, ms); dirty = true; },
+    // Fetch the months in idle time, this one first.
+    loadMonths(first) { base?.loadMonths(first); },
     // Change the layer's settings (e.g. where the sun is) without reloading it.
     updateLayer(patch) {
       if (layer?.night) Object.assign(layer.night, patch);

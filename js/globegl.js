@@ -1,5 +1,5 @@
-// Picture layers on the Globe (relief, temperature): a WebGL canvas between
-// the sea-and-land canvas and the overlay canvas of js/globe.js. One full-screen triangle;
+// The fallback for picture layers on the Globe (relief, temperature), when js/globe-base.js can't
+// run: a WebGL canvas between the sea-and-land canvas and the overlay canvas of js/globe.js. One full-screen triangle;
 // the fragment shader turns each pixel into a point on the sphere (the same orthographic
 // view as globe.js) and looks it up in an equirectangular texture.
 //
@@ -21,7 +21,8 @@ uniform vec2 uCentre;     // globe centre, CSS px from the top left
 uniform float uR, uDpr, uH;
 uniform vec3 uE, uN, uC;  // east, north and centre of the view, as world vectors
 uniform int uMode;        // 0 relief, 2 picture with alpha
-uniform sampler2D uTex, uAux;
+uniform sampler2D uTex, uAux, uFrom;
+uniform float uFade;      // 1: uTex alone; less: still crossfading from uFrom
 uniform vec2 uAuxStep;    // one texel of uAux
 uniform float uBump;
 uniform vec3 uLight;
@@ -78,6 +79,10 @@ void main() {
   } else {
     vec4 t = look(uTex, uv);
     col = vec4(t.rgb * t.a, t.a);
+    if (uFade < 1.0) {
+      vec4 f = look(uFrom, uv);
+      col = mix(vec4(f.rgb * f.a, f.a), col, uFade);
+    }
   }
   outColor = col * rim;
 }`;
@@ -90,6 +95,19 @@ function compile(gl, type, src) {
   return s;
 }
 
+const FADE_MS = 300;
+
+// Pictures fetched ahead (Temperature's months), as files: decoded only when shown, since twelve
+// decoded would be about 100 MB. Fetched one at a time, in idle time.
+const fetched = new Map();
+export async function preloadPictures(urls) {
+  for (const url of urls) {
+    if (fetched.has(url)) continue;
+    const res = await fetch(url).catch(() => null);
+    if (res?.ok) fetched.set(url, await res.blob());
+  }
+}
+
 const loadImage = url => new Promise((resolve, reject) => {
   const img = new Image();
   img.decoding = 'async';
@@ -98,8 +116,8 @@ const loadImage = url => new Promise((resolve, reject) => {
   img.src = url;
 });
 
-// canvas: the (empty) canvas to draw into. Returns null if WebGL 2 isn't available.
-export function createSphere(canvas) {
+// canvas: the (empty) canvas to draw into. still: no crossfades. Returns null if WebGL 2 isn't available.
+export function createSphere(canvas, { still = false } = {}) {
   const gl = canvas.getContext('webgl2', { premultipliedAlpha: true, antialias: false, alpha: true });
   if (!gl) return null;
   let prog = null, loc = null, lost = false;
@@ -119,12 +137,13 @@ export function createSphere(canvas) {
     gl.enableVertexAttribArray(a);
     gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
     loc = {};
-    for (const n of ['uCentre', 'uR', 'uDpr', 'uH', 'uE', 'uN', 'uC', 'uMode', 'uTex', 'uAux', 'uAuxStep', 'uBump', 'uLight', 'uDetail', 'uWin', 'uGrid', 'uDetailOn']) {
+    for (const n of ['uCentre', 'uR', 'uDpr', 'uH', 'uE', 'uN', 'uC', 'uMode', 'uTex', 'uAux', 'uAuxStep', 'uBump', 'uLight', 'uDetail', 'uWin', 'uGrid', 'uDetailOn', 'uFrom', 'uFade']) {
       loc[n] = gl.getUniformLocation(prog, n);
     }
     gl.uniform1i(loc.uTex, 0);
     gl.uniform1i(loc.uAux, 1);
     gl.uniform1i(loc.uDetail, 2);
+    gl.uniform1i(loc.uFrom, 3);
   }
   setup();
 
@@ -133,7 +152,8 @@ export function createSphere(canvas) {
 
   async function texture(url) {
     if (textures.has(url)) return textures.get(url);
-    const img = await loadImage(url);
+    const blob = fetched.get(url);
+    const img = blob ? await createImageBitmap(blob, { premultiplyAlpha: 'none', colorSpaceConversion: 'none' }) : await loadImage(url);
     if (lost) throw new Error('context lost');
     const tex = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, tex);
@@ -143,7 +163,8 @@ export function createSphere(canvas) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    const t = { tex, w: img.naturalWidth, h: img.naturalHeight };
+    const t = { tex, w: img.naturalWidth ?? img.width, h: img.naturalHeight ?? img.height };
+    img.close?.();
     textures.set(url, t);
     return t;
   }
@@ -154,6 +175,8 @@ export function createSphere(canvas) {
   }
 
   let spec = null; // { mode, tex, aux, bump }
+  let fade = null;  // crossfading from: { url, t0 }
+  let setting = 0;
 
   // The detail atlas: { tex, win: [col, row, cols, rows], grid: [cols, rows], tile (px) }.
   let detail = null;
@@ -161,13 +184,16 @@ export function createSphere(canvas) {
 
   return {
     // spec: { mode: 'relief' | 'picture', tex: url, aux?: url (height map), bump? } or null.
-    // Resolves once loaded.
+    // Resolves once loaded. What was showing stays until then, and a picture crossfades to the next.
     async set(next) {
+      const mine = ++setting, urls = next ? [next.tex, next.aux].filter(Boolean) : [];
+      await Promise.all(urls.map(texture));
+      if (mine !== setting) return;
+      const was = spec;
       spec = next;
       if (next?.mode !== 'relief') dropDetail();
-      release(next ? [next.tex, next.aux].filter(Boolean) : []);
-      if (!next) return;
-      await Promise.all([next.tex, next.aux].filter(Boolean).map(texture));
+      fade = !still && was?.mode === 'picture' && next?.mode === 'picture' && was.tex !== next.tex ? { url: was.tex, t0: performance.now() } : null;
+      release(fade ? [...urls, fade.url] : urls);
     },
     update(patch) { if (spec) Object.assign(spec, patch); },
     // A new detail window (null: none). The atlas starts clear; putTile fills it.
@@ -202,9 +228,10 @@ export function createSphere(canvas) {
       gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
       gl.generateMipmap(gl.TEXTURE_2D);
     },
-    // B: the basis from globe.js for this frame; size: { w, h, dpr }.
+    // B: the basis from globe.js for this frame; size: { w, h, dpr }. Returns whether it is still
+    // crossfading, and so wants another frame.
     draw(B, size) {
-      if (lost) return;
+      if (lost) return false;
       const W = Math.round(size.w * size.dpr), H = Math.round(size.h * size.dpr);
       if (canvas.width !== W || canvas.height !== H) { canvas.width = W; canvas.height = H; }
       gl.viewport(0, 0, W, H);
@@ -212,7 +239,7 @@ export function createSphere(canvas) {
       gl.clear(gl.COLOR_BUFFER_BIT);
       const tex = spec && textures.get(spec.tex);
       const aux = spec?.aux ? textures.get(spec.aux) : tex;
-      if (!tex || !aux) return;
+      if (!tex || !aux) return false;
       gl.useProgram(prog);
       gl.uniform2f(loc.uCentre, B.cx, B.cy);
       gl.uniform1f(loc.uR, B.r);
@@ -239,7 +266,12 @@ export function createSphere(canvas) {
       }
       gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, tex.tex);
       gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, aux.tex);
+      const from = fade && textures.get(fade.url), t = from ? Math.min(1, (performance.now() - fade.t0) / FADE_MS) : 1;
+      gl.uniform1f(loc.uFade, t);
+      if (from) { gl.activeTexture(gl.TEXTURE3); gl.bindTexture(gl.TEXTURE_2D, from.tex); }
       gl.drawArrays(gl.TRIANGLES, 0, 3);
+      if (fade && t >= 1) { release([spec.tex, spec.aux].filter(Boolean)); fade = null; }
+      return Boolean(fade);
     },
     destroy() { release([]); dropDetail(); gl.getExtension('WEBGL_lose_context')?.loseContext(); },
   };

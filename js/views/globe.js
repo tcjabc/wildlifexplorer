@@ -30,6 +30,8 @@ import { loadRange, rangePolygons } from '../worldmap.js';
 import { track, haptic } from '../gesture.js';
 import { nameBi } from '../zhuyin.js';
 import { LAYERS, tempStops } from '../layers.js';
+import { rampBytes } from '../globe-base.js';
+import { TEMP_BANDS, MORPH_MS, PLAY_MS, bandSteps, nearestMonth, wrapPos } from '../globe-months.js';
 import { pinShown, pinHint, noFilters, filterCount, optionCount, onGlobe } from '../globe-filter.js';
 import { tempText } from '../units.js';
 import { countryName } from '../countries.js';
@@ -37,6 +39,8 @@ import { countryName } from '../countries.js';
 const NEAR_SIDE = 0.06;   // pins this close to the rim fade out
 const TOUCH = 0.8;        // pins closer than this many pin widths stack up
 const FAN_MS = 300;
+const JUMP = 0.6;         // months: a slider move this big is a tap on the track, not a scrub
+const whenIdle = fn => (window.requestIdleCallback ?? (f => setTimeout(f, 300)))(fn, { timeout: 4000 });
 
 let globe = null;
 let sheet = null;          // { el, scrim, pin }
@@ -45,6 +49,7 @@ let shownLayer = null;
 let shownFilter = noFilters(); // js/globe-filter.js: only show the pins that match
 let pinsHidden = false;    // the paw button: no animal pins at all
 let tempMonth = new Date().getMonth() + 1;
+let monthPos = tempMonth;  // where in the year (js/globe-months.js): tempMonth is the month nearest it
 let goBack = null;         // "Back to card", while the globe was opened from a card
 let closePanel = null;     // folds the info panel back when it is open over the globe
 let closeVolc = null;      // closes a volcano's card, while one is open
@@ -612,24 +617,82 @@ export function render(main, [cardId] = []) {
     return h('span', { class: 'bi' }, ['en', 'zh'].filter(l => !same(l)).map(l =>
       h('span', { class: `t-${l}`, lang: l === 'en' ? 'en' : 'zh-Hant-TW' }, sci[l])));
   }
+  // ---------- Temperature's year ----------
+  const tempLayer = LAYERS.find(l => l.id === 'temp');
+  let monthUi = null;      // { name, slider, play } in the panel, while it shows
+  let playing = 0;
+  // To a place in the year. morph: a change of month, not a scrub.
+  function toMonth(pos, { morph = false } = {}) {
+    monthPos = pos;
+    const m = nearestMonth(pos), changed = m !== tempMonth;
+    tempMonth = m;
+    if (monthUi) {
+      if (changed) mount(monthUi.name, tx(`month.${m}`));
+      monthUi.slider.value = String(Math.min(12, pos));
+      monthUi.slider.setAttribute('aria-valuetext', label(`month.${m}`));
+    }
+    if (shownLayer !== 'temp' || !globe) return;
+    if (globe.usesBase) globe.month(pos, morph ? MORPH_MS : 0);
+    else if (changed) show(tempLayer);
+  }
+  function drawPlay() {
+    if (!monthUi?.play) return;
+    monthUi.play.setAttribute('aria-pressed', String(Boolean(playing)));
+    monthUi.play.setAttribute('aria-label', label(playing ? 'layer.temp.pause' : 'layer.temp.play'));
+  }
+  // The year going round, a month a second.
+  function play(on) {
+    if (on === Boolean(playing)) return;
+    if (!on) { cancelAnimationFrame(playing); playing = 0; drawPlay(); return; }
+    let last = performance.now();
+    const step = t => {
+      toMonth(wrapPos(monthPos + (t - last) / PLAY_MS));
+      last = t;
+      playing = requestAnimationFrame(step);
+    };
+    playing = requestAnimationFrame(step);
+    drawPlay();
+  }
+  // Any touch stops it, wherever it lands, except on the button that does that anyway.
+  view.addEventListener('pointerdown', e => { if (playing && !monthUi?.play?.contains(e.target)) play(false); }, true);
+
   // Temperature: hot at the top, cold at the bottom, and the month under it.
   function tempKey() {
     const stops = tempStops(col);
     const lo = stops[0].v, hi = stops.at(-1).v;
-    const grad = stops.map(s => `${s.colour} ${(((s.v - lo) / (hi - lo)) * 100).toFixed(1)}%`).join(', ');
+    // The bar as the map shows it: in bands, or smooth on the pictures of the fallback.
+    const px = rampBytes(stops), colourAt = at => { const i = Math.round(at * 255) * 4; return `rgb(${px[i]} ${px[i + 1]} ${px[i + 2]})`; };
+    const grad = globe?.usesBase === false
+      ? stops.map(s => `${s.colour} ${(((s.v - lo) / (hi - lo)) * 100).toFixed(1)}%`).join(', ')
+      : bandSteps(TEMP_BANDS).map(b => `${colourAt(b.at)} ${(b.from * 100).toFixed(1)}% ${(b.to * 100).toFixed(1)}%`).join(', ');
     const name = h('span', { class: 'gtemp__monthname' }, tx(`month.${tempMonth}`));
     const month = h('input', {
-      class: 'gtemp__slider', type: 'range', min: 1, max: 12, step: 1, value: tempMonth,
-      'aria-label': label('layer.temp.month'),
-      oninput: e => { tempMonth = Number(e.target.value); mount(name, tx(`month.${tempMonth}`)); show(LAYERS.find(l => l.id === 'temp')); },
+      class: 'gtemp__slider', type: 'range', min: 1, max: 12, step: globe?.usesBase === false ? 1 : 0.01, value: Math.min(12, monthPos),
+      'aria-label': label('layer.temp.month'), 'aria-valuetext': label(`month.${tempMonth}`),
+      oninput: e => {
+        play(false);
+        const pos = Number(e.target.value), jump = Math.abs(pos - monthPos) > JUMP;
+        toMonth(jump ? Math.round(pos) : pos, { morph: jump });
+      },
+      // The keyboard goes month by month, not by the slider's small steps.
+      onkeydown: e => {
+        const by = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 }[e.key];
+        if (!by) return;
+        e.preventDefault();
+        play(false);
+        toMonth(Math.max(1, Math.min(12, Math.round(monthPos) + by)), { morph: true });
+      },
     });
+    const playBtn = !reducedMotion() && h('button', { class: 'gtemp__play', type: 'button', onclick: () => play(!playing) }, h('span', { class: 'gtemp__play-icon', 'aria-hidden': 'true' }));
+    monthUi = { name, slider: month, play: playBtn };
+    drawPlay();
     return h('div', { class: 'gtemp' },
       h('div', { class: 'gtemp__scale' },
         h('div', { class: 'gtemp__bar', style: { '--gtemp-v': `linear-gradient(to top, ${grad})`, '--gtemp-h': `linear-gradient(to left, ${grad})` }, 'aria-hidden': 'true' }),
         h('div', { class: 'gtemp__ticks' },
           h('span', null, h('span', { 'aria-hidden': 'true' }, '🔥 '), tempText(hi)), h('span', null, tempText(0)),
           h('span', null, h('span', { 'aria-hidden': 'true' }, '❄️ '), tempText(lo)))),
-      h('label', { class: 'gtemp__month' }, name, month));
+      h('div', { class: 'gtemp__month' }, name, h('div', { class: 'gtemp__controls' }, playBtn, month)));
   }
   // From a card: the animal and where it lives (its habitats), above the key.
   function cardNote() {
@@ -732,7 +795,7 @@ export function render(main, [cardId] = []) {
     wanted = L;
     hero.classList.add('is-loading');
     try {
-      const spec = await (L.gpu && globe.usesBase ? L.gpu({ col, month: tempMonth }) : L.load({ col, month: tempMonth }));
+      const spec = await (L.gpu && globe.usesBase ? L.gpu({ col, month: monthPos }) : L.load({ col, month: tempMonth }));
       if (wanted !== L || !globe) return;
       await globe.setLayer(spec);
       setPlateLabels(spec.plates?.motion);
@@ -748,6 +811,8 @@ export function render(main, [cardId] = []) {
   }
 
   function choose(id) {
+    play(false);
+    monthUi = null;
     shownLayer = id;
     clearInterval(ticker);
     ticker = 0;
@@ -762,6 +827,13 @@ export function render(main, [cardId] = []) {
     show(L);
   }
   if (shownLayer) choose(shownLayer); else drawPanel(null, false);
+  // Once the globe is open and drawn: the months, so Temperature is ready when it is picked. The
+  // service worker keeps them for offline use.
+  globe.ready.then(() => whenIdle(() => {
+    if (!globe) return;
+    if (globe.usesBase) globe.loadMonths(tempMonth);
+    else import('../globegl.js').then(m => m.preloadPictures(tempLayer.pictures)).catch(() => {});
+  })).catch(() => {});
 
   // ?debug=fps: the globe on window too, to put it at an exact view for comparing pictures.
   if (debug) window.wfGlobe = globe;
@@ -770,6 +842,7 @@ export function render(main, [cardId] = []) {
   window.addEventListener('resize', onResize);
   window.addEventListener('online', onOnline);
   return () => {
+    play(false);
     clearInterval(ticker);
     window.removeEventListener('resize', onResize);
     window.removeEventListener('online', onOnline);

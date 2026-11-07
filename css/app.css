@@ -686,7 +686,15 @@ a.gzone__animal { text-decoration: underline; }
 .gtemp__ticks { display: flex; flex-direction: column; justify-content: space-between; font-weight: var(--fw-semi); }
 .gtemp__month { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-1) var(--s-2); margin-top: var(--s-2); font-weight: var(--fw-bold); }
 .gtemp__monthname .bi { flex-direction: row; gap: 0.4em; }
-.gtemp__slider { flex: 1 1 140px; min-width: 0; height: var(--tap-sm); accent-color: var(--c-primary); }
+.gtemp__slider { flex: 1 1 auto; min-width: 0; height: var(--tap-sm); accent-color: var(--c-primary); }
+.gtemp__controls { flex: 1 1 100%; display: flex; align-items: center; gap: var(--s-2); }
+/* Play and pause, drawn: a triangle, and two bars while it plays. */
+.gtemp__play {
+  flex: none; display: grid; place-items: center; width: var(--tap-xs); height: var(--tap-xs); padding: 0;
+  border: 0; border-radius: 50%; background: var(--c-primary); color: var(--c-on-primary); cursor: pointer; touch-action: manipulation;
+}
+.gtemp__play-icon { width: var(--s-3); height: var(--s-3); background: currentColor; clip-path: polygon(15% 0, 100% 50%, 15% 100%); }
+.gtemp__play[aria-pressed="true"] .gtemp__play-icon { clip-path: polygon(10% 0, 40% 0, 40% 100%, 10% 100%, 10% 0, 60% 0, 90% 0, 90% 100%, 60% 100%, 60% 0); }
 
 /* Open: the depth key becomes the depth guide (scientific names, an animal for each zone). */
 .gpanel[data-state="expanded"][data-layer="depth"] .gkey__sci,

@@ -164,6 +164,8 @@ export const LAYERS = [
   },
   {
     id: 'temp', emoji: '🌡️', months: true,
+    // The months as pictures, for when there is no base renderer.
+    pictures: Array.from({ length: 12 }, (_, i) => `${DIR}temp-${String(i + 1).padStart(2, '0')}.webp`),
     gpu: ({ col, month }) => ({ base: { kind: 'months', stops: tempStops(col), bands: TEMP_BANDS, hill: 0.35, pos: month } }),
     async load({ month }) {
       return { raster: { mode: 'picture', tex: `${DIR}temp-${String(month).padStart(2, '0')}.webp` } };

@@ -43,7 +43,7 @@ test('drawn on the sea, under the land: a see-through coral fill and a darker ed
   assert.match(layers, /shapesBy\('reefs', 'kind', \['reef'\], \(\) => col\('--c-reef-fill'\), \{ edge: col\('--c-reef-edge'\) \}\)/);
   assert.match(layers, /return \{ sea: await shapesBy\('reefs'/);
   const tokens = src('css/tokens.css');
-  assert.match(tokens, /--c-reef-fill: rgb\(255 111 145 \/ 0\.\d+\)/, 'the reef colour, see-through');
+  assert.match(tokens, /--c-reef-fill: rgb\(255 127 80 \/ 0\.\d+\)/, 'the reef colour, see-through');
   assert.match(tokens, /--c-reef-edge: #[0-9a-f]{6};/);
   assert.match(src('js/globe.js'), /if \(s\.edge\) \{ ctx\.strokeStyle = s\.edge;/);
   assert.ok(LAYERS.some(L => L.id === 'reefs'));
