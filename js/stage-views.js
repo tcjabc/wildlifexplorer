@@ -149,7 +149,7 @@ function compare(card) {
 
   const you = mode && h('div', { class: 'stage-cmp__body' },
     whoRow, panel.el, count);
-  const animal = others && h('div', { class: 'stage-cmp__body' }, others.el);
+  const animal = others && h('div', { class: 'stage-cmp__body stage-cmp__body--scroll', 'data-scroll': '' }, others.el);
   const setView = value => {
     view = value;
     if (you) you.hidden = view !== 'you';

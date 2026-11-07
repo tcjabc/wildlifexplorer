@@ -20,7 +20,7 @@ export const PANEL_SHARE = 0.5;     // the expanded notebook's share of the stag
 export const FILL = 0.97;           // the share of its space the card fills: a thin strip of desk round it
 export const SIDE_RATIO = 1.15;     // a space wider than tall by this much has the sides next to each other
 export const GRID_COLS = 4;         // heading buttons across (js/headings.js has two rows of them)
-export const GRID_ROOM = 48;        // the menu page's padding and the gaps in its grid, in card px
+export const GRID_ROOM = 60;        // the menu page's border, padding and the gaps in its grid, in card px
 
 // The expanded panel's width on a stage W px wide.
 export const panelWidth = (W, share = PANEL_SHARE) => W * share;

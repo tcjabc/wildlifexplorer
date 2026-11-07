@@ -352,6 +352,9 @@
 .stage-cmp__top { flex: none; display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--s-2); padding: 0 var(--s-2); }
 .stage-cmp__body { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; gap: var(--s-2); }
 .stage-cmp__body[hidden] { display: none; }
+/* Lookalikes also list how to tell them apart: more than a short stage can hold. */
+.stage-cmp__body--scroll { display: block; overflow-y: auto; overscroll-behavior: contain; padding: 0 var(--s-3) var(--s-2); }
+.stage-cmp__body--scroll .cmp { padding: 0; }
 .stage-cmp__who { flex: none; align-self: stretch; margin: 0 var(--s-2); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-radius: var(--r-md); }
 .stage-cmp__who[hidden] { display: none; }
 .stage-cmp__body .cmp { flex: 1 1 0; min-height: 0; padding: 0 var(--s-3); }
