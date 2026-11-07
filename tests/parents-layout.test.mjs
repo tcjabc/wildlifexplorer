@@ -1,7 +1,8 @@
 // The grown-ups' gate and page in the real app, at the baseline tablet's size: the question beside
 // its keys in landscape with nothing to scroll, stacked in portrait; the cards in two columns in
-// landscape, one in portrait, with no sideways scrolling and every control big enough. The wording
-// is in tests/gate.test.mjs.
+// landscape, one in portrait, with no sideways scrolling and every control big enough. And in
+// portrait nothing in the header or on the page reaches past the screen's edge, signed in too, with
+// the header's text wider than here (the tablet's font is). The wording is in tests/gate.test.mjs.
 //
 // Skipped when the browser isn't installed: npx playwright install chromium
 // Run: npm run test:browser -- tests/parents-layout.test.mjs
@@ -28,11 +29,14 @@ const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/cs
 // An explorer, made on the app's own origin before it opens.
 const SEED = `<!doctype html><script type=module>
 import * as store from '/js/store.js';
+import { setMeta } from '/js/db.js';
 import { loadStrings } from '/js/i18n.js';
 await loadStrings();
 await store.init();
-const p = await store.createProfile({ name: 'Test', lang: new URLSearchParams(location.search).get('lang') });
+const query = new URLSearchParams(location.search);
+const p = await store.createProfile({ name: 'Test', lang: query.get('lang') });
 await store.selectProfile(p.id);
+if (query.get('role')) await setMeta('device', { role: query.get('role') });
 window.ready = true;
 </script>`;
 
@@ -53,14 +57,38 @@ before(async () => {
 });
 after(() => server?.close());
 
-const run = (name, viewport, fn, lang = 'en') => test(name, { skip }, async () => {
+// Signed in with no server: the app's own cloud modules, told what to say.
+const LONG_EMAIL = 'a.very.long.address.for.a.grown.up.in.this.family.account@example-family-domain.org';
+const TELL = {
+  'auth.js': `auth.state = async () => ({ signedIn: true, email: '${LONG_EMAIL}', userId: 'u1' });`,
+  'sync.js': `sync.stage = async () => 'on';
+sync.status = async () => ({ stage: 'on', savedAt: Date.now(), held: 0, localOnly: [], pending: 0 });
+sync.run = async () => {};`,
+  'family.js': `family.people = async () => ({
+  me: { userId: 'u1', role: 'owner' },
+  members: [{ userId: 'u1', email: '${LONG_EMAIL}', role: 'owner' }, { userId: 'u2', email: 'second-${LONG_EMAIL}', role: 'parent' }],
+  invites: [{ id: 'i1', email: 'third-${LONG_EMAIL}', expiresAt: '2026-11-14T00:00:00Z', expired: false }],
+});`,
+};
+async function signedIn(page) {
+  await page.route('**/*.supabase.co/**', route => route.abort());
+  for (const [file, tail] of Object.entries(TELL)) {
+    await page.route(`**/js/cloud/${file}`, async route => {
+      const res = await route.fetch();
+      await route.fulfill({ response: res, body: `${await res.text()}\n${tail}` });
+    });
+  }
+}
+
+const run = (name, viewport, fn, lang = 'en', prepare = null, role = '') => test(name, { skip }, async () => {
   const browser = await pw.chromium.launch();
   try {
     const context = await browser.newContext({ viewport, serviceWorkers: 'block' });
     const page = await context.newPage();
     const errors = [];
     page.on('pageerror', e => errors.push(e.message));
-    await page.goto(`${url}seed?lang=${lang}`);
+    await prepare?.(page);
+    await page.goto(`${url}seed?lang=${lang}&role=${role}`);
     await page.waitForFunction(() => window.ready);
     await page.goto(`${url}#/parents`);
     await page.waitForSelector('.picker__item, .gate');
@@ -177,3 +205,63 @@ run('both languages, on the narrowest landscape that has two columns', { width: 
   assert.equal((await cardLefts(page)).length, 2);
   await noSideways(page);
 }, 'both');
+
+// The tablet's font runs wider than this machine's; spacing the letters out stands in for it.
+const widerText = (page, spacing = '0.12em') => page.evaluate(s => { document.body.style.letterSpacing = s; }, spacing);
+
+async function headerFits(page, tabs = 7) {
+  const { width } = page.viewportSize();
+  const m = await page.evaluate(() => {
+    const right = s => document.querySelector(s)?.getBoundingClientRect().right;
+    const nav = document.querySelector('.nav');
+    return { header: document.querySelector('.header').getBoundingClientRect().width, main: document.querySelector('.main').getBoundingClientRect().width,
+      lang: right('.lang-cycle'), avatar: right('.avatar-btn'), navScroll: nav.scrollWidth, navWidth: nav.clientWidth,
+      tabs: [...document.querySelectorAll('.nav__item')].map(el => el.getBoundingClientRect().right) };
+  });
+  assert.equal(m.header, width, 'the header is as wide as the screen');
+  assert.equal(m.main, width, 'and so is the page');
+  assert.ok(m.avatar <= width, `the avatar ends at ${m.avatar}`);
+  assert.ok(m.lang <= m.avatar);
+  assert.equal(m.tabs.length, tabs);
+  assert.ok(m.navScroll <= m.navWidth, `every tab shows without scrolling the nav (${m.navScroll} in ${m.navWidth})`);
+  assert.ok(Math.max(...m.tabs) <= width);
+}
+
+for (const [lang, width, spacing] of [['en', 800], ['both', 800], ['both', 720, '0.06em'], ['both', 540], ['en', 375], ['both', 375]]) {
+  run(`the header fits at ${width} px, ${lang}, in a wider font`, { width, height: 1200 }, async page => {
+    await widerText(page, spacing);
+    await headerFits(page);
+  }, lang);
+}
+
+// A grown-up's device: two tabs fewer, and a chip saying so.
+for (const width of [800, 375]) {
+  run(`the header fits at ${width} px on a grown-up's device, in a wider font`, { width, height: 1200 }, async page => {
+    await widerText(page);
+    assert.ok(await page.$('.watch-chip'));
+    await headerFits(page, 5);
+  }, 'both', null, 'watch');
+}
+
+async function insideTheScreen(page) {
+  await page.waitForSelector('#family-email');
+  await page.waitForSelector('.people__email');
+  const { width } = page.viewportSize();
+  const out = await page.$$eval('.parents__cards p, .parents__cards input, .parents__cards span, .parents__cards label, .parents__cards button', (els, w) => els
+    .filter(el => el.offsetParent !== null && el.type !== 'file')
+    .filter(el => {
+      const r = el.getBoundingClientRect(), card = el.closest('.panel').getBoundingClientRect();
+      return r.right > card.right + 0.5 || r.right > w;
+    }).map(el => el.textContent.slice(0, 40) || el.id), width);
+  assert.deepEqual(out, []);
+  const main = await page.$eval('.main', el => ({ scroll: el.scrollWidth, client: el.clientWidth }));
+  assert.ok(main.scroll <= main.client, JSON.stringify(main));
+}
+
+for (const [lang, width] of [['en', 800], ['both', 800], ['both', 375]]) {
+  run(`signed in at ${width} px, ${lang}, in a wider font: everything wraps inside the screen`, { width, height: 1200 }, async page => {
+    await widerText(page);
+    await pass(page);
+    await insideTheScreen(page);
+  }, lang, signedIn);
+}
