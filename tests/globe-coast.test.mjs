@@ -4,7 +4,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { coastRuns } from '../js/globe.js';
+import { coastRuns, gridFade } from '../js/globe.js';
 
 const src = path => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
 const onFrame = ([lon, lat]) => Math.abs(lon) >= 179.9 || Math.abs(lat) >= 89.5;
@@ -93,4 +93,19 @@ test('home: one magenta line on the coastline\'s halo, nothing filled, the explo
   assert.match(globe, /ctx\.strokeStyle = col\.coastHalo; ctx\.lineWidth = HOME_GLOW;\n\s*ctx\.stroke\(\);\n\s*ctx\.strokeStyle = col\.home; ctx\.lineWidth = HOME_LINE;/);
   assert.match(globe, /loadHome\(homeCountry \|\| DEFAULT_HOME\)/);
   assert.match(globe, /tracedLines\(home\);/, 'lines: no stroke along the horizon or the map\'s frame');
+});
+
+test('the grid: faint, the equator a little stronger, gone from zoom 1.5, set in the tokens', () => {
+  const tokens = src('css/tokens.css');
+  const token = name => Number(tokens.match(new RegExp(`${name}: ([0-9.]+)`))[1]);
+  const lines = token('--map-grid-opacity'), equator = token('--map-equator-opacity'), goneK = token('--map-grid-gone-k');
+  assert.ok(lines <= 0.15, 'much fainter than the 0.45 it was');
+  assert.ok(equator > lines && equator <= 0.4);
+  assert.equal(goneK, 1.5);
+  assert.equal(gridFade(1, goneK), 1);
+  assert.equal(gridFade(1.25, goneK), 0.5);
+  assert.equal(gridFade(goneK, goneK), 0);
+  assert.equal(gridFade(8, goneK), 0);
+  const globe = src('js/globe.js');
+  for (const name of ['--c-map-grid', '--map-grid-opacity', '--map-equator-opacity', '--map-grid-gone-k']) assert.ok(globe.includes(`'${name}'`), name);
 });

@@ -69,6 +69,10 @@
   --c-map-spot: #d7263d;
   --c-map-glow: rgb(120 190 235 / 0.45);  /* thin atmosphere around the globe */
   --c-map-home: #ff2daa;                  /* home country outline, above every layer; nothing else on the globe is magenta */
+  --c-map-grid: #fff;                     /* latitude and longitude on the globe, faded by the next three */
+  --map-grid-opacity: 0.12;               /* every line, fully zoomed out */
+  --map-equator-opacity: 0.35;            /* the equator, fully zoomed out */
+  --map-grid-gone-k: 1.5;                 /* the zoom where they have all faded away */
   --c-map-coast: rgb(14 22 32 / 0.9);        /* the coastline on the globe, on every layer */
   --c-map-coast-halo: rgb(255 255 255 / 0.9); /* and the light halo under it */
 

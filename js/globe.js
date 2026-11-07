@@ -195,23 +195,29 @@ export function loadHome(code) {
   return homes.get(code);
 }
 
-// Lines of latitude and longitude every 30°, as short segments.
+// Lines of latitude and longitude every 30°, as short segments; the equator on its own, a little
+// stronger. Faint, and only while the whole globe shows: gridFade, and --map-grid-* in the tokens.
+const gridLine = l => Float32Array.from(l.flatMap(([lon, lat]) => toVec(lon, lat)));
+const parallel = lat => { const l = []; for (let lon = -180; lon <= 180; lon += 4) l.push([lon, lat]); return gridLine(l); };
 const GRATICULE = (() => {
   const lines = [];
   for (let lon = -180; lon < 180; lon += 30) {
-    const l = []; for (let lat = -80; lat <= 80; lat += 4) l.push([lon, lat]); lines.push(l);
+    const l = []; for (let lat = -80; lat <= 80; lat += 4) l.push([lon, lat]); lines.push(gridLine(l));
   }
-  for (let lat = -60; lat <= 60; lat += 30) {
-    const l = []; for (let lon = -180; lon <= 180; lon += 4) l.push([lon, lat]); lines.push(l);
-  }
-  return lines.map(l => Float32Array.from(l.flatMap(([lon, lat]) => toVec(lon, lat))));
+  for (const lat of [-60, -30, 30, 60]) lines.push(parallel(lat));
+  return lines;
 })();
+const EQUATOR = [parallel(0)];
+
+// How much of the grid shows at zoom k: all of it fully zoomed out, none from goneK on.
+export const gridFade = (k, goneK) => Math.min(1, Math.max(0, (goneK - k) / (goneK - MIN_K)));
 
 function tokens(el) {
   const s = getComputedStyle(el);
   const v = name => s.getPropertyValue(name).trim();
   return {
-    sea: v('--c-map-sea'), land: v('--c-map-land'), grid: v('--c-shine'), glow: v('--c-map-glow'),
+    sea: v('--c-map-sea'), land: v('--c-map-land'), glow: v('--c-map-glow'),
+    grid: v('--c-map-grid'), gridOpacity: Number(v('--map-grid-opacity')), equatorOpacity: Number(v('--map-equator-opacity')), gridGoneK: Number(v('--map-grid-gone-k')),
     home: v('--c-map-home'), coast: v('--c-map-coast'), coastHalo: v('--c-map-coast-halo'),
     group: g => v(`--g-${g}`),
   };
@@ -510,6 +516,21 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
     }
   };
 
+  function strokeGrid(lines, opacity) {
+    ctx.globalAlpha = opacity;
+    ctx.beginPath();
+    for (const line of lines) {
+      let pen = false;
+      for (let i = 0; i < line.length; i += 3) {
+        const [x, y, z] = project([line[i], line[i + 1], line[i + 2]]);
+        if (z < 0) { pen = false; continue; }
+        if (pen) ctx.lineTo(x, y); else ctx.moveTo(x, y);
+        pen = true;
+      }
+    }
+    ctx.stroke();
+  }
+
   function draw() {
     const { w, h: ht, dpr } = size;
     ctx = baseCtx;
@@ -541,19 +562,12 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
     fillAll(layer?.sea);
 
     // Graticule (near side only). A picture covers it, on either renderer.
-    if (!['picture', 'months'].includes(layer?.base?.kind)) {
+    const grid = gridFade(view.k, col.gridGoneK);
+    if (grid > 0 && !['picture', 'months'].includes(layer?.base?.kind)) {
       ctx.strokeStyle = col.grid; ctx.lineWidth = 1;
-      ctx.beginPath();
-      for (const line of GRATICULE) {
-        let pen = false;
-        for (let i = 0; i < line.length; i += 3) {
-          const [x, y, z] = project([line[i], line[i + 1], line[i + 2]]);
-          if (z < 0) { pen = false; continue; }
-          if (pen) ctx.lineTo(x, y); else ctx.moveTo(x, y);
-          pen = true;
-        }
-      }
-      ctx.stroke();
+      strokeGrid(GRATICULE, col.gridOpacity * grid);
+      strokeGrid(EQUATOR, col.equatorOpacity * grid);
+      ctx.globalAlpha = 1;
     }
 
     if (polys && !gl) fillPolys(view.k >= NEAR_K ? polys.near : polys.far, col.land);
