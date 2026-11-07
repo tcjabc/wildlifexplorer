@@ -121,8 +121,9 @@ const both = (name, fn) => {
 
 both('a sideways swipe opens the card, the hand goes, and the stage and grid fill the screen', async (f, kind) => {
   await f.card('formosan-black-bear');
+  // The first time, the cover peeks open first, and the hand waits for it.
+  await f.page.waitForFunction(() => !document.querySelector('.viewer__hand').hidden, null, { timeout: 4000 });
   await f.rests('front');
-  assert.equal(await f.page.evaluate(() => document.querySelector('.viewer__hand').hidden), false, 'the hand shows the swipe');
   await f.swipe();
   await f.rests('open');
   assert.equal(await f.layout(), kind);
