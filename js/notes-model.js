@@ -15,6 +15,16 @@ export const PAGE_W = 1120;
 export const PAGE_H = 1400;
 const OLD_PAGE_W = 1000;
 
+// A page takes this many things placed on it (stamps, trails, tape, text, photos, stickers), so that
+// it stays quick to draw on the baseline tablet. Lines don't count: a few lines of handwriting
+// would reach it. Pages already fuller keep everything, and take nothing more.
+export const PAGE_CAP = 150;
+const PLACED = ['m', 'f', 'w', 'x', 'p', 'k'];
+export const pageFull = page => (page?.items ?? []).filter(it => PLACED.includes(it.t)).length >= PAGE_CAP;
+
+// The photos and stickers these pages show: the bitmaps worth keeping decoded.
+export const bitmapsIn = pages => new Set(pages.flatMap(p => (p.items ?? []).filter(it => it.t === 'p' || it.t === 'k').map(it => it.id)));
+
 const uniq = ids => [...new Set(ids.filter(id => typeof id === 'string' && id))];
 
 // ---------- pages from before tags (version 1) ----------

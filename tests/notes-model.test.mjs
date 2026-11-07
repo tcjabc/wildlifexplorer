@@ -4,6 +4,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  pageFull, bitmapsIn, PAGE_CAP,
   legacyTags, normalisePage, migrateRecord, withTag, withoutTag, tagsAfterStamp, titleOf,
   pagesOf, freePages, latestIndex, openFor, contents, movedTrail, widenPage, PAGE_W, PAGE_H,
 } from '../js/notes-model.js';
@@ -190,3 +191,18 @@ test('the page is 4:5 and as tall as it always was', () => {
   assert.equal(PAGE_W / PAGE_H, 0.8);
   assert.equal(PAGE_H, 1400);
 });
+
+test('a page is full at PAGE_CAP things placed: a trail counts once, lines not at all', () => {
+  const placed = n => Array.from({ length: n }, () => ({ t: 'm' }));
+  assert.equal(pageFull({ items: placed(PAGE_CAP - 1) }), false);
+  assert.equal(pageFull({ items: [...placed(PAGE_CAP - 1), { t: 'f', p: Array(4000).fill(1) }] }), true);
+  assert.equal(pageFull({ items: [...placed(PAGE_CAP - 1), ...Array(500).fill({ t: 's', p: [] })] }), false);
+  assert.equal(pageFull({ items: [...placed(PAGE_CAP - 1), { t: 'k', id: 'a' }] }), true, 'a sticker will count too');
+  assert.equal(pageFull(null), false);
+});
+
+test('the bitmaps worth keeping are the photos and stickers on the pages given', () => {
+  const kept = bitmapsIn([{ items: [{ t: 'p', id: 'a' }, { t: 'm', card: 'b' }] }, { items: [{ t: 'k', id: 'c' }] }]);
+  assert.deepEqual([...kept], ['a', 'c']);
+});
+

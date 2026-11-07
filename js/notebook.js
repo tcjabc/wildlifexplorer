@@ -59,7 +59,7 @@ import { bi, t, tx, label, getMode, dateText } from './i18n.js';
 import { state, updateProfile, isCollected, groupById, debugOn } from './store.js';
 import * as notes from './notes-store.js';
 import { PAGE_W, PAGE_H } from './notes-store.js';
-import { titleOf, withTag, withoutTag, tagsAfterStamp, freePages, openFor, movedTrail, contents as contentsOf } from './notes-model.js';
+import { titleOf, withTag, withoutTag, tagsAfterStamp, freePages, openFor, movedTrail, pageFull, bitmapsIn, contents as contentsOf } from './notes-model.js';
 import { renderPage, renderItem, appendItem, drawStroke, hitItem, boundsOf, pencilColour, highlightColour } from './notes-render.js';
 import { fitScale, bookBox, tabFit, tabsShown, paginate, deskSpot, stackDepth, clampView, pinchView, settleView, swipeTurn, secondFingerCounts, isTap, pixelRatio, railFit, popPlace, keyboardLift, atFit, pinchOpensFull, fullPageBox } from './notes-view.js';
 import { PENCILS, DRAWING, INKED, SIZES, WASHI, paletteOf, widthOf, isFine, cleanTools, colourOf, sizeOf, withColour, withSize, nextAnimal } from './notes-tools.js';
@@ -104,6 +104,7 @@ const NAV_ROOM = 104;  // the two turn buttons under the tabs
 const SETTLE_MS = 400; // after selecting, before ✕ counts
 const HOLD_MS = 500;   // a long press on the panda stamp
 const RULER_PAD = 24;  // CSS px around the ruler that still count as on it for a second finger
+const KEPT_PAGES = 3;  // photos and stickers stay decoded for this page and the last two seen
 
 // The card's name and dates in the profile's language, for text drawn on the canvas.
 const inLang = pair => {
@@ -129,7 +130,7 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     home: cardId, view: cardId ? 'pages' : 'contents', scope: cardId ? { kind: 'animal', id: cardId } : null,
     ids: [], pos: 0, away: false, ready: false, toc: 0, tocPages: [[]],
     tool: 'pencil', lastDraw: 'pencil', stowed: false, set: cleanTools(state.profile?.notesTools),
-    undo: [], redo: [], selected: -1, saveTimer: 0,
+    undo: [], redo: [], selected: -1, saveTimer: 0, seen: [],
     assets: { photos: new Map(), stamps: new Map(), stickers: new Map() },
     get page() { return leaf.page; },
     get draft() { return leaf.draft; },
@@ -337,6 +338,7 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     over.style.setProperty('--nb-unzoom', String(1 / k));
     desk.toggleAttribute('data-zoomed', k > 1.001);
     drawScroll();
+    if (heldOut() >= 0) paintLive(); // the live layer doesn't move with the page
   }
   function setView(next) { view = clampView(next, frame, bookSize(), margin()); place(); }
   // The fitted page; beside a card, from its top.
@@ -453,8 +455,11 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     const name = card && (more ? { en: `${card.name.en} ${more.en}`, zh: `${card.name.zh || card.name.en} ${more.zh}` } : card.name);
     return { date: inLang(dateText(page.header.date, { year: 'numeric', month: 'long', day: 'numeric' })), name: inLang(name), stamp: inLang(t('notes.observed')) };
   }
+  // The item selected (or moved) is held out of the page's bitmap and drawn on the live layer, so
+  // moving it redraws only it. Letting go bakes it back in, where it was among the rest.
+  const heldOut = () => (drag ? drag.index : nb.selected);
   function renderLeaf(c) {
-    renderPage(c, leaf.page, { assets: nb.assets, headerText: headerText(leaf.page), skip: drag ? drag.index : -1 });
+    renderPage(c, leaf.page, { assets: nb.assets, headerText: headerText(leaf.page), skip: heldOut() });
   }
   function paintDetail() {
     const on = view.k > 1.001 && !gest && !swipe?.panned;
@@ -478,10 +483,15 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
       renderLeaf(c);
     }
     paintDetail();
-    clearLive();
-    if (drag) renderItem(liveCtx(), leaf.page.items[drag.index], nb.assets);
-    if (stroke?.item) renderItem(liveCtx(), stroke.item, nb.assets);
+    paintLive();
     drawSelection();
+  }
+  // Only what is on top of the page's bitmap: the item held out of it and the mark being made.
+  function paintLive() {
+    clearLive();
+    const it = leaf.page?.items[heldOut()], mark = stroke?.item;
+    if (it) renderItem(liveCtx(), it, nb.assets);
+    if (mark && !(mark.t === 'w' && mark.l < WASHI_MIN)) renderItem(liveCtx(), mark, nb.assets);
   }
   // Rubbing out goes by the frame, however many marks one move takes off.
   let redrawFrame = 0;
@@ -515,6 +525,14 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     return c;
   }
 
+  // Decoded pictures stay only for the pages near this one. The rest load again if they come back.
+  function keepBitmaps(page) {
+    nb.seen = [page, ...nb.seen.filter(p => p.id !== page.id)].slice(0, KEPT_PAGES);
+    const keep = bitmapsIn(nb.seen);
+    for (const kind of [nb.assets.photos, nb.assets.stickers]) {
+      for (const [id, bmp] of kind) if (!keep.has(id)) { bmp?.close?.(); kind.delete(id); }
+    }
+  }
   // Photos and stamp pictures load on demand; the page redraws when they arrive.
   async function loadAssets(page) {
     for (const it of page.items) {
@@ -561,6 +579,7 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
   async function show(pos, dir = 0) {
     const mine = ++showing;
     await flushSave();
+    select(-1);
     nb.ids = listIds();
     if (!nb.ids.length && nb.scope?.kind !== 'animal') { await openContents(); return; }
     const at = clamp(pos, 0, Math.max(0, nb.ids.length - 1)), id = nb.ids[at] ?? null;
@@ -577,6 +596,7 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     nb.away = false;
     nb.undo = []; nb.redo = []; nb.selected = -1;
     drawTags();
+    keepBitmaps(page);
     loadAssets(page);
     drawBar();
     drawTools();
@@ -825,8 +845,7 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     nb.tool = id;
     nb.stowed = false;
     if (DRAWING.includes(id)) nb.lastDraw = id;
-    nb.selected = -1;
-    drawSelection();
+    select(-1);
     if (id === 'stamp' && !nb.set.stampCard) openStampPicker();
     drawTools();
   }
@@ -957,16 +976,17 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     apply(op, false);
     nb.undo.push(op);
     nb.redo = [];
-    touched(onTop(op));
+    // The held item changed: it is on the live layer, and the page's bitmap has no part in it.
+    touched(onTop(op), op.kind === 'change' && op.index === heldOut());
   }
   function undo() { const op = nb.undo.pop(); if (!op) return; apply(op, true); nb.redo.push(op); nb.selected = -1; touched(); }
   function redo() { const op = nb.redo.pop(); if (!op) return; apply(op, false); nb.undo.push(op); nb.selected = -1; touched(onTop(op)); }
   // After any change: draw it and save soon (a draft page is saved for the first time). A tag
   // change is saved straight away, since it moves the page in or out of the list in view.
-  function touched(added = null) {
+  function touched(added = null, onLive = false) {
     if (nb.selected >= (nb.page?.items.length ?? 0)) nb.selected = -1;
     leaf.dirty = true;
-    if (added) { clearLive(); addToPage(added); drawSelection(); } else redraw();
+    if (added) { addToPage(added); paintLive(); drawSelection(); } else if (onLive) { paintLive(); drawSelection(); } else redraw();
     drawTools();
     clearTimeout(nb.saveTimer);
     if (nb.tagsChanged) { nb.tagsChanged = false; drawTags(); afterTags(); return; }
@@ -1058,7 +1078,12 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
   // The handles appear under the finger: the click ending this very tap (or a quick second tap
   // on a small item) must not land on ✕.
   let selectedAt = 0;
-  function select(i) { nb.selected = i; selectedAt = performance.now(); drawSelection(); }
+  function select(i) {
+    const moved = i !== nb.selected;
+    nb.selected = i;
+    selectedAt = performance.now();
+    if (moved) redraw(); else drawSelection();
+  }
   // Only tweezers and the stamps select with a tap: with anything else a tap is that tool's.
   const selects = () => nb.tool === 'tweezers' || INKED.includes(nb.tool);
   // A tap on a photo, stamp or text.
@@ -1104,6 +1129,8 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
       // The live layer has no page under it: the browser multiplies it onto the page instead.
       if (item.k === 'highlighter') desk.dataset.blend = '';
       drawStroke(liveCtx(), item);
+    } else if ((nb.tool === 'roller' || nb.tool === 'washi') && pageFull(leaf.page)) {
+      stroke = { ...press, tap: [x, y] }; // only a tap on something still does anything
     } else if (nb.tool === 'roller') {
       stroke = { ...press, item: { t: 'f', c: pencilColour(nb.set.ink), k: nb.set.foot, p: [x, y] } };
     } else if (nb.tool === 'eraser' || nb.tool === 'sponge') {
@@ -1120,7 +1147,6 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
   // The selected item, starting to move. It stays put until the finger has gone further than a tap.
   function pickUp(e, x, y, fresh = false) {
     drag = { id: e.pointerId, index: nb.selected, before: structuredClone(leaf.page.items[nb.selected]), from: [x, y], mode: 'move', still: true, fresh, t0: performance.now() };
-    redraw();
   }
   // The tweezers: one press selects what is under them and can already drag it. Bare paper lets go
   // only if it turns out to be a tap: it may be the first finger of a pinch on something small.
@@ -1156,20 +1182,19 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
           item.p.push(...(stroke.edge && ruler ? snapTo(ruler, stroke.edge, x, y) : [x, y]), pressureOf(ev));
         }
         // A highlighter line is one path: drawn again whole, or its joints would show.
-        if (item.k === 'highlighter') { clearLive(); drawStroke(liveCtx(), item); } else drawStroke(liveCtx(), item, from);
+        if (item.k === 'highlighter') paintLive(); else drawStroke(liveCtx(), item, from);
       } else if (item?.t === 'f') {
         const [x, y] = fromFrame(e), p = item.p;
         if (Math.hypot(x - p[p.length - 2], y - p[p.length - 1]) > 6) {
           p.push(x, y);
           if (p.length === 4) stampFx('roller', e.clientX, e.clientY);
-          clearLive(); renderItem(liveCtx(), item, nb.assets);
+          paintLive();
         }
       } else if (item?.t === 'w') {
         // From where it was pressed to the finger.
         const [x, y] = fromFrame(e), [x0, y0] = stroke.from;
         item.x = (x0 + x) / 2; item.y = (y0 + y) / 2; item.l = Math.hypot(x - x0, y - y0); item.r = Math.atan2(y - y0, x - x0);
-        clearLive();
-        if (item.l >= WASHI_MIN) renderItem(liveCtx(), item, nb.assets);
+        paintLive();
       }
     } else if (erasing?.id === e.pointerId) {
       for (const ev of points) eraseAt(...fromFrame(ev));
@@ -1204,15 +1229,16 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
   function endStroke() {
     const s = stroke; stroke = null;
     const tap = isTap(s.travel, performance.now() - s.t0), had = nb.selected >= 0;
-    clearLive();
+    paintLive();
     delete desk.dataset.blend;
     if (s.tap) {
       if (had) { select(-1); return; }
       const [x, y] = s.tap, i = itemAt(x, y);
       if (nb.tool === 'text' && i >= 0 && leaf.page.items[i].t === 'x') editText(x, y);
-      else if (i >= 0) tapSelect(x, y);
-      else if (nb.tool === 'text') { stampFx('text', s.x, s.y); editText(x, y); }
+      else if (i >= 0 && selects()) tapSelect(x, y);
+      else if (nb.tool === 'text') { if (!tooFull()) { stampFx('text', s.x, s.y); editText(x, y); } }
       else if (nb.tool === 'stamp') placeStamp(x, y, s.x, s.y);
+      else if (i < 0) tooFull();
       return;
     }
     if (s.item.t === 'w') {
@@ -1229,7 +1255,7 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
 
   // What the first finger was doing, undone: a second one has made this a gesture.
   function dropPress() {
-    if (stroke) { stroke = null; clearLive(); delete desk.dataset.blend; }
+    if (stroke) { stroke = null; paintLive(); delete desk.dataset.blend; }
     if (erasing) {
       const { entries } = erasing; erasing = null;
       if (entries.length) { apply({ kind: 'remove', entries }, true); redraw(); }
@@ -1237,7 +1263,8 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     if (drag) {
       const d = drag; drag = null;
       leaf.page.items[d.index] = d.before;
-      redraw();
+      paintLive();
+      drawSelection();
     }
   }
   function secondFinger() {
@@ -1344,7 +1371,6 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
       const before = structuredClone(leaf.page.items[nb.selected]);
       gest = { item: true, d0: dist(), a0: angle(), before };
       drag = { id: -1, index: nb.selected, before, mode: 'pinch', t0: 0 };
-      redraw();
       return;
     }
     gest = { d0: dist(), from: m, to: m, start: view, peak: 0 };
@@ -1360,7 +1386,7 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
       const it = leaf.page.items[drag.index], b = gest.before;
       if (it.t === 'f') it.p = movedTrail(b.p, { ...centreOf(b), k: clamp(ratio, 0.2, 5), a: angle() - gest.a0 });
       else { resizeItem(it, b, clamp(ratio, 0.2, 5)); it.r = (b.r ?? 0) + angle() - gest.a0; }
-      clearLive(); renderItem(liveCtx(), it, nb.assets); drawSelection();
+      paintLive(); drawSelection();
       return;
     }
     gest.to = mid();
@@ -1403,6 +1429,7 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     haptic(8);
     stopNudge();
     await flushSave();
+    select(-1); // the page's bitmap is what grows
     if (!reducedMotion()) await grow();
     onFull();
   }
@@ -1570,14 +1597,15 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
         else it.r = (b.r ?? 0) + a;
       }
     }
-    clearLive(); renderItem(liveCtx(), it, nb.assets); drawSelection();
+    paintLive(); drawSelection();
   }
   function endDrag() {
     const d = drag; drag = null;
     const items = leaf.page.items;
     const after = structuredClone(items[d.index]);
     if (JSON.stringify(after) === JSON.stringify(d.before)) {
-      redraw();
+      paintLive();
+      drawSelection();
       // A second tap, soon, on text that was already selected.
       if (d.mode === 'move' && d.still && !d.fresh && after.t === 'x' && performance.now() - selectedAt < DOUBLE_TAP_MS) editSelected();
       return;
@@ -1597,7 +1625,6 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
         rect = desk.getBoundingClientRect();
         try { el2.setPointerCapture(e.pointerId); } catch { /* gone */ }
         drag = { id: e.pointerId, index: nb.selected, before: structuredClone(leaf.page.items[nb.selected]), from: fromFrame(e), mode, t0: 0 };
-        redraw();
       });
       el2.addEventListener('pointermove', e => { if (drag?.id === e.pointerId) transformDrag(...fromFrame(e)); });
       el2.addEventListener('pointerup', e => { if (drag?.id === e.pointerId) endDrag(); });
@@ -1741,6 +1768,7 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
   function placeStamp(x, y, screenX, screenY) {
     const card = nb.set.stampCard;
     if (!card) { openStampPicker(); return; }
+    if (tooFull()) return;
     stampAsset(card);
     stampFx('stamp', screenX, screenY);
     const before = [...(leaf.page.tags ?? [])], after = tagsAfterStamp(before, card);
@@ -1758,6 +1786,7 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     const mine = ++showing;
     await flushSave();
     if (mine !== showing) return;
+    select(-1);
     const was = turnsFrom(dir);
     setPane('contents');
     clearLeaf();
@@ -1810,7 +1839,7 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
   // ---------- photos ----------
   async function addPhoto(file) {
     fileInput.value = '';
-    if (!file || !nb.page) return;
+    if (!file || !nb.page || tooFull()) return;
     try {
       const { id, w, h: ph } = await notes.savePhoto(file);
       const k = Math.min(560 / w, 560 / ph);
@@ -1842,7 +1871,7 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
   async function dropPhoto(shot, screenX, screenY) {
     rect = desk.getBoundingClientRect();
     const at = { clientX: screenX, clientY: screenY };
-    if (nb.view !== 'pages' || !onPage(at)) return false;
+    if (nb.view !== 'pages' || !onPage(at) || tooFull()) return false;
     try {
       const [x, y] = fromFrame(at), { id, w, h: ph } = await notes.keepPhoto(shot), k = Math.min(PHOTO_SIZE / w, PHOTO_SIZE / ph);
       nb.assets.photos.set(id, await createImageBitmap(shot.blob));
@@ -1894,10 +1923,17 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     }
   }
 
+  // The page has all it can take: a note on the desk, and nothing is placed.
+  function tooFull() {
+    if (!pageFull(leaf.page)) return false;
+    haptic(8);
+    toast(tx('notes.pageFull'), 'note');
+    return true;
+  }
   let toastTimer = 0;
-  function toast(content) {
+  function toast(content, kind = null) {
     el.querySelector('.nb__toast')?.remove();
-    const tEl = h('p', { class: 'nb__toast', role: 'status' }, content);
+    const tEl = h('p', { class: ['nb__toast', kind && `nb__toast--${kind}`], role: 'status' }, content);
     el.append(tEl);
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => tEl.remove(), 3500);

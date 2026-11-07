@@ -585,6 +585,8 @@
   animation: pop-in var(--t-med) var(--ease-bounce);
 }
 .nb__toast .bi { align-items: center; }
+/* A slip of paper on the desk, for when the page has all it can take. */
+.nb__toast--note { border-radius: var(--r-sm); background: var(--nb-paper); color: var(--nb-ink); font-family: var(--font-notes); box-shadow: var(--shadow-2); }
 
 /* Menus inside the notebook */
 .nb-menu__list { display: grid; gap: var(--s-2); }
