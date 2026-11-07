@@ -234,7 +234,8 @@ Each card looks like this:
   dark one. Recomputed on every build from the tile's thumbnail (`scripts/lib/label-tone.mjs`);
   list it in `locked` to set it by hand. The build report checks the text against the pill over
   every pixel of the corner and lists any busy corners.
-- **_sources**: where the `factFile`'s facts come from (`[{ "title", "url" }]`), next to `_draft`.
+- **_sources**: where the `factFile`'s facts come from (`[{ "title", "url" }]`), next to `_draft`. A size
+  or weight names the number it backs with `"for": ["stats.weightKg"]`.
 - **status**: an IUCN code — `EX` `EW` `CR` `EN` `VU` `NT` `LC` `DD` `NE` — or `null`.
 - **photo / illustration**: to use your own picture, put it in `img/`, then fill in all five
   fields (`file`, `author`, `license`, `licenseUrl`, `sourceUrl`). The next build makes its thumbnail
@@ -356,8 +357,15 @@ The inside uses these optional fields. Any you leave out are simply not shown.
   a cat and a car can stand in (`PARTNERS` in `js/compare-data.js`), and a profile without the number a
   scene needs starts with the grown-up. Under the scene, a row of the smaller one's figures to tap and
   count aloud ("1, 2, 3… 5 of you!"), from 2 to 20 of them.
-- **compare**: how big the animal's silhouette is in cm, either `width` (nose to tail tip) or
-  `height`. Leave it out to use `lengthCm`, `heightCm` or `wingspanCm`, in that order. The silhouette itself is found by the build (from
+- **compare**: how big the animal's silhouette is in cm, either `width` or `height`, of the whole
+  picture. That is the picture's size, not the animal's: where a tail curls or hangs, a true nose-to-tail
+  length would make the animal far too tall, so size it so the body comes out right and check the
+  shoulder against its source. Leave it out to use `lengthCm`, `heightCm` or `wingspanCm`, in that order.
+  Also: `partners`, who it can stand beside when it isn't You, a grown-up, a cat and a car (`you`, `adult`,
+  `cat`, `car`, `sand`, `hair`, `salt`: `PARTNERS` in `js/compare-data.js`); `silhouette`, a picture of its
+  own for the comparison, with the usual credit fields, when the card's silhouette isn't the right one
+  (a cherry's is its fruit); `counted`, `{ one, many }`, the words for the sand and salt counts; and
+  `noCount`, no row of figures for the length (a coiled snake). The silhouette itself is found by the build (from
   PhyloPic, CC0/PD/CC BY/CC BY-SA only) and stored in `silhouette`. If there is none for the exact
   species, a related animal's is used and the report says so.
 - **range** / **mapBounds**: where the animal lives, drawn as a soft filled shape in the group's

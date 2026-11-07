@@ -30,10 +30,12 @@ import { lengthText, weightText, imperial } from './units.js';
  *   stats?: { development?: Development, youngCount?: Range, young?: Pair, [k: string]: any },
  *   related?: Related[], taxonomy?: Record<string, { sci: string, en: string, zh: string }>,
  *   stage?: Record<string, string>, factHeadings?: string[],
+ *   compare?: { width?: number, height?: number, partners?: string[], silhouette?: object, counted?: object, noCount?: boolean },
  *   call?: { file: string, author: string, license: string, licenseUrl: string, sourceUrl: string } }} Card
  *   stage: a heading's stage view, where it isn't the usual one (js/headings.js).
  *   factHeadings: a topic card's heading for each of its facts, in order (js/headings.js).
  *   call: the animal's call, played by tapping its picture (js/card-call.js). None yet.
+ *   compare: how the creature comparison draws it (README, "compare").
  */
 
 const filled = p => p && (p.en || p.zh);
