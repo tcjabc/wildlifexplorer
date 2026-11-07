@@ -292,6 +292,10 @@
   --related-pic: 56px;  /* pictures in Related Species */
   --gloss-pop-w: 260px; /* the glossary popover on a card page */
   --map-slot: 28px;     /* corner of the front map kept free for its expand button */
+  --hand-size: 84px;    /* the hand that shows how to open a card: its disc */
+  --hand-glyph: 3rem;   /* and the hand on it */
+  --hand-travel: 110px; /* how far each way it swipes */
+  --hand-ms: 3000ms;    /* one swipe and the pause after it */
   /* The notebook on the card screens (js/card-layout.js uses the same numbers). */
   --nb-spine-w: 60px;   /* the collapsed spine: the strip at the screen's right */
   --nb-band-w: 6px;     /* its elastic band */

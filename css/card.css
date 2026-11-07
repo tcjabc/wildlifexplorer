@@ -44,6 +44,24 @@
   color: var(--c-on-primary); font-weight: var(--fw-semi); text-align: center;
 }
 .viewer__hint .bi { align-items: center; }
+/* The hand that shows how to open the card (viewer.js places it on the closed card). It only moves
+   with a transform, and stands still with reduced motion. */
+.viewer__hand { position: absolute; z-index: 1; pointer-events: none; }
+.viewer__hand[hidden] { display: none; }
+.viewer__hand-icon {
+  position: absolute; left: calc(var(--hand-size) / -2); top: calc(var(--hand-size) / -2);
+  display: grid; place-items: center; width: var(--hand-size); height: var(--hand-size);
+  border-radius: 50%; background: var(--c-veil); box-shadow: var(--shadow-2);
+  font-size: var(--hand-glyph); line-height: 1;
+  animation: hand-swipe var(--hand-ms) ease-in-out var(--t-slow) infinite backwards;
+}
+@keyframes hand-swipe {
+  0% { transform: translateX(var(--hand-travel)); opacity: 0; }
+  12% { transform: translateX(var(--hand-travel)); opacity: 1; }
+  52% { transform: translateX(calc(var(--hand-travel) * -1)); opacity: 1; }
+  64%, 100% { transform: translateX(calc(var(--hand-travel) * -1)); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .viewer__hand-icon { animation: none; } }
 
 /* ---------- 3D card ---------- */
 /* .card-pos places the card (left/top at rest, a transform while moving); .card3d is laid

@@ -39,6 +39,7 @@ import { releaseOutcome } from './gesture-release.js';
 
 const cssNum = name => parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
 const DONE = 0.999;
+const HAND_DROP = 0.2; // the hand sits this share of the card's height below its middle
 
 let v = null; // the open viewer, or null
 
@@ -150,7 +151,19 @@ function draw() {
   else v.zoomer.style.setProperty('transform', `translate(${(from.cx - L.cx) * q}px, ${(from.cy - L.cy) * q}px) scale(${lerp(1, from.k, q)})`);
 
   updateHint();
+  updateHand(rest);
   if (rest) drawZones();
+}
+
+// How to open the card: a hand showing the swipe, for children who can't read a hint. It sits on
+// the closed card at rest and goes as soon as anything moves.
+function updateHand(rest) {
+  const covered = v.dock?.expanded && v.L.mode !== 'side';
+  const show = rest && at(v.p, 0) && at(v.f, 0) && hasInside(v.card) && !covered;
+  v.hand.hidden = !show;
+  if (!show) return;
+  v.hand.style.setProperty('left', `${Math.round(v.L.cx)}px`);
+  v.hand.style.setProperty('top', `${Math.round(v.L.cy + v.L.H * v.L.s0 * HAND_DROP)}px`);
 }
 
 function updateHint() {
@@ -158,8 +171,7 @@ function updateHint() {
   let key = null;
   if (f > 0.5) key = 'card.hintBack';
   else if (p > 0.5) key = v.range?.fits ? 'card.hintCloseBook' : 'card.hintPan';
-  else if (hasInside(card)) key = 'card.hintBook';
-  else if (hasBack(card)) key = 'card.hintFlip';
+  else if (!hasInside(card) && hasBack(card)) key = 'card.hintFlip';
   if (key === v.hintKey) return;
   v.hintKey = key;
   mount(v.hint, key && tx(key));
@@ -502,7 +514,9 @@ export function open(card, { fromEl, main, onDismiss, restore = null } = {}) {
   if (v) teardown();
   const scrim = h('div', { class: 'viewer__scrim' });
   const zoomer = h('div', { class: 'viewer__zoomer' });
-  const stage = h('div', { class: 'viewer__stage' }, zoomer);
+  const hand = h('div', { class: 'viewer__hand', role: 'img', 'aria-label': label('card.hintBook'), hidden: true },
+    h('span', { class: 'viewer__hand-icon', 'aria-hidden': 'true' }, '👆'));
+  const stage = h('div', { class: 'viewer__stage' }, zoomer, hand);
   const hint = h('p', { class: 'viewer__hint', 'aria-live': 'polite' });
   const bar = h('div');
   const sheet = h('dialog', { class: 'sheet' });
@@ -520,7 +534,7 @@ export function open(card, { fromEl, main, onDismiss, restore = null } = {}) {
   el.addEventListener('dragstart', e => e.preventDefault());
   document.body.append(el);
 
-  v = { el, pane, scrim, zoomer, stage, hint, hintRow, bar, sheet, dock, main, fromEl, onDismiss, p: 0, f: 0, z: 0, cancel: null };
+  v = { el, pane, scrim, zoomer, stage, hand, hint, hintRow, bar, sheet, dock, main, fromEl, onDismiss, p: 0, f: 0, z: 0, cancel: null };
   setCard(card);
   // Collapsed or expanded, as this explorer left it last time (kept on this device), or as it
   // was when the card was left for the globe or the full notebook (and on that page).
