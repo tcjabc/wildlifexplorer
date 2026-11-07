@@ -2040,11 +2040,11 @@
   {
     "id": "red-and-white-giant-flying-squirrel",
     "group": "mammals",
-    "scientificName": "Petaurista alborufus lena",
+    "scientificName": "Petaurista philippensis",
     "name": {
       "en": "Red and White Giant Flying Squirrel",
-      "zh": "白面鼯鼠",
-      "zhuyin": "ㄅㄞˊ ㄇㄧㄢˋ ㄨˊ ㄕㄨˇ"
+      "zh": "大赤鼯鼠",
+      "zhuyin": "ㄉㄚˋ ㄔˋ ㄨˊ ㄕㄨˇ"
     },
     "facts": [
       {
@@ -2064,13 +2064,13 @@
       "habitat": [
         {
           "en": "This is Taiwan's largest flying squirrel, weighing around 1.5 kilograms. It lives in forests with big old trees, and spends the day resting in holes in tree trunks.",
-          "zh": "白面鼯鼠是臺灣最大的鼯鼠，體重大約1.5公斤。牠住在有高大老樹的森林裡，白天在樹幹的樹洞裡休息。"
+          "zh": "大赤鼯鼠是臺灣最大的鼯鼠，體重大約1.5公斤。牠住在有高大老樹的森林裡，白天在樹幹的樹洞裡休息。"
         }
       ],
       "breeding": [
         {
           "en": "Scientists know little about how these squirrels raise their young, but they think a mother usually has fewer than two young at a time.",
-          "zh": "科學家對白面鼯鼠怎麼養育寶寶了解得不多，但認為媽媽一次通常生不到2隻。",
+          "zh": "科學家對大赤鼯鼠怎麼養育寶寶了解得不多，但認為媽媽一次通常生不到2隻。",
           "todo": "Only one secondary source (\"reproductive rate likely low, less than two young per litter\"); no Taiwan-specific data found."
         }
       ],
@@ -2089,7 +2089,7 @@
       "conservation": [
         {
           "en": "The species is listed as [[least-concern|Least Concern]] on the [[red-list|IUCN Red List]]. It needs forests with big old trees that have holes for resting.",
-          "zh": "白面鼯鼠在[[red-list|國際自然保護聯盟（IUCN）紅色名錄]]上被列為[[least-concern|無危]]。牠需要有高大老樹的森林，才有可以休息的樹洞。"
+          "zh": "大赤鼯鼠在[[red-list|國際自然保護聯盟（IUCN）紅色名錄]]上被列為[[least-concern|無危]]。牠需要有高大老樹的森林，才有可以休息的樹洞。"
         }
       ],
       "didYouKnow": [
@@ -2175,7 +2175,7 @@
         "zh": "鼯鼠屬"
       }
     },
-    "wikidata": "Q66791892",
+    "wikidata": "Q1767097",
     "locked": [
       "silhouette"
     ],
