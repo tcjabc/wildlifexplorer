@@ -2040,11 +2040,11 @@
   {
     "id": "red-and-white-giant-flying-squirrel",
     "group": "mammals",
-    "scientificName": "Petaurista philippensis",
+    "scientificName": "Petaurista lena",
     "name": {
-      "en": "Red and White Giant Flying Squirrel",
-      "zh": "大赤鼯鼠",
-      "zhuyin": "ㄉㄚˋ ㄔˋ ㄨˊ ㄕㄨˇ"
+      "en": "Taiwan Giant Flying Squirrel",
+      "zh": "白面鼯鼠",
+      "zhuyin": "ㄅㄞˊ ㄇㄧㄢˋ ㄨˊ ㄕㄨˇ"
     },
     "facts": [
       {
@@ -2064,13 +2064,13 @@
       "habitat": [
         {
           "en": "This is Taiwan's largest flying squirrel, weighing around 1.5 kilograms. It lives in forests with big old trees, and spends the day resting in holes in tree trunks.",
-          "zh": "大赤鼯鼠是臺灣最大的鼯鼠，體重大約1.5公斤。牠住在有高大老樹的森林裡，白天在樹幹的樹洞裡休息。"
+          "zh": "白面鼯鼠是臺灣最大的鼯鼠，體重大約1.5公斤。牠住在有高大老樹的森林裡，白天在樹幹的樹洞裡休息。"
         }
       ],
       "breeding": [
         {
           "en": "Scientists know little about how these squirrels raise their young, but they think a mother usually has fewer than two young at a time.",
-          "zh": "科學家對大赤鼯鼠怎麼養育寶寶了解得不多，但認為媽媽一次通常生不到2隻。",
+          "zh": "科學家對白面鼯鼠怎麼養育寶寶了解得不多，但認為媽媽一次通常生不到2隻。",
           "todo": "Only one secondary source (\"reproductive rate likely low, less than two young per litter\"); no Taiwan-specific data found."
         }
       ],
@@ -2088,8 +2088,8 @@
       ],
       "conservation": [
         {
-          "en": "The species is listed as [[least-concern|Least Concern]] on the [[red-list|IUCN Red List]]. It needs forests with big old trees that have holes for resting.",
-          "zh": "大赤鼯鼠在[[red-list|國際自然保護聯盟（IUCN）紅色名錄]]上被列為[[least-concern|無危]]。牠需要有高大老樹的森林，才有可以休息的樹洞。"
+          "en": "Taiwan's 2017 Red List of land mammals lists it as Least Concern, which means it is not in danger right now. It needs forests with big old trees that have holes for resting.",
+          "zh": "2017年的臺灣陸域哺乳類紅皮書名錄把白面鼯鼠列為暫無危機，表示牠目前沒有危險。牠需要有高大老樹的森林，才有可以休息的樹洞。"
         }
       ],
       "didYouKnow": [
@@ -2108,11 +2108,11 @@
       "forest"
     ],
     "photo": {
-      "file": "img/red-and-white-giant-flying-squirrel-photo-a51a0c.webp",
-      "author": "Ahirbudhnyan M",
+      "file": "img/red-and-white-giant-flying-squirrel-photo-3cc4fa.webp",
+      "author": "Yung-Lun Lin",
       "license": "CC BY 4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
-      "sourceUrl": "https://www.inaturalist.org/photos/254810868"
+      "sourceUrl": "https://www.inaturalist.org/photos/558311613"
     },
     "illustration": null,
     "labelTone": "dark",
@@ -2175,9 +2175,13 @@
         "zh": "鼯鼠屬"
       }
     },
-    "wikidata": "Q1767097",
+    "wikidata": "Q66791892",
     "locked": [
-      "silhouette"
+      "silhouette",
+      "photo",
+      "status",
+      "scientificName",
+      "name"
     ],
     "_draft": [
       "tags",
@@ -2216,6 +2220,14 @@
         "for": [
           "stats.weightKg"
         ]
+      },
+      {
+        "title": "Mammal Diversity Database: Petaurista lena, Taiwan Giant Flying Squirrel (split from P. alborufus; IUCN: Not Evaluated)",
+        "url": "https://www.mammaldiversity.org/taxon/1001644/"
+      },
+      {
+        "title": "Endemic Species Research Institute and Forestry Bureau: The Red List of Terrestrial Mammals of Taiwan, 2017 (白面鼯鼠 Petaurista alborufus lena: Least Concern, 暫無危機)",
+        "url": "https://kmweb.moa.gov.tw/redirect_files.php?id=309393"
       }
     ]
   },
