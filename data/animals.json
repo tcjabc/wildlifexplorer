@@ -4940,6 +4940,11 @@
         "zh": "每年冬天，黑面琵鷺會飛到臺灣，躲開北方的寒冷。"
       }
     ],
+    "factHeadings": [
+      "what",
+      "wow",
+      "who"
+    ],
     "status": null,
     "taiwan": false,
     "photo": null,
@@ -4970,6 +4975,11 @@
         "en": "Rain that falls on the west side flows to the Taiwan Strait, and rain on the east side flows to the Pacific Ocean.",
         "zh": "下在山西邊的雨會流向臺灣海峽，下在東邊的雨會流向太平洋。"
       }
+    ],
+    "factHeadings": [
+      "what",
+      "how",
+      "wow"
     ],
     "status": null,
     "taiwan": true,
@@ -5015,6 +5025,11 @@
         "zh": "春天滿月後的幾個晚上，很多珊瑚會同時排卵，看起來就像海底在下雪。"
       }
     ],
+    "factHeadings": [
+      "what",
+      "where",
+      "when"
+    ],
     "status": null,
     "taiwan": true,
     "continents": [
@@ -5058,6 +5073,11 @@
         "zh": "從 1989 年開始，臺灣的法律就保護臺灣黑熊，任何人都不可以獵捕牠們。"
       }
     ],
+    "factHeadings": [
+      "what",
+      "help",
+      "help"
+    ],
     "status": null,
     "taiwan": true,
     "continents": [
@@ -5096,6 +5116,11 @@
         "en": "Hummingbirds can hover in one spot and even fly backwards.",
         "zh": "蜂鳥可以停在空中不動，甚至還能倒著飛。"
       }
+    ],
+    "factHeadings": [
+      "how",
+      "how",
+      "wow"
     ],
     "status": null,
     "taiwan": false,

@@ -130,3 +130,21 @@ test('only a sound in audio/calls/ counts as a card\'s call', () => {
 test('new card fields keep their place in the data', () => {
   for (const k of ['factHeadings', 'stage', 'call']) assert.ok(KEY_ORDER.includes(k), k);
 });
+
+test('the topic cards light up what the owner put under each heading', () => {
+  const lit = id => headingsFor(cards.find(c => c.id === id)).filter(x => x.enabled).map(x => x.id);
+  assert.deepEqual(lit('migration'), ['what', 'who', 'wow']);
+  assert.deepEqual(lit('central-mountain-range'), ['what', 'how', 'wow', 'where']);
+  assert.deepEqual(lit('kenting-coral-reefs'), ['what', 'when', 'where']);
+  assert.deepEqual(lit('saving-the-formosan-black-bear'), ['what', 'where', 'help']);
+  assert.deepEqual(lit('how-animals-fly'), ['how', 'wow']);
+  for (const c of topics) {
+    assert.equal(c.factHeadings.length, c.facts.length, c.id);
+    for (const id of c.factHeadings) assert.ok(TOPIC_HEADINGS.some(x => x.id === id), `${c.id}: ${id}`);
+  }
+});
+
+test('a topic card nobody has sorted yet still shows its facts', () => {
+  const card = { group: 'behavior', facts: [{ en: 'a', zh: 'b' }, { en: 'c', zh: 'd' }, { en: 'e', zh: 'f' }] };
+  assert.deepEqual(headingsFor(card).filter(x => x.enabled).map(x => x.id), ['what', 'wow', 'dyk']);
+});
