@@ -1715,7 +1715,19 @@
         "max": 6
       }
     },
+    "compare": {
+      "width": 60
+    },
     "related": [],
+    "silhouette": {
+      "file": "img/silhouettes/leopard-cat-d1f796.svg",
+      "author": "Margot Michaud",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceUrl": "https://www.phylopic.org/images/09f1a296-6b96-4e63-89b2-3572cc63295e",
+      "taxon": "Prionailurus rubiginosus"
+    },
+    "stamp": true,
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -1749,6 +1761,9 @@
       }
     },
     "wikidata": "Q42627",
+    "locked": [
+      "silhouette"
+    ],
     "_draft": [
       "tags",
       "stats",
@@ -1902,7 +1917,19 @@
         "max": 5
       }
     },
+    "compare": {
+      "width": 100
+    },
     "related": [],
+    "silhouette": {
+      "file": "img/silhouettes/masked-palm-civet-5f24a4.svg",
+      "author": "Margot Michaud",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceUrl": "https://www.phylopic.org/images/8e3c0595-920c-41e8-a1e6-fdfaf814c896",
+      "taxon": "Paradoxurus zeylonensis"
+    },
+    "stamp": true,
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -1936,6 +1963,9 @@
       }
     },
     "wikidata": "Q626049",
+    "locked": [
+      "silhouette"
+    ],
     "_draft": [
       "tags",
       "factFile.habitat",
@@ -2258,7 +2288,19 @@
         "max": 12
       }
     },
+    "compare": {
+      "width": 80
+    },
     "related": [],
+    "silhouette": {
+      "file": "img/silhouettes/eurasian-otter-9a3b1f.svg",
+      "author": "Ferran Sayol",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceUrl": "https://www.phylopic.org/images/08055f3e-98ee-4d01-9f9c-89aaeb1d0440",
+      "taxon": "Lutra lutra"
+    },
+    "stamp": true,
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -2292,6 +2334,9 @@
       }
     },
     "wikidata": "Q29995",
+    "locked": [
+      "silhouette"
+    ],
     "_draft": [
       "tags",
       "factFile.habitat",
@@ -2447,7 +2492,19 @@
         "max": 234
       }
     },
+    "compare": {
+      "width": 225
+    },
     "related": [],
+    "silhouette": {
+      "file": "img/silhouettes/bengal-tiger-42a663.svg",
+      "author": "Jiekun He",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceUrl": "https://www.phylopic.org/images/9e72c215-4f67-4031-bf00-03f0966ace4f",
+      "taxon": "Panthera tigris"
+    },
+    "stamp": true,
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -2481,6 +2538,9 @@
       }
     },
     "wikidata": "Q80952",
+    "locked": [
+      "silhouette"
+    ],
     "_draft": [
       "tags",
       "factFile.habitat",
@@ -2629,7 +2689,19 @@
         "max": 230
       }
     },
+    "compare": {
+      "width": 190
+    },
     "related": [],
+    "silhouette": {
+      "file": "img/silhouettes/lion-4497d2.svg",
+      "author": "Margot Michaud",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceUrl": "https://www.phylopic.org/images/76a5e7ce-53fa-46ae-af9e-fabd8b863dcf",
+      "taxon": "Panthera leo"
+    },
+    "stamp": true,
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -2663,6 +2735,9 @@
       }
     },
     "wikidata": "Q140",
+    "locked": [
+      "silhouette"
+    ],
     "_draft": [
       "tags",
       "factFile.habitat",
@@ -3208,7 +3283,19 @@
         "max": 1190
       }
     },
+    "compare": {
+      "height": 500
+    },
     "related": [],
+    "silhouette": {
+      "file": "img/silhouettes/giraffe-281aeb.svg",
+      "author": "Steven Traver",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceUrl": "https://www.phylopic.org/images/a0b3548c-3757-48e5-8b3f-5c42d212a4a8",
+      "taxon": "Giraffa"
+    },
+    "stamp": true,
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -3242,6 +3329,9 @@
       }
     },
     "wikidata": "Q15083",
+    "locked": [
+      "silhouette"
+    ],
     "_draft": [
       "tags",
       "factFile.habitat",
@@ -3386,7 +3476,19 @@
         "max": 322
       }
     },
+    "compare": {
+      "width": 230
+    },
     "related": [],
+    "silhouette": {
+      "file": "img/silhouettes/plains-zebra-a0a49f.svg",
+      "author": "Andy Wilson",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceUrl": "https://www.phylopic.org/images/2adcd232-33de-4f81-9c2a-a0ff6054102d",
+      "taxon": "Equus quagga burchellii"
+    },
+    "stamp": true,
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -3420,6 +3522,9 @@
       }
     },
     "wikidata": "Q245305",
+    "locked": [
+      "silhouette"
+    ],
     "_draft": [
       "tags",
       "factFile.habitat",
@@ -3563,7 +3668,19 @@
         "max": 1500
       }
     },
+    "compare": {
+      "height": 150
+    },
     "related": [],
+    "silhouette": {
+      "file": "img/silhouettes/hippopotamus-0b97f5.svg",
+      "author": "Steven Traver",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceUrl": "https://www.phylopic.org/images/bab03f09-73ba-45ea-8534-ea176c82a1a0",
+      "taxon": "Hippopotamus amphibius"
+    },
+    "stamp": true,
     "taxonomy": {
       "kingdom": {
         "sci": "Animalia",
@@ -3597,6 +3714,9 @@
       }
     },
     "wikidata": "Q34505",
+    "locked": [
+      "silhouette"
+    ],
     "_draft": [
       "tags",
       "factFile.habitat",
