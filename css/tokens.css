@@ -307,11 +307,13 @@
   --tap-heading: 64px;  /* the smallest a heading button may be on the screen, whatever the card's scale */
   --heading-h: 88px;    /* a heading button, in card px */
   --heading-icon: 30px;
-  --open-text-h: 150px; /* a heading's text, under the grid when the stage is above it */
+  --open-text-h: 112px; /* a heading's text, under the grid when the stage is above it */
   --stage-plate: 280px; /* the diet plate on the stage */
   --stage-spot: 22px;   /* a place's pin on the stage's map */
   --stage-step-h: 64px; /* a step of the Red List scale */
-  --count-fig: 40px;    /* a figure to tap and count */
+  --count-fig: 48px;    /* a figure to tap and count, on the screen */
+  --stage-cmp-icon: 64px; /* figures on the weight balance, on the stage */
+  --stage-look-h: 170px;  /* the lookalike scene, on the stage */
   --hand-size: 84px;    /* the hand that shows how to open a card: its disc */
   --hand-glyph: 3rem;   /* and the hand on it */
   --hand-travel: 110px; /* how far each way it swipes */

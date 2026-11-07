@@ -125,6 +125,9 @@ const SHELL = [
   'icons/apple-touch-icon.png',
   'assets/world.svg',
   'assets/child.svg',
+  'assets/grown-up.svg',
+  'assets/cat.svg',
+  'assets/car.svg',
 ];
 
 const thumbOf = file => 'img/thumbs/' + file.split('/').pop().replace(/\.[^.]+$/, '') + '.webp';

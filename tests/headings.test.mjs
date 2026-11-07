@@ -6,7 +6,7 @@ import { readFile } from 'node:fs/promises';
 import {
   SPECIES_HEADINGS, TOPIC_HEADINGS, VIEW_HAS, headingSet, headingsFor, isTopic, textOf, viewFor,
 } from '../js/headings.js';
-import { modesFor, sizeOf } from '../js/compare-data.js';
+import { COUNT_MAX, PARTNERS, countFor, modesFor, sizeOf, startWith } from '../js/compare-data.js';
 
 const cards = JSON.parse(await readFile(new URL('../data/animals.json', import.meta.url), 'utf8'));
 const species = cards.filter(c => !isTopic(c));
@@ -89,4 +89,31 @@ test('on today\'s 30 species cards: what is lit and what is grey', () => {
   assert.deepEqual(species.map(c => c.id).filter(id => !on('babies').includes(id)), ['red-and-white-giant-flying-squirrel', 'eurasian-otter']);
   assert.deepEqual(species.map(c => c.id).filter(id => !on('status').includes(id)), ['atlas-moth', 'tardigrade-water-bear']);
   assert.equal(on('size').length, 16);
+});
+
+test('counting: how many of the smaller one make the bigger one', () => {
+  const bear = { stats: { lengthCm: { min: 120, max: 180 }, weightKg: { min: 100, max: 140 } } };
+  assert.deepEqual(countFor(bear, 'weight', { kg: 20 }), { n: 6, side: 'who' });
+  assert.deepEqual(countFor(bear, 'weight', PARTNERS.car), { n: 12, side: 'animal' });
+  assert.deepEqual(countFor(bear, 'length', { cm: 50 }), { n: 3, side: 'who' });
+  assert.equal(countFor(bear, 'length', { cm: 140 }), null, 'about the same size: nothing to count');
+  assert.equal(countFor(bear, 'weight', { kg: 1 }), null, `more than ${COUNT_MAX}: a number instead`);
+  assert.equal(countFor({}, 'weight', { kg: 20 }), null);
+  assert.equal(countFor(bear, 'lifespan', { kg: 20, cm: 100 }), null);
+});
+
+test('a comparison starts with the child only if their profile has the number it needs', () => {
+  assert.equal(startWith('length', { heightCm: 95 }), 'you');
+  assert.equal(startWith('weight', { heightCm: 95 }), 'adult');
+  assert.equal(startWith('length', { heightCm: null, weightKg: 14 }), 'adult');
+  assert.equal(startWith('length', null), 'adult');
+});
+
+test('the partners\' pictures have the shape the scenes draw them at', async () => {
+  for (const p of Object.values(PARTNERS)) {
+    const svg = await readFile(new URL(`../${p.img}`, import.meta.url), 'utf8');
+    const [, , w, h] = svg.match(/viewBox="([\d. ]+)"/)[1].split(' ').map(Number);
+    assert.ok(Math.abs(h / w - p.ratio) < 0.001, p.id);
+    assert.equal(p.across ? w : h, p.cm, `${p.id}: 1 unit = 1 cm`);
+  }
 });

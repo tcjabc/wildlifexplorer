@@ -6,9 +6,12 @@
 //     layout(w, h): the stage has this size now, in card px (when shown, and whenever it changes).
 import { h, mount, reducedMotion } from './dom.js';
 import { bi, label, t, tx } from './i18n.js';
+import { state } from './store.js';
 import { picture, statusBadge } from './components.js';
 import { mapButton, relatedItem, relatedOf } from './cardparts.js';
-import { comparePanel } from './compare.js';
+import { animalImg, comparePanel, partner, whoImg } from './compare.js';
+import { PARTNERS, countFor, modesFor, startWith } from './compare-data.js';
+import { lookalikePanel, lookalikesOf } from './lookalikes.js';
 import { countRow } from './count-row.js';
 import { hasMap } from './headings.js';
 import { magnifier, featureOf } from './magnifier.js';
@@ -100,6 +103,75 @@ function babies(card, ctx) {
   return { el: h('div', { class: 'stage-babies' }, h('div', { class: 'stage-babies__pic' }, gallery(card, ctx).el), countRow({ count, figure, done })) };
 }
 
+const MODES = [['length', '📏', 'card.length'], ['weight', '⚖️', 'card.weight'], ['lifespan', '⏳', 'card.lifespan']];
+const WHO = [['you', '🧒', 'compare.you'], ...Object.values(PARTNERS).map(p => [p.id, p.icon, `compare.partner.${p.id}`])];
+
+// A row of choices, one of them on. onPick(value). items: [value, icon, label key].
+function chooser(items, on, onPick, { cls, words = true, name }) {
+  const el = h('div', { class: ['cmp-toggle', cls], role: 'radiogroup', 'aria-label': label(name) },
+    items.map(([value, icon, key]) => h('button', {
+      type: 'button', role: 'radio', class: 'cmp-toggle__btn', 'data-value': value,
+      'aria-checked': String(value === on), 'aria-label': words ? null : label(key),
+      onclick: () => { set(value); onPick(value); },
+    }, h('span', { 'aria-hidden': 'true' }, icon), words && tx(key))));
+  const set = value => el.querySelectorAll('[data-value]').forEach(b => b.setAttribute('aria-checked', String(b.dataset.value === value)));
+  return el;
+}
+
+// The creature comparison, on the whole stage. You: the animal beside the child, or a grown-up, a
+// cat or a car, with a row of figures to count how many make the other. Animal (with lookalikes):
+// the animal beside its lookalikes.
+function compare(card) {
+  const modes = MODES.filter(([m]) => modesFor(card)[m]);
+  const looks = lookalikesOf(card);
+  const others = looks.length ? lookalikePanel(card, looks) : null;
+  const panel = comparePanel(card);
+  let mode = modes[0]?.[0] ?? null;
+  let who = startWith(mode, state.profile);
+  let view = mode ? 'you' : 'animal';
+
+  const count = h('div', { class: 'stage-cmp__count' });
+  function drawCount() {
+    const c = mode === 'lifespan' ? null : countFor(card, mode, partner(who));
+    if (!c) { mount(count); return; }
+    const figure = () => (c.side === 'who' ? whoImg(partner(who), 'count__img') : animalImg(card, 'count__img'));
+    const done = c.side === 'who' ? t(`compare.count.${who}`, { n: c.n }) : t('compare.count.animal', { n: c.n, name: card.name });
+    mount(count, countRow({ count: c.n, figure, done }));
+  }
+
+  const whoRow = chooser(WHO, who, value => { who = value; draw(); }, { cls: 'stage-cmp__who', name: 'compare.with' });
+  function draw() {
+    if (view === 'animal') { others.show(); return; }
+    whoRow.hidden = mode === 'lifespan'; // a car has no birthdays: lifespans are the child's
+    panel.show(mode, partner(mode === 'lifespan' ? 'you' : who));
+    drawCount();
+  }
+
+  const you = mode && h('div', { class: 'stage-cmp__body' },
+    whoRow, panel.el, count);
+  const animal = others && h('div', { class: 'stage-cmp__body' }, others.el);
+  const setView = value => {
+    view = value;
+    if (you) you.hidden = view !== 'you';
+    if (animal) animal.hidden = view !== 'animal';
+    if (view !== 'animal') others?.stop();
+    draw();
+  };
+  const top = h('div', { class: 'stage-cmp__top' },
+    you && animal && chooser([['you', '🧒', 'compare.you'], ['animal', '🐾', 'compare.animal']], view, setView, { name: 'compare.with' }),
+    modes.length > 1 && chooser(modes, mode, value => { mode = value; draw(); }, { words: false, name: 'heading.size' }));
+  if (you && animal) animal.hidden = true;
+
+  let drawn = '';
+  return {
+    el: h('div', { class: 'stage-cmp' }, top.childElementCount > 0 && top, you, animal),
+    // The scenes are measured from the stage, so they are drawn once it is there.
+    layout(w, height) { if (drawn !== `${w}x${height}`) { drawn = `${w}x${height}`; draw(); } },
+    replay: draw,
+    stop() { panel.stop(); others?.stop(); },
+  };
+}
+
 // Where it lives, as big as the stage: its range, or its continent lit up, or a pin on its place.
 function map(card, { onMap }) {
   const el = h('div', { class: 'stage-map' });
@@ -143,6 +215,7 @@ export const STAGE_VIEWS = {
   profile,
   diet,
   babies,
+  compare,
   map,
   status,
   related,

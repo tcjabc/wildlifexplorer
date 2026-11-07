@@ -42,3 +42,30 @@ export function modesFor(card) {
     diet: Boolean(s.dietIcons?.length || filled(s.diet)),
   };
 }
+
+// Who the animal can be compared with when a child has no height or weight on their profile, or
+// just for fun. cm: the size, across its picture's width or up its height; ratio: the picture's
+// height / width; kg: its weight. Everyday figures, for scale.
+export const PARTNERS = {
+  adult: { id: 'adult', icon: '🧑', img: 'assets/grown-up.svg', cm: 170, across: false, ratio: 170 / 60, kg: 70 },
+  cat: { id: 'cat', icon: '🐈', img: 'assets/cat.svg', cm: 48, across: true, ratio: 30 / 48, kg: 4 },
+  car: { id: 'car', icon: '🚗', img: 'assets/car.svg', cm: 430, across: true, ratio: 150 / 430, kg: 1400 },
+};
+export const CHILD_RATIO = 120 / 48; // assets/child.svg
+
+// The most figures a row can have to tap and count.
+export const COUNT_MAX = 20;
+
+// How many of the smaller one make the bigger one, for the row of figures: { n, side }, side being
+// who repeats ('who' or 'animal'). Null when they are about the same, or there are too many to count.
+//   mode: 'length' | 'weight'. who: { cm, kg }.
+export function countFor(card, mode, who) {
+  const a = mode === 'weight' ? numbers(card).weightKg : mode === 'length' ? sizeOf(card)?.cm : null;
+  const b = mode === 'weight' ? who.kg : who.cm;
+  if (!a || !b) return null;
+  const n = Math.round(Math.max(a, b) / Math.min(a, b));
+  return n < 2 || n > COUNT_MAX ? null : { n, side: a >= b ? 'who' : 'animal' };
+}
+
+// Who a comparison starts with: the child if their profile has the number it needs.
+export const startWith = (mode, profile) => ((mode === 'weight' ? profile?.weightKg : profile?.heightCm) != null ? 'you' : 'adult');

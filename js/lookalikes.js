@@ -12,7 +12,7 @@ import { lengthText } from './units.js';
 
 const KEY = { length: 'lengthCm', height: 'heightCm', wingspan: 'wingspanCm' };
 const mid = r => (r == null ? null : r.max == null ? r.min : (r.min + r.max) / 2);
-const cssNum = name => parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
+const cssNum = (name, el = document.documentElement) => parseFloat(getComputedStyle(el).getPropertyValue(name));
 
 // [{ group, other }] for a card; other is { card } or { entry }.
 export function lookalikesOf(card) {
@@ -94,7 +94,7 @@ function photoCard(m) {
 // Size the two figures so 1 cm is the same on both (once the silhouettes have loaded).
 function layout(figs, measure, run) {
   if (!run.alive) return;
-  const avail = cssNum('--compare-look-h');
+  const avail = cssNum('--compare-look-h', figs[0].pic); // taller on the stage
   const colW = cssNum('--card-w') * 0.4; // each animal has half the panel
   const dims = figs.map(({ pic, m }) => {
     // Outlines are drawn 4:3; silhouettes keep their own shape.

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 430 150" width="430" height="150">
+<!-- A car 430 cm long (1 unit = 1 cm), for size comparisons. Drawn for WildFile, CC0. -->
+<g fill="#000">
+  <path fill-rule="evenodd" d="M12 110c-6 0-10-4-10-10V84c0-8 5-13 13-15l52-10 50-40c8-6 16-9 26-9h120c12 0 21 4 29 12l36 37 66 12c10 2 16 9 16 19v20c0 6-4 10-10 10h-34a44 44 0 0 0-86 0H132a44 44 0 0 0-86 0zM130 58l36-30c5-4 10-6 16-6h40v36zM236 22h56c8 0 14 3 19 8l28 28H236z"/>
+  <circle cx="89" cy="118" r="32"/>
+  <circle cx="341" cy="118" r="32"/>
+</g>
+</svg>

@@ -346,17 +346,37 @@
 .stage-status__heart { position: absolute; left: 50%; bottom: 100%; transform: translateX(-50%); font-size: var(--emoji-sm); line-height: 1.2; }
 .stage-status .badge { font-size: var(--fs-md); }
 
+/* The creature comparison on the whole stage: everything measured from the room it gets here. */
+.stage-cmp { position: absolute; inset: 0; display: flex; flex-direction: column; gap: var(--s-2); padding-top: var(--s-2); background: var(--c-paper); --cmp-icon: var(--stage-cmp-icon); --compare-look-h: var(--stage-look-h); }
+.stage-cmp__top { flex: none; display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--s-2); padding: 0 var(--s-2); }
+.stage-cmp__body { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; gap: var(--s-2); }
+.stage-cmp__body[hidden] { display: none; }
+.stage-cmp__who { flex: none; align-self: stretch; margin: 0 var(--s-2); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-radius: var(--r-md); }
+.stage-cmp__who[hidden] { display: none; }
+.stage-cmp__body .cmp { flex: 1 1 0; min-height: 0; padding: 0 var(--s-3); }
+.stage-cmp__count { flex: none; }
+.stage-cmp .cmp-toggle__btn { justify-content: center; min-width: 0; min-height: calc(var(--tap) / var(--card-s, 1)); padding: var(--s-1); border-radius: var(--r-sm); }
+.stage-cmp__who .cmp-toggle__btn .bi { flex-direction: column; gap: 0; line-height: 1.1; }
+.stage-cmp .cmp-len, .stage-cmp .cmp-wt { flex: 1 1 0; min-height: 0; height: auto; }
+.stage-cmp .cmp-wt__icon { max-width: 100%; }
+/* Name over size, each language beside the other: three lines under the ground at most. */
+.stage-cmp .cmp-len { margin-bottom: calc(var(--card-fs) * 4.2); }
+.stage-cmp .cmp-len__item figcaption .cmp__num .bi { flex-direction: row; gap: 0.4em; }
+.stage-cmp__top .cmp-toggle__btn { min-width: calc(var(--tap) / var(--card-s, 1)); font-size: var(--card-fs-title); }
+
 /* A row of figures to tap and count (js/count-row.js). */
 .count {
-  flex: none; display: flex; align-items: center; gap: var(--s-3); width: 100%; min-height: var(--tap-lg);
-  padding: var(--s-2) var(--s-3); border: 0; background: var(--c-callout-soft); color: var(--c-ink);
+  flex: none; display: flex; align-items: center; gap: var(--s-3); width: 100%; min-height: calc(var(--tap-lg) / var(--card-s, 1));
+  padding: var(--s-1) var(--s-3); border: 0; background: var(--c-callout-soft); color: var(--c-ink);
   font: inherit; font-weight: var(--fw-bold); cursor: pointer;
 }
 .count__figs { flex: 1 1 auto; min-width: 0; display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--s-1); }
 .count__fig { display: block; opacity: var(--o-dimmed); filter: grayscale(1); }
 .count__fig.is-lit { opacity: 1; filter: none; }
-.count__emoji { display: block; font-size: var(--count-fig); line-height: 1; }
-.count__img { display: block; height: var(--count-fig); width: auto; max-width: calc(var(--count-fig) * 2); object-fit: contain; }
+/* The same size on the screen whatever the card's scale. */
+.count { --fig: calc(var(--count-fig) / var(--card-s, 1)); }
+.count__emoji { display: block; font-size: var(--fig); line-height: 1; }
+.count__img { display: block; height: var(--fig); width: auto; max-width: calc(var(--fig) * 2); object-fit: contain; }
 .count__say { flex: none; max-width: 50%; font-size: var(--card-fs-title); text-align: right; }
 .count__say .bi { align-items: flex-end; }
 
@@ -394,7 +414,7 @@
   border-bottom: var(--bw-mid) solid var(--c-ink-faint);
 }
 .cmp-len__item { position: relative; margin: 0; display: flex; align-items: flex-end; }
-.cmp-len__img { display: block; height: auto; transform-origin: 50% 100%; }
+.cmp-len__img { display: block; height: auto; max-width: none; transform-origin: 50% 100%; }
 .cmp-len__item figcaption {
   position: absolute; top: calc(100% + var(--s-1)); left: 50%; transform: translateX(-50%);
   white-space: nowrap; text-align: center; font-size: var(--card-fs-sm); font-weight: var(--fw-semi);

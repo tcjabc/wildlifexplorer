@@ -1,4 +1,5 @@
-// "Creature comparison": the animal measured against the child holding the tablet.
+// "Creature comparison": the animal measured against the child holding the tablet, or something
+// else everyone knows (a grown-up, a cat, a car: PARTNERS in js/compare-data.js).
 // One scene per statistic, each with a short animation that replays on every tap:
 //   length   – silhouettes side by side, growing up from the ground
 //   weight   – a balance; the lighter side fills with copies until it levels out
@@ -10,14 +11,12 @@ import { bi, t, tx } from './i18n.js';
 import { state, groupById, currentAge } from './store.js';
 import { lengthText } from './units.js';
 import { haptic } from './gesture.js';
-import { numbers, sizeOf } from './compare-data.js';
-
-export { numbers, modesFor } from './compare-data.js';
+import { CHILD_RATIO, PARTNERS, numbers, sizeOf } from './compare-data.js';
 
 const cssNum = name => parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
 
 export const CHILD_DEFAULT = { heightCm: 120, weightKg: 23, age: 6 };
-export function child() {
+function child() {
   const p = state.profile ?? {};
   const age = currentAge(p);
   return {
@@ -66,22 +65,29 @@ function countUp(run, from, to, ms, each, done) {
   requestAnimationFrame(step);
 }
 
-const youImg = cls => h('img', { class: ['cmp__you', cls], src: 'assets/child.svg', alt: '' });
-const animalImg = (card, cls) => card.silhouette?.file
+// Who the animal is measured against: the child, or one of PARTNERS.
+//   { id, name, img, cm, across, ratio, kg }
+export function partner(id = 'you') {
+  if (id !== 'you') return { ...PARTNERS[id], name: t(`compare.partner.${id}`) };
+  const you = child();
+  return { id, name: t('card.you'), img: 'assets/child.svg', cm: you.heightCm, across: false, ratio: CHILD_RATIO, kg: you.weightKg };
+}
+
+export const whoImg = (who, cls) => h('img', { class: ['cmp__you', cls], src: who.img, alt: '' });
+export const animalImg = (card, cls) => card.silhouette?.file
   ? h('img', { class: ['cmp__animal', cls], src: card.silhouette.file, alt: '' })
   : h('span', { class: ['cmp__emoji', cls], 'aria-hidden': 'true' }, groupById(card.group)?.emoji);
 
 // ---------- length ----------
 
-function lengthScene(card, run) {
-  const you = child();
+function lengthScene(card, run, who) {
   const size = sizeOf(card);
   const ground = h('div', { class: 'cmp-len' });
-  const kidImg = youImg('cmp-len__img');
+  const kidImg = whoImg(who, 'cmp-len__img');
   const pic = animalImg(card, 'cmp-len__img');
   ground.append(
     h('figure', { class: 'cmp-len__item' }, kidImg,
-      h('figcaption', null, tx('card.you'), h('span', { class: 'cmp__num' }, bi(lengthText(you.heightCm))))),
+      h('figcaption', null, bi(who.name), h('span', { class: 'cmp__num' }, bi(lengthText(who.cm))))),
     h('figure', { class: 'cmp-len__item' }, pic,
       h('figcaption', null, bi(card.name), h('span', { class: 'cmp__num' }, bi(lengthText(size.cm))))));
 
@@ -90,11 +96,13 @@ function lengthScene(card, run) {
     if (!run.alive) return;
     const ratio = pic.naturalHeight / pic.naturalWidth || 0.6;
     const w = size.across ? size.cm : size.cm / ratio;
-    const tallest = Math.max(you.heightCm, w * ratio);
-    const avail = cssNum('--compare-h');
-    const availW = cssNum('--card-w') * 0.8;
-    const pxPerCm = Math.min(avail / tallest, availW / (w + you.heightCm * 0.4 + 10));
-    kidImg.style.setProperty('height', `${you.heightCm * pxPerCm}px`);
+    const whoW = who.across ? who.cm : who.cm / who.ratio;
+    const tallest = Math.max(whoW * who.ratio, w * ratio);
+    // The scene's own size: it fills the stage.
+    const avail = ground.clientHeight || cssNum('--compare-h');
+    const availW = (ground.clientWidth || cssNum('--card-w')) * 0.8;
+    const pxPerCm = Math.min(avail / tallest, availW / (w + whoW));
+    kidImg.style.setProperty('width', `${whoW * pxPerCm}px`);
     pic.style.setProperty('width', `${w * pxPerCm}px`);
     [kidImg, pic].forEach((el, i) => play(el, [{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }], { duration: 600, delay: i * 180 }));
   };
@@ -104,11 +112,10 @@ function lengthScene(card, run) {
 
 // ---------- weight ----------
 
-function weightScene(card, run) {
-  const you = child();
+function weightScene(card, run, who) {
   const w = numbers(card).weightKg;
-  const animalHeavier = w >= you.weightKg;
-  const heavy = Math.max(w, you.weightKg), light = Math.min(w, you.weightKg);
+  const animalHeavier = w >= who.kg;
+  const heavy = Math.max(w, who.kg), light = Math.min(w, who.kg);
   const n = Math.max(1, Math.round(heavy / light));
   const many = n > MAX_COPIES;
 
@@ -117,7 +124,7 @@ function weightScene(card, run) {
   const panAnimal = h('div', { class: 'cmp-wt__pan cmp-wt__pan--right' });
   const lightPan = animalHeavier ? panYou : panAnimal;
   const heavyPan = animalHeavier ? panAnimal : panYou;
-  const icon = side => (side === 'you' ? youImg('cmp-wt__icon') : animalImg(card, 'cmp-wt__icon'));
+  const icon = side => (side === 'you' ? whoImg(who, 'cmp-wt__icon') : animalImg(card, 'cmp-wt__icon'));
   const lightSide = animalHeavier ? 'you' : 'animal';
   heavyPan.append(h('div', { class: 'cmp-wt__stack' }, icon(animalHeavier ? 'animal' : 'you')));
   const stack = h('div', { class: ['cmp-wt__stack', many && 'is-many'] });
@@ -138,8 +145,8 @@ function weightScene(card, run) {
 
   const name = card.name;
   let caption;
-  if (n === 1 && heavy / light < 1.4) caption = t('compare.weightEqual', { name });
-  else caption = t(animalHeavier ? 'compare.weightHeavy' : 'compare.weightLight', { n: fmt(n), name });
+  if (n === 1 && heavy / light < 1.4) caption = t('compare.weightEqual', { name, who: who.name });
+  else caption = t(animalHeavier ? 'compare.weightHeavy' : 'compare.weightLight', { n: fmt(n), name, who: who.name });
   const elephants = animalHeavier && many && w / ELEPHANT_KG >= 2 ? t('compare.elephants', { n: fmt(w / ELEPHANT_KG), name }) : null;
   const text = h('div', { class: 'cmp__caption', hidden: !reducedMotion() }, bi(caption), elephants && bi(elephants, 'cmp__sub'));
 
@@ -231,16 +238,17 @@ function dietScene(card, run) {
 
 const SCENES = { length: lengthScene, weight: weightScene, lifespan: lifespanScene, diet: dietScene };
 
-// The comparison panel. show(mode) swaps the scene and replays its animation.
+// The comparison panel. show(mode, who) swaps the scene and replays its animation.
 export function comparePanel(card) {
   const body = h('div', { class: 'cmp' });
   let run = { alive: false };
   return {
     el: body,
-    show(mode) {
+    show(mode, who = partner()) {
       run.alive = false;
       run = { alive: true };
-      mount(body, SCENES[mode](card, run));
+      mount(body, SCENES[mode](card, run, who));
     },
+    stop() { run.alive = false; },
   };
 }
