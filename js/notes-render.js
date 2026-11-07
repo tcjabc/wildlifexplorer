@@ -7,9 +7,17 @@
 //   roller  { t:'f', c, k, p:[x,y, …] }                  footprint trail (k: paw, hoof, bird, bear)
 //   photo   { t:'p', id, x, y, w, h, r }                 taped-in Polaroid (the picture's centre and size)
 //   washi   { t:'w', k, x, y, l, s, r }                  a strip of tape (k: its colour; centre, length, width)
+//   sticker { t:'k', id, x, y, w, h, r }                 a picture (centre and size). None can be made yet;
+//                                                        assets.stickers holds the bitmaps, decoded at the size shown
 import { PAGE_W, PAGE_H } from './notes-store.js';
+import { sprite, sizeFor, pxPerUnit } from './notes-sprites.js';
 
-const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+// Tokens, read once per page: asked for per item, they cost a full page more than its stamps did.
+const tokens = new Map();
+function css(name) {
+  if (!tokens.has(name)) tokens.set(name, getComputedStyle(document.documentElement).getPropertyValue(name).trim());
+  return tokens.get(name);
+}
 export const pencilColour = id => css(`--pencil-${id}`) || '#444';
 export const highlightColour = id => css(`--hl-${id}`) || '#ffee58';
 // What drew a line. Pages from before there was anything but the pencil have no k.
@@ -92,13 +100,19 @@ export function drawStroke(ctx, item, from = 0) {
     ctx.beginPath(); ctx.arc(p[0], p[1], width(item.w, p[2]) / 2, 0, Math.PI * 2); ctx.fill();
     return;
   }
+  // A finger's pressure never changes: a line of one width is one path.
+  let now = -1;
   for (let i = Math.max(3, from); i < p.length; i += 3) {
-    ctx.lineWidth = width(item.w, (p[i - 1] + p[i + 2]) / 2);
-    ctx.beginPath();
-    ctx.moveTo(p[i - 3], p[i - 2]);
+    const w = width(item.w, (p[i - 1] + p[i + 2]) / 2);
+    if (w !== now) {
+      if (now >= 0) ctx.stroke();
+      now = ctx.lineWidth = w;
+      ctx.beginPath();
+      ctx.moveTo(p[i - 3], p[i - 2]);
+    }
     ctx.lineTo(p[i], p[i + 1]);
-    ctx.stroke();
   }
+  if (now >= 0) ctx.stroke();
 }
 
 function footprint(ctx, kind, size) {
@@ -129,12 +143,21 @@ function footprint(ctx, kind, size) {
   }
 }
 const FOOT = { paw: { size: 46, step: 70 }, hoof: { size: 44, step: 76 }, bird: { size: 46, step: 58 }, bear: { size: 64, step: 104 } };
+const PRINT_BOX = 1.2; // a print's picture, for its size: the toes reach about half of it from the middle
+
+function printSprite(kind, colour, px) {
+  const s = sizeFor(px), box = Math.ceil(s * PRINT_BOX);
+  return sprite(`foot|${kind}|${colour}|${s}`, box, box, o => {
+    o.translate(box / 2, box / 2);
+    o.fillStyle = o.strokeStyle = colour;
+    footprint(o, kind, s);
+  });
+}
 
 // Prints every `step` along the path, left and right, turned the way the trail goes.
 function drawRoller(ctx, item) {
   const { size, step } = FOOT[item.k] ?? FOOT.paw;
-  const p = item.p;
-  ctx.fillStyle = ctx.strokeStyle = item.c;
+  const p = item.p, print = printSprite(item.k in FOOT ? item.k : 'paw', item.c, size * pxPerUnit(ctx)), box = size * PRINT_BOX;
   let carry = step / 2, n = 0;
   for (let i = 2; i < p.length; i += 2) {
     const x0 = p[i - 2], y0 = p[i - 1], dx = p[i] - x0, dy = p[i + 1] - y0;
@@ -145,7 +168,7 @@ function drawRoller(ctx, item) {
       const side = n++ % 2 ? 1 : -1;
       const x = x0 + (dx * d) / len - Math.sin(ang) * side * size * 0.45;
       const y = y0 + (dy * d) / len + Math.cos(ang) * side * size * 0.45;
-      ctx.save(); ctx.translate(x, y); ctx.rotate(ang + Math.PI / 2); footprint(ctx, item.k, size); ctx.restore();
+      ctx.save(); ctx.translate(x, y); ctx.rotate(ang + Math.PI / 2); ctx.drawImage(print, -box / 2, -box / 2, box, box); ctx.restore();
       carry = d + step - len;
     }
     if (carry > len) carry -= len;
@@ -175,30 +198,55 @@ function drawText(ctx, item) {
 // what touches it follow the animal's shape, not a square.
 const stampRatio = new Map();
 
+const drawn = a => Boolean(a?.img?.complete && a.img.naturalWidth);
+const ratioOf = a => a.img.naturalWidth / a.img.naturalHeight;
+
+// An animal's silhouette in one colour, for showing px high. Drawing the SVG is the slow part, so
+// that picture is kept apart from its inks: another ink only colours it in.
+function tinted(a, colour, px) {
+  const hgt = sizeFor(px), w = Math.max(1, Math.round(hgt * ratioOf(a)));
+  return sprite(`${a.img.src}|${colour}|${hgt}`, w, hgt, o => {
+    o.drawImage(sprite(`${a.img.src}|${hgt}`, w, hgt, m => m.drawImage(a.img, 0, 0, w, hgt)), 0, 0);
+    o.globalCompositeOperation = 'source-in';
+    o.fillStyle = colour;
+    o.fillRect(0, 0, w, hgt);
+  });
+}
+
+const EMOJI_BOX = 1.4; // an emoji's picture, for its size
+function emojiSprite(emoji, px) {
+  const s = sizeFor(px), box = Math.ceil(s * EMOJI_BOX);
+  return sprite(`emoji|${emoji}|${s}`, box, box, o => {
+    o.font = `${s}px ${css('--font')}`;
+    o.textAlign = 'center';
+    o.textBaseline = 'middle';
+    o.fillText(emoji, box / 2, box / 2);
+  });
+}
+
+// Whether something this many canvas px across, centred on (x, y), misses the canvas altogether:
+// zoomed in, most of a page does, and needs no picture made at that size.
+function offCanvas(ctx, x, y, across) {
+  const m = ctx.getTransform(), cx = m.a * x + m.c * y + m.e, cy = m.b * x + m.d * y + m.f, r = across * 0.75;
+  return cx + r < 0 || cy + r < 0 || cx - r > ctx.canvas.width || cy - r > ctx.canvas.height;
+}
+
 // A stamp is the animal's silhouette in the pencil colour, or its group emoji.
 function drawStamp(ctx, item, assets) {
-  const a = assets.stamps.get(item.card);
+  const a = assets.stamps.get(item.card), px = item.s * pxPerUnit(ctx);
+  if (offCanvas(ctx, item.x, item.y, px * (drawn(a) ? Math.max(1, ratioOf(a)) : EMOJI_BOX))) return;
   ctx.save();
   ctx.translate(item.x, item.y);
   ctx.rotate(item.r ?? 0);
-  if (a?.img?.complete && a.img.naturalWidth) {
-    const ratio = a.img.naturalWidth / a.img.naturalHeight;
+  if (drawn(a)) {
+    const ratio = ratioOf(a);
     stampRatio.set(item.card, ratio);
     const h = item.s, w = h * ratio;
-    const off = document.createElement('canvas');
-    off.width = Math.max(1, Math.round(w)); off.height = Math.max(1, Math.round(h));
-    const o = off.getContext('2d');
-    o.drawImage(a.img, 0, 0, off.width, off.height);
-    o.globalCompositeOperation = 'source-in';
-    o.fillStyle = item.c;
-    o.fillRect(0, 0, off.width, off.height);
     ctx.globalAlpha = 0.9;
-    ctx.drawImage(off, -w / 2, -h / 2, w, h);
+    ctx.drawImage(tinted(a, item.c, px), -w / 2, -h / 2, w, h);
   } else {
-    ctx.font = `${item.s}px ${css('--font')}`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(a?.emoji ?? '🐾', 0, 0);
+    const box = item.s * EMOJI_BOX;
+    ctx.drawImage(emojiSprite(a?.emoji ?? '🐾', px), -box / 2, -box / 2, box, box);
   }
   ctx.restore();
 }
@@ -265,6 +313,17 @@ function drawPhoto(ctx, item, assets) {
   ctx.restore();
 }
 
+// A sticker, once its bitmap is here.
+function drawSticker(ctx, item, assets) {
+  const bmp = assets.stickers?.get(item.id);
+  if (!bmp) return;
+  ctx.save();
+  ctx.translate(item.x, item.y);
+  ctx.rotate(item.r ?? 0);
+  ctx.drawImage(bmp, -item.w / 2, -item.h / 2, item.w, item.h);
+  ctx.restore();
+}
+
 function drawPaper(ctx, page) {
   ctx.fillStyle = css('--nb-paper');
   ctx.fillRect(0, 0, PAGE_W, PAGE_H);
@@ -277,7 +336,9 @@ function drawPaper(ctx, page) {
     ctx.stroke();
   } else {
     ctx.fillStyle = css('--nb-dot');
-    for (let x = GRID; x < PAGE_W; x += GRID) for (let y = GRID; y < PAGE_H; y += GRID) ctx.fillRect(x - 2, y - 2, 4, 4);
+    ctx.beginPath();
+    for (let x = GRID; x < PAGE_W; x += GRID) for (let y = GRID; y < PAGE_H; y += GRID) ctx.rect(x - 2, y - 2, 4, 4);
+    ctx.fill();
   }
 }
 
@@ -332,7 +393,8 @@ function pencilLayer(ctx) {
   return layerCtx;
 }
 
-// Roughen what is on the layer inside box (device pixels), put it on the page and clear it.
+// Roughen what is on the layer inside box (device pixels), put it on the page and clear it. Only
+// the box: a page where lines and stamps take turns would otherwise pay for the whole page each time.
 function flushPencil(ctx, l, { x, y, w, h }) {
   l.save();
   l.setTransform(1, 0, 0, 1, 0, 0);
@@ -352,18 +414,25 @@ const grainy = item => item.t === 's' && strokeKind(item) === 'pencil';
 // headerText: { date, name, stamp } already in the profile's language.
 // skip: an item index not to draw (the one being moved, drawn on the live layer instead).
 export function renderPage(ctx, page, { assets, headerText, skip = -1 }) {
+  tokens.clear();
   drawPaper(ctx, page);
   drawHeader(ctx, page, headerText);
   const l = pencilLayer(ctx);
-  const all = { x: 0, y: 0, w: ctx.canvas.width, h: ctx.canvas.height };
-  let pending = false;
+  let box = null, pencilled = false;
   page.items.forEach((item, i) => {
     if (i === skip) return;
-    if (grainy(item)) { drawStroke(l, item); pending = true; return; }
-    if (pending) { flushPencil(ctx, l, all); pending = false; }
+    if (grainy(item)) {
+      drawStroke(l, item);
+      box = joined(box, strokeBox(ctx, item));
+      pencilled = true;
+      return;
+    }
+    if (box) { flushPencil(ctx, l, box); box = null; }
     renderItem(ctx, item, assets);
   });
-  if (pending) flushPencil(ctx, l, all);
+  if (box) flushPencil(ctx, l, box);
+  // Whatever fell outside this canvas must not turn up on the next.
+  if (pencilled) { l.save(); l.setTransform(1, 0, 0, 1, 0, 0); l.clearRect(0, 0, layer.width, layer.height); l.restore(); }
 }
 
 // The box a stroke fills on the canvas, in device pixels.
@@ -379,6 +448,14 @@ function strokeBox(ctx, item) {
   const left = Math.max(0, Math.floor((x0 - reach) * m.a + m.e)), top = Math.max(0, Math.floor((y0 - reach) * m.d + m.f));
   const right = Math.min(ctx.canvas.width, Math.ceil((x1 + reach) * m.a + m.e)), bottom = Math.min(ctx.canvas.height, Math.ceil((y1 + reach) * m.d + m.f));
   return { x: left, y: top, w: right - left, h: bottom - top };
+}
+
+// Both boxes in one; a box with nothing in it (a line off this canvas) adds nothing.
+function joined(a, b) {
+  if (b.w <= 0 || b.h <= 0) return a;
+  if (!a) return b;
+  const x = Math.min(a.x, b.x), y = Math.min(a.y, b.y);
+  return { x, y, w: Math.max(a.x + a.w, b.x + b.w) - x, h: Math.max(a.y + a.h, b.y + b.h) - y };
 }
 
 // A new item on top of an already drawn page, without painting the page again.
@@ -399,6 +476,7 @@ export function renderItem(ctx, item, assets) {
   else if (item.t === 'f') drawRoller(ctx, item);
   else if (item.t === 'p') drawPhoto(ctx, item, assets);
   else if (item.t === 'w') drawWashi(ctx, item);
+  else if (item.t === 'k') drawSticker(ctx, item, assets);
 }
 
 // ---------- hit testing (eraser, move tool) ----------
@@ -417,6 +495,7 @@ export function boundsOf(ctx, item) {
     return { cx: item.x - Math.sin(r) * down, cy: item.y + Math.cos(r) * down, w: item.w + edge * 2, h: item.h + edge + foot, r };
   }
   if (item.t === 'w') return { cx: item.x, cy: item.y, w: item.l, h: item.s, r: item.r ?? 0 };
+  if (item.t === 'k') return { cx: item.x, cy: item.y, w: item.w, h: item.h, r: item.r ?? 0 };
   if (item.t === 'm') return { cx: item.x, cy: item.y, w: item.s * (stampRatio.get(item.card) ?? 1), h: item.s, r: item.r ?? 0 };
   if (item.t === 'x') { const { w, h } = textLines(ctx, item); return { cx: item.x + w / 2, cy: item.y + h / 2, w, h, r: item.r ?? 0 }; }
   const xs = [], ys = [];
@@ -434,14 +513,14 @@ function inBox(b, x, y, pad) {
 }
 
 // The topmost item under (x, y), or -1. movable: only what can be selected (photos, stamps, text,
-// footprint trails and tape). lines: only lines. stamped: only what the sponge takes (stamps, text,
-// footprint trails and tape).
+// footprint trails, tape and stickers). lines: only lines. stamped: only what the sponge takes
+// (the same without photos).
 export function hitItem(ctx, page, x, y, r, { movable = false, lines = false, stamped = false } = {}) {
   for (let i = page.items.length - 1; i >= 0; i--) {
     const it = page.items[i];
-    if (movable && !['p', 'm', 'x', 'f', 'w'].includes(it.t)) continue;
+    if (movable && !['p', 'm', 'x', 'f', 'w', 'k'].includes(it.t)) continue;
     if (lines && it.t !== 's') continue;
-    if (stamped && !['m', 'x', 'f', 'w'].includes(it.t)) continue;
+    if (stamped && !['m', 'x', 'f', 'w', 'k'].includes(it.t)) continue;
     if (it.t === 's') {
       const p = it.p;
       if (p.length === 3 && Math.hypot(p[0] - x, p[1] - y) <= it.w + r) return i;

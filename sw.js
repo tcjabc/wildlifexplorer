@@ -78,6 +78,7 @@ const SHELL = [
   'js/badges.js',
   'js/celebrate.js',
   'js/lookalikes.js',
+  'js/notes-sprites.js',
   'js/notes-store.js',
   'js/notes-model.js',
   'js/notes-render.js',

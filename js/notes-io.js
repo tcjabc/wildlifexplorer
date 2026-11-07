@@ -67,7 +67,7 @@ export async function saveToFolder() {
 const strings = v => (Array.isArray(v) ? v.filter(s => typeof s === 'string' && s.length <= 64) : undefined);
 export function cleanPage(page, entry = {}) {
   if (!page || !ID.test(page.id) || !Array.isArray(page.items)) return null;
-  const items = page.items.filter(it => ['s', 'x', 'm', 'f', 'p', 'w'].includes(it?.t) && (it.t !== 'p' || ID.test(it.id)));
+  const items = page.items.filter(it => ['s', 'x', 'm', 'f', 'p', 'w', 'k'].includes(it?.t) && (!['p', 'k'].includes(it.t) || ID.test(it.id)));
   const links = strings(page.links) ?? [];
   return normalisePage({ ...page, items, links, tags: strings(page.tags) },
     { tags: strings(entry.tags), cardIds: strings(entry.cardIds), editedAt: entry.editedAt });

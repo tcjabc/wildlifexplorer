@@ -32,14 +32,14 @@ const HEAVY_STAMPS = 400, HEAVY_TRAILS = 20, TRAIL_POINTS = 40;
 const INKS = ['#3d3a35', '#c0392b', '#2e7d32', '#1565c0', '#6a1b9a'];
 
 // The same page every time. cards: ids to stamp, round and round.
-export function heavyItems(cards, w, hgt) {
+export function heavyItems(cards, w, hgt, stamps = HEAVY_STAMPS, trails = HEAVY_TRAILS) {
   let seed = 7;
   const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
   const items = [];
-  for (let i = 0; i < HEAVY_STAMPS; i++) {
+  for (let i = 0; i < stamps; i++) {
     items.push({ t: 'm', c: INKS[i % INKS.length], card: cards[i % cards.length], x: rnd() * w, y: 180 + rnd() * (hgt - 200), s: 60 + rnd() * 120, r: (rnd() - 0.5) * 0.6 });
   }
-  for (let i = 0; i < HEAVY_TRAILS; i++) {
+  for (let i = 0; i < trails; i++) {
     const p = [], y = 200 + rnd() * (hgt - 300), bend = 40 + rnd() * 80;
     for (let j = 0; j < TRAIL_POINTS; j++) p.push((j / TRAIL_POINTS) * w, y + Math.sin(j / 4 + i) * bend);
     items.push({ t: 'f', c: INKS[i % INKS.length], k: ['paw', 'hoof', 'bird', 'bear'][i % 4], p });

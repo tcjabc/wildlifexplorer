@@ -130,7 +130,7 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     ids: [], pos: 0, away: false, ready: false, toc: 0, tocPages: [[]],
     tool: 'pencil', lastDraw: 'pencil', stowed: false, set: cleanTools(state.profile?.notesTools),
     undo: [], redo: [], selected: -1, saveTimer: 0,
-    assets: { photos: new Map(), stamps: new Map() },
+    assets: { photos: new Map(), stamps: new Map(), stickers: new Map() },
     get page() { return leaf.page; },
     get draft() { return leaf.draft; },
   };
@@ -520,7 +520,7 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     for (const it of page.items) {
       if (it.t === 'p' && !nb.assets.photos.has(it.id)) {
         nb.assets.photos.set(it.id, null);
-        notes.loadPhotoBlob(it.id).then(b => b && createImageBitmap(b)).then(bmp => { if (bmp) { nb.assets.photos.set(it.id, bmp); redraw(); } }).catch(() => {});
+        notes.loadPhotoBlob(it.id).then(b => b && createImageBitmap(b)).then(bmp => { if (bmp) { nb.assets.photos.set(it.id, bmp); redrawSoon(); } }).catch(() => {});
       }
       if (it.t === 'm') stampAsset(it.card);
     }
@@ -529,7 +529,7 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
     if (nb.assets.stamps.has(id)) return nb.assets.stamps.get(id);
     const card = state.byId.get(id);
     const a = { emoji: groupById(card?.group)?.emoji ?? '🐾', img: null };
-    if (card?.silhouette?.file) { a.img = new Image(); a.img.onload = () => redraw(); a.img.src = card.silhouette.file; }
+    if (card?.silhouette?.file) { a.img = new Image(); a.img.onload = () => redrawSoon(); a.img.src = card.silhouette.file; }
     nb.assets.stamps.set(id, a);
     return a;
   }
@@ -1949,10 +1949,10 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
   // ?debug=notes: a very full page, and what it costs to draw (js/notes-debug.js).
   if (debugOn('notes')) {
     window.wfNotes = {
-      async heavy() {
+      async heavy(stamps, trails) {
         const cards = state.cards.filter(c => c.silhouette?.file).map(c => c.id);
         const page = notes.blankPage();
-        page.items = heavyItems(cards, PAGE_W, PAGE_H);
+        page.items = heavyItems(cards, PAGE_W, PAGE_H, stamps, trails);
         await notes.savePage(page);
         await openPage({ kind: 'free' }, page.id);
         return page.id;
