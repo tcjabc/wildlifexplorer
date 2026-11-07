@@ -299,6 +299,7 @@
   --callout-dot: 26px;  /* numbered steps, IUCN code on card pages */
   --hotspot: 24px;      /* numbered labels on the Profile picture */
   --profile-pic-max-h: 380px; /* the Profile picture, leaving room for its detail box */
+  --profile-pic-max-h-stacked: 230px; /* … when the stage is above the grid */
   --profile-detail-min-h: 72px;
   --related-pic: 56px;  /* pictures in Related Species */
   --gloss-pop-w: 260px; /* the glossary popover on a card page */
@@ -307,6 +308,10 @@
   --heading-h: 88px;    /* a heading button, in card px */
   --heading-icon: 30px;
   --open-text-h: 150px; /* a heading's text, under the grid when the stage is above it */
+  --stage-plate: 280px; /* the diet plate on the stage */
+  --stage-spot: 22px;   /* a place's pin on the stage's map */
+  --stage-step-h: 64px; /* a step of the Red List scale */
+  --count-fig: 40px;    /* a figure to tap and count */
   --hand-size: 84px;    /* the hand that shows how to open a card: its disc */
   --hand-glyph: 3rem;   /* and the hand on it */
   --hand-travel: 110px; /* how far each way it swipes */

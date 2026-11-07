@@ -318,6 +318,47 @@
   background: var(--c-veil); box-shadow: var(--shadow-1); font-size: var(--fs-md); cursor: pointer;
 }
 .stage-pic__kind[aria-checked="true"] { background: var(--c-accent); }
+.stage-scene, .stage-related { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; padding: var(--s-3); background: var(--c-paper); }
+.stage-related { justify-content: flex-start; overflow-y: auto; }
+.stage-scene .cmp { flex: 1 1 auto; min-height: 0; justify-content: center; }
+.stage .cmp__caption { font-size: var(--card-fs); }
+.stage-profile { position: absolute; inset: 0; display: flex; flex-direction: column; gap: var(--s-2); padding: var(--s-2); background: var(--c-paper); }
+.card3d[data-layout="stacked"] .stage { --profile-pic-max-h: var(--profile-pic-max-h-stacked); }
+.stage { --plate: var(--stage-plate); }
+.stage .cmp-diet__food { font-size: var(--emoji-sm); }
+.stage-map { position: absolute; inset: 0; background: var(--c-map-sea); }
+.stage-map .map { aspect-ratio: auto; width: 100%; height: 100%; border-radius: 0; }
+.stage-map .map-open { height: 100%; border-radius: 0; }
+.stage-map .map__spot { width: var(--stage-spot); height: var(--stage-spot); margin: calc(var(--stage-spot) / -2) 0 0 calc(var(--stage-spot) / -2); }
+.map__continent { fill: var(--g, var(--c-map-spot)); }
+.stage-babies { position: absolute; inset: 0; display: flex; flex-direction: column; background: var(--c-paper); }
+.stage-babies__pic { position: relative; flex: 1 1 0; min-height: 0; }
+.stage-status {
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--s-5);
+  padding: var(--s-3); background: var(--c-paper);
+}
+.stage-status__scale { list-style: none; width: 100%; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--s-1); }
+.stage-status__step {
+  position: relative; display: grid; place-items: center; height: var(--stage-step-h); border-radius: var(--r-sm);
+  background: var(--b); color: var(--b-ink); font-weight: var(--fw-bold); font-size: var(--card-fs); opacity: var(--o-dimmed);
+}
+.stage-status__step.is-on { opacity: 1; box-shadow: 0 0 0 var(--bw-mid) var(--c-ink); }
+.stage-status__heart { position: absolute; left: 50%; bottom: 100%; transform: translateX(-50%); font-size: var(--emoji-sm); line-height: 1.2; }
+.stage-status .badge { font-size: var(--fs-md); }
+
+/* A row of figures to tap and count (js/count-row.js). */
+.count {
+  flex: none; display: flex; align-items: center; gap: var(--s-3); width: 100%; min-height: var(--tap-lg);
+  padding: var(--s-2) var(--s-3); border: 0; background: var(--c-callout-soft); color: var(--c-ink);
+  font: inherit; font-weight: var(--fw-bold); cursor: pointer;
+}
+.count__figs { flex: 1 1 auto; min-width: 0; display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--s-1); }
+.count__fig { display: block; opacity: var(--o-dimmed); filter: grayscale(1); }
+.count__fig.is-lit { opacity: 1; filter: none; }
+.count__emoji { display: block; font-size: var(--count-fig); line-height: 1; }
+.count__img { display: block; height: var(--count-fig); width: auto; max-width: calc(var(--count-fig) * 2); object-fit: contain; }
+.count__say { flex: none; max-width: 50%; font-size: var(--card-fs-title); text-align: right; }
+.count__say .bi { align-items: flex-end; }
 
 .stat {
   display: grid; grid-template-columns: auto auto 1fr; gap: var(--s-2); align-items: baseline;

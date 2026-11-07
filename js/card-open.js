@@ -106,6 +106,7 @@ export function openCard(card, { onCredit, onMap } = {}) {
     place(host) {
       const to = host ?? slot;
       if (stage.el.parentElement !== to) to.append(stage.el);
+      stage.layout();
     },
     select,
     selected: () => current,

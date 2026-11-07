@@ -6,6 +6,7 @@
 // or a hand-made one). Small ranges zoom right in (mapBounds), with a little world map in
 // the corner marking where that is.
 import { h, svg } from './dom.js';
+import { CONTINENTS, continentsView } from './continents.js';
 
 const UNIT = 20;                                       // must match scripts/make-map.mjs
 const WORLD = { west: -180, east: 180, north: 84, south: -58 };
@@ -17,10 +18,10 @@ const LAND = 'assets/world.svg#land';
 const isSmall = b => b.east - b.west < SMALL.lon && b.north - b.south < SMALL.lat;
 
 // Grow a box to the map's shape (and a minimum size), keeping it inside the world.
-function fit(b) {
+function fit(b, aspect = ASPECT) {
   const cx = (b.west + b.east) / 2, cy = (b.north + b.south) / 2;
   let w = Math.max(b.east - b.west, MIN_SPAN), hgt = b.north - b.south;
-  if (w / hgt < ASPECT) w = hgt * ASPECT; else hgt = w / ASPECT;
+  if (w / hgt < aspect) w = hgt * aspect; else hgt = w / aspect;
   w = Math.min(w, 360); hgt = Math.min(hgt, WORLD.north - WORLD.south);
   const west = Math.min(Math.max(cx - w / 2, WORLD.west), WORLD.east - w);
   const north = Math.max(Math.min(cy + hgt / 2, WORLD.north), WORLD.south + hgt);
@@ -33,13 +34,40 @@ function zoomToBounds(z) {
   return { west: z.lon - w / 2, east: z.lon + w / 2, north: z.lat + hgt / 2, south: z.lat - hgt / 2 };
 }
 
-// Which part of the world to show. `detail` is the bigger map on the back of the card:
-// it zooms to any known range; the small cover map only zooms for small ranges.
-export function viewFor(card, { detail = false } = {}) {
+// Which part of the world to show. `detail` is the big map on the stage, in a box of shape
+// `aspect`: it zooms to any known range, or the card's continents; the small cover map only zooms
+// for small ranges.
+export function viewFor(card, { detail = false, aspect = ASPECT } = {}) {
   const b = card.mapBounds;
-  if (b && (detail || isSmall(b))) return fit(b);
-  if (!b && detail && card.map?.zoom) return fit(zoomToBounds(card.map.zoom));
-  return WORLD;
+  if (b && (detail || isSmall(b))) return fit(b, aspect);
+  if (!b && detail && card.map?.zoom) return fit(zoomToBounds(card.map.zoom), aspect);
+  const around = detail && continentsView(card.continents);
+  return around ? fit(around, aspect) : WORLD;
+}
+
+const PLACE_SPAN = 5; // degrees each way round a place's pin
+
+// A card with no range, on the stage: a pin on its place, or its continents lit up. Null with
+// neither.
+export function placeMap(card, { aspect, label } = {}) {
+  const { lat, lng } = card.place ?? {};
+  if (lat != null && lng != null) {
+    return worldMap({
+      ...card,
+      map: { areas: [{ lon: lng, lat }] },
+      mapBounds: { west: lng - PLACE_SPAN, east: lng + PLACE_SPAN, south: lat - PLACE_SPAN, north: lat + PLACE_SPAN },
+    }, { detail: true, aspect, label });
+  }
+  const shapes = (card.continents ?? []).filter(id => CONTINENTS[id]);
+  if (!shapes.length) return null;
+  const v = viewFor(card, { detail: true, aspect });
+  const clip = `continent-${card.id}`;
+  const points = shapes.map(id => CONTINENTS[id].shape);
+  const main = land(v, 'map__svg');
+  main.append(
+    svg('clipPath', { id: clip }, points.map(p => svg('polygon', { points: p.map(([x, y]) => `${x * UNIT},${-y * UNIT}`).join(' ') }))),
+    svg('use', { href: LAND, class: 'map__continent', 'clip-path': `url(#${clip})` }));
+  return h('div', { class: 'map', role: 'img', 'aria-label': label ?? '' }, main);
 }
 
 const isWorld = v => v === WORLD;
@@ -81,10 +109,10 @@ function rangePath(geo) {
   return polys.map(rings => rings.map(ring => `M${ring.map(pt).join('L')}Z`).join('')).join('');
 }
 
-export function worldMap(card, { detail = false, label } = {}) {
+export function worldMap(card, { detail = false, aspect, label } = {}) {
   const spots = card.map?.areas ?? [];
   if (!spots.length && !card.range && !card.mapBounds) return null;
-  const v = viewFor(card, { detail });
+  const v = viewFor(card, { detail, aspect });
   const inView = ([lon, lat]) => lon >= v.west && lon <= v.east && lat >= v.south && lat <= v.north;
 
   const main = land(v, 'map__svg');

@@ -56,6 +56,8 @@ const SHELL = [
   'js/headings.js',
   'js/card-open.js',
   'js/stage-views.js',
+  'js/count-row.js',
+  'js/continents.js',
   'js/magnifier.js',
   'js/globe.js',
   'js/zhuyin.js',
