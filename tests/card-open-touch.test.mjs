@@ -201,7 +201,7 @@ run('in both languages it says English first, then Chinese', async f => {
 });
 
 both('a grey heading does nothing when tapped, and a swipe that starts on it still closes the card', async f => {
-  await f.card('bengal-tiger');
+  await f.card('tardigrade-water-bear');
   await f.swipe();
   assert.equal(await f.page.evaluate(() => document.querySelector('.hbtn[data-heading="size"]').getAttribute('aria-disabled')), 'true');
   await f.forget();

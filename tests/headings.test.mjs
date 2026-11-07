@@ -89,7 +89,15 @@ test('on today\'s 30 species cards: what is lit and what is grey', () => {
   assert.deepEqual(species.map(c => c.id).filter(id => !on('food').includes(id)), ['taiwan-barbet']);
   assert.deepEqual(species.map(c => c.id).filter(id => !on('babies').includes(id)), ['red-and-white-giant-flying-squirrel', 'eurasian-otter']);
   assert.deepEqual(species.map(c => c.id).filter(id => !on('status').includes(id)), ['atlas-moth', 'tardigrade-water-bear']);
-  assert.equal(on('size').length, 16);
+  assert.deepEqual(species.map(c => c.id).filter(id => !on('size').includes(id)), ['tardigrade-water-bear', 'taiwan-cherry']);
+});
+
+test('a size number with a source names one that is on the card', () => {
+  for (const c of cards) {
+    for (const s of c._sources ?? []) {
+      for (const f of s.for ?? []) assert.ok(c.stats?.[f.replace('stats.', '')], `${c.id}: ${f}`);
+    }
+  }
 });
 
 test('counting: how many of the smaller one make the bigger one', () => {

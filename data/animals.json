@@ -687,6 +687,10 @@
       },
       "youngCount": {
         "min": 1
+      },
+      "weightKg": {
+        "min": 3,
+        "max": 7.6
       }
     },
     "related": [],
@@ -766,6 +770,20 @@
       {
         "title": "Wikipedia (zh): 臺灣保育物種列表 (protection categories)",
         "url": "https://zh.wikipedia.org/zh-tw/%E8%87%BA%E7%81%A3%E4%BF%9D%E8%82%B2%E7%89%A9%E7%A8%AE%E5%88%97%E8%A1%A8"
+      },
+      {
+        "title": "Animals 12(9), 2022: 282 pangolins in Taiwan (males 4–7.6 kg, females 3–5.8 kg)",
+        "url": "https://doaj.org/article/ebf8e75d1ead40d3bc034d2c914e0e91",
+        "for": [
+          "stats.weightKg"
+        ]
+      },
+      {
+        "title": "Hong Kong AFCD Chinese Pangolin Species Action Plan (2–7 kg)",
+        "url": "https://www.afcd.gov.hk/english/conservation/Con_hkbsap/bsap2016/files/Chinese_Pangolin_SAP_Dec2019.pdf",
+        "for": [
+          "stats.weightKg"
+        ]
       }
     ]
   },
@@ -877,6 +895,10 @@
       },
       "youngCount": {
         "min": 1
+      },
+      "weightKg": {
+        "min": 18,
+        "max": 30
       }
     },
     "related": [],
@@ -957,6 +979,20 @@
       {
         "title": "Wikipedia (zh): 臺灣保育物種列表 (protection categories)",
         "url": "https://zh.wikipedia.org/zh-tw/%E8%87%BA%E7%81%A3%E4%BF%9D%E8%82%B2%E7%89%A9%E7%A8%AE%E5%88%97%E8%A1%A8"
+      },
+      {
+        "title": "Plazi (Handbook of the Mammals of the World): Capricornis swinhoei (18–30 kg)",
+        "url": "https://treatment.plazi.org/GgServer/html/03F5071399CEFF7606DFF668FDB2FC8B",
+        "for": [
+          "stats.weightKg"
+        ]
+      },
+      {
+        "title": "Ultimate Ungulate: Capricornis swinhoei (17–25 kg, up to 30 kg)",
+        "url": "https://ultimateungulate.com/Artiodactyla/Capricornis_swinhoei.html",
+        "for": [
+          "stats.weightKg"
+        ]
       }
     ]
   },
@@ -1063,6 +1099,10 @@
         "en": "about 8 months",
         "zh": "約8個月",
         "todo": "Species-level figure (Wikipedia: sambar deer); not confirmed for the Formosan subspecies."
+      },
+      "weightKg": {
+        "min": 100,
+        "max": 200
       }
     },
     "related": [],
@@ -1143,6 +1183,27 @@
       {
         "title": "Wikipedia (zh): 臺灣保育物種列表 (protection categories)",
         "url": "https://zh.wikipedia.org/zh-tw/%E8%87%BA%E7%81%A3%E4%BF%9D%E8%82%B2%E7%89%A9%E7%A8%AE%E5%88%97%E8%A1%A8"
+      },
+      {
+        "title": "Taiwan Review: the unique fauna of Taiwan (large males about 160 kg, females 140 kg)",
+        "url": "https://taiwantoday.tw/AMP/environment/taiwan-review/23918/the-unique-fauna-of-taiwan",
+        "for": [
+          "stats.weightKg"
+        ]
+      },
+      {
+        "title": "Plazi (Handbook of the Mammals of the World): Rusa unicolor (females 90 kg in Taiwan)",
+        "url": "https://publication.plazi.org/GgServer/html/03A087C4FFCFFFCEFF42F83FE173F8E8",
+        "for": [
+          "stats.weightKg"
+        ]
+      },
+      {
+        "title": "Taiwan Livestock Research Institute: introduction of deer (bucks over 200 kg)",
+        "url": "https://www.angrin.tlri.gov.tw/Deer/deer_wayne.htm",
+        "for": [
+          "stats.weightKg"
+        ]
       }
     ]
   },
@@ -1241,6 +1302,10 @@
       },
       "youngCount": {
         "min": 1
+      },
+      "weightKg": {
+        "min": 6,
+        "max": 12
       }
     },
     "related": [],
@@ -1321,6 +1386,20 @@
       {
         "title": "FANCA: amended terrestrial protected wildlife list, effective 2019-01-09 (species removed)",
         "url": "https://www.forest.gov.tw/news/0063328"
+      },
+      {
+        "title": "Chinese Wikipedia: 山羌 (Formosan muntjac 6–12 kg)",
+        "url": "https://zh.wikipedia.org/wiki/%E5%B1%B1%E7%BE%8C",
+        "for": [
+          "stats.weightKg"
+        ]
+      },
+      {
+        "title": "Wikipedia: Reeves's muntjac (species as a whole 10–18 kg)",
+        "url": "https://en.wikipedia.org/wiki/Reeves%27s_muntjac",
+        "for": [
+          "stats.weightKg"
+        ]
       }
     ]
   },
@@ -1424,6 +1503,10 @@
       },
       "youngCount": {
         "min": 1
+      },
+      "weightKg": {
+        "min": 0.4,
+        "max": 0.5
       }
     },
     "compare": {
@@ -1506,6 +1589,20 @@
       {
         "title": "Wikipedia (zh): 臺灣保育物種列表 (protection categories)",
         "url": "https://zh.wikipedia.org/zh-tw/%E8%87%BA%E7%81%A3%E4%BF%9D%E8%82%B2%E7%89%A9%E7%A8%AE%E5%88%97%E8%A1%A8"
+      },
+      {
+        "title": "Wikipedia: Ryukyu flying fox (400–500 g)",
+        "url": "https://en.wikipedia.org/wiki/Ryukyu_flying_fox",
+        "for": [
+          "stats.weightKg"
+        ]
+      },
+      {
+        "title": "Animal Diversity Web: Pteropus dasymallus (average 435 g)",
+        "url": "https://animaldiversity.org/accounts/Pteropus_dasymallus/",
+        "for": [
+          "stats.weightKg"
+        ]
       }
     ]
   },
@@ -1612,6 +1709,10 @@
       "youngCount": {
         "min": 1,
         "max": 4
+      },
+      "weightKg": {
+        "min": 3,
+        "max": 6
       }
     },
     "related": [],
@@ -1686,6 +1787,13 @@
       {
         "title": "Wikipedia (zh): 臺灣保育物種列表 (protection categories)",
         "url": "https://zh.wikipedia.org/zh-tw/%E8%87%BA%E7%81%A3%E4%BF%9D%E8%82%B2%E7%89%A9%E7%A8%AE%E5%88%97%E8%A1%A8"
+      },
+      {
+        "title": "Taiwan CDC species sheet: leopard cat (head and body 55–65 cm, tail 27–30 cm, 3–6 kg)",
+        "url": "https://www.cdc.gov.tw/Uploads/files/201308/0675e0e3-d0d4-4666-96ef-07273e48e1aa.pdf",
+        "for": [
+          "stats.weightKg"
+        ]
       }
     ]
   },
@@ -1784,6 +1892,14 @@
       "youngCount": {
         "min": 1,
         "max": 4
+      },
+      "lengthCm": {
+        "min": 50,
+        "max": 60
+      },
+      "weightKg": {
+        "min": 3,
+        "max": 5
       }
     },
     "related": [],
@@ -1842,6 +1958,21 @@
       {
         "title": "FANCA: amended terrestrial protected wildlife list, effective 2019-01-09 (species removed)",
         "url": "https://www.forest.gov.tw/news/0063328"
+      },
+      {
+        "title": "Wikipedia: masked palm civet (body 50–60 cm, 3–5 kg)",
+        "url": "https://en.wikipedia.org/wiki/Masked_palm_civet",
+        "for": [
+          "stats.lengthCm",
+          "stats.weightKg"
+        ]
+      },
+      {
+        "title": "Animal Diversity Web: Paguma larvata (3.6–5 kg)",
+        "url": "https://animaldiversity.org/accounts/Paguma_larvata/",
+        "for": [
+          "stats.weightKg"
+        ]
       }
     ]
   },
@@ -1932,6 +2063,10 @@
       "wingspanCm": {
         "min": 45,
         "max": 55
+      },
+      "weightKg": {
+        "min": 1.2,
+        "max": 1.5
       }
     },
     "compare": {
@@ -2006,6 +2141,20 @@
       {
         "title": "Wikipedia: red and white giant flying squirrel (litter size)",
         "url": "https://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq.ipfs.4everland.io/wiki/Red_and_white_giant_flying_squirrel.html"
+      },
+      {
+        "title": "Taiwan Encyclopedia of Life: 白面鼯鼠 (about 1,200 g)",
+        "url": "https://taieol.tw/pages/239159",
+        "for": [
+          "stats.weightKg"
+        ]
+      },
+      {
+        "title": "National Museum of Natural Science: Petaurista alborufus lena (about 1,500 g)",
+        "url": "https://www.nmns.edu.tw/en/our-research/featured/Collection-E00315/",
+        "for": [
+          "stats.weightKg"
+        ]
       }
     ]
   },
@@ -2099,6 +2248,16 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Otter_(Lutra_lutra)_Otter._Lutra._Loutre._(titel_op_object),_RP-T-BR-2017-1-1-65.jpg"
     },
     "labelTone": "light",
+    "stats": {
+      "lengthCm": {
+        "min": 57,
+        "max": 95
+      },
+      "weightKg": {
+        "min": 7,
+        "max": 12
+      }
+    },
     "related": [],
     "taxonomy": {
       "kingdom": {
@@ -2139,7 +2298,8 @@
       "factFile.behaviour",
       "factFile.foodAndHunting",
       "factFile.conservation",
-      "factFile.didYouKnow"
+      "factFile.didYouKnow",
+      "stats"
     ],
     "_sources": [
       {
@@ -2165,6 +2325,21 @@
       {
         "title": "Wikipedia (zh): 臺灣保育物種列表 (protection categories)",
         "url": "https://zh.wikipedia.org/zh-tw/%E8%87%BA%E7%81%A3%E4%BF%9D%E8%82%B2%E7%89%A9%E7%A8%AE%E5%88%97%E8%A1%A8"
+      },
+      {
+        "title": "Wikipedia: Eurasian otter (57–95 cm without the tail, 7–12 kg)",
+        "url": "https://en.wikipedia.org/wiki/Eurasian_otter",
+        "for": [
+          "stats.lengthCm",
+          "stats.weightKg"
+        ]
+      },
+      {
+        "title": "Animal Diversity Web: Lutra lutra (average 6.75 kg)",
+        "url": "https://animaldiversity.org/accounts/Lutra_lutra/",
+        "for": [
+          "stats.weightKg"
+        ]
       }
     ]
   },
@@ -2262,6 +2437,14 @@
       "youngCount": {
         "min": 1,
         "max": 4
+      },
+      "lengthCm": {
+        "min": 164,
+        "max": 211
+      },
+      "weightKg": {
+        "min": 110,
+        "max": 234
       }
     },
     "related": [],
@@ -2332,6 +2515,14 @@
       {
         "title": "Big Cats India: hunting techniques of the Bengal tiger (alone, stalk and ambush)",
         "url": "https://bigcatsindia.com/hunting-techniques-bengal-tiger/"
+      },
+      {
+        "title": "Wikipedia: Bengal tiger (Panna: head and body 183–211 cm male, 164–193 cm female; central India males 167–234 kg; adult females 110–180 kg)",
+        "url": "https://en.wikipedia.org/wiki/Bengal_tiger",
+        "for": [
+          "stats.lengthCm",
+          "stats.weightKg"
+        ]
       }
     ]
   },
@@ -2428,6 +2619,14 @@
       "youngCount": {
         "min": 1,
         "max": 4
+      },
+      "lengthCm": {
+        "min": 150,
+        "max": 210
+      },
+      "weightKg": {
+        "min": 120,
+        "max": 230
       }
     },
     "related": [],
@@ -2494,6 +2693,21 @@
       {
         "title": "A-Z Animals: how lions hunt (flanking, circling, ambush; prey)",
         "url": "https://a-z-animals.com/blog/how-lions-hunt-understanding-most-common-tactics/"
+      },
+      {
+        "title": "Britannica: lion (male 1.8–2.1 m, 170–230 kg; lioness 1.5 m, 120–180 kg)",
+        "url": "https://www.britannica.com/animal/lion",
+        "for": [
+          "stats.lengthCm",
+          "stats.weightKg"
+        ]
+      },
+      {
+        "title": "Animal Diversity Web: Panthera leo (126–272 kg)",
+        "url": "https://animaldiversity.org/accounts/Panthera_leo/",
+        "for": [
+          "stats.weightKg"
+        ]
       }
     ]
   },
@@ -2596,6 +2810,10 @@
       "youngCount": {
         "min": 3,
         "max": 5
+      },
+      "weightKg": {
+        "min": 21,
+        "max": 65
       }
     },
     "related": [],
@@ -2676,6 +2894,20 @@
       {
         "title": "Biology Insights: what animals do cheetahs hunt (Thomson's gazelle, impala, springbok)",
         "url": "https://biologyinsights.com/cheetah-prey-what-animals-do-cheetahs-hunt/"
+      },
+      {
+        "title": "Wikipedia: cheetah (adults 21–65 kg)",
+        "url": "https://en.wikipedia.org/wiki/Cheetah",
+        "for": [
+          "stats.weightKg"
+        ]
+      },
+      {
+        "title": "Animal Diversity Web: Acinonyx jubatus (21–72 kg)",
+        "url": "https://animaldiversity.org/accounts/Acinonyx_jubatus/",
+        "for": [
+          "stats.weightKg"
+        ]
       }
     ]
   },
@@ -2781,6 +3013,10 @@
       },
       "youngCount": {
         "min": 1
+      },
+      "weightKg": {
+        "min": 3000,
+        "max": 6000
       }
     },
     "related": [],
@@ -2851,6 +3087,20 @@
       {
         "title": "San Diego Zoo Wildlife Alliance: African elephant fact sheet",
         "url": "https://ielc.libguides.com/sdzg/factsheets/african_elephant/summary"
+      },
+      {
+        "title": "Wikipedia: African bush elephant (average female 3.0 t, male 6.0 t)",
+        "url": "https://en.wikipedia.org/wiki/African_bush_elephant",
+        "for": [
+          "stats.weightKg"
+        ]
+      },
+      {
+        "title": "Animal Diversity Web: Loxodonta africana (2,000–6,100 kg)",
+        "url": "https://animaldiversity.org/accounts/Loxodonta_africana/",
+        "for": [
+          "stats.weightKg"
+        ]
       }
     ]
   },
@@ -2948,6 +3198,14 @@
       },
       "youngCount": {
         "min": 1
+      },
+      "heightCm": {
+        "min": 430,
+        "max": 570
+      },
+      "weightKg": {
+        "min": 830,
+        "max": 1190
       }
     },
     "related": [],
@@ -3006,6 +3264,21 @@
       {
         "title": "PBS Nature: giraffe fact sheet",
         "url": "https://pbs.org/wnet/nature/blog/giraffe-fact-sheet"
+      },
+      {
+        "title": "Wikipedia: giraffe (4.3–5.7 m tall; average female 828 kg, male 1,192 kg)",
+        "url": "https://en.wikipedia.org/wiki/Giraffe",
+        "for": [
+          "stats.heightCm",
+          "stats.weightKg"
+        ]
+      },
+      {
+        "title": "Animal Diversity Web: Giraffa camelopardalis (1,180–1,930 kg, higher)",
+        "url": "https://animaldiversity.org/accounts/Giraffa_camelopardalis/",
+        "for": [
+          "stats.weightKg"
+        ]
       }
     ]
   },
@@ -3103,6 +3376,14 @@
       },
       "youngCount": {
         "min": 1
+      },
+      "lengthCm": {
+        "min": 217,
+        "max": 246
+      },
+      "weightKg": {
+        "min": 175,
+        "max": 322
       }
     },
     "related": [],
@@ -3161,6 +3442,21 @@
       {
         "title": "Wikipedia: plains zebra (stripes, quagga)",
         "url": "https://en.wikipedia.org/wiki/Plains_zebra"
+      },
+      {
+        "title": "Wikipedia: plains zebra (head and body 217–246 cm; female 175–250 kg, male 220–322 kg)",
+        "url": "https://en.wikipedia.org/wiki/Plains_zebra",
+        "for": [
+          "stats.lengthCm",
+          "stats.weightKg"
+        ]
+      },
+      {
+        "title": "Animal Diversity Web: Equus burchellii (175–385 kg)",
+        "url": "https://animaldiversity.org/accounts/Equus_burchellii/",
+        "for": [
+          "stats.weightKg"
+        ]
       }
     ]
   },
@@ -3257,6 +3553,14 @@
       },
       "youngCount": {
         "min": 1
+      },
+      "lengthCm": {
+        "min": 330,
+        "max": 345
+      },
+      "weightKg": {
+        "min": 1300,
+        "max": 1500
       }
     },
     "related": [],
@@ -3319,6 +3623,27 @@
       {
         "title": "Nature 429, 363 (2004): hippopotamus sweat pigments",
         "url": "https://www.nature.com/articles/429363a"
+      },
+      {
+        "title": "Wikipedia: hippopotamus (typical head and body 3.3–3.45 m)",
+        "url": "https://en.wikipedia.org/wiki/Hippopotamus",
+        "for": [
+          "stats.lengthCm"
+        ]
+      },
+      {
+        "title": "Chinese Wikipedia: 河馬 (average female 1,300 kg, male 1,500 kg)",
+        "url": "https://zh.wikipedia.org/wiki/%E6%B2%B3%E9%A6%AC",
+        "for": [
+          "stats.weightKg"
+        ]
+      },
+      {
+        "title": "Animal Diversity Web: Hippopotamus amphibius (1,300–4,500 kg, includes the largest)",
+        "url": "https://animaldiversity.org/accounts/Hippopotamus_amphibius/",
+        "for": [
+          "stats.weightKg"
+        ]
       }
     ]
   },
@@ -3418,6 +3743,10 @@
       },
       "youngCount": {
         "min": 1
+      },
+      "weightKg": {
+        "min": 800,
+        "max": 1400
       }
     },
     "related": [],
@@ -3492,6 +3821,20 @@
       {
         "title": "San Francisco Zoo docents: black rhino fact sheet (hunted nearly to extinction)",
         "url": "https://www.sfzoodocents.org/notebook/FactSheets/MAMMALIA/PERISSODACTYLA/RhinoBlack.pdf"
+      },
+      {
+        "title": "Wikipedia: black rhinoceros (800–1,400 kg)",
+        "url": "https://en.wikipedia.org/wiki/Black_rhinoceros",
+        "for": [
+          "stats.weightKg"
+        ]
+      },
+      {
+        "title": "Animal Diversity Web: Diceros bicornis (800–1,400 kg)",
+        "url": "https://animaldiversity.org/accounts/Diceros_bicornis/",
+        "for": [
+          "stats.weightKg"
+        ]
       }
     ]
   },
@@ -3591,6 +3934,10 @@
       },
       "youngCount": {
         "min": 1
+      },
+      "weightKg": {
+        "min": 70,
+        "max": 170
       }
     },
     "related": [],
@@ -3657,6 +4004,20 @@
       {
         "title": "Smithsonian's National Zoo: western lowland gorilla (Critically Endangered, poaching and disease, habitat)",
         "url": "https://nationalzoo.si.edu/animals/western-lowland-gorilla"
+      },
+      {
+        "title": "SeaWorld: gorilla characteristics (males about 169.5 kg, females about 71.5 kg)",
+        "url": "https://seaworld.org/animals/all-about/gorilla/characteristics/",
+        "for": [
+          "stats.weightKg"
+        ]
+      },
+      {
+        "title": "Wikipedia: western lowland gorilla (average male 140 kg, female 70 kg)",
+        "url": "https://en.wikipedia.org/wiki/Western_lowland_gorilla",
+        "for": [
+          "stats.weightKg"
+        ]
       }
     ]
   },
@@ -3765,6 +4126,14 @@
       "youngCount": {
         "min": 3,
         "max": 8
+      },
+      "lengthCm": {
+        "min": 63,
+        "max": 68
+      },
+      "weightKg": {
+        "min": 0.254,
+        "max": 0.26
       }
     },
     "related": [],
@@ -3841,6 +4210,14 @@
       {
         "title": "Wikipedia: Taiwan blue magpie (clutch 3–8, hatching 17–19 days, diet, nest defence)",
         "url": "https://en.wikipedia.org/wiki/Taiwan_blue_magpie"
+      },
+      {
+        "title": "Wikipedia: Taiwan blue magpie (63–68 cm, 254–260 g)",
+        "url": "https://en.wikipedia.org/wiki/Taiwan_blue_magpie",
+        "for": [
+          "stats.lengthCm",
+          "stats.weightKg"
+        ]
       }
     ]
   },
@@ -3945,6 +4322,9 @@
           "min": 25,
           "max": 28
         }
+      },
+      "weightKg": {
+        "min": 1.1
       }
     },
     "related": [],
@@ -4017,6 +4397,13 @@
       {
         "title": "Wikipedia (zh): 臺灣保育物種列表 (protection categories)",
         "url": "https://zh.wikipedia.org/zh-tw/%E8%87%BA%E7%81%A3%E4%BF%9D%E8%82%B2%E7%89%A9%E7%A8%AE%E5%88%97%E8%A1%A8"
+      },
+      {
+        "title": "Attica Park: Swinhoe's pheasant (1,100 g)",
+        "url": "https://www.atticapark.com/en/animals/swinhoes-pheasant.521.html",
+        "for": [
+          "stats.weightKg"
+        ]
       }
     ]
   },
@@ -4125,6 +4512,10 @@
           "min": 27,
           "max": 28
         }
+      },
+      "weightKg": {
+        "min": 0.7,
+        "max": 1.1
       }
     },
     "related": [],
@@ -4204,6 +4595,13 @@
       {
         "title": "Wikipedia (zh): 臺灣保育物種列表 (protection categories)",
         "url": "https://zh.wikipedia.org/zh-tw/%E8%87%BA%E7%81%A3%E4%BF%9D%E8%82%B2%E7%89%A9%E7%A8%AE%E5%88%97%E8%A1%A8"
+      },
+      {
+        "title": "Chinese Wikipedia: 黑長尾雉 (male about 1,100 g, female about 700 g)",
+        "url": "https://zh.wikipedia.org/wiki/%E9%BB%91%E9%95%B7%E5%B0%BE%E9%9B%89",
+        "for": [
+          "stats.weightKg"
+        ]
       }
     ]
   },
@@ -4306,6 +4704,14 @@
       "young": {
         "en": "about 3 eggs",
         "zh": "約3顆蛋"
+      },
+      "lengthCm": {
+        "min": 20,
+        "max": 22
+      },
+      "weightKg": {
+        "min": 0.062,
+        "max": 0.123
       }
     },
     "related": [],
@@ -4374,6 +4780,21 @@
       {
         "title": "Wikipedia: Taiwan barbet (diet)",
         "url": "https://en.wikipedia.com/wiki/Taiwan_barbet"
+      },
+      {
+        "title": "Chinese Wikipedia: 五色鳥 (20–22 cm, 62–123 g)",
+        "url": "https://zh.wikipedia.org/wiki/%E4%BA%94%E8%89%B2%E9%B3%A5",
+        "for": [
+          "stats.lengthCm",
+          "stats.weightKg"
+        ]
+      },
+      {
+        "title": "Wikipedia: Taiwan barbet (about 20 cm)",
+        "url": "https://en.wikipedia.org/wiki/Taiwan_barbet",
+        "for": [
+          "stats.lengthCm"
+        ]
       }
     ]
   },
@@ -4661,6 +5082,11 @@
       "north": 24.86
     },
     "range": "data/ranges/formosan-landlocked-salmon.json",
+    "stats": {
+      "lengthCm": {
+        "min": 30
+      }
+    },
     "related": [],
     "silhouette": {
       "file": "img/silhouettes/formosan-landlocked-salmon-e74227.svg",
@@ -4715,7 +5141,8 @@
       "factFile.behaviour",
       "factFile.foodAndHunting",
       "factFile.conservation",
-      "factFile.didYouKnow"
+      "factFile.didYouKnow",
+      "stats"
     ],
     "_sources": [
       {
@@ -4741,6 +5168,20 @@
       {
         "title": "Cavac (Wikipedia mirror): Oncorhynchus masou formosanus (spawning second half of October)",
         "url": "https://cavac.at/cavacopedia/Oncorhynchus%20masou%20formosanus"
+      },
+      {
+        "title": "Wikipedia: Formosan landlocked salmon (adults about 30 cm)",
+        "url": "https://en.wikipedia.org/wiki/Oncorhynchus_masou_formosanus",
+        "for": [
+          "stats.lengthCm"
+        ]
+      },
+      {
+        "title": "FishBase: Oncorhynchus formosanus (largest recorded 57 cm)",
+        "url": "https://www.fishbase.se/summary/16686",
+        "for": [
+          "stats.lengthCm"
+        ]
       }
     ]
   },
@@ -5219,6 +5660,16 @@
       "lng": -106.3,
       "site": "Hell Creek Formation, Montana, USA"
     },
+    "stats": {
+      "lengthCm": {
+        "min": 1100,
+        "max": 1230
+      },
+      "weightKg": {
+        "min": 5650,
+        "max": 8400
+      }
+    },
     "related": [],
     "silhouette": {
       "file": "img/silhouettes/tyrannosaurus-rex-5c0ca8.svg",
@@ -5268,7 +5719,8 @@
       "factFile.behaviour",
       "factFile.foodAndHunting",
       "factFile.conservation",
-      "factFile.didYouKnow"
+      "factFile.didYouKnow",
+      "stats"
     ],
     "_sources": [
       {
@@ -5290,6 +5742,21 @@
       {
         "title": "Dino Animals: Tyrannosaurus rex (68–66 million years ago)",
         "url": "https://dinoanimals.com/dinosaurdatabase/tyrannosaurus-rex/"
+      },
+      {
+        "title": "Wikipedia: Tyrannosaurus (adults about 11–12.3 m; Sue about 5,650 kg by one estimate)",
+        "url": "https://en.wikipedia.org/wiki/Tyrannosaurus",
+        "for": [
+          "stats.lengthCm",
+          "stats.weightKg"
+        ]
+      },
+      {
+        "title": "Chinese Wikipedia: 暴龍 (Sue likely over 8,400 kg)",
+        "url": "https://zh.wikipedia.org/wiki/%E6%9A%B4%E9%BE%8D%E5%B1%AC",
+        "for": [
+          "stats.weightKg"
+        ]
       }
     ]
   },
