@@ -174,19 +174,25 @@ export function loadLand() {
 }
 
 // The home country's outline, above every layer: one line in its own colour on the coastline's
-// halo, CSS px at every zoom, and nothing else marks it. Only countries with a file are drawn
-// (assets/home.json, same format as globe.json: Taiwan), and none if no home country is set.
+// halo, CSS px at every zoom, and nothing else marks it. One small file a country (assets/home/, by
+// the ISO code of js/countries.js), fetched only for the explorer's own: with none set, Taiwan's. A
+// country with no file draws nothing. Lines, not shapes: a big country goes over the horizon, and
+// is cut along the map's frame, and neither is its border.
 export const HOME_LINE = 2.5;
 export const HOME_GLOW = 4;
-const HOME_FILES = { TW: 'assets/home.json' };
-let homeShape = null;
+export const DEFAULT_HOME = 'TW';
+export const homeFile = code => `assets/home/${/^[A-Z]{2}$/.test(code ?? '') ? code : DEFAULT_HOME}.json`;
+const homes = new Map();
 function loadHome(file) {
-  homeShape ??= fetch(file).then(r => { if (!r.ok) throw new Error(`${r.status} ${file}`); return r.json(); }).then(d => {
-    const unflat = flat => { const out = []; for (let i = 0; i < flat.length; i += 2) out.push([flat[i] * d.unit, flat[i + 1] * d.unit]); return out; };
-    return prepare(d.polys.map(rings => rings.map(unflat)));
-  });
-  homeShape.catch(() => { homeShape = null; });
-  return homeShape;
+  if (!homes.has(file)) {
+    const shape = fetch(file).then(r => { if (!r.ok) throw new Error(`${r.status} ${file}`); return r.json(); }).then(d => {
+      const unflat = flat => { const out = []; for (let i = 0; i < flat.length; i += 2) out.push([flat[i] * d.unit, flat[i + 1] * d.unit]); return out; };
+      return prepareLines(d.polys.flatMap(rings => rings.map(unflat)).flatMap(coastRuns));
+    });
+    shape.catch(() => homes.delete(file));
+    homes.set(file, shape);
+  }
+  return homes.get(file);
 }
 
 // Lines of latitude and longitude every 30°, as short segments.
@@ -368,7 +374,7 @@ export function traceRing(sink, v, B, f = 0) {
 // onLand(ok): the land loaded (true) or couldn't be fetched (false: offline the first time);
 // retry() tries again.
 // onBase(ok): the base renderer stopped (its context was lost) or came back, so the layer is shown again.
-// homeCountry: the explorer's, an ISO code, or null.
+// homeCountry: the explorer's, an ISO code, or null for Taiwan.
 export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase, homeCountry = null, debug = false } = {}) {
   // Bottom to top: the base layer (WebGL, js/globe-base.js), the 2D canvas for what lies on it, and
   // the overlay. Without the base renderer the 2D canvas draws sea and land itself, with the picture
@@ -386,8 +392,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
   let tiles = null;          // js/globe-tiles.js, once a layer with zoom tiles has been shown
   let tilesFor = null;       // the renderer they go to
   let home = null;
-  const homeFile = HOME_FILES[homeCountry];
-  const getHome = () => { if (homeFile) loadHome(homeFile).then(p => { home = p; dirty = true; }).catch(() => {}); };
+  const getHome = () => loadHome(homeFile(homeCountry)).then(p => { home = p; dirty = true; }).catch(() => {});
   getHome();
 
   const view = { lon: saved.lon, lat: saved.lat, k: saved.k, dx: 0, dy: 0 };
@@ -577,12 +582,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
       ctx.globalAlpha = 1;
     }
     if (home) {
-      ctx.lineJoin = 'round';
-      ctx.beginPath();
-      for (const p of home) {
-        if (!inSight(p)) continue;
-        for (const ring of p.rings) trace(ring);
-      }
+      tracedLines(home);
       ctx.strokeStyle = col.coastHalo; ctx.lineWidth = HOME_GLOW;
       ctx.stroke();
       ctx.strokeStyle = col.home; ctx.lineWidth = HOME_LINE;
@@ -597,6 +597,15 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
   // halo so it reads on dark mountains and light deserts, on red and on blue, and small islands
   // don't sink into a hot sea. Lines stop at the horizon.
   function drawCoast(lines) {
+    tracedLines(lines);
+    // One path, stroked twice: the halo, then the line.
+    ctx.strokeStyle = col.coastHalo; ctx.lineWidth = COAST_GLOW;
+    ctx.stroke();
+    ctx.strokeStyle = col.coast; ctx.lineWidth = COAST_LINE;
+    ctx.stroke();
+  }
+  // Lines (prepareLines) as one path, stopping at the horizon.
+  function tracedLines(lines) {
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
     ctx.beginPath();
@@ -612,11 +621,6 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
         pen = true;
       }
     }
-    // One path, stroked twice: the halo, then the line.
-    ctx.strokeStyle = col.coastHalo; ctx.lineWidth = COAST_GLOW;
-    ctx.stroke();
-    ctx.strokeStyle = col.coast; ctx.lineWidth = COAST_LINE;
-    ctx.stroke();
   }
 
   // Plates & Volcanoes: the plate boundaries, in three styles, and each major plate's arrow.

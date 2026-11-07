@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Makes the Globe's map layers (assets/layers/) and the home outline (assets/home.json)
+// Makes the Globe's map layers (assets/layers/) and the home outlines (assets/home/<code>.json)
 // from big public datasets. Run: node scripts/make-layers.mjs [relief tiles night temp depth
 // forests reefs plates volcanoes home base] (no names = all).
 //
@@ -14,11 +14,12 @@ import sharp from 'sharp';
 import mapshaper from 'mapshaper';
 import { decodeTopo, DEPTHS } from '../js/layers.js';
 import { toByte } from '../js/globe-months.js';
+import { CODES } from '../js/countries.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const RAW = path.join(ROOT, 'data-raw');
 const OUT = path.join(ROOT, 'assets/layers');
-const HOME = 'TWN';        // Natural Earth ADM0_A3 of the home country
+const HOME_SIMPLIFY = '40%'; // of a country's points kept: at the coastline's level of detail
 const TEMP_YEAR = 2024;    // months shown by the temperature layer
 
 sharp.cache(false);
@@ -30,7 +31,7 @@ const SOURCES = {
   night: 'https://assets.science.nasa.gov/content/dam/science/esd/eo/images/imagerecords/144000/144898/BlackMarble_2016_3km.jpg',
   depth: 'https://naciscdn.org/naturalearth/10m/physical/ne_10m_bathymetry_all.zip',
   reefs: 'https://naciscdn.org/naturalearth/10m/physical/ne_10m_reefs.zip',
-  countries: 'https://naciscdn.org/naturalearth/10m/cultural/ne_10m_admin_0_countries.zip',
+  countries: 'https://naciscdn.org/naturalearth/50m/cultural/ne_50m_admin_0_countries.zip',
   forests: 'https://storage.googleapis.com/teow2016/Ecoregions2017.zip',
 };
 const GIBS = 'https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi';
@@ -707,19 +708,33 @@ async function volcanoes() {
   console.log(`  volcanoes.json ${list.length} volcanoes (${list.filter(v => v[2]).length} notable, ${list.filter(v => v[6]).length} with a zh name), ${await kb(file)}`);
 }
 
+// One outline a country, under the ISO code the profile forms use (js/countries.js). ISO_A2_EH, not
+// ISO_A2: that one says -99 for France, Norway and others. Only the explorer's own file is ever
+// fetched. Natural Earth at this scale has no shape of its own for some territories, and has shapes
+// the forms don't offer: tests/home-outlines.test.mjs lists the first, this step prints the second.
+// (Run this from PowerShell on Windows: Git Bash's tar can't unpack to a C:\ path.)
 async function home() {
-  const shp = await find(await unpacked('countries'), /ne_10m_admin_0_countries\.shp$/);
-  const tmp = path.join(RAW, 'home.json');
-  await ms(`-i "${shp}" -filter "ADM0_A3 == '${HOME}'" -simplify 20% keep-shapes -filter-islands min-area=20km2 -o "${tmp}" format=geojson`);
+  const shp = await find(await unpacked('countries'), /ne_50m_admin_0_countries\.shp$/);
+  const tmp = path.join(RAW, 'countries-50m.json');
+  await ms(`-i "${shp}" encoding=utf8 -simplify ${HOME_SIMPLIFY} keep-shapes -o "${tmp}" format=geojson`);
   const geo = JSON.parse(await readFile(tmp, 'utf8'));
-  const polys = [];
+  const byCode = new Map(), skipped = [];
   for (const f of geo.features) {
+    const code = f.properties.ISO_A2_EH;
+    if (!CODES.includes(code)) { skipped.push(f.properties.NAME); continue; }
     const list = f.geometry.type === 'Polygon' ? [f.geometry.coordinates] : f.geometry.coordinates;
-    for (const rings of list) polys.push(rings.map(r => r.slice(0, -1).flatMap(([x, y]) => [Math.round(x * 100), Math.round(y * 100)])));
+    if (!byCode.has(code)) byCode.set(code, []);
+    for (const rings of list) byCode.get(code).push(rings.map(r => r.slice(0, -1).flatMap(([x, y]) => [Math.round(x * 100), Math.round(y * 100)])));
   }
-  const file = path.join(ROOT, 'assets/home.json');
-  await writeFile(file, JSON.stringify({ source: `Natural Earth 1:10m countries (public domain), ${HOME}`, unit: 0.01, polys }) + '\n');
-  console.log(`  home.json ${polys.length} polygons, ${await kb(file)}`);
+  const dir = path.join(ROOT, 'assets/home');
+  await mkdir(dir, { recursive: true });
+  let total = 0;
+  for (const [code, polys] of byCode) {
+    const text = `${JSON.stringify({ source: 'Natural Earth 1:50m Admin 0 countries (public domain)', unit: 0.01, polys })}\n`;
+    await writeFile(path.join(dir, `${code}.json`), text);
+    total += text.length;
+  }
+  console.log(`  ${byCode.size} outlines, ${(total / 1024).toFixed(0)} KB; not a code the forms offer: ${skipped.join(', ') || 'none'}`);
 }
 
 // ---------- main ----------

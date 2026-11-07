@@ -110,8 +110,8 @@ export const LAYER_CREDITS = [
   { layer: 'plates', author: 'NOAA National Centers for Environmental Information (NCEI), Volcano Locations Database (from the Smithsonian Global Volcanism Program); Chinese names from Wikidata (CC0)',
     license: 'Public domain (US government work)', licenseUrl: 'https://www.ncei.noaa.gov/access/metadata/landing-page/bin/iso?id=gov.noaa.ngdc.mgg.hazards:G02135',
     sourceUrl: 'https://www.ncei.noaa.gov/products/natural-hazards/tsunamis-earthquakes-volcanoes/volcanoes' },
-  { layer: 'home', author: 'Natural Earth, 1:10m Admin 0 countries (home outline)', ...NE,
-    sourceUrl: 'https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-0-countries/' },
+  { layer: 'home', author: 'Natural Earth, 1:50m Admin 0 countries (home outline)', ...NE,
+    sourceUrl: 'https://www.naturalearthdata.com/downloads/50m-cultural-vectors/50m-admin-0-countries-2/' },
 ];
 
 // Where the ocean's zones meet (NOAA / NWS JetStream, Layers of the Ocean): sunlight to 200 m,

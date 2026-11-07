@@ -83,14 +83,17 @@ test('the plate boundaries: 1.5 px for the whole globe to 2.5 px zoomed in, on a
   assert.ok(COAST_HALO > 0);
 });
 
-test('home: one magenta line on the coastline\'s halo, nothing filled, and only for a country with a file', async () => {
-  const { HOME_LINE, HOME_GLOW } = await import('../js/globe.js');
+test('home: one magenta line on the coastline\'s halo, nothing filled, the explorer\'s country or else Taiwan', async () => {
+  const { HOME_LINE, HOME_GLOW, homeFile } = await import('../js/globe.js');
+  assert.equal(homeFile('JP'), 'assets/home/JP.json');
+  assert.equal(homeFile(null), 'assets/home/TW.json');
+  assert.equal(homeFile('../x'), 'assets/home/TW.json', 'never a path from a restored backup');
   assert.equal(HOME_LINE, 2.5);
   assert.ok(HOME_GLOW > HOME_LINE);
   const tokens = src('css/tokens.css'), globe = src('js/globe.js');
   assert.match(tokens, /--c-map-home: #ff2daa;/);
   assert.match(tokens, /--c-reef: #ff7f50;/);
   assert.match(globe, /ctx\.strokeStyle = col\.coastHalo; ctx\.lineWidth = HOME_GLOW;\n\s*ctx\.stroke\(\);\n\s*ctx\.strokeStyle = col\.home; ctx\.lineWidth = HOME_LINE;/);
-  assert.match(globe, /const homeFile = HOME_FILES\[homeCountry\];/);
-  assert.match(globe, /if \(homeFile\) loadHome\(homeFile\)/);
+  assert.match(globe, /loadHome\(homeFile\(homeCountry\)\)/);
+  assert.match(globe, /tracedLines\(home\);/, 'lines: no stroke along the horizon or the map\'s frame');
 });

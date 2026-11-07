@@ -14,7 +14,7 @@ All of them are public domain, CC0 or CC BY. Raw downloads are kept out of git
 |---|---|---|---|
 | Land, coastlines (globe, small world map) | [Natural Earth](https://www.naturalearthdata.com/) 1:50m land | Public domain ([terms](https://www.naturalearthdata.com/about/terms-of-use/)) | `assets/globe.json`, `assets/world.svg` |
 | Species ranges | [GBIF](https://www.gbif.org/) occurrence records, drawn on Natural Earth coastlines | Per dataset (CC0 / CC BY), see `data/ranges/` | `data/ranges/*.json` |
-| Home outline (Taiwan) | [Natural Earth 1:10m Admin 0 countries](https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-0-countries/) | Public domain | `assets/home.json` |
+| Home outline | [Natural Earth 1:50m Admin 0 countries](https://www.naturalearthdata.com/downloads/50m-cultural-vectors/50m-admin-0-countries-2/) | Public domain | One file a country, simplified with mapshaper, keyed by ISO code (`assets/home/`). |
 
 ## Globe map layers (`assets/layers/`)
 

@@ -120,9 +120,9 @@ test('offline the first time: the land fails to load, and loads on a retry once 
 test('the globe\'s data is not installed with the app: it is kept on its first open', () => {
   const sw = src('sw.js');
   const shell = sw.match(/const SHELL = \[([\s\S]*?)\];/)[1];
-  assert.doesNotMatch(shell, /globe\.json|home\.json|assets\/layers/);
+  assert.doesNotMatch(shell, /globe\.json|assets\/home|assets\/layers/);
   const rule = new RegExp(sw.match(/const GLOBE_FILE = \/(.+)\/;/)[1]);
-  for (const p of ['/assets/globe.json', '/assets/home.json', '/assets/layers/depth.topo.json']) assert.ok(rule.test(p), p);
+  for (const p of ['/assets/globe.json', '/assets/home/TW.json', '/assets/layers/depth.topo.json']) assert.ok(rule.test(p), p);
   assert.ok(!rule.test('/assets/world.svg'));
   assert.match(sw, /if \(GLOBE_FILE\.test\(url\.pathname\)\) event\.respondWith\(cacheFirst\(request, LAYER_CACHE\)\)/);
   assert.match(sw, /const LAYERS_VERSION = 'l\d+';/);

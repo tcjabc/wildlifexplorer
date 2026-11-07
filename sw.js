@@ -4,10 +4,10 @@
 //  - The globe's own data (land, home outline) and its map layers: cache first, only once
 //    the globe or a layer is first shown (own LAYERS_VERSION).
 // Bump VERSION to throw away the app and image caches.
-const VERSION = 'v47';
+const VERSION = 'v48';
 const SHELL_CACHE = `shell-${VERSION}`;
 const IMAGE_CACHE = `images-${VERSION}`;
-// The globe's files (assets/globe.json, assets/home.json, assets/layers/): big, so only
+// The globe's files (assets/globe.json, assets/home/, assets/layers/): big, so only
 // cached once the globe (or a layer) is first shown, and kept across releases. Bump
 // LAYERS_VERSION when scripts/make-layers.mjs or scripts/make-globe.mjs is re-run.
 const LAYERS_VERSION = 'l4';
@@ -188,7 +188,7 @@ async function networkFirst(request) {
 }
 
 // The globe's own files, kept across releases (see LAYERS_VERSION).
-const GLOBE_FILE = /\/assets\/(layers\/|globe\.json$|home\.json$)/;
+const GLOBE_FILE = /\/assets\/(layers\/|home\/|globe\.json$)/;
 const TILE_FILE = /\/assets\/layers\/relief-tiles\//;
 
 // Keep the tile cache under TILE_CAP: the first entries (the oldest) go first.

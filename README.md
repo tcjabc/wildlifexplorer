@@ -472,12 +472,12 @@ The hero button at the top of the Globe's toolbar opens a picker that switches o
   worker keeps them in their own cache (`tiles-…`), letting the oldest go above 25 MB.
   `node scripts/make-layers.mjs tiles` makes them (from the same Natural Earth picture).
 - Nothing is downloaded until a layer is first switched on; the service worker then keeps it
-  (`layers-…` cache, which also holds `assets/globe.json` and `assets/home.json`), so it works
+  (`layers-…` cache, which also holds `assets/globe.json` and the home outline in use), so it works
   offline from then on.
 - To rebuild the files: `node scripts/make-layers.mjs` (all) or name some, e.g.
   `node scripts/make-layers.mjs temp depth`. It downloads the raw datasets into `data-raw/`
   the first time (about 300 MB), needs only Node (sharp and mapshaper), and writes
-  `assets/layers/` and `assets/home.json`. After re-running it (or `make-globe.mjs`), bump
+  `assets/layers/` and `assets/home/`. After re-running it (or `make-globe.mjs`), bump
   `LAYERS_VERSION` in `sw.js`.
 - Frame rate: add `?debug=fps` to the address to see the globe's frames per second and drawing time
   while it turns, on any profile (`?debug=off` to stop). It also says which renderer is drawing, and at
@@ -495,8 +495,10 @@ The hero button at the top of the Globe's toolbar opens a picker that switches o
   plays the year until anything is touched (none of it with reduced motion). The textures are fetched in idle time
   after the globe has drawn. Without the base renderer the monthly pictures are fetched the same way and crossfade
   over 300 ms. `scripts/make-era5.mjs` is a stub for a real climatology.
-- The home outline follows the explorer's home country, and only Taiwan has an outline file (`HOME_FILES` in
-  `js/globe.js`). Magenta (`--c-map-home`) means home and nothing else on the globe.
+- The home outline follows the explorer's home country: one small file a country in `assets/home/` (Natural
+  Earth 1:50m, `node scripts/make-layers.mjs home`), fetched only for the explorer's own and kept by the service worker,
+  or Taiwan's with none set. 13 territories the forms offer have no outline (`tests/home-outlines.test.mjs`).
+  Magenta (`--c-map-home`) means home and nothing else on the globe.
 - Colours live in `css/tokens.css` (`--c-depth-*`, `--c-forest-*`, `--c-temp-scale` …). The
   temperature pictures are painted with `--c-temp-scale`, so re-run `make-layers.mjs temp` if you change it.
 - Sources and licences: [CREDITS.md](CREDITS.md).
