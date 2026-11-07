@@ -1,9 +1,9 @@
-// Coming back to a card from the globe or the full notebook: which side was showing (the front,
-// the open spread or the Fact File) and where the notebook was (collapsed or expanded, its view
-// and page). The card screen leaves this when it closes for another screen (app.js); opening the
+// Coming back to a card from the globe or the full notebook: which side was showing (the cover or
+// the open card, and which heading was lit) and where the notebook was (collapsed or expanded, its
+// view and page). The card screen leaves this when it closes for another screen (app.js); opening the
 // same card straight from there takes it back, once. Kept in memory only.
 //
-//   { cardId, side: 'front' | 'inside' | 'back', notes: null | { expanded, view, scope, pageId }, viaMap, viaFull }
+//   { cardId, side: 'front' | 'inside', heading, notes: null | { expanded, view, scope, pageId }, viaMap, viaFull }
 // viaMap: the globe was opened from the card's map, so "Back to card" can go back in history.
 // viaFull: the full notebook was opened from the card's panel, and opens where the panel was.
 
@@ -47,5 +47,5 @@ export function leaveFull(cardId, ended, tagsOf) {
 export const opensGlobe = (card, onMap) => Boolean(onMap && card?.range);
 
 // Only these sides come back; anything else opens on the front.
-export const SIDES = ['front', 'inside', 'back'];
-export const sideOf = ({ p = 0, f = 0 } = {}) => (f > 0.5 ? 'back' : p > 0.5 ? 'inside' : 'front');
+export const SIDES = ['front', 'inside'];
+export const sideOf = ({ p = 0 } = {}) => (p > 0.5 ? 'inside' : 'front');

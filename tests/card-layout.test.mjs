@@ -1,8 +1,7 @@
 // Card screen layout with the notebook (js/card-layout.js), and the pan / close edge rule.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { fitScale, dockMode, reserve, cardLayout, spreadRange, panDrag, clipLeftOf, panelWidth, SPINE, PHONE_MAX, MIN_CARD_BESIDE, PANEL_SHARE, EDGE } from '../js/card-layout.js';
-import { releaseOutcome } from '../js/gesture-release.js';
+import { fitScale, dockMode, reserve, cardLayout, openLayout, clipLeftOf, panelWidth, SPINE, PHONE_MAX, MIN_CARD_BESIDE, PANEL_SHARE, GRID_COLS, GRID_ROOM } from '../js/card-layout.js';
 
 const P = 448, H = 560;
 // Stage sizes under the top bar and hint: tablet landscape, tablet portrait, phone.
@@ -43,73 +42,41 @@ test('the notebook takes the spine strip when collapsed, half the stage only whe
   assert.equal(reserve({ mode: 'phone', expanded: true, W: 375 }), 0);
 });
 
-test('the open spread keeps card scale: expanding the notebook never zooms it', () => {
-  for (const [name, s] of Object.entries(SCREENS)) {
-    const mode = modeOf(s);
-    const shut = cardLayout({ W: s.W, Hs: s.Hs, P, H, mode, expanded: false });
-    const open = cardLayout({ W: s.W, Hs: s.Hs, P, H, mode, expanded: true });
-    assert.equal(open.s1, shut.s1, name);
-    assert.equal(shut.s1, shut.s0, `${name}: the spread is as big as the closed card`);
-    assert.ok(open.s0 <= shut.s0, `${name}: beside the panel the closed card may shrink`);
-    if (mode === 'side') {
-      // Behind the notebook: it pans in the visible half, so every part can come out.
-      const r = spreadRange({ visibleW: open.visibleW, P, s: open.s1 });
-      assert.equal(r.fits, false, `${name}: the spread is wider than half the stage`);
-      assert.equal(r.min + r.width, open.visibleW, `${name}: the right page's edge can reach the notebook`);
-    }
+// The stages of the baseline tablet and a phone, under the top bar with the notebook collapsed.
+const GPAD = { landscape: { visibleW: 1220, Hs: 716 }, portrait: { visibleW: 740, Hs: 1196 } };
+
+test('the open card: side by side in landscape, stacked in portrait and beside the notebook', () => {
+  assert.equal(openLayout({ ...GPAD.landscape, P, H }).kind, 'side');
+  assert.equal(openLayout({ ...GPAD.portrait, P, H }).kind, 'stacked');
+  assert.equal(openLayout({ visibleW: 640, Hs: 716, P, H }).kind, 'stacked', 'the notebook takes half the landscape stage');
+  assert.equal(openLayout({ visibleW: 375, Hs: 640, P, H }).kind, 'stacked');
+});
+
+test('the open card stays inside its space, and fills most of the tablet', () => {
+  for (const [visibleW, Hs] of [[1220, 716], [740, 1196], [640, 716], [375, 640], [784, 322], [1024, 600]]) {
+    const o = openLayout({ visibleW, Hs, P, H });
+    assert.ok(o.w * o.s <= visibleW, `${visibleW}x${Hs}: width ${o.w * o.s}`);
+    assert.ok(o.h * o.s <= Hs, `${visibleW}x${Hs}: height ${o.h * o.s}`);
+  }
+  for (const [name, g] of Object.entries(GPAD)) {
+    const o = openLayout({ ...g, P, H });
+    const share = (o.w * o.s * o.h * o.s) / (1280 * 800);
+    assert.ok(share > 0.75, `${name}: ${share}`);
   }
 });
 
-test('the spread is centred when it fits, and pans between its own edges when it does not', () => {
-  const fits = spreadRange({ visibleW: 1120, P, s: 1 });
-  assert.equal(fits.fits, true);
-  assert.equal(fits.min, fits.max);
-  assert.equal(fits.min, (1120 - 2 * P) / 2);
-  const wide = spreadRange({ visibleW: 700, P, s: 1.2 });
-  assert.equal(wide.fits, false);
-  assert.equal(wide.max, 0, 'left edge at the screen\'s left');
-  assert.equal(wide.min, 700 - 2 * P * 1.2, 'right edge at the visible right');
-  // Landscape fits with the notebook collapsed; portrait and phones never fit.
-  for (const [name, s] of Object.entries(SCREENS)) {
-    const l = cardLayout({ W: s.W, Hs: s.Hs, P, H, mode: modeOf(s), expanded: false });
-    assert.equal(spreadRange({ visibleW: l.visibleW, P, s: l.s1 }).fits, name === 'landscape', name);
+test('a heading button is never under 64 px, however short the screen', () => {
+  for (const [visibleW, Hs] of [[1220, 716], [740, 1196], [640, 716], [375, 640], [784, 322], [667, 300]]) {
+    const o = openLayout({ visibleW, Hs, P, H, tap: 64 });
+    const cell = (o.menuW - GRID_ROOM) / GRID_COLS;
+    assert.ok(cell * o.s >= 64 - 1e-6, `${visibleW}x${Hs}: ${cell * o.s}`);
   }
 });
 
-test('edge rule: inside the edges a sideways drag only pans', () => {
-  const r = { min: -600, max: 0, travel: 400 };
-  assert.deepEqual(panDrag({ ...r, start: -300, dx: 100 }), { left: -200, close: 0 });
-  assert.deepEqual(panDrag({ ...r, start: -300, dx: -200 }), { left: -500, close: 0 });
-});
-
-test('edge rule: at the left edge, dragging on to the right stretches first, then closes', () => {
-  const r = { min: -600, max: 0, travel: 400 };
-  const small = panDrag({ ...r, start: 0, dx: EDGE.threshold - 4 });
-  assert.equal(small.close, 0, 'within the threshold it only stretches');
-  assert.ok(small.left > 0 && small.left < EDGE.threshold, 'with resistance');
-  const far = panDrag({ ...r, start: -100, dx: 100 + EDGE.threshold + 200 });
-  assert.equal(far.close, 200 / 400, 'past the threshold, half a page turn');
-  assert.equal(far.left, EDGE.threshold * EDGE.resist, 'the spread stops moving; the page turns');
-  assert.equal(panDrag({ ...r, start: 0, dx: 5000 }).close, 1);
-});
-
-test('edge rule: past the right edge it only stretches, never closes', () => {
-  const r = { min: -600, max: 0, travel: 400 };
-  const past = panDrag({ ...r, start: -600, dx: -500 });
-  assert.equal(past.close, 0);
-  assert.ok(past.left < -600 && past.left >= -600 - EDGE.threshold * EDGE.resist);
-});
-
-test('edge rule release: past the threshold far enough (or a flick) closes; otherwise it stays open at the edge', () => {
-  const s = (p, panLeft) => ({ p, panLeft, range: { min: -600, max: 0 }, travel: { x: 400, y: 300 }, dir: 1 });
-  assert.deepEqual(releaseOutcome('pan', s(0.6, 8), { vx: 50 }), { prop: 'p', target: 0, velocity: -50 / 400 });
-  const back = releaseOutcome('pan', s(0.9, 8), { vx: 10 });
-  assert.equal(back.prop, 'p'); assert.equal(back.target, 1); assert.equal(back.pan, 0);
-  assert.equal(releaseOutcome('pan', s(0.95, 8), { vx: 900 }).target, 0, 'a quick flick closes');
-  // Not closing: the spread springs inside its edges.
-  assert.deepEqual(releaseOutcome('pan', s(1, -250), { vx: 0 }), { pan: -250, velocity: 0 });
-  assert.equal(releaseOutcome('pan', s(1, 8), {}).pan, 0);
-  assert.equal(releaseOutcome('pan', s(1, -650), {}).pan, -600);
+test('side by side, both pages are the cover\'s size on the tablet', () => {
+  const o = openLayout({ ...GPAD.landscape, P, H });
+  assert.equal(o.menuW, P);
+  assert.equal(o.h, H);
 });
 
 test('gesture zones are clipped to the left of the notebook', () => {

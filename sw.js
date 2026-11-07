@@ -54,6 +54,8 @@ const SHELL = [
   'js/compare.js',
   'js/compare-data.js',
   'js/headings.js',
+  'js/card-open.js',
+  'js/stage-views.js',
   'js/magnifier.js',
   'js/globe.js',
   'js/zhuyin.js',

@@ -62,10 +62,9 @@ test('the card screen is kept once for the card left, and only that card takes i
 });
 
 test('which side was showing', () => {
-  assert.equal(cardReturn.sideOf({ p: 0, f: 0 }), 'front');
-  assert.equal(cardReturn.sideOf({ p: 1, f: 0 }), 'inside');
-  assert.equal(cardReturn.sideOf({ p: 0, f: 1 }), 'back');
-  assert.deepEqual(cardReturn.SIDES, ['front', 'inside', 'back']);
+  assert.equal(cardReturn.sideOf({ p: 0 }), 'front');
+  assert.equal(cardReturn.sideOf({ p: 1 }), 'inside');
+  assert.deepEqual(cardReturn.SIDES, ['front', 'inside']);
 });
 
 test('the router keeps the card screen when leaving it, and gives it back coming from the globe', () => {
@@ -75,7 +74,9 @@ test('the router keeps the card screen when leaving it, and gives it back coming
   // Asked before the binder is drawn behind the card (which changes what is shown).
   assert.ok(app.indexOf("const restore = ['globe', 'notes']") < app.indexOf("if (binderGroup() !== card.group) renderMain"), 'restore is decided first');
   const viewer = src('js/viewer.js');
-  assert.match(viewer, /restore\?\.side === 'back'\) v\.f = 1/);
+  assert.match(viewer, /restore\?\.side === 'inside'\) v\.p = 1/);
+  assert.match(viewer, /restore\?\.heading\) v\.built\.open\.select\(restore\.heading/, 'the lit heading comes back too');
+  assert.match(viewer, /heading: v\.built\.open\.selected\(\)/);
   assert.match(viewer, /start: notes/, 'the notebook opens where it was');
 });
 
@@ -89,7 +90,6 @@ test('only a card with a range, open in the viewer, gets a map that opens the gl
   // Pack reveals build the cover without onMap.
   assert.match(src('js/reveal.js'), /coverPage\(card\)/);
   assert.match(src('js/viewer.js'), /coverPage\(card, \{ onCredit, onMap \}\)/);
-  assert.match(src('js/viewer.js'), /backPage\(card, \{ onMap \}\)/);
 });
 
 test('the map is a tap target only: a drag that starts on it is still the card\'s', () => {

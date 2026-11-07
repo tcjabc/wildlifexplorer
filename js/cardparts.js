@@ -1,20 +1,15 @@
-// The pages of a Wildlife Explorer card, each built at design size (--card-w × --card-h,
-// 4:5) and scaled as a whole. Every section is optional: if the data is missing it is left out.
-//   front (Card)       – header, taxonomy, photo and name, Key Features, Where in the World
-//   back (Fact File)   – Habitat, Breeding, Behaviour, Food & Hunting, Conservation, Did You Know?
-//   open spread        – left: Profile (numbered labels on the picture); right: Vital
-//                        Statistics, Creature Comparisons, Related Species
-import { h, mount, safeUrl } from './dom.js';
+// The parts of a Wildlife Explorer card. The cover is built at design size (--card-w × --card-h,
+// 4:5) and scaled as a whole; the open card (js/card-open.js) is made of the rest. Every section is
+// optional: if the data is missing it is left out.
+import { h, safeUrl } from './dom.js';
 import { bi, tx, t, label } from './i18n.js';
 import { state, groupById, isVisible } from './store.js';
 import { picture, statusBadge, taiwanBadge, cardNo } from './components.js';
 import { worldMap } from './worldmap.js';
 import { opensGlobe } from './card-return.js';
-import { comparePanel, modesFor } from './compare.js';
-import { lookalikesOf, lookalikePanel } from './lookalikes.js';
-import { magnifier, featureOf } from './magnifier.js';
+import { hasMap } from './headings.js';
 import { nameBi } from './zhuyin.js';
-import { glossBi, plainPair } from './glossary.js';
+import { glossBi } from './glossary.js';
 import { lengthText, weightText, imperial } from './units.js';
 
 /**
@@ -33,45 +28,29 @@ import { lengthText, weightText, imperial } from './units.js';
  *   facts: Pair[], factFile?: FactFile, status: string | null, taiwan: boolean,
  *   profile?: { image?: 'photo' | 'illustration', callouts: Callout[] },
  *   stats?: { development?: Development, youngCount?: Range, young?: Pair, [k: string]: any },
- *   related?: Related[], taxonomy?: Record<string, { sci: string, en: string, zh: string }> }} Card
+ *   related?: Related[], taxonomy?: Record<string, { sci: string, en: string, zh: string }>,
+ *   stage?: Record<string, string> }} Card
+ *   stage: a heading's stage view, where it isn't the usual one (js/headings.js).
  */
 
 const filled = p => p && (p.en || p.zh);
 export const factsOf = card => (card.facts ?? []).filter(filled);
 
-// The Fact File, in the order it is shown.
-export const FACT_SECTIONS = [['habitat', '🌏'], ['breeding', '👪'], ['behaviour', '🐾'], ['foodAndHunting', '🍽️'], ['conservation', '🛡️']];
 // Text marked "todo" hasn't been checked yet: only grown-ups see it (parent preview).
-const preview = () => Boolean(state.profile?.parent.preview);
-const shown = p => filled(p) && (!p.todo || preview());
-export const factParas = (card, key) => (card.factFile?.[key] ?? []).filter(shown);
-const didYouKnow = card => (card.factFile?.didYouKnow ?? []).filter(shown);
+export const preview = () => Boolean(state.profile?.parent.preview);
 
-const hasMap = c => Boolean(c.map?.areas?.length || c.range || c.mapBounds);
 export const relatedOf = c => (c.related ?? []).map(r => (typeof r === 'string'
   ? (state.byId.has(r) ? { card: state.byId.get(r) } : null) // cards not built yet are left out
   : (filled(r?.name) ? { entry: r } : null))).filter(Boolean);
 
-export const hasProfile = c => Boolean(c.profile?.callouts?.length && c[c.profile.image ?? 'photo']?.file);
-export const hasStats = c => Boolean(c.stats && Object.keys(c.stats).length);
-export const hasCompare = c => Object.values(modesFor(c)).some(Boolean) || lookalikesOf(c).length > 0;
-export const hasInside = c => hasProfile(c) || hasStats(c) || hasCompare(c) || relatedOf(c).length > 0;
-const hasFactText = c => FACT_SECTIONS.some(([k]) => factParas(c, k).length > 0) || didYouKnow(c).length > 0;
-// Every card with a Fact File turns over (until it has text, it says more is coming);
-// topic cards only when they have something to show.
-export const hasBack = c => Boolean(c.factFile || hasFactText(c) || hasMap(c));
-const comingSoonKey = c => (c.group === 'plants' ? 'ff.comingSoonPlant' : 'ff.comingSoon');
+export const comingSoonKey = c => (c.group === 'plants' ? 'ff.comingSoonPlant' : 'ff.comingSoon');
 
 const groupChip = g => h('span', { class: 'chip chip--group', 'data-group': g.id },
   h('span', { 'aria-hidden': 'true' }, g.emoji), bi(g.name));
 
-const pageTitle = (key, icon) => h('h2', { class: 'cpage__heading' }, h('span', { 'aria-hidden': 'true' }, icon), tx(key));
 const smallTitle = key => h('h2', { class: 'cpage__label' }, tx(key));
 
-// An empty page still looks like card paper, with the group emoji as a watermark.
-const blank = card => h('div', { class: 'cpage__blank', 'aria-hidden': 'true' }, groupById(card.group)?.emoji);
-
-// Every Fact File text goes through here: glossary terms become buttons (js/glossary.js);
+// Every text under a heading goes through here: glossary terms become buttons (js/glossary.js);
 // a paragraph still to check is marked for the grown-up who sees it.
 export const glossed = pair => h('p', { class: ['ff__text', pair.todo && 'is-todo'], 'data-glossary': '', title: pair.todo || null },
   glossBi(pair));
@@ -107,7 +86,7 @@ function taxStrip(card) {
 // where the card is open in the viewer (not in a pack reveal). It is a plain button inside
 // the card, so the card's gestures still win a drag that starts on it (js/gesture.js lets the
 // click through only for a tap).
-function mapButton(card, map, onMap, cls) {
+export function mapButton(card, map, onMap, cls) {
   if (!map || !opensGlobe(card, onMap)) return null;
   return h('button', { class: ['map-open', cls], type: 'button', 'aria-label': label('card.mapToGlobe'), onclick: () => onMap(card) },
     map, h('span', { class: 'map-open__icon', 'aria-hidden': 'true' }, '🌏'));
@@ -141,47 +120,6 @@ export function coverPage(card, { onCredit, onMap } = {}) {
         h('div', { class: 'cover__badges' }, statusBadge(card.status), card.taiwan && taiwanBadge()))));
 }
 
-// Left page of the open spread. Numbered labels sit on the picture; tap one to ring it,
-// see it through the magnifier and read about it in the box underneath. Tap it again, or the
-// picture, to close. (A sideways drag anywhere on the page closes the card: viewer.js.)
-export function profilePage(card) {
-  if (!hasProfile(card)) return h('div', { class: 'cpage cpage--profile' }, blank(card));
-  const kind = card.profile.image ?? 'photo';
-  const callouts = card.profile.callouts;
-  const pic = h('div', { class: 'profile__pic' }, picture(card, { kind }));
-  const loupe = magnifier(pic, card[kind].file, callouts);
-
-  const marks = callouts.map((c, i) => {
-    const f = featureOf(c);
-    const btn = h('button', {
-      class: 'profile__mark', type: 'button', 'aria-pressed': 'false',
-      'aria-label': `${label('card.feature', { n: i + 1 })}: ${[c.en, c.zh].filter(Boolean).join(' / ')}`,
-      onclick: e => { e.stopPropagation(); pick(i); },
-    }, String(i + 1));
-    btn.style.setProperty('left', `${f.x * 100}%`);
-    btn.style.setProperty('top', `${f.y * 100}%`);
-    return btn;
-  });
-  pic.append(h('div', { class: 'profile__marks' }, marks));
-
-  const detail = h('div', { class: 'profile__detail', 'aria-live': 'polite' });
-  const showDetail = i => mount(detail, i == null
-    ? h('p', { class: 'stat__hint' }, tx('card.profileHint'))
-    : [h('p', { class: 'profile__detail-name' }, h('span', { class: 'callouts__no', 'aria-hidden': 'true' }, String(i + 1)), bi(callouts[i])),
-      filled(callouts[i].detail) && h('p', { class: 'profile__detail-text' }, bi(callouts[i].detail))]);
-  const pick = i => {
-    loupe.show(i);
-    const on = loupe.current();
-    marks.forEach((m, n) => { m.classList.toggle('is-lit', n === on); m.setAttribute('aria-pressed', String(n === on)); });
-    showDetail(on);
-  };
-  pic.addEventListener('click', () => pick(null));
-  showDetail(null);
-
-  return h('div', { class: 'cpage cpage--profile', 'data-group': card.group },
-    pageTitle('card.profile', '🔍'), pic, detail);
-}
-
 const range = r => (r.max == null || r.min === r.max ? `${r.min}` : `${r.min}–${r.max}`);
 
 // Text for a statistic: written text ({ en, zh }), or made from the numbers. In imperial
@@ -212,12 +150,16 @@ const glossLabel = (key, id) => { const l = t(key); return state.glossary?.[id] 
 
 const STAT_ROWS = [
   ['length', '📏', 'card.length', 'lengthCm', 'cm'],
+  ['height', '📏', 'card.height', 'heightCm', 'cm'],
+  ['wingspan', '📏', 'card.wingspan', 'wingspanCm', 'cm'],
   ['weight', '⚖️', 'card.weight', 'weightKg', 'kg'],
   ['lifespan', '⏳', 'card.lifespan', 'lifespanYears', 'years'],
   ['diet', '🍽️', 'card.diet'],
 ];
 
-function statRows(s) {
+// The statistics a card has: [{ mode, icon, key, text, note }].
+export function statRows(card) {
+  const s = card.stats ?? {};
   const rows = STAT_ROWS.map(([mode, icon, key, numKey, unit]) => {
     const text = mode === 'diet' ? (filled(s.diet) ? s.diet : null) : statText(s[mode], s[numKey], unit);
     return text && { mode, icon, key, text, note: s[mode]?.note };
@@ -226,9 +168,16 @@ function statRows(s) {
   return [...rows, devRow(s), young && { mode: 'young', icon: '🐣', key: 'card.young', text: young }].filter(Boolean);
 }
 
+// A statistic's three columns.
+export const statCells = (card, { mode, icon, key, text, note }) => [
+  h('span', { class: 'stat__icon', 'aria-hidden': 'true' }, icon),
+  h('span', { class: 'stat__label' }, mode === 'development' ? glossBi(glossLabel(key, card.stats.development.kind)) : tx(key)),
+  h('span', { class: 'stat__value' }, bi(text), note && h('span', { class: 'stat__note' }, bi(note))),
+];
+
 // Related species: a card you have (tap to open), a card not collected yet (a locked
 // silhouette), or an animal with no card (a small entry with its names).
-function relatedItem(r) {
+export function relatedItem(r) {
   if (r.entry) {
     return h('li', { class: 'related__item related__item--entry' },
       h('span', { class: 'related__pic related__pic--entry', 'aria-hidden': 'true' }, '📖'),
@@ -248,126 +197,8 @@ function relatedItem(r) {
     h('span', { class: 'related__name' }, tx('compare.notYet')));
 }
 
-// The inside right page: Vital Statistics, then Creature Comparisons. "You" compares with
-// whichever statistic was tapped last; "Animal" (only when the card has lookalikes) shows
-// the animal next to its lookalikes. Then Related Species. replay() runs the animation again.
-export function insidePage(card) {
-  const s = card.stats ?? {};
-  const modes = modesFor(card);
-  const panel = comparePanel(card);
-  let current = STAT_ROWS.map(r => r[0]).find(m => modes[m]) ?? null;
-
-  const rows = statRows(s).map(({ mode, icon, key, text, note }) => {
-    const content = [
-      h('span', { class: 'stat__icon', 'aria-hidden': 'true' }, icon),
-      h('span', { class: 'stat__label' }, mode === 'development' ? glossBi(glossLabel(key, s.development.kind)) : tx(key)),
-      h('span', { class: 'stat__value' }, bi(text), note && h('span', { class: 'stat__note' }, bi(note))),
-    ];
-    if (!modes[mode]) return h('div', { class: 'stat' }, content);
-    return h('button', {
-      class: ['stat', 'stat--pick', mode === current && 'is-on'], type: 'button', 'data-mode': mode,
-      'aria-pressed': String(mode === current),
-      onclick: () => select(mode),
-    }, content, h('span', { class: 'stat__go', 'aria-hidden': 'true' }, '›'));
-  });
-
-  const looks = lookalikesOf(card);
-  const animal = looks.length ? lookalikePanel(card, looks) : null;
-  const you = current && h('div', { class: 'cview' }, panel.el);
-  const others = animal && h('div', { class: 'cview' }, animal.el);
-  let view = you ? 'you' : others ? 'animal' : null;
-  const toggle = !(you && others) ? null : h('div', { class: 'cmp-toggle', role: 'radiogroup', 'aria-label': label('compare.with') },
-    [['you', 'compare.you', '🧒'], ['animal', 'compare.animal', '🐾']].map(([v, key, icon]) => h('button', {
-      type: 'button', role: 'radio', class: 'cmp-toggle__btn', 'data-view': v, 'aria-checked': String(view === v),
-      onclick: () => setView(v),
-    }, h('span', { 'aria-hidden': 'true' }, icon), tx(key))));
-
-  function select(mode) {
-    current = mode;
-    rows.forEach(r => {
-      if (!r.dataset.mode) return;
-      const on = r.dataset.mode === mode;
-      r.classList.toggle('is-on', on);
-      r.setAttribute('aria-pressed', String(on));
-    });
-    if (view !== 'you') setView('you'); else panel.show(mode);
-  }
-
-  function setView(v) {
-    view = v;
-    toggle?.querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-checked', String(b.dataset.view === v)));
-    if (you) you.hidden = v !== 'you';
-    if (others) others.hidden = v !== 'animal';
-    if (v === 'animal') animal.show(); else { animal?.stop(); if (current) panel.show(current); }
-  }
-
-  const related = relatedOf(card);
-  const empty = !rows.length && !view && !related.length;
-  const body = !empty && h('div', { class: 'cpage__scroll', 'data-scroll': '' },
-    rows.length > 0 && h('section', { class: 'csection csection--stats' },
-      pageTitle('card.stats', '📏'),
-      current && h('p', { class: 'stat__hint' }, tx('compare.tapHint')),
-      rows),
-    view && h('section', { class: 'csection csection--compare' }, pageTitle('card.compare', '🧒'), toggle, you, others),
-    related.length > 0 && h('section', { class: 'csection csection--related' },
-      pageTitle('card.related', '🧬'),
-      h('ul', { class: 'related' }, related.map(relatedItem))));
-  const el = h('div', { class: 'cpage cpage--inside', 'data-group': card.group }, empty ? blank(card) : body);
-  if (view) setView(view);
-  return { el, replay: () => { if (view) setView(view); } };
-}
-
-// The Fact File. Its body scrolls inside the card; the frame never grows. With no text yet:
-// the Habitat heading and the range map (if there is one), and a line saying more is coming.
-export function backPage(card, { onMap } = {}) {
-  if (!hasBack(card)) return h('div', { class: 'cpage cpage--back' }, blank(card));
-  const soon = !hasFactText(card) && h('p', { class: 'ff__soon' },
-    h('span', { class: 'ff__soon-icon', 'aria-hidden': 'true' }, groupById(card.group)?.emoji), tx(comingSoonKey(card)));
-  const sections = FACT_SECTIONS.map(([key, icon]) => {
-    const paras = factParas(card, key);
-    const map = key === 'habitat' && hasMap(card);
-    if (!paras.length && !map) return null;
-    return h('section', { class: 'csection ff__section', 'data-section': key },
-      pageTitle(`ff.${key}`, icon),
-      map && (mapButton(card, worldMap(card, { detail: true, label: label('card.where') }), onMap, 'ff__map')
-        ?? worldMap(card, { detail: true, label: label('card.where') })),
-      paras.map(glossed));
-  });
-  const dyk = didYouKnow(card);
-  return h('div', { class: 'cpage cpage--back', 'data-group': card.group },
-    headerStrip(card, h('span', { class: 'ff__title' }, h('span', { 'aria-hidden': 'true' }, '📁'), tx('card.factFile'))),
-    h('div', { class: 'cpage__scroll ff__body', 'data-scroll': '', tabindex: '0', 'aria-label': label('card.factFile') },
-      sections,
-      soon,
-      dyk.length > 0 && h('aside', { class: 'ff__dyk' },
-        h('p', { class: 'ff__dyk-title' }, h('span', { 'aria-hidden': 'true' }, '💡'), tx('ff.didYouKnow')),
-        dyk.map(glossed))));
-}
-
-// What read-aloud says on each view ('front', 'open', 'back'), in reading order.
-export function readOrder(card, view) {
-  if (view === 'back') {
-    if (!hasBack(card)) return [];
-    if (!hasFactText(card)) return [t(comingSoonKey(card))];
-    const out = [];
-    for (const [key] of FACT_SECTIONS) {
-      const paras = factParas(card, key);
-      if (paras.length) out.push(t(`ff.${key}`), ...paras.map(plainPair));
-    }
-    const dyk = didYouKnow(card);
-    if (dyk.length) out.push(t('ff.didYouKnow'), ...dyk.map(plainPair));
-    return out;
-  }
-  if (view === 'open') {
-    // Every Profile feature in order, with its detail; then the diet.
-    const out = [];
-    (card.profile?.callouts ?? []).forEach(c => { out.push(c); if (filled(c.detail)) out.push(c.detail); });
-    const diet = card.stats?.diet;
-    if (filled(diet)) out.push(t('card.diet'), diet);
-    return out;
-  }
-  return [card.name, ...factsOf(card)];
-}
+// What read-aloud says on the cover. The open card says what its heading says (js/card-open.js).
+export const readOrder = card => [card.name, ...factsOf(card)];
 
 // Every picture used on this card, for the credit sheet.
 export function cardCredits(card) {

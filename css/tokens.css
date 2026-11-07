@@ -130,6 +130,17 @@
   --g-conservation: #7cb342;     --g-conservation-ink: #1d2e0b;
   --g-plants: #2f6f1f;           --g-plants-ink: #ffffff;
 
+  /* The heading grid on an open card: the colour of each place, the same on every card (borrowed
+     from the group colours). */
+  --head-1: var(--g-reptiles);         --head-1-ink: var(--g-reptiles-ink);
+  --head-2: var(--g-how-animals-work); --head-2-ink: var(--g-how-animals-work-ink);
+  --head-3: var(--g-behavior);         --head-3-ink: var(--g-behavior-ink);
+  --head-4: var(--g-prehistoric);      --head-4-ink: var(--g-prehistoric-ink);
+  --head-5: var(--g-birds);            --head-5-ink: var(--g-birds-ink);
+  --head-6: var(--g-fish);             --head-6-ink: var(--g-fish-ink);
+  --head-7: var(--g-mammals);          --head-7-ink: var(--g-mammals-ink);
+  --head-8: var(--g-invertebrates);    --head-8-ink: var(--g-invertebrates-ink);
+
   /* Profile avatars: a letter on one of these (borrowed from the group colours). */
   --avatar-1: var(--g-mammals);          --avatar-1-ink: var(--g-mammals-ink);
   --avatar-2: var(--g-birds);            --avatar-2-ink: var(--g-birds-ink);
@@ -292,6 +303,10 @@
   --related-pic: 56px;  /* pictures in Related Species */
   --gloss-pop-w: 260px; /* the glossary popover on a card page */
   --map-slot: 28px;     /* corner of the front map kept free for its expand button */
+  --tap-heading: 64px;  /* the smallest a heading button may be on the screen, whatever the card's scale */
+  --heading-h: 88px;    /* a heading button, in card px */
+  --heading-icon: 30px;
+  --open-text-h: 150px; /* a heading's text, under the grid when the stage is above it */
   --hand-size: 84px;    /* the hand that shows how to open a card: its disc */
   --hand-glyph: 3rem;   /* and the hand on it */
   --hand-travel: 110px; /* how far each way it swipes */

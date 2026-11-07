@@ -38,12 +38,6 @@
 /* 3D only while the card moves (viewer.js adds .is-3d); at rest everything is flat. */
 .viewer__stage.is-3d { perspective: 1800px; }
 .viewer__stage.is-3d .viewer__zoomer, .viewer__stage.is-3d .card-pos { transform-style: preserve-3d; }
-.viewer__hint {
-  position: relative; z-index: 2; min-height: var(--tap);
-  padding: var(--s-2) max(var(--s-4), var(--safe-r)) max(var(--s-4), var(--safe-b)) max(var(--s-4), var(--safe-l));
-  color: var(--c-on-primary); font-weight: var(--fw-semi); text-align: center;
-}
-.viewer__hint .bi { align-items: center; }
 /* The hand that shows how to open the card (viewer.js places it on the closed card). It only moves
    with a transform, and stands still with reduced motion. */
 .viewer__hand { position: absolute; z-index: 1; pointer-events: none; }
@@ -72,9 +66,7 @@
   width: var(--card-w); height: var(--card-h);
   transform-style: preserve-3d;
 }
-.flipper, .base, .leaf { position: absolute; transform-style: preserve-3d; }
-.flipper, .base, .leaf { inset: 0; }
-.flipper { transform-origin: 50% 50%; }
+.base, .leaf { position: absolute; inset: 0; transform-style: preserve-3d; }
 .leaf { transform-origin: 0 50%; }
 .face {
   position: absolute; inset: 0; overflow: hidden;
@@ -82,17 +74,13 @@
   backface-visibility: hidden; -webkit-backface-visibility: hidden;
 }
 .face--y { transform: rotateY(180deg); }
-.face--x { transform: rotateX(180deg); }
-/* While turned over, only the back of the card should show. */
-.card3d.is-flipped .leaf { visibility: hidden; }
 
 /* At rest: no 3D. Only the faces you can see are shown, flat and untransformed. */
-.card3d.is-rest, .card3d.is-rest .flipper, .card3d.is-rest .base, .card3d.is-rest .leaf { transform-style: flat; }
+.card3d.is-rest, .card3d.is-rest .base, .card3d.is-rest .leaf { transform-style: flat; }
 .card3d.is-rest .face { transform: none; backface-visibility: visible; -webkit-backface-visibility: visible; visibility: hidden; }
 .card3d.is-rest[data-pose="front"] .leaf > .face--front,
-.card3d.is-rest[data-pose="open"] .leaf > .face--back,
-.card3d.is-rest[data-pose="open"] .base > .face--front,
-.card3d.is-rest[data-pose="back"] .base > .face--back { visibility: visible; }
+.card3d.is-rest[data-pose="open"][data-layout="side"] .leaf > .face--back,
+.card3d.is-rest[data-pose="open"] .base > .face--front { visibility: visible; }
 /* Open: the cover lies flat to the left of the spine, inside facing up. */
 .card3d.is-rest[data-pose="open"] .leaf { inset: 0 100% 0 -100%; }
 
@@ -195,8 +183,6 @@
   background: var(--c-veil); box-shadow: var(--shadow-1); font-size: var(--card-fs-sm); line-height: 1;
 }
 .map-open:hover .map-open__icon { background: var(--c-surface); }
-.ff__map { margin-bottom: var(--s-1); }
-.ff__map .map { margin-bottom: 0; }
 .cover__badges { display: flex; flex-direction: column; align-items: flex-end; gap: var(--s-1); }
 .cover__badges:empty { display: none; } /* e.g. a plant with no IUCN status */
 
@@ -280,9 +266,59 @@
   background: var(--c-callout); color: var(--c-callout-ink); font-weight: var(--fw-bold); font-size: var(--card-fs-sm);
 }
 
-/* Inside right page: statistics you can tap, the comparison they drive, related species. */
-.cpage--inside { padding: 0; }
-.csection { display: flex; flex-direction: column; gap: var(--s-1); }
+/* The open card (js/card-open.js): the stage, and the menu with its heading grid and text. */
+.cpage--stage { padding: 0; }
+.cpage--menu { padding: var(--s-3); gap: var(--s-2); }
+.open__slot { display: none; position: relative; flex: 1 1 0; min-height: 0; border-radius: var(--r-sm); overflow: hidden; }
+.card3d[data-layout="stacked"] .open__slot { display: block; }
+.hgrid { flex: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s-2); }
+.hbtn {
+  --head: var(--c-paper-line); --head-ink: var(--c-ink);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--s-hair);
+  min-width: 0; min-height: max(var(--heading-h), calc(var(--tap-heading) / var(--card-s, 1)));
+  padding: var(--s-1); border: 0; border-radius: var(--r-sm);
+  background: var(--head); color: var(--head-ink); box-shadow: var(--shadow-2);
+  font: inherit; font-size: var(--card-fs-sm); font-weight: var(--fw-bold); line-height: 1.15; cursor: pointer;
+}
+.hbtn[data-slot="1"] { --head: var(--head-1); --head-ink: var(--head-1-ink); }
+.hbtn[data-slot="2"] { --head: var(--head-2); --head-ink: var(--head-2-ink); }
+.hbtn[data-slot="3"] { --head: var(--head-3); --head-ink: var(--head-3-ink); }
+.hbtn[data-slot="4"] { --head: var(--head-4); --head-ink: var(--head-4-ink); }
+.hbtn[data-slot="5"] { --head: var(--head-5); --head-ink: var(--head-5-ink); }
+.hbtn[data-slot="6"] { --head: var(--head-6); --head-ink: var(--head-6-ink); }
+.hbtn[data-slot="7"] { --head: var(--head-7); --head-ink: var(--head-7-ink); }
+.hbtn[data-slot="8"] { --head: var(--head-8); --head-ink: var(--head-8-ink); }
+.hbtn__icon { font-size: var(--heading-icon); line-height: 1.1; }
+.hbtn__label { min-width: 0; text-align: center; }
+.hbtn__label .bi { align-items: center; }
+/* Lit: pushed in, with a ring in the page's ink. */
+.hbtn.is-on { box-shadow: 0 0 0 var(--bw-mid) var(--c-ink); }
+/* Nothing for this heading on this card: still there, in grey. */
+.hbtn[aria-disabled="true"] { background: var(--c-paper-line); color: var(--c-ink-faint); box-shadow: none; cursor: default; }
+.hbtn[aria-disabled="true"] .hbtn__icon { filter: grayscale(1); opacity: var(--o-dimmed); }
+.open__text {
+  flex: 1 1 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  display: flex; flex-direction: column; gap: var(--s-2); padding: var(--s-1);
+  scrollbar-width: thin;
+}
+.open__text > * { flex-shrink: 0; }
+.card3d[data-layout="stacked"] .open__text { flex: 0 0 var(--open-text-h); }
+.open__text .ff__text { font-size: var(--card-fs); }
+.open__name { font-size: var(--card-fs-title); line-height: 1.15; }
+.open__stats { display: flex; flex-direction: column; }
+.open__text > .badge { align-self: flex-start; }
+
+/* The stage (js/stage-views.js). */
+.stage { position: absolute; inset: 0; overflow: hidden; background: var(--c-bg-deep); }
+.stage-pic { position: absolute; inset: 0; }
+.stage-pic .pic { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.stage-pic__kinds { position: absolute; right: var(--s-2); bottom: var(--s-2); display: flex; gap: var(--s-2); }
+.stage-pic__kind {
+  width: var(--tap-xs); height: var(--tap-xs); padding: 0; border: 0; border-radius: 50%;
+  background: var(--c-veil); box-shadow: var(--shadow-1); font-size: var(--fs-md); cursor: pointer;
+}
+.stage-pic__kind[aria-checked="true"] { background: var(--c-accent); }
+
 .stat {
   display: grid; grid-template-columns: auto auto 1fr; gap: var(--s-2); align-items: baseline;
   padding: var(--s-1); border-bottom: var(--bw-thin) dashed var(--c-paper-line);
@@ -409,20 +445,9 @@ a.related__item { border-color: var(--g, var(--c-paper-line)); }
 .related__name .bi { align-items: center; }
 .related__sci { display: block; color: var(--c-ink-soft); }
 
-/* Back: the Fact File. The header stays put; the sections scroll inside the card. */
-.cpage--back { padding: 0; gap: 0; }
-.ff__title { display: inline-flex; align-items: center; gap: var(--s-1); font-size: var(--card-fs-sm); }
-.ff__title .bi { flex-direction: row; gap: 0.4em; }
-.ff__section .map { margin-bottom: var(--s-1); }
+/* The text under a heading. */
 .ff__text { font-size: var(--card-fs-sm); }
 .ff__text + .ff__text { margin-top: var(--s-1); }
-.ff__dyk {
-  padding: var(--s-2) var(--s-3); border-radius: var(--r-sm);
-  border-left: var(--bw-mid) solid var(--c-callout); background: var(--c-callout-soft);
-}
-.ff__dyk-title { display: flex; align-items: center; gap: var(--s-1); margin-bottom: var(--s-1); font-weight: var(--fw-bold); }
-.ff__dyk-title .bi { flex-direction: row; gap: 0.4em; }
-.ff__dyk .ff__text + .ff__text { margin-top: var(--s-2); }
 /* Not checked yet (todo): only grown-ups in preview see it, marked so they know. */
 .ff__text.is-todo { padding-left: var(--s-2); border-left: var(--bw-mid) dashed var(--c-callout); }
 

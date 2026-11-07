@@ -10,23 +10,27 @@
 //               expanded the panel covers the card
 //   'phone'   – collapsed: a small tab at the bottom-right (in the hint row); expanded: a
 //               full overlay
-// The open spread is always shown at card scale (both pages as big as the closed card, so the
-// text stays readable). When it is wider than the space it pans sideways (see panDrag).
+// The open card fills the space the notebook leaves, the stage and the heading grid side by side
+// when that space is wide and one above the other when it isn't (openLayout).
 
 export const SPINE = 60;            // px: the strip at the right for the collapsed notebook
 export const PHONE_MAX = 600;       // px: narrower screens are phones
 export const MIN_CARD_BESIDE = 340; // px: the smallest closed card beside the expanded panel
-export const EDGE = { threshold: 24, resist: 0.35 }; // dragging past a pan edge
 export const PANEL_SHARE = 0.5;     // the expanded notebook's share of the stage width (--nb-panel-share)
 export const FILL = 0.97;           // the share of its space the card fills: a thin strip of desk round it
+export const SIDE_RATIO = 1.15;     // a space wider than tall by this much has the sides next to each other
+export const GRID_COLS = 4;         // heading buttons across (js/headings.js has two rows of them)
+export const GRID_ROOM = 48;        // the menu page's padding and the gaps in its grid, in card px
 
 // The expanded panel's width on a stage W px wide.
 export const panelWidth = (W, share = PANEL_SHARE) => W * share;
 
-// The card's scale for a space, rounded so its width is a whole number of pixels.
+// A scale rounded so a width of P is a whole number of pixels.
+const whole = (s, P) => Math.floor(P * Math.max(0.05, s)) / P;
+
+// The card's scale for a space.
 export function fitScale(W, Hs, P, H) {
-  const s = Math.max(0.05, Math.min((W * FILL) / P, (Hs * FILL) / H));
-  return Math.floor(P * s) / P;
+  return whole(Math.min((W * FILL) / P, (Hs * FILL) / H), P);
 }
 
 // vw: the window's width (phones); W × Hs: the stage under the top bar (landscape when wider).
@@ -43,38 +47,25 @@ export function reserve({ mode, expanded, W, share = PANEL_SHARE }) {
   return SPINE;                                // the spine; an overlay panel covers the card
 }
 
-// The card screen: the closed card's scale (s0), the open spread's (s1, never changed by the
-// notebook, so opening or closing the notebook never zooms the spread) and the visible width.
-// Expanded beside the card, the open spread pans in the visible half, under the notebook.
+// The card screen: the closed card's scale and the width left for the card.
 export function cardLayout({ W, Hs, P, H, mode, expanded, share = PANEL_SHARE }) {
   const visibleW = Math.max(1, W - reserve({ mode, expanded, W, share }));
-  const s0 = fitScale(visibleW, Hs, P, H);
-  const s1 = fitScale(Math.max(1, W - reserve({ mode, expanded: false, W, share })), Hs, P, H);
-  return { visibleW, s0, s1 };
+  return { visibleW, s0: fitScale(visibleW, Hs, P, H) };
 }
 
-// Where the open spread's left edge may be. Fits: centred in the visible width. Too wide:
-// from showing its left edge (max = 0) to showing its right edge at the visible right (min).
-export function spreadRange({ visibleW, P, s }) {
-  const w = 2 * P * s;
-  if (w <= visibleW) { const left = (visibleW - w) / 2; return { fits: true, min: left, max: left, width: w }; }
-  return { fits: false, min: visibleW - w, max: 0, width: w };
-}
-
-// A sideways drag on an open spread that doesn't fit. It pans; at the left edge (spread moved
-// right as far as it goes), dragging on past the edge (beyond a small threshold, with rubber-
-// band resistance) starts closing the card: close is 0–1 of a page turn. Past the other edge
-// it only stretches a little.
-//   start: the spread's left when the drag began; dx: px dragged; travel: px for a full turn
-export function panDrag({ start, dx, min, max, travel }) {
-  const want = start + dx;
-  const t = Math.max(1, travel);
-  if (want > max) {
-    const over = want - max;
-    return { left: max + Math.min(over, EDGE.threshold) * EDGE.resist, close: Math.min(1, Math.max(0, over - EDGE.threshold) / t) };
+// The open card in the space left for it. The sizes are in card px, before the scale s.
+//   'side'    – stage and menu next to each other, each a page of the closed card's size. On a
+//               short screen the menu is wider, so its buttons still reach `tap` px.
+//   'stacked' – stage above menu, filling the space.
+export function openLayout({ visibleW, Hs, P, H, tap = 64 }) {
+  const W = visibleW * FILL, T = Hs * FILL;
+  if (visibleW / Hs >= SIDE_RATIO) {
+    const s = whole(Math.min(W / (2 * P), T / H), P);
+    const menuW = Math.max(P, (GRID_COLS * tap) / s + GRID_ROOM);
+    return { kind: 'side', s, menuW, w: P + menuW, h: H };
   }
-  if (want < min) return { left: min - Math.min(min - want, EDGE.threshold) * EDGE.resist, close: 0 };
-  return { left: want, close: 0 };
+  const s = whole(Math.min(W / P, T / H), P);
+  return { kind: 'stacked', s, menuW: W / s, w: W / s, h: T / s };
 }
 
 // Keep a box (screen px) left of the notebook.
