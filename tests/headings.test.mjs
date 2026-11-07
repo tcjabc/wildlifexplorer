@@ -145,6 +145,11 @@ test('a comparison can draw another picture than the card\'s silhouette', () => 
   assert.deepEqual(whoOf(cherry), ['you', 'adult', 'car']);
 });
 
+test('a coiled snake has no count: its picture is 30 cm across, the snake 85 cm long', () => {
+  const viper = cards.find(c => c.id === 'brown-spotted-pit-viper');
+  assert.equal(countFor(viper, 'length', { cm: 95 }), null);
+});
+
 test('the water bear: 2 of them to a grain of sand, 2 grains of salt to one of them, and no count for a hair', () => {
   const bear = cards.find(c => c.id === 'tardigrade-water-bear');
   assert.deepEqual(countFor(bear, 'length', PARTNERS.sand), { n: 2, side: 'animal' });

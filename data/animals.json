@@ -5081,7 +5081,8 @@
       }
     },
     "compare": {
-      "width": 30
+      "width": 30,
+      "noCount": true
     },
     "related": [],
     "silhouette": {

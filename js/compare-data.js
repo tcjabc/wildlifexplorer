@@ -74,6 +74,7 @@ export const COUNT_MAX = 20;
 // who repeats ('who' or 'animal'). Null when they are about the same, or there are too many to count.
 //   mode: 'length' | 'weight'. who: { cm, kg }.
 export function countFor(card, mode, who) {
+  if (card.compare?.noCount && mode === 'length') return null; // a coiled snake: its picture's size isn't its length
   const a = mode === 'weight' ? numbers(card).weightKg : mode === 'length' ? sizeOf(card)?.cm : null;
   const b = mode === 'weight' ? who.kg : who.cm;
   if (!a || !b || who.noCount) return null;
