@@ -192,10 +192,12 @@ function stopZoom() { v?.zoomCancel?.(); if (v) v.zoomCancel = null; }
 function settle(prop, target, velocity = 0, after) {
   const zoom = prop === 'z';
   if (zoom) stopZoom(); else stopMotion();
+  let finished = false; // with reduced motion a spring is over before it returns
   const cancel = spring({
     from: v[prop], to: target, velocity,
     onUpdate: x => { v[prop] = x; draw(); },
     onDone: () => {
+      finished = true;
       if (zoom) v.zoomCancel = null; else v.cancel = null;
       draw();
       // The comparison animation plays as the card finishes opening.
@@ -205,6 +207,7 @@ function settle(prop, target, velocity = 0, after) {
       after?.();
     },
   });
+  if (finished) return;
   if (zoom) v.zoomCancel = cancel; else v.cancel = cancel;
 }
 
@@ -521,7 +524,9 @@ export function open(card, { fromEl, main, onDismiss, restore = null } = {}) {
   v.onResize = () => { measure(); draw(); };
   window.addEventListener('resize', v.onResize);
 
-  v.zoomCancel = tween({ from: 0, to: 1, duration: 520, onUpdate: z => { v.z = z; draw(); }, onDone: () => { v.zoomCancel = null; draw(); } });
+  let zoomed = false; // with reduced motion it is over before it returns
+  const cancel = tween({ from: 0, to: 1, duration: 520, onUpdate: z => { v.z = z; draw(); }, onDone: () => { zoomed = true; v.zoomCancel = null; draw(); } });
+  if (!zoomed) v.zoomCancel = cancel;
 }
 
 // Show another card in the open viewer (‹ ›), with a quick cross-fade.
