@@ -454,7 +454,7 @@ The hero button at the top of the Globe's toolbar opens a picker that switches o
   brightness), drawn as glows added onto the map (`lighter`), fading in through the twilight.
   The brightest 1,500 show for the whole globe, more as it zooms in, all of them from zoom 4
   (`lightCount`). The sun moves every minute.
-- The ocean depth bands are Natural Earth's 1:10m bathymetry at 200, 1,000, 4,000 and 6,000 m,
+- The ocean depth bands (`depth-2k.webp`; the fallback draws the shapes) are Natural Earth's 1:10m bathymetry at 200, 1,000, 4,000 and 6,000 m,
   where the ocean's zones meet (sunlight, twilight, midnight, the abyss, the trenches; NOAA /
   NWS JetStream "Layers of the Ocean"), simplified to the forests'
   density: about 0.23° between points in the detailed file (99% of segments under 1°) and 0.7°
@@ -463,8 +463,8 @@ The hero button at the top of the Globe's toolbar opens a picker that switches o
   edges, where outlines meet), and the bands still nest. The detailed file is used from zoom 5
   (`DEPTH_NEAR_K`). Outline points far off the screen are left out (`traceRing`), which changes
   nothing on screen but saves drawing when zoomed in.
-- Phones load 2048×1024 pictures (topography), tablets and computers 4096×2048.
-- Topography zoom tiles (`js/globe-tiles.js`): from zoom 2.4, where the 4096 px picture starts
+- Topography's picture is 2048×1024 everywhere.
+- Topography zoom tiles (`js/globe-tiles.js`): from zoom 1.6, where that picture starts
   to blur, the same picture at 8192×4096 in 512 px tiles (`assets/layers/relief-tiles/<row>-<col>.webp`,
   128 tiles, 2.2 MB in all) is fetched for the view only, the tiles nearest the middle first, four
   at a time. They go into a 4 × 4 tile window round the view's centre (one 2048 px texture in
@@ -479,17 +479,24 @@ The hero button at the top of the Globe's toolbar opens a picker that switches o
   the first time (about 300 MB), needs only Node (sharp and mapshaper), and writes
   `assets/layers/` and `assets/home.json`. After re-running it (or `make-globe.mjs`), bump
   `LAYERS_VERSION` in `sw.js`.
-- Frame rate: grown-ups in preview can add `?debug=fps` to the address to see the globe's frames
-  per second and drawing time while it turns (`?debug=off` to stop). It also says which renderer is
-  drawing, and at what pixel ratio.
-- A spike, not what ships: `?globe=webgl` (`&bands=10` for Temperature in steps) draws the base layers
-  through one WebGL 1 shader (`js/globe-base.js`) on a canvas under the 2D ones, at a pixel ratio of at
-  most 1.5. Every layer shares the ocean colour, the land mask and hillshade (`shade-2k.webp`) and the
-  atmosphere. Plain map, Topography and Temperature come from it, and it lies under Forests, Day & night
-  and Plates; Depth and Reefs stay on the 2D canvas, since their shapes lie under the land. Temperature
-  there is the year's mean (`temp-mean-2k.webp`, a number per pixel), so its month slider does nothing, and
-  nothing sharpens as you zoom in. If WebGL is missing or its context is lost, the current layers show.
-  `node scripts/make-layers.mjs base` makes the two textures.
+- Frame rate: add `?debug=fps` to the address to see the globe's frames per second and drawing time
+  while it turns, on any profile (`?debug=off` to stop). It also says which renderer is drawing, and at
+  what pixel ratio.
+- The base layers go through one WebGL 1 shader (`js/globe-base.js`) on a canvas under the 2D ones, at a pixel
+  ratio of at most 1.5: Plain map, Topography (with its zoom tiles), Forests, Ocean depth, Day & night and
+  Temperature. Every layer shares the ocean colour, the land mask and hillshade (`shade-2k.webp`, its light baked in
+  from the north west) and the atmosphere. Coral reefs, plates, volcanoes, city lights, the coastline and the
+  home outline are drawn on top, on the 2D canvases. `node scripts/make-layers.mjs base` makes the textures.
+- If WebGL is missing or its context is lost, the 2D canvas draws sea and land and `load()` in `js/layers.js` gives
+  each layer as it was, with pictures through `js/globegl.js` (WebGL 2), until the context comes back.
+- Temperature is twelve months of numbers, not colours: `temp-months-1…3.webp`, 720 × 360, a month to a channel, -50 to
+  +50 °C in a byte (`js/globe-months.js`). The shader mixes two months first and colours them after, in ten
+  bands, so band edges move between months. A change of month morphs over 400 ms, the slider scrubs, and ▶
+  plays the year until anything is touched (none of it with reduced motion). The textures are fetched in idle time
+  after the globe has drawn. Without the base renderer the monthly pictures are fetched the same way and crossfade
+  over 300 ms. `scripts/make-era5.mjs` is a stub for a real climatology.
+- The home outline follows the explorer's home country, and only Taiwan has an outline file (`HOME_FILES` in
+  `js/globe.js`). Magenta (`--c-map-home`) means home and nothing else on the globe.
 - Colours live in `css/tokens.css` (`--c-depth-*`, `--c-forest-*`, `--c-temp-scale` …). The
   temperature pictures are painted with `--c-temp-scale`, so re-run `make-layers.mjs temp` if you change it.
 - Sources and licences: [CREDITS.md](CREDITS.md).

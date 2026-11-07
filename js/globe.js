@@ -135,7 +135,7 @@ export function prepare(polys, { edges = false } = {}) {
   });
 }
 
-// The coastline as lines (drawn over the picture layers): each ring of the land without the
+// The coastline as lines: each ring of the land without the
 // stretches along the map's frame, where Natural Earth cuts its shapes (the antimeridian, the
 // South Pole), which are not coast. Returns runs of [lon, lat] points.
 export function coastRuns(ring) {

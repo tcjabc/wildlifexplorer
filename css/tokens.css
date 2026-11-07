@@ -351,8 +351,9 @@
   --gpaw: 30px;         /* the paw on the Globe's show/hide button */
   --o-dimmed: 0.45;     /* controls and key rows that are waiting (the Globe's filters while pins are hidden) */
   --gpanel-w: 256px;    /* the Globe's toolbar: one width, open or not */
-  --gpick-w: 420px;     /* the layer picker */
-  --gtile-min: 120px;   /* a tile in it */
+  --gtile-size: 96px;   /* a square tile in the layer picker */
+  --gtile-tap: 64px;    /* and the smallest one may get, on a narrow phone */
+  --gtile-fs: 11px;     /* its name on a phone: Temperature must fit across */
   --gpanel-art: 280px;  /* the drawings in the panel (at most; they fill its width) */
   --gzone-art: 64px;    /* the example animal of each ocean zone */
   --gdrawer-w: 390px;   /* the Globe's filter drawer */

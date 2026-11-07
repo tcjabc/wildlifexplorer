@@ -590,7 +590,6 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
 .gopt:disabled .gopt__count { color: var(--c-ink-faint); }
 .gopt:disabled .gopt__emoji { opacity: 0.4; }
 @media (max-width: 599px) {
-  .gpick { top: auto; left: var(--edge-l); right: var(--edge-r); bottom: calc(var(--s-3) + var(--safe-b)); width: auto; }
   .gdrawer { top: auto; left: 0; width: 100%; max-height: 80%; border-radius: var(--r-lg) var(--r-lg) 0 0; transform: translateY(100%); }
 }
 
@@ -604,16 +603,21 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
   color: var(--c-ink); font-size: var(--fs-sm);
 }
 .gpanel__body { flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: var(--s-2) var(--s-3) var(--s-3); }
-/* The layer picker: a grid beside the toolbar, or along the bottom on a phone. */
+/* The layer picker: a small panel beside the layer's tile, with the globe in view past it, or the
+   width of a phone along the bottom. Square tiles, the icon above the name. */
 .gpick {
   position: absolute; z-index: 3; top: calc(var(--gtool-top, 0px) + var(--s-2)); left: max(var(--edge-l), var(--gtool-room, 0px));
-  width: min(var(--gpick-w), calc(100% - var(--gtool-room, 0px) - var(--s-3)));
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--gtile-min), 1fr)); gap: var(--s-2); padding: var(--s-2);
+  display: grid; grid-template-columns: repeat(3, var(--gtile-size)); gap: var(--s-2); padding: var(--s-2);
   border-radius: var(--r-lg); background: var(--c-surface); box-shadow: var(--shadow-3);
 }
+@media (max-width: 599px) {
+  .gpick { top: auto; left: var(--edge-l); right: var(--edge-r); bottom: calc(var(--s-3) + var(--safe-b)); grid-template-columns: repeat(4, minmax(var(--gtile-tap), 1fr)); }
+  .gpick .gtile { padding: var(--s-hair); font-size: var(--gtile-fs); overflow-wrap: anywhere; }
+  .gpick .gtile__emoji { font-size: var(--fs-lg); }
+}
 .gtile {
-  display: grid; justify-items: center; align-content: center; gap: var(--s-1);
-  min-height: var(--tap-lg); padding: var(--s-2) var(--s-1);
+  display: grid; justify-items: center; align-content: center; gap: var(--s-hair);
+  aspect-ratio: 1; min-width: 0; min-height: var(--gtile-tap); padding: var(--s-1);
   border: var(--bw-thin) solid var(--c-line); border-radius: var(--r-md);
   background: var(--c-surface); color: var(--c-ink);
   font: inherit; font-size: var(--fs-xs); font-weight: var(--fw-bold); line-height: 1.15; text-align: center; cursor: pointer; touch-action: manipulation;
@@ -623,7 +627,7 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
 .gtile[aria-pressed="true"], .gtile--hero { background: var(--c-primary); border-color: var(--c-primary); color: var(--c-on-primary); }
 /* The hero: the layer in use, as the picker's chosen tile, the toolbar's full width. A tap
    opens the picker. */
-.gtile--hero { flex: none; margin: var(--s-2) var(--s-2) 0; font-size: var(--fs-sm); }
+.gtile--hero { flex: none; aspect-ratio: auto; min-height: var(--tap-lg); margin: var(--s-2) var(--s-2) 0; padding: var(--s-2) var(--s-1); font-size: var(--fs-sm); }
 .gtile--hero.is-loading .gtile__emoji { animation: pulse 0.8s ease-in-out infinite; }
 .gtile--hero.is-failed { background: var(--c-bad); border-color: var(--c-bad); }
 /* Expand and collapse: the whole bottom row of the toolbar. */
