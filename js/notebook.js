@@ -69,7 +69,7 @@ import { bookFrame, snapshot, turnPage, fadePage, turnCover } from './notes-book
 import { bookCover } from './notes-cover.js';
 import { polaroids } from './notes-polaroid.js';
 import { tabButton, fitLabels } from './notes-tabs.js';
-import { tapZones } from './notes-debug.js';
+import { tapZones, heavyItems, timed } from './notes-debug.js';
 import { thunk } from './fx.js';
 import { exportPageImage, exportAll, importBackup, saveToFolder, folderSupported } from './notes-io.js';
 import { haptic, clamp } from './gesture.js';
@@ -1946,6 +1946,27 @@ export function notebook({ cardId = null, beside = false, lead = null, start = n
 
   // ?debug=taps: every tap zone outlined with its size (js/notes-debug.js).
   const zones = !beside && debugOn('taps') ? tapZones(el) : null;
+  // ?debug=notes: a very full page, and what it costs to draw (js/notes-debug.js).
+  if (debugOn('notes')) {
+    window.wfNotes = {
+      async heavy() {
+        const cards = state.cards.filter(c => c.silhouette?.file).map(c => c.id);
+        const page = notes.blankPage();
+        page.items = heavyItems(cards, PAGE_W, PAGE_H);
+        await notes.savePage(page);
+        await openPage({ kind: 'free' }, page.id);
+        return page.id;
+      },
+      async bench(n = 5) {
+        const bake = await timed(n, redraw, base);
+        setView({ k: 2, x: 0, y: 0 });
+        const zoomSettle = await timed(n, paintDetail, detail);
+        resetView();
+        const turn = await timed(n, () => show(nb.pos), base);
+        return { items: leaf.page?.items.length, bake, zoomSettle, turn };
+      },
+    };
+  }
 
   drawTools();
   queueMicrotask(async () => {
