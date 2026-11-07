@@ -18,7 +18,7 @@ test('only allow-listed files are published', () => {
   const allowed = f => ALLOW.files.includes(f) || ALLOW.dirs.some(d => f.startsWith(`${d}/`));
   assert.deepEqual(published.filter(f => !allowed(f)), []);
   for (const f of published) {
-    assert.doesNotMatch(f, /(^|\/)\.|node_modules|^(scripts|tests|supabase|data-raw)\/|\.md$|\.csv$|^package|^wrangler|build-state|drops\.lock/, f);
+    assert.doesNotMatch(f, /(^|\/)\.|node_modules|^(scripts|tests|supabase|data-raw|docs)\/|\.md$|\.csv$|^package|^wrangler|build-state|drops\.lock/, f);
   }
   assert.ok(published.includes('index.html'));
   assert.ok(published.includes('data/animals.json'));
