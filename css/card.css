@@ -337,7 +337,9 @@
 .stage-cmp__body .cmp { flex: 1 1 0; min-height: 0; padding: 0 var(--s-3); }
 .stage-cmp .cmp-toggle__btn { justify-content: center; min-width: 0; min-height: calc(var(--tap) / var(--card-s, 1)); padding: var(--s-1); border-radius: var(--r-sm); }
 .stage-cmp__who .cmp-toggle__btn .bi { flex-direction: column; gap: 0; line-height: 1.1; }
-.stage-cmp .cmp-len, .stage-cmp .cmp-wt { flex: 1 1 0; min-height: 0; height: auto; }
+.stage-cmp .cmp-len, .stage-cmp .cmp-wt, .stage-cmp .cmp-life { flex: 1 1 0; min-height: 0; height: auto; }
+/* The two timelines spread over the room the scene has, on thicker bars. */
+.stage-cmp .cmp-life { align-content: space-evenly; --life-bar: var(--stage-life-bar); }
 .stage-cmp .cmp-wt__icon { max-width: 100%; }
 /* Name over size, each language beside the other where they fit. */
 .stage-cmp .cmp-len__cap .cmp__num .bi { flex-direction: row; flex-wrap: wrap; justify-content: center; column-gap: 0.4em; }

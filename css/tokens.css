@@ -313,6 +313,7 @@
   --stage-short: 220px; /* a stage shorter than this on the screen shows Size without its partners */
   --stage-step-h: 64px; /* a step of the Red List scale */
   --stage-cmp-icon: 64px; /* figures on the weight balance, on the stage */
+  --stage-life-bar: 30px; /* a lifespan timeline, on the stage */
   --stage-look-h: 170px;  /* the lookalike scene, on the stage */
   --hand-size: 84px;    /* the hand that shows how to open a card: its disc */
   --hand-glyph: 3rem;   /* and the hand on it */
