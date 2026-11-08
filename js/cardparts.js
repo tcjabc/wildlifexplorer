@@ -65,7 +65,7 @@ export const glossed = pair => h('p', { class: ['ff__text', pair.todo && 'is-tod
 // The series the card arrives in (data/drops.json), or null.
 export const seriesOf = card => state.drops.find(d => d.cards.some(c => c.id === card.id))?.series ?? null;
 
-function headerStrip(card, start) {
+export function headerStrip(card, start) {
   const series = seriesOf(card);
   return h('div', { class: 'cover__top' },
     start,

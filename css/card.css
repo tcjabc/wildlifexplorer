@@ -281,14 +281,14 @@
   background: var(--head); color: var(--head-ink); box-shadow: var(--shadow-2);
   font: inherit; font-size: var(--card-fs-sm); font-weight: var(--fw-bold); line-height: 1.15; cursor: pointer;
 }
-.hbtn[data-slot="1"] { --head: var(--head-1); --head-ink: var(--head-1-ink); }
-.hbtn[data-slot="2"] { --head: var(--head-2); --head-ink: var(--head-2-ink); }
-.hbtn[data-slot="3"] { --head: var(--head-3); --head-ink: var(--head-3-ink); }
-.hbtn[data-slot="4"] { --head: var(--head-4); --head-ink: var(--head-4-ink); }
-.hbtn[data-slot="5"] { --head: var(--head-5); --head-ink: var(--head-5-ink); }
-.hbtn[data-slot="6"] { --head: var(--head-6); --head-ink: var(--head-6-ink); }
-.hbtn[data-slot="7"] { --head: var(--head-7); --head-ink: var(--head-7-ink); }
-.hbtn[data-slot="8"] { --head: var(--head-8); --head-ink: var(--head-8-ink); }
+.hbtn[data-slot="1"], .ff__section[data-slot="1"] { --head: var(--head-1); --head-ink: var(--head-1-ink); }
+.hbtn[data-slot="2"], .ff__section[data-slot="2"] { --head: var(--head-2); --head-ink: var(--head-2-ink); }
+.hbtn[data-slot="3"], .ff__section[data-slot="3"] { --head: var(--head-3); --head-ink: var(--head-3-ink); }
+.hbtn[data-slot="4"], .ff__section[data-slot="4"] { --head: var(--head-4); --head-ink: var(--head-4-ink); }
+.hbtn[data-slot="5"], .ff__section[data-slot="5"] { --head: var(--head-5); --head-ink: var(--head-5-ink); }
+.hbtn[data-slot="6"], .ff__section[data-slot="6"] { --head: var(--head-6); --head-ink: var(--head-6-ink); }
+.hbtn[data-slot="7"], .ff__section[data-slot="7"] { --head: var(--head-7); --head-ink: var(--head-7-ink); }
+.hbtn[data-slot="8"], .ff__section[data-slot="8"] { --head: var(--head-8); --head-ink: var(--head-8-ink); }
 .hbtn__icon { font-size: var(--heading-icon); line-height: 1.1; }
 .hbtn__label { min-width: 0; text-align: center; }
 .hbtn__label .bi { align-items: center; }
@@ -541,6 +541,42 @@ a.related__item { border-color: var(--g, var(--c-paper-line)); }
 }
 .ff__soon .bi { align-items: center; }
 .ff__soon-icon { font-size: var(--emoji-xl); line-height: 1; opacity: 0.35; }
+
+/* The back: the Fact File (js/fact-back.js), text only, like a printed card back. The header stays
+   put; the body scrolls inside the card. Each heading has its grid colour as a small marker. */
+.cpage--back { padding: 0; gap: 0; }
+.ff__title { display: inline-flex; align-items: center; gap: var(--s-1); font-size: var(--card-fs-sm); }
+.ff__title .bi { flex-direction: row; gap: 0.4em; }
+.ff__body { gap: var(--s-3); }
+.ff__cardname { font-size: var(--card-fs-title); line-height: 1.15; }
+.ff__sci { margin-top: calc(var(--s-3) * -1); color: var(--c-ink-soft); font-size: var(--card-fs-sm); }
+.ff__vitals {
+  padding: var(--s-2); border: var(--bw-thin) solid var(--g, var(--c-line)); border-radius: var(--r-sm);
+  background: var(--c-surface);
+}
+.ff__vitals-title { margin-bottom: var(--s-1); color: var(--g-edge, var(--c-ink-soft)); font-size: var(--card-fs-sm); font-weight: var(--fw-bold); text-transform: uppercase; letter-spacing: 0.04em; }
+.ff__vitals-title .bi { flex-direction: row; flex-wrap: wrap; column-gap: 0.4em; }
+.ff__stats .stat { padding: var(--s-hair) 0; }
+.ff__stats .stat:last-child { border-bottom: 0; }
+.ff__facts { margin: var(--s-1) 0 0; padding-left: var(--s-4); font-size: var(--card-fs-sm); }
+.ff__facts li + li { margin-top: var(--s-hair); }
+.ff__section { --head: var(--c-paper-line); --head-ink: var(--c-ink); display: flex; flex-direction: column; gap: var(--s-1); }
+.ff__head {
+  display: flex; align-items: center; gap: var(--s-2);
+  padding-bottom: var(--s-hair); border-bottom: var(--bw-mid) solid var(--head);
+  font-size: var(--card-fs); font-weight: var(--fw-bold);
+}
+.ff__head .bi { flex-direction: row; flex-wrap: wrap; column-gap: 0.4em; align-items: baseline; }
+.ff__mark {
+  flex: none; display: grid; place-items: center; width: var(--callout-dot); height: var(--callout-dot);
+  border-radius: var(--r-sm); background: var(--head); color: var(--head-ink);
+  font-size: var(--card-fs-sm); line-height: 1;
+}
+.cpage--back .ff__text { font-size: var(--card-fs); }
+.ff__section > .badge { align-self: flex-start; }
+.ff__names { display: flex; flex-wrap: wrap; gap: 0 var(--s-1); }
+.ff__name-item + .ff__name-item::before { content: "·"; margin-right: var(--s-1); }
+.ff__names .bi { flex-direction: row; gap: 0.3em; }
 
 .card-credits { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-2); font-size: var(--fs-xs); }
 .card-credits a { word-break: break-word; }
