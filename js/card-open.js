@@ -12,9 +12,8 @@ import { lookalikesOf } from './lookalikes.js';
 import { stageFor } from './stage-views.js';
 import { playNarration, stopCall } from './card-call.js';
 
-// onHeading(id, { again }): a heading was tapped; again when it was already lit. It returns true
-// when it took care of an again (the card turned over to it); otherwise an again goes back to the
-// gallery.
+// onHeading(id, { again }): a heading was tapped; again when it was already lit (it goes back to the
+// gallery).
 export function openCard(card, { onCredit, onMap, onCall, onHeading } = {}) {
   const ctx = { preview: preview(), lookalikes: lookalikesOf(card).length, related: relatedOf(card).length };
   const grid = headingsFor(card, ctx);
@@ -44,9 +43,8 @@ export function openCard(card, { onCredit, onMap, onCall, onHeading } = {}) {
     onclick: () => {
       if (!x.enabled) return;
       const again = x.id === current;
-      if (again && onHeading?.(x.id, { again })) return;
       select(again ? null : x.id);
-      if (!again) onHeading?.(x.id, { again });
+      onHeading?.(x.id, { again });
     },
   }, h('span', { class: 'hbtn__icon', 'aria-hidden': 'true' }, x.icon), h('span', { class: 'hbtn__label' }, tx(x.label))));
 

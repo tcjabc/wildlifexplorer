@@ -196,28 +196,46 @@ both('a heading lights up without a sound, switches the stage and finds its sect
   if (kind === 'side') {
     await f.wait(700); // it glides there
     assert.deepEqual(await f.section(), { id: 'status', inView: true }, 'the back shows its section');
-    // Again: back to the gallery.
-    await f.tap('.hbtn[data-heading="status"]');
-    assert.deepEqual(await f.lit(), []);
-    assert.match(await f.stage(), /stage-pic/, 'back to the gallery');
-    assert.equal(await f.section(), null);
   } else {
-    // Again: the card turns over, to its section.
-    await f.tap('.hbtn[data-heading="status"]');
+    // On one page the back has it ready: 🔄 turns over to it, and back.
+    await f.page.click('.viewer__bar .viewer__flip');
     await f.faces('back');
     assert.deepEqual(await f.section(), { id: 'status', inView: true });
     assert.match(await f.back(), /Red List/);
-    await f.vertical('.ff__section.is-lit', 'down');
-    if (await f.page.evaluate(() => document.querySelector('.viewer__stage').dataset.face) === 'back') {
-      // The back scrolled first: from its top, down turns it back.
-      await f.page.evaluate(() => { document.querySelector('.ff__body').scrollTop = 0; });
-      await f.vertical('.ff__body', 'down');
-    }
+    await f.page.click('.viewer__bar .viewer__flip');
     await f.faces('front');
-    assert.deepEqual(await f.lit(), ['status'], 'still lit on the front');
   }
+  // Again: back to the gallery, in both, and the card stays on the side it shows.
+  await f.tap('.hbtn[data-heading="status"]');
+  assert.deepEqual(await f.lit(), []);
+  assert.match(await f.stage(), /stage-pic/, 'back to the gallery');
+  assert.equal(await f.section(), null);
+  assert.equal(await f.page.evaluate(() => document.querySelector('.viewer__stage').dataset.face), kind === 'side' ? 'both' : 'front');
   await f.wait(150);
   assert.deepEqual(await f.said(), [], 'nothing was said');
+});
+
+both('the photo and the illustration: two dots at the bottom centre, only on cards with both, and one credits button', async f => {
+  await f.card('formosan-black-bear'); // photo and illustration
+  const dots = () => f.page.evaluate(() => [...document.querySelectorAll('.stage .stage-pic__dot')].map(d => [d.dataset.kind, d.getAttribute('aria-checked')]));
+  assert.deepEqual(await dots(), [['photo', 'true'], ['illustration', 'false']]);
+  const at = await f.page.evaluate(() => {
+    const st = document.querySelector('.stage').getBoundingClientRect(), g = document.querySelector('.stage-pic__dots').getBoundingClientRect();
+    const d = document.querySelector('.stage-pic__dot').getBoundingClientRect();
+    return { centre: Math.abs((g.left + g.right) / 2 - (st.left + st.right) / 2), bottom: st.bottom - g.bottom, tap: Math.min(d.width, d.height) };
+  });
+  assert.ok(at.centre <= 2 && at.bottom <= 2, `at the bottom centre: ${JSON.stringify(at)}`);
+  assert.ok(at.tap >= 43, `a whole tap target: ${at.tap}`);
+  await f.tap('.stage-pic__dot[data-kind="illustration"]');
+  assert.deepEqual(await dots(), [['photo', 'false'], ['illustration', 'true']]);
+  assert.match(await f.page.evaluate(() => document.querySelector('.stage-pic .pic').getAttribute('src')), /illustration/);
+  assert.equal(await f.page.evaluate(() => document.querySelectorAll('.stage .cover__credit').length), 1, 'one credits button');
+  assert.match(await f.page.evaluate(() => location.hash), /formosan-black-bear$/, 'a tap on a dot changes no card');
+  await f.page.evaluate(() => { location.hash = '#/binder'; });
+  await f.wait(700);
+  await f.card('formosan-rock-macaque'); // a photo only
+  assert.deepEqual(await dots(), []);
+  assert.equal(await f.page.evaluate(() => document.querySelectorAll('.stage .cover__credit').length), 1);
 });
 
 const readButton = '.viewer__bar .btn--read';

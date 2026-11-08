@@ -5,8 +5,8 @@
 //   the heading grid), and the back, to read (js/fact-back.js: the Fact File). Where there is room
 //   for two pages (js/card-layout.js openLayout) they lie side by side, both always there, and a
 //   heading tapped on the front also brings its section into view on the back. Where there isn't,
-//   the card is one page that turns over (rotateX): a swipe up or down, or 🔄; tapping the lit
-//   heading again turns it over to that heading's section.
+//   the card is one page that turns over (rotateX): a swipe up or down, or 🔄, to the back with that
+//   heading's section in view.
 // - Gestures are decided by direction, from anywhere on the card (or a margin around it, never the
 //   screen's right edge, where the notebook spine goes): sideways changes card (as ‹ › do), up or
 //   down turns it over (one page only). A movement under the slop is a tap, so the buttons on the
@@ -272,20 +272,11 @@ export function toggleFlip(way = 'up') {
   settle('f', base + (way === 'down' ? -1 : 1));
 }
 
-// A heading tapped on the front (js/card-open.js). Side by side, the back brings its section into
-// view (and the lit one again goes back to the gallery). On one page, its section is ready on the
-// back, and the lit one tapped again turns the card over to it.
+// A heading tapped on the front (js/card-open.js): its section comes into view on the back (side by
+// side it glides there; on one page it is ready for when the card turns over). The lit one tapped
+// again goes back to the gallery, and the back to no section.
 function onHeading(id, { again }) {
-  if (!v) return false;
-  const back = v.built.back;
-  if (twoPages()) {
-    showSection(back, again ? null : id);
-    return false;
-  }
-  showSection(back, id, { smooth: false });
-  if (!again) return false;
-  toggleFlip('up');
-  return true;
+  if (v) showSection(v.built.back, again ? null : id, { smooth: twoPages() });
 }
 
 // ---------- gestures ----------

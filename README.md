@@ -282,10 +282,10 @@ the **back**, the Fact File, for readers and grown-ups. Pages are laid out at de
   card's Who to look for names its animals. No speech; it scrolls inside the card. Text still to
   check (`todo`) shows only to a grown-up in preview.
 - **Side by side** where there is room for two pages (landscape): front and back always both there,
-  the same height. A heading tapped on the front also brings its section into view on the back, marked;
-  tapped again, the front goes back to the gallery.
+  the same height. A heading tapped on the front also brings its section into view on the back, marked.
 - **One page** where there isn't (portrait, a phone, beside the expanded notebook): the card turns over
-  between front and back. The lit heading tapped again turns it over to that heading's section.
+  between front and back (swipe up or down, or 🔄), with the lit heading's section in view.
+- The lit heading tapped again goes back to the gallery, in both.
 - Pack reveals still show the old cover (`coverPage` in `js/cardparts.js`).
 
 Every card has the same grid (`js/headings.js`, tested on every card in `tests/headings.test.mjs`):
