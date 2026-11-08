@@ -295,7 +295,7 @@ Every card has the same grid (`js/headings.js`, tested on every card in `tests/h
 | 1 | 🏠 Habitat | its habitat picture (spot the animal), or photo | ❓ What is it? | photo |
 | 2 | 🍃 Food & Hunting | one food at a time, an emoji for each, or photo | How it works (a gear) | photo |
 | 3 | 🥚 Babies | a photo of its young, or photo | 👀 Who to look for | `related` cards, or photo |
-| 4 | 🐾 Behaviour | the Profile magnifier, or photo | 🕒 When | photo |
+| 4 | 🐾 Behaviour | the Profile magnifier, or a photo of what it does, or photo | 🕒 When | photo |
 | 5 | 📏 Size | creature comparison | ⭐ Wow! | photo |
 | 6 | 🌍 Where in the World | map | 🌍 Where | map |
 | 7 | ❤️ Status | Red List scale | ❤️ How we help | photo |
@@ -324,6 +324,8 @@ card's credit sheet and the Credits page, and load only when their stage opens.
   one showing lit. A food with no photo shows its emoji big on the paper. 📷 credits the photo showing.
 - `"babies": { image, credit }` (`js/stage-pictures.js`): one photo of its young (or a parent with its
   young), nothing to do but look. Never eggs being taken, a nest raid or a kill.
+- `"behaviour": { image, credit }` (`js/stage-pictures.js`): one photo of the behaviour its text names,
+  nothing to tap. A card with the Profile magnifier shows that first.
 
 **An animal's call**: `"call": { "file": "audio/calls/formosan-black-bear.m4a", "author": …, "license": …,
 "licenseUrl": …, "sourceUrl": … }` plays when the gallery on the stage is tapped. No card has one

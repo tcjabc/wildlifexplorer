@@ -43,3 +43,25 @@ test('Babies shows the photo where there is one, the gallery where there isn\'t'
   const noText = { ...species.find(c => c.id === 'eurasian-otter'), factFile: {} };
   assert.ok(headingsFor(noText)[2].enabled, 'a photo lights the heading even with no Babies text');
 });
+
+// Behaviour: one photo of what its text says it does, on 27 species cards. The bear and the macaque
+// keep their Profile magnifier; the Atlas moth has none yet (docs/stage-gaps.md).
+test('27 species cards have a behaviour photo; the Profile comes first where there is one', async () => {
+  const { behaviourOf } = await import('../js/stage-pictures.js');
+  const behaviour = SPECIES_HEADINGS[3];
+  const have = species.filter(c => behaviourOf(c));
+  assert.equal(have.length, 27);
+  assert.deepEqual(species.filter(c => !behaviourOf(c)).map(c => c.id).sort(), ['atlas-moth', 'formosan-black-bear', 'formosan-rock-macaque']);
+  for (const c of have) {
+    const pic = behaviourOf(c);
+    assert.ok(existsSync(at(pic.file)) && existsSync(at(thumbPath(pic.file))), `${c.id}: files`);
+    assert.ok(isAllowedLicenseName(pic.license), `${c.id}: licence ${pic.license}`);
+    for (const k of ['author', 'license', 'licenseUrl', 'sourceUrl']) assert.ok(pic[k], `${c.id}: no ${k}`);
+    assert.ok(!/@/.test(pic.author), `${c.id}: no email in the credit`);
+    assert.equal(viewFor(c, behaviour), 'behaviour', c.id);
+  }
+  for (const id of ['formosan-black-bear', 'formosan-rock-macaque']) assert.equal(viewFor(species.find(c => c.id === id), behaviour), 'profile', id);
+  assert.equal(viewFor(species.find(c => c.id === 'atlas-moth'), behaviour), 'photo', 'the gallery, for now');
+  const pics = cards.flatMap(c => [babiesOf(c), behaviourOf(c)].filter(Boolean).map(p => p.sourceUrl));
+  assert.equal(new Set(pics).size, pics.length, 'no photo used twice');
+});

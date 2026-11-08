@@ -482,6 +482,29 @@ run('Babies: its own photo of the young (nothing to tap); the gallery where ther
   }
 });
 
+run('Behaviour: its own photo (nothing to tap); the Profile where a card has one; the gallery where there is neither', async f => {
+  for (const [id, want] of [['lion', 'photo'], ['formosan-black-bear', 'profile'], ['atlas-moth', 'gallery']]) {
+    await f.card(id);
+    await f.tap('.hbtn[data-heading="behaviour"]');
+    await f.rests();
+    assert.deepEqual(await f.lit(), ['behaviour'], id);
+    const got = await f.page.evaluate(() => ({ cls: document.querySelector('.stage').firstElementChild.className, src: document.querySelector('.stage .pic')?.getAttribute('src') }));
+    if (want === 'photo') {
+      assert.match(got.cls, /stage-behaviour/, id);
+      assert.match(got.src, /-behaviour-/, id);
+      assert.equal(await f.page.evaluate(() => document.querySelectorAll('.stage button:not(.cover__credit)').length), 0, `${id}: nothing to tap`);
+    } else if (want === 'profile') {
+      assert.match(got.cls, /stage-profile/, `${id}: the Profile magnifier stays`);
+    } else {
+      assert.doesNotMatch(got.cls, /stage-behaviour|stage-profile/, id);
+      assert.match(got.src, /-photo-/, `${id}: the gallery photo`);
+    }
+    assert.equal((await f.section())?.id, 'behaviour', id);
+    await f.page.evaluate(() => { location.hash = '#/binder'; });
+    await f.wait(700);
+  }
+});
+
 both('topic cards: their own set, in the same grid, with their facts on the back', async f => {
   await f.card('kenting-coral-reefs');
   const grid = await f.page.evaluate(() => [...document.querySelectorAll('.hbtn')].map(b => [b.dataset.heading, b.getAttribute('aria-disabled') !== 'true']));

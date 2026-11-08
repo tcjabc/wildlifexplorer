@@ -16,7 +16,7 @@ import { lookalikePanel, lookalikesOf } from './lookalikes.js';
 import { hasMap } from './headings.js';
 import { coverBox, findOnBox, habitatOf, isFound } from './habitat.js';
 import { foodOf } from './food.js';
-import { babiesOf } from './stage-pictures.js';
+import { babiesOf, behaviourOf } from './stage-pictures.js';
 import { haptic } from './gesture.js';
 import { magnifier, featureOf } from './magnifier.js';
 import { placeMap, worldMap } from './worldmap.js';
@@ -66,6 +66,12 @@ function stagePhoto(pic, alt, cls, onCredit) {
 // Its young: one photo, nothing to do but look.
 function babies(card, { onCredit }) {
   return { el: stagePhoto(babiesOf(card), 'heading.babies', 'stage-babies', () => onCredit?.('babies')).frame };
+}
+
+// What it does: one photo of the behaviour its text names. The Profile magnifier, where a card has
+// one, comes first (js/headings.js).
+function behaviour(card, { onCredit }) {
+  return { el: stagePhoto(behaviourOf(card), 'ff.behaviour', 'stage-behaviour', () => onCredit?.('behaviour')).frame };
 }
 
 // Where it lives: a photo of its real home. When the animal is in it (find), a tap on the animal
@@ -297,6 +303,7 @@ export const STAGE_VIEWS = {
   profile,
   food,
   babies,
+  behaviour,
   compare,
   map,
   status,

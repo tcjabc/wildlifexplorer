@@ -13,7 +13,7 @@
 import { modesFor } from './compare-data.js';
 import { habitatOf } from './habitat.js';
 import { foodOf } from './food.js';
-import { babiesOf } from './stage-pictures.js';
+import { babiesOf, behaviourOf } from './stage-pictures.js';
 
 const filled = p => p && (p.en || p.zh);
 const shown = (p, preview) => filled(p) && (!p.todo || preview);
@@ -24,7 +24,7 @@ export const SPECIES_HEADINGS = [
   { id: 'habitat', slot: 1, icon: '🏠', label: 'ff.habitat', text: 'habitat', views: ['habitat', 'photo'] },
   { id: 'food', slot: 2, icon: '🍃', label: 'ff.foodAndHunting', text: 'foodAndHunting', views: ['food', 'photo'] },
   { id: 'babies', slot: 3, icon: '🥚', label: 'heading.babies', text: 'breeding', views: ['babies', 'photo'] },
-  { id: 'behaviour', slot: 4, icon: '🐾', label: 'ff.behaviour', text: 'behaviour', views: ['profile', 'photo'] },
+  { id: 'behaviour', slot: 4, icon: '🐾', label: 'ff.behaviour', text: 'behaviour', views: ['profile', 'behaviour', 'photo'] },
   { id: 'size', slot: 5, icon: '📏', label: 'heading.size', views: ['compare'] },
   { id: 'where', slot: 6, icon: '🌍', label: 'card.where', views: ['map'] },
   { id: 'status', slot: 7, icon: '❤️', label: 'heading.status', text: 'conservation', views: ['status'] },
@@ -71,6 +71,7 @@ export const VIEW_HAS = {
   photo: () => true,
   food: c => foodOf(c).length > 0,
   babies: c => Boolean(babiesOf(c)),
+  behaviour: c => Boolean(behaviourOf(c)),
   profile: c => Boolean(c.profile?.callouts?.length && c[c.profile.image ?? 'photo']?.file),
   compare: (c, { lookalikes = 0 }) => {
     const m = modesFor(c);
