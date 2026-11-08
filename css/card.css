@@ -363,7 +363,8 @@
 /* Lookalikes also list how to tell them apart: more than a short stage can hold. */
 .stage-cmp__body--scroll { display: block; overflow-y: auto; overscroll-behavior: contain; padding: 0 var(--s-3) var(--s-2); }
 .stage-cmp__body--scroll .cmp { padding: 0; }
-.stage-cmp__who { flex: none; align-self: stretch; margin: 0 var(--s-2); display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); border-radius: var(--r-md); }
+/* The partners, in the top row beside the other choices when they fit, else on a row of their own. */
+.stage-cmp__who { flex: 1 1 auto; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); border-radius: var(--r-md); }
 .stage-cmp__who[hidden] { display: none; }
 .stage-cmp__body .cmp { flex: 1 1 0; min-height: 0; padding: 0 var(--s-3); }
 .stage-cmp__count { flex: none; }
@@ -373,7 +374,9 @@
 .stage-cmp .cmp-wt__icon { max-width: 100%; }
 /* Name over size, each language beside the other where they fit. */
 .stage-cmp .cmp-len__cap .cmp__num .bi { flex-direction: row; flex-wrap: wrap; justify-content: center; column-gap: 0.4em; }
-.stage-cmp__top .cmp-toggle__btn { min-width: calc(var(--tap) / var(--card-s, 1)); font-size: var(--card-fs-title); }
+.stage-cmp__top > :not(.stage-cmp__who) .cmp-toggle__btn { min-width: calc(var(--tap) / var(--card-s, 1)); font-size: var(--card-fs-title); }
+/* A stage too short for everything (a phone on its side): the scene and its modes only. */
+.stage-cmp[data-short="true"] .stage-cmp__count, .stage-cmp[data-short="true"] .stage-cmp__who { display: none; }
 
 /* A row of figures to tap and count (js/count-row.js). */
 .count {
@@ -381,11 +384,12 @@
   padding: var(--s-1) var(--s-3); border: 0; background: var(--c-callout-soft); color: var(--c-ink);
   font: inherit; font-weight: var(--fw-bold); cursor: pointer;
 }
-.count__figs { flex: 1 1 auto; min-width: 0; display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--s-1); }
+/* One row, however many: the figures shrink to fit it (js/count-row.js sets --fig-scale). */
+.count__figs { flex: 1 1 auto; min-width: 0; display: flex; flex-wrap: nowrap; align-items: flex-end; gap: var(--s-1); overflow: hidden; }
 .count__fig { display: block; opacity: var(--o-dimmed); filter: grayscale(1); }
 .count__fig.is-lit { opacity: 1; filter: none; }
 /* The same size on the screen whatever the card's scale. */
-.count { --fig: calc(var(--count-fig) / var(--card-s, 1)); }
+.count__figs { --fig: calc(var(--count-fig) / var(--card-s, 1) * var(--fig-scale, 1)); }
 .count__emoji { display: block; font-size: var(--fig); line-height: 1; }
 .count__img { display: block; height: var(--fig); width: auto; max-width: calc(var(--fig) * 2); object-fit: contain; }
 .count__say { flex: none; max-width: 50%; font-size: var(--card-fs-title); text-align: right; }

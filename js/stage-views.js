@@ -18,6 +18,8 @@ import { hasMap } from './headings.js';
 import { magnifier, featureOf } from './magnifier.js';
 import { placeMap, worldMap } from './worldmap.js';
 
+const cssNum = name => parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
+
 const KINDS = [['photo', '📷'], ['illustration', '🎨']];
 
 // The card's pictures, photo first, kept as separate files. With both, two buttons swap them.
@@ -120,7 +122,7 @@ function chooser(items, on, onPick, { cls, words = true, name }) {
 }
 
 // The creature comparison, on the whole stage. You: the animal beside the child, or a grown-up, a
-// cat or a car, with a row of figures to count how many make the other. Animal (with lookalikes):
+// cat or a car; lengths with a row of figures to count how many make the other. Animal (with lookalikes):
 // the animal beside its lookalikes.
 function compare(card) {
   const modes = MODES.filter(([m]) => modesFor(card)[m]);
@@ -133,7 +135,8 @@ function compare(card) {
 
   const count = h('div', { class: 'stage-cmp__count' });
   function drawCount() {
-    const c = mode === 'lifespan' ? null : countFor(card, mode, partner(who));
+    // Only lengths are counted out: the balance already shows how many make the other.
+    const c = mode === 'length' ? countFor(card, mode, partner(who)) : null;
     if (!c) { mount(count); return; }
     const figure = () => (c.side === 'who' ? whoImg(partner(who), 'count__img') : animalImg(card, 'count__img'));
     const { one, many } = card.compare?.counted ?? {};
@@ -143,14 +146,14 @@ function compare(card) {
 
   const whoRow = chooser(whoOf(card).map(whoChoice), who, value => { who = value; draw(); }, { cls: 'stage-cmp__who', name: 'compare.with' });
   function draw() {
+    // A car has no birthdays: lifespans are the child's. Lookalikes need no partner.
+    whoRow.hidden = mode === 'lifespan' || view === 'animal';
     if (view === 'animal') { others.show(); return; }
-    whoRow.hidden = mode === 'lifespan'; // a car has no birthdays: lifespans are the child's
     panel.show(mode, partner(mode === 'lifespan' ? 'you' : who));
     drawCount();
   }
 
-  const you = mode && h('div', { class: 'stage-cmp__body' },
-    whoRow, panel.el, count);
+  const you = mode && h('div', { class: 'stage-cmp__body' }, panel.el, count);
   const animal = others && h('div', { class: 'stage-cmp__body stage-cmp__body--scroll', 'data-scroll': '' }, others.el);
   const setView = value => {
     view = value;
@@ -161,12 +164,15 @@ function compare(card) {
   };
   const top = h('div', { class: 'stage-cmp__top' },
     you && animal && chooser([['you', '🧒', 'compare.you'], ['animal', '🐾', 'compare.animal']], view, setView, { name: 'compare.with' }),
-    modes.length > 1 && chooser(modes, mode, value => { mode = value; draw(); }, { words: false, name: 'heading.size' }));
+    modes.length > 1 && chooser(modes, mode, value => { mode = value; draw(); }, { words: false, name: 'heading.size' }),
+    // The partners share the row when there's room, so a short stage keeps its room for the scene.
+    mode && whoRow);
   if (you && animal) animal.hidden = true;
 
   let drawn = '';
+  const el = h('div', { class: 'stage-cmp' }, top.childElementCount > 0 && top, you, animal);
   return {
-    el: h('div', { class: 'stage-cmp' }, top.childElementCount > 0 && top, you, animal),
+    el,
     // The scenes are measured from the stage, so they are drawn once it is there; after that a
     // new size only fits the scene to it, keeping the mode, the partner and the count so far.
     layout(w, height) {
@@ -174,6 +180,9 @@ function compare(card) {
       if (drawn === size) return;
       const first = !drawn;
       drawn = size;
+      // A stage too short for the scene, its partners and a row to count (a phone on its side): the
+      // scene and its modes only.
+      el.dataset.short = String(el.getBoundingClientRect().height < cssNum('--stage-short'));
       if (first) draw(); else panel.resize();
     },
     replay: draw,

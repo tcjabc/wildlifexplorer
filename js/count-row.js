@@ -21,6 +21,16 @@ export function countRow({ count, figure, done }) {
     haptic(6);
   };
   reset();
-  return h('button', { class: 'count', type: 'button', 'aria-label': label('card.countTap'), onclick: tap },
-    h('span', { class: 'count__figs' }, figs), say);
+  // All the figures in one row: smaller when there are more than fit (the gaps stay as they are).
+  const row = h('span', { class: 'count__figs' }, figs);
+  const fit = () => {
+    row.style.setProperty('--fig-scale', '1');
+    const gaps = (parseFloat(getComputedStyle(row).columnGap) || 0) * (count - 1);
+    const k = (row.clientWidth - gaps) / (row.scrollWidth - gaps);
+    if (k > 0 && k < 1) row.style.setProperty('--fig-scale', String(Math.floor(k * 100) / 100));
+  };
+  const watch = typeof ResizeObserver === 'function' ? new ResizeObserver(() => { if (row.isConnected) fit(); else watch.disconnect(); }) : null;
+  watch?.observe(row);
+  row.addEventListener('load', fit, true); // a picture arriving makes the row wider
+  return h('button', { class: 'count', type: 'button', 'aria-label': label('card.countTap'), onclick: tap }, row, say);
 }
