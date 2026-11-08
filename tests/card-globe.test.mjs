@@ -78,7 +78,9 @@ test('the router keeps the card screen when leaving it, and gives it back coming
   // Asked before the binder is drawn behind the card (which changes what is shown).
   assert.ok(app.indexOf("const restore = ['globe', 'notes']") < app.indexOf("if (binderGroup() !== card.group) renderMain"), 'restore is decided first');
   const viewer = src('js/viewer.js');
-  assert.match(viewer, /restore\?\.side === 'inside'\) v\.p = 1/);
+  assert.match(viewer, /restore\?\.side === 'inside' \|\| restore\?\.under === 'inside'\) v\.p = 1/);
+  assert.match(viewer, /restore\?\.side === 'back'\) v\.f = 1/, 'the back comes back too');
+  assert.match(viewer, /under: underOf\(v\)/, 'and what it lay over');
   assert.match(viewer, /restore\?\.heading\) v\.built\.open\.select\(restore\.heading/, 'the lit heading comes back too');
   assert.match(viewer, /heading: v\.built\.open\.selected\(\)/);
   assert.match(viewer, /start: notes/, 'the notebook opens where it was');
