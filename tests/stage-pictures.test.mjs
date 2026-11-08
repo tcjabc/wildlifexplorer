@@ -40,6 +40,6 @@ test('21 species cards have a photo of their young, credited like the photos', (
 
 test('Babies shows the photo where there is one, the gallery where there isn\'t', () => {
   for (const c of species) assert.equal(viewFor(c, babies), babiesOf(c) ? 'babies' : 'photo', c.id);
-  const otter = species.find(c => c.id === 'eurasian-otter');
-  assert.ok(headingsFor(otter)[2].enabled, 'a photo lights the heading even with no Babies text');
+  const noText = { ...species.find(c => c.id === 'eurasian-otter'), factFile: {} };
+  assert.ok(headingsFor(noText)[2].enabled, 'a photo lights the heading even with no Babies text');
 });

@@ -2440,9 +2440,8 @@
       ],
       "breeding": [
         {
-          "en": "Scientists know little about how these squirrels raise their young, but they think a mother usually has fewer than two young at a time.",
-          "zh": "科學家對白面鼯鼠怎麼養育寶寶了解得不多，但認為媽媽一次通常生不到2隻。",
-          "todo": "Only one secondary source (\"reproductive rate likely low, less than two young per litter\"); no Taiwan-specific data found."
+          "en": "Scientists still know little about how these flying squirrels raise their young. A mother probably has just one baby at a time. While she is feeding it milk, she takes her baby along with her when she goes out at night to find food.",
+          "zh": "科學家對白面鼯鼠怎麼養育寶寶，到現在還了解得不多。媽媽一次大概只生1隻寶寶。在餵奶的那段時間，媽媽晚上出去找食物時，會把寶寶一起帶在身邊。"
         }
       ],
       "behaviour": [
@@ -2679,8 +2678,8 @@
       ],
       "breeding": [
         {
-          "en": "",
-          "zh": ""
+          "en": "A mother otter usually has two or three cubs after a pregnancy of about two months, and she raises them on her own. The cubs’ eyes open when they are about a month old, and at about two months they start to come out of the den. They stay with their mother for about a year, sometimes a little longer.",
+          "zh": "水獺媽媽懷孕大約兩個月，一胎通常生2到3隻小水獺，而且是自己一個把牠們養大。小水獺大約一個月大時才睜開眼睛，兩個月大左右開始走出窩。牠們會跟著媽媽生活大約一年，有時候還要更久一點。"
         }
       ],
       "behaviour": [
@@ -2884,6 +2883,14 @@
         "for": [
           "stats.weightKg"
         ]
+      },
+      {
+        "title": "Animal Diversity Web: Lutra lutra (gestation 60–70 days, 2–3 cubs, eyes open after a month, leave the nest at two months, weaned at three, with the mother up to 14 months)",
+        "url": "https://animaldiversity.org/accounts/Lutra_lutra/"
+      },
+      {
+        "title": "International Otter Survival Fund: Eurasian otter (the female raises the cubs alone, about a year with her)",
+        "url": "https://www.otter.org/eurasian-otter"
       }
     ]
   },

@@ -87,15 +87,16 @@ test('on today\'s 30 species cards: what is lit and what is grey', () => {
   assert.equal(on('dyk').length, 30);
   assert.equal(on('where').length, 30, 'a range map, or the continent');
   assert.equal(on('food').length, 30, 'the food tray');
-  assert.deepEqual(species.map(c => c.id).filter(id => !on('babies').includes(id)), ['red-and-white-giant-flying-squirrel'], 'the otter has a photo of its cubs');
+  assert.deepEqual(species.map(c => c.id).filter(id => !on('babies').includes(id)), [], 'every card has Babies text or a photo');
   assert.deepEqual(species.map(c => c.id).filter(id => !on('status').includes(id)), ['atlas-moth', 'tardigrade-water-bear']);
   assert.deepEqual(species.map(c => c.id).filter(id => !on('size').includes(id)), []);
 });
 
 test('the back: the headings with something to read, in the grid order, none greyed out', () => {
   const ids = c => backSections(c).map(x => x.id);
-  const squirrel = cards.find(c => c.id === 'red-and-white-giant-flying-squirrel');
-  // Its babies text is still to check (todo): only a grown-up in preview reads it.
+  const card = cards.find(c => c.id === 'red-and-white-giant-flying-squirrel');
+  // With its babies text still to check (todo), only a grown-up in preview reads it.
+  const squirrel = { ...card, factFile: { ...card.factFile, breeding: card.factFile.breeding.map(q => ({ ...q, todo: 'check' })) } };
   assert.deepEqual(ids(squirrel), ['habitat', 'food', 'behaviour', 'where', 'status', 'dyk']);
   assert.deepEqual(backSections(squirrel, { preview: true }).map(x => x.id), ['habitat', 'food', 'babies', 'behaviour', 'where', 'status', 'dyk']);
   for (const c of cards) {
