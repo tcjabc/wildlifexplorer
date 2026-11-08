@@ -371,9 +371,8 @@
 .stage-cmp__who .cmp-toggle__btn .bi { flex-direction: column; gap: 0; line-height: 1.1; }
 .stage-cmp .cmp-len, .stage-cmp .cmp-wt { flex: 1 1 0; min-height: 0; height: auto; }
 .stage-cmp .cmp-wt__icon { max-width: 100%; }
-/* Name over size, each language beside the other: three lines under the ground at most. */
-.stage-cmp .cmp-len { margin-bottom: calc(var(--card-fs) * 4.2); }
-.stage-cmp .cmp-len__item figcaption .cmp__num .bi { flex-direction: row; gap: 0.4em; }
+/* Name over size, each language beside the other where they fit. */
+.stage-cmp .cmp-len__cap .cmp__num .bi { flex-direction: row; flex-wrap: wrap; justify-content: center; column-gap: 0.4em; }
 .stage-cmp__top .cmp-toggle__btn { min-width: calc(var(--tap) / var(--card-s, 1)); font-size: var(--card-fs-title); }
 
 /* A row of figures to tap and count (js/count-row.js). */
@@ -418,20 +417,20 @@
 .cmp__num { display: block; color: var(--c-ink-soft); font-weight: normal; }
 .cmp__emoji { font-size: var(--fs-lg); line-height: 1; }
 
-/* length: silhouettes on the ground */
-.cmp-len {
-  position: relative; height: var(--compare-h);
+/* length: silhouettes on the ground, their names and sizes in a row underneath (half each) */
+.cmp-len { display: flex; flex-direction: column; height: var(--compare-h); }
+.cmp-len__ground {
+  position: relative; flex: 1 1 0; min-height: 0;
   display: flex; align-items: flex-end; justify-content: center; gap: var(--s-4);
-  margin-bottom: calc(var(--card-fs) * 3.2);
   border-bottom: var(--bw-mid) solid var(--c-ink-faint);
 }
 .cmp-len__item { position: relative; margin: 0; display: flex; align-items: flex-end; }
 .cmp-len__img { display: block; height: auto; max-width: none; transform-origin: 50% 100%; }
-.cmp-len__item figcaption {
-  position: absolute; top: calc(100% + var(--s-1)); left: 50%; transform: translateX(-50%);
-  white-space: nowrap; text-align: center; font-size: var(--card-fs-sm); font-weight: var(--fw-semi);
-}
-.cmp-len__item figcaption .bi { align-items: center; }
+/* Until both pictures are in and sized, nothing shows at its own (much bigger) size. */
+.cmp-len:not([data-ready]) .cmp-len__ground { visibility: hidden; }
+.cmp-len__caps { flex: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding-top: var(--s-1); }
+.cmp-len__cap { justify-self: center; max-width: 100%; text-align: center; font-size: var(--card-fs-sm); font-weight: var(--fw-semi); }
+.cmp-len__cap .bi { align-items: center; }
 
 /* weight: a balance scale */
 .cmp-wt { position: relative; height: var(--compare-h); --tilt: 0deg; --drop: 0; --arm: calc(var(--card-w) * 0.27); }

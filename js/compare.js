@@ -83,28 +83,41 @@ export const animalImg = (card, cls) => compareImage(card)
 function lengthScene(card, run, who) {
   const size = sizeOf(card);
   const stat = sizeStat(card);
-  const ground = h('div', { class: 'cmp-len' });
   const kidImg = whoImg(who, 'cmp-len__img');
   const pic = animalImg(card, 'cmp-len__img');
-  ground.append(
-    h('figure', { class: 'cmp-len__item' }, kidImg,
-      h('figcaption', null, bi(who.name), h('span', { class: 'cmp__num' }, bi(lengthText(who.showCm ?? who.cm))))),
-    h('figure', { class: 'cmp-len__item' }, pic,
-      h('figcaption', null, bi(card.name), h('span', { class: 'cmp__num' }, bi(stat ? lengthText(stat.min, stat.max) : lengthText(size.cm))))));
+  const items = [h('figure', { class: 'cmp-len__item' }, kidImg), h('figure', { class: 'cmp-len__item' }, pic)];
+  const ground = h('div', { class: 'cmp-len__ground' }, items);
+  // Names and sizes in a row of their own under the ground, half the width each, so they never
+  // run into each other; each sits under its figure as far as its half allows.
+  const caps = [
+    h('div', { class: 'cmp-len__cap' }, bi(who.name), h('span', { class: 'cmp__num' }, bi(lengthText(who.showCm ?? who.cm)))),
+    h('div', { class: 'cmp-len__cap' }, bi(card.name), h('span', { class: 'cmp__num' }, bi(stat ? lengthText(stat.min, stat.max) : lengthText(size.cm)))),
+  ];
+  const scene = h('div', { class: 'cmp-len' }, ground, h('div', { class: 'cmp-len__caps' }, caps));
 
-  // Once the silhouette's shape is known, size both so 1 cm is the same on each. Sized again
-  // (without the animation) whenever the stage changes size: run.resize.
+  // Once the silhouette's shape is known, size both so 1 cm is the same on each, from the room the
+  // ground has. Sized again (without the animation) whenever the stage changes size: run.resize.
   const size1 = () => {
     const ratio = pic.naturalHeight / pic.naturalWidth || 0.6;
     const w = size.across ? size.cm : size.cm / ratio;
     const whoW = who.across ? who.cm : who.cm / who.ratio;
     const tallest = Math.max(whoW * who.ratio, w * ratio);
-    // The scene's own size: it fills the stage.
-    const avail = ground.clientHeight || cssNum('--compare-h');
-    const availW = (ground.clientWidth || cssNum('--card-w')) * 0.8;
+    const laid = ground.clientWidth > 0; // not on the page yet: its design size
+    const avail = laid ? ground.clientHeight : cssNum('--compare-h');
+    const availW = (laid ? ground.clientWidth : cssNum('--card-w')) * 0.8;
     const pxPerCm = Math.min(avail / tallest, availW / (w + whoW));
     kidImg.style.setProperty('width', `${whoW * pxPerCm}px`);
     pic.style.setProperty('width', `${w * pxPerCm}px`);
+    scene.dataset.ready = '';
+    caps.forEach((cap, i) => {
+      cap.style.removeProperty('transform');
+      const c = cap.getBoundingClientRect(), half = cap.parentElement.getBoundingClientRect();
+      const f = items[i].getBoundingClientRect();
+      const col = half.left + (half.width / 2) * (i + 0.5), room = (half.width / 2 - c.width) / 2;
+      const k = cap.offsetWidth / (c.width || 1); // screen px to the card's own px
+      const shift = Math.max(-room, Math.min(room, f.left + f.width / 2 - col));
+      cap.style.setProperty('transform', `translateX(${shift * k}px)`);
+    });
   };
   const layout = () => {
     if (!run.alive) return;
@@ -113,7 +126,7 @@ function lengthScene(card, run, who) {
     [kidImg, pic].forEach((el, i) => play(el, [{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }], { duration: 600, delay: i * 180 }));
   };
   if (pic.complete) requestAnimationFrame(layout); else pic.addEventListener('load', () => requestAnimationFrame(layout));
-  return [ground];
+  return [scene];
 }
 
 // ---------- weight ----------
