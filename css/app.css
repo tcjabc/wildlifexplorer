@@ -1198,8 +1198,11 @@ dialog.picker::backdrop { background: var(--c-bg); }
 @keyframes shake { 25% { transform: translateX(-8px); } 50% { transform: translateX(8px); } 75% { transform: translateX(-4px); } }
 @keyframes pulse { 50% { transform: scale(1.08); } }
 
+/* Reduced motion: animations end at once (still firing animationend), transitions don't run. A
+   transition of any length would make every property transition (the default transition-property
+   is all), so layout read straight after a change would still see the old values. */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; }
+  *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 0s !important; }
 }
 
 /* A tab (or the Binder button) bumps when a new card lands in it. */
