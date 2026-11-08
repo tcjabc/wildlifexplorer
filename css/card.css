@@ -463,8 +463,9 @@
   display: flex; flex-wrap: wrap-reverse; justify-content: center; align-items: flex-end; gap: var(--s-hair);
 }
 .cmp-wt__icon { display: block; height: var(--cmp-icon); width: auto; }
-.cmp-wt__stack .cmp__animal { height: calc(var(--cmp-icon) * 0.7); }
-.cmp-wt__stack.is-many .cmp-wt__icon { height: var(--cmp-icon-sm); }
+/* As big as fits on the pan (js/compare.js weightScene): all the copies, or the one on its own. */
+.cmp-wt__stack > .cmp-wt__icon { height: var(--wt-icon, var(--cmp-icon)); font-size: var(--wt-icon, var(--cmp-icon)); line-height: 1; }
+.cmp-wt__stack--one > .cmp-wt__icon { height: var(--wt-one, var(--cmp-icon)); font-size: var(--wt-one, var(--cmp-icon)); }
 .cmp-wt__count {
   position: absolute; left: 50%; top: 0; transform: translate(-50%, -50%);
   padding: 0 var(--s-2); border-radius: var(--r-pill);

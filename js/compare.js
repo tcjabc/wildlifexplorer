@@ -131,6 +131,17 @@ function lengthScene(card, run, who) {
 
 // ---------- weight ----------
 
+// The biggest copies (px high) of which n fit in rows in room { w, h }, each aspect wide for its
+// height, gap apart; at most `most` high.
+export function copySize(n, room, aspect, gap, most) {
+  for (let size = Math.floor(most); size > 1; size--) {
+    const cols = Math.max(1, Math.floor((room.w + gap) / (size * aspect + gap)));
+    const rows = Math.ceil(n / cols);
+    if (size * aspect <= room.w && rows * size + (rows - 1) * gap <= room.h) return size;
+  }
+  return 1;
+}
+
 function weightScene(card, run, who) {
   const w = numbers(card).weightKg;
   const animalHeavier = w >= who.kg;
@@ -145,8 +156,8 @@ function weightScene(card, run, who) {
   const heavyPan = animalHeavier ? panAnimal : panYou;
   const icon = side => (side === 'you' ? whoImg(who, 'cmp-wt__icon') : animalImg(card, 'cmp-wt__icon'));
   const lightSide = animalHeavier ? 'you' : 'animal';
-  heavyPan.append(h('div', { class: 'cmp-wt__stack' }, icon(animalHeavier ? 'animal' : 'you')));
-  const stack = h('div', { class: ['cmp-wt__stack', many && 'is-many'] });
+  heavyPan.append(h('div', { class: 'cmp-wt__stack cmp-wt__stack--one' }, icon(animalHeavier ? 'animal' : 'you')));
+  const stack = h('div', { class: 'cmp-wt__stack' });
   const counter = h('span', { class: 'cmp-wt__count', hidden: true });
   lightPan.append(stack, counter);
 
@@ -170,6 +181,25 @@ function weightScene(card, run, who) {
   const text = h('div', { class: 'cmp__caption', hidden: !reducedMotion() }, bi(caption), elephants && bi(elephants, 'cmp__sub'));
 
   const shown = many ? MAX_COPIES : n;
+
+  // Every copy fits on its pan, under the buttons above the scene, even with the pan at its highest
+  // while it tilts: the copies get as big as that allows (never bigger than one on its own). Fitted
+  // again whenever the stage changes size (run.resize).
+  const probe = icon(lightSide);
+  const fit = () => {
+    if (!run.alive || !scene.isConnected) return;
+    const arm = lightPan.offsetWidth / 1.05;
+    const floor = lightPan.offsetTop + lightPan.offsetHeight - parseFloat(getComputedStyle(stack).bottom || '0');
+    const room = { w: lightPan.offsetWidth, h: Math.max(1, floor - arm * Math.sin((MAX_TILT * Math.PI) / 180)) };
+    const gap = parseFloat(getComputedStyle(stack).columnGap) || 0;
+    const most = Math.min(cssNum('--stage-cmp-icon') || room.h, room.h);
+    const aspect = probe.naturalWidth && probe.naturalHeight ? probe.naturalWidth / probe.naturalHeight : 1;
+    scene.style.setProperty('--wt-one', `${most}px`);
+    scene.style.setProperty('--wt-icon', `${copySize(shown, room, aspect, gap, most)}px`);
+  };
+  run.resize = fit;
+  if (probe.tagName !== 'IMG' || probe.complete) requestAnimationFrame(fit);
+  else probe.addEventListener('load', () => requestAnimationFrame(fit));
   sequence(run, shown, many ? 45 : 160, i => {
     const el = icon(lightSide);
     stack.append(el);
