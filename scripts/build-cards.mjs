@@ -36,6 +36,7 @@ import { renderBadgeSections } from './lib/badges-report.mjs';
 import { migrateCard, orderKeys, factFileTodo, statsTodo, todosOf, termsOf } from './lib/card-schema.mjs';
 import { labelToneOf, AA, BUSY } from './lib/label-tone.mjs';
 import { habitatOf } from '../js/habitat.js';
+import { foodOf } from '../js/food.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const P = {
@@ -379,9 +380,10 @@ async function main() {
   // Thumbnails for every referenced image, including ones you added by hand.
   const imageProblems = [];
   for (const card of [...cards, ...orphans, ...entryCards]) {
-    // The Habitat picture (stage.habitat, js/habitat.js) is a picture record like the photo.
-    for (const kind of ['photo', 'illustration', 'habitat']) {
-      const img = kind === 'habitat' ? habitatOf(card) : card[kind];
+    // The stage pictures (stage.habitat, stage.food: js/habitat.js, js/food.js) are picture records
+    // like the photo.
+    const pics = [['photo', card.photo], ['illustration', card.illustration], ['habitat', habitatOf(card)], ...foodOf(card).map((f, i) => [`food ${i + 1}`, f])];
+    for (const [kind, img] of pics) {
       if (!img?.file) continue;
       if (!isAllowedLicenseName(img.license)) imageProblems.push(`${card.id} ${kind}: licence "${img.license}" is not PD/CC0/CC BY/CC BY-SA`);
       for (const k of ['author', 'license', 'sourceUrl']) if (!img[k]) imageProblems.push(`${card.id} ${kind}: missing ${k}`);
@@ -411,7 +413,7 @@ async function main() {
   extra.labelCorners = labelCorners;
 
   // Images on disk that no card uses any more (left in place; delete them if you like).
-  const referenced = new Set([...cards, ...orphans, ...entryCards].flatMap(c => [c.photo?.file, c.illustration?.file, habitatOf(c)?.file]).filter(Boolean));
+  const referenced = new Set([...cards, ...orphans, ...entryCards].flatMap(c => [c.photo?.file, c.illustration?.file, habitatOf(c)?.file, ...foodOf(c).map(f => f.file)]).filter(Boolean));
   const imgDir = path.join(ROOT, 'img');
   let unused = existsSync(imgDir)
     ? (await readdir(imgDir)).filter(f => /\.(webp|jpe?g|png)$/i.test(f) && !referenced.has(`img/${f}`))

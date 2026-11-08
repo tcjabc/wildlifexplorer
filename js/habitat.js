@@ -7,14 +7,21 @@
 const FILE = /^img\/[a-z0-9-]+\.webp$/;
 const frac = v => typeof v === 'number' && v >= 0 && v <= 1;
 
-// The card's habitat picture, as a picture record like card.photo ({ file, author, license,
-// licenseUrl, sourceUrl }) with its find, or null when it has none it can show.
+// A stage picture ({ image, credit }, in our own img/) as a picture record like card.photo: { file,
+// author, license, licenseUrl, sourceUrl }. Null when it isn't one it can show. Food uses it too.
+export function stagePicture(entry) {
+  if (!entry || typeof entry !== 'object' || !FILE.test(entry.image ?? '')) return null;
+  return { file: entry.image, ...(entry.credit ?? {}) };
+}
+
+// The card's habitat picture, with its find.
 export function habitatOf(card) {
   const hab = card?.stage?.habitat;
-  if (!hab || typeof hab !== 'object' || !FILE.test(hab.image ?? '')) return null;
+  const pic = stagePicture(hab);
+  if (!pic) return null;
   const f = hab.find;
   const find = f && frac(f.x) && frac(f.y) && typeof f.r === 'number' && f.r > 0 && f.r <= 1 ? { x: f.x, y: f.y, r: f.r } : null;
-  return { file: hab.image, ...(hab.credit ?? {}), find };
+  return { ...pic, find };
 }
 
 // Where a picture of nw × nh lands in a box of w × h with object-fit: cover and object-position at

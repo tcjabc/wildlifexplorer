@@ -174,7 +174,27 @@
           "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
           "sourceUrl": "https://commons.wikimedia.org/wiki/File:Daxueshan_%E5%A4%A7%E9%9B%AA%E5%B1%B1_-_panoramio_(1).jpg"
         }
-      }
+      },
+      "food": [
+        {
+          "image": "img/food-c5380b.webp",
+          "credit": {
+            "author": "懶鋼砲",
+            "license": "CC BY-SA 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Arisan_Oak_2016.png"
+          }
+        },
+        {
+          "image": "img/food-ed3d23.webp",
+          "credit": {
+            "author": "Richard Bartz, Munich Makro Freak",
+            "license": "CC BY-SA 2.5",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.5/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Camponotus_herculeanus_queen_high_res.jpg"
+          }
+        }
+      ]
     },
     "stats": {
       "length": {
@@ -472,7 +492,36 @@
           "y": 0.55,
           "r": 0.45
         }
-      }
+      },
+      "food": [
+        {
+          "image": "img/food-d5712b.webp",
+          "credit": {
+            "author": "Tzu-Neng Yuan",
+            "license": "CC BY 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Ficus_pumila_awkeotsang_452196008.jpg"
+          }
+        },
+        {
+          "image": "img/food-291f3a.webp",
+          "credit": {
+            "author": "Ping an Chang",
+            "license": "CC BY-SA 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:%E8%8F%A9%E6%8F%90%E6%A8%B9_Ficus_religiosa_20210421111446_01.jpg"
+          }
+        },
+        {
+          "image": "img/food-6e6c07.webp",
+          "credit": {
+            "author": "gailhampshire from Cradley, Malvern, U.K",
+            "license": "CC BY 2.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by/2.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Megachile_cetuncularis._Patchwork_Leafcutter_Bee_(35371281643).jpg"
+          }
+        }
+      ]
     },
     "stats": {
       "length": {
@@ -725,7 +774,27 @@
           "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
           "sourceUrl": "https://commons.wikimedia.org/wiki/File:Manis_pentadactyla_pentadactyla_182659164.jpg"
         }
-      }
+      },
+      "food": [
+        {
+          "image": "img/food-f76c09.webp",
+          "credit": {
+            "author": "Pradeep717",
+            "license": "CC BY-SA 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:WeaverAntKeralaPrd.jpg"
+          }
+        },
+        {
+          "image": "img/food-bddf5c.webp",
+          "credit": {
+            "author": "Nikhil More",
+            "license": "CC BY-SA 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Odontotermes_obesus_Termites_Isoptera_(1)_27.jpg"
+          }
+        }
+      ]
     },
     "stats": {
       "lengthCm": {
@@ -947,7 +1016,36 @@
           "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
           "sourceUrl": "https://commons.wikimedia.org/wiki/File:Mossy_cliff_on_the_way_to_Mt._Jade_Main_Peak.jpg"
         }
-      }
+      },
+      "food": [
+        {
+          "image": "img/food-1f99ae.webp",
+          "credit": {
+            "author": "Cossey25",
+            "license": "CC BY-SA 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Erie_Linden_Viburnum_Viburnum_dilatatum_%E2%80%98Erie%E2%80%99_leaves_summer_flower.jpg"
+          }
+        },
+        {
+          "image": "img/food-01741f.webp",
+          "credit": {
+            "author": "Photo by David J. Stang",
+            "license": "CC BY-SA 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Rubus_idaeus_4zz.jpg"
+          }
+        },
+        {
+          "image": "img/food-47c3f7.webp",
+          "credit": {
+            "author": "石川 Shihchuan",
+            "license": "CC BY-SA 2.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Yushania_niitakayamensis_near_Yuanfeng,_Taiwan.jpg"
+          }
+        }
+      ]
     },
     "stats": {
       "heightCm": {
@@ -1175,7 +1273,36 @@
           "y": 0.47,
           "r": 0.21
         }
-      }
+      },
+      "food": [
+        {
+          "image": "img/food-e00e14.webp",
+          "credit": {
+            "author": "Dquai",
+            "license": "CC BY-SA 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:View_around_Hehuanshan_06.jpg"
+          }
+        },
+        {
+          "image": "img/food-d7c993.webp",
+          "credit": {
+            "author": "Dmitry Makeev",
+            "license": "CC BY-SA 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:2020_year._Herbarium._Rubus_idaeus._img-017.jpg"
+          }
+        },
+        {
+          "image": "img/food-4ba4ea.webp",
+          "credit": {
+            "author": "Saral Shots",
+            "license": "CC0 1.0",
+            "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Bark_of_Sapota_tree.jpg"
+          }
+        }
+      ]
     },
     "stats": {
       "heightCm": {
@@ -1391,7 +1518,36 @@
           "y": 0.59,
           "r": 0.24
         }
-      }
+      },
+      "food": [
+        {
+          "image": "img/food-be80e9.webp",
+          "credit": {
+            "author": "Vengolis",
+            "license": "CC BY-SA 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Diplazium_sp_7013.jpg"
+          }
+        },
+        {
+          "image": "img/food-201f84.webp",
+          "credit": {
+            "author": "Alpsdake",
+            "license": "CC BY-SA 3.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Rubus_parvifolius_in_Mount_Ibuki_2011-07-24.jpg"
+          }
+        },
+        {
+          "image": "img/food-d51fe9.webp",
+          "credit": {
+            "author": "Holger Krisp",
+            "license": "CC BY 3.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Mycena-strobilicola.jpg"
+          }
+        }
+      ]
     },
     "stats": {
       "heightCm": {
@@ -1600,7 +1756,36 @@
           "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
           "sourceUrl": "https://commons.wikimedia.org/wiki/File:Gueishan_Island_the_Head.jpg"
         }
-      }
+      },
+      "food": [
+        {
+          "image": "img/food-d17e3d.webp",
+          "credit": {
+            "author": "Wibowo Djatmiko ( Wie146 )",
+            "license": "CC BY-SA 3.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Fic_septic_141115-0350_ipb.JPG"
+          }
+        },
+        {
+          "image": "img/food-67e64f.webp",
+          "credit": {
+            "author": "Tournasol7",
+            "license": "CC BY 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Terminalia_catappa_in_Deshaies_(3).jpg"
+          }
+        },
+        {
+          "image": "img/food-851bb9.webp",
+          "credit": {
+            "author": "AntanO",
+            "license": "CC BY-SA 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Pandanus_tectorius_fruit_(riped).JPG"
+          }
+        }
+      ]
     },
     "stats": {
       "lengthCm": {
@@ -1819,7 +2004,27 @@
           "licenseUrl": "https://creativecommons.org/licenses/by/2.0/",
           "sourceUrl": "https://commons.wikimedia.org/wiki/File:Mountains_in_Nantou_(38363092685).jpg"
         }
-      }
+      },
+      "food": [
+        {
+          "image": "img/food-4de6ff.webp",
+          "credit": {
+            "author": "sunnyjosef",
+            "license": "CC BY 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Bandicota_indica_77030674.jpg"
+          }
+        },
+        {
+          "image": "img/food-fd6b26.webp",
+          "credit": {
+            "author": "Pei-Jen Lee Shaner",
+            "license": "CC BY-SA 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Apodemus_semotus_Wulin_Shei-Pa_Nationa_Park_2014.jpg"
+          }
+        }
+      ]
     },
     "stats": {
       "lengthCm": {
@@ -2039,7 +2244,36 @@
           "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
           "sourceUrl": "https://commons.wikimedia.org/wiki/File:KaTeBoLa_Creek,_Ivan_Tsung-Yi_Lin,_009.jpg"
         }
-      }
+      },
+      "food": [
+        {
+          "image": "img/food-aef6f3.webp",
+          "credit": {
+            "author": "Stefan Thiesen",
+            "license": "CC BY-SA 3.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Ripe_fig_fruit_on_tree_(Ficus_Carica)_in_Southern_France.JPG"
+          }
+        },
+        {
+          "image": "img/food-ff80f9.webp",
+          "credit": {
+            "author": "Patrick Roper",
+            "license": "CC BY-SA 2.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Buds_and_young_leaves_on_wild_service_tree_-_geograph.org.uk_-_5267072.jpg"
+          }
+        },
+        {
+          "image": "img/food-3e0df8.webp",
+          "credit": {
+            "author": "E. Jones",
+            "license": "CC BY-SA 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Green_tortoise_beetle_with_black_stripes.jpg"
+          }
+        }
+      ]
     },
     "stats": {
       "development": {
@@ -2244,7 +2478,36 @@
           "y": 0.55,
           "r": 0.28
         }
-      }
+      },
+      "food": [
+        {
+          "image": "img/food-c7454a.webp",
+          "credit": {
+            "author": "Ping an Chang",
+            "license": "CC BY-SA 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:%E9%B5%9D%E6%8E%8C%E6%9F%B4_Schefflera_heptaphylla_20221028210435_01.jpg"
+          }
+        },
+        {
+          "image": "img/food-f75afd.webp",
+          "credit": {
+            "author": "Vyacheslav Argenberg",
+            "license": "CC BY 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Ergaki,_Siberian_pine_cone_with_seeds_and_foliage,_Pinus_sibirica,_Sayan_Mountains,_Russia.jpg"
+          }
+        },
+        {
+          "image": "img/food-5f65ab.webp",
+          "credit": {
+            "author": "עוזי פז",
+            "license": "CC BY 2.5",
+            "licenseUrl": "https://creativecommons.org/licenses/by/2.5/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:PikiWiki_Israel_80638_acorn_of_mt_tabor_oak.jpg"
+          }
+        }
+      ]
     },
     "stats": {
       "lengthCm": {
@@ -2460,7 +2723,27 @@
           "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
           "sourceUrl": "https://commons.wikimedia.org/wiki/File:KINMEN%2BEMILYLIU%2B10.jpg"
         }
-      }
+      },
+      "food": [
+        {
+          "image": "img/food-b96960.webp",
+          "credit": {
+            "author": "Greg Hume",
+            "license": "CC BY-SA 3.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Oreochromis_mossambicus.JPG"
+          }
+        },
+        {
+          "image": "img/food-40107f.webp",
+          "credit": {
+            "author": "DatGuy",
+            "license": "CC BY-SA 3.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Fishes_underwater_in_Plitvice_Lakes_National_Park.jpg"
+          }
+        }
+      ]
     },
     "stats": {
       "lengthCm": {
@@ -2671,7 +2954,36 @@
           "y": 0.705,
           "r": 0.22
         }
-      }
+      },
+      "food": [
+        {
+          "image": "img/food-6d2580.webp",
+          "credit": {
+            "author": "Tisha Mukherjee",
+            "license": "CC BY-SA 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Chital_in_Sundarbans_National_Park_July_2025_by_Tisha_Mukherjee_02.jpg"
+          }
+        },
+        {
+          "image": "img/food-37ed95.webp",
+          "credit": {
+            "author": "Charles J. Sharp",
+            "license": "CC BY-SA 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Sambar_(Cervus_unicolor_unicolor)_female.jpg"
+          }
+        },
+        {
+          "image": "img/food-0b8bd5.webp",
+          "credit": {
+            "author": "Tisha Mukherjee",
+            "license": "CC BY-SA 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Indian_boar_in_Kaziranga_National_Park_March_2025_by_Tisha_Mukherjee_04.jpg"
+          }
+        }
+      ]
     },
     "stats": {
       "development": {
@@ -2883,7 +3195,27 @@
           "y": 0.62,
           "r": 0.13
         }
-      }
+      },
+      "food": [
+        {
+          "image": "img/food-c7758a.webp",
+          "credit": {
+            "author": "Charles J. Sharp",
+            "license": "CC BY-SA 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Western_white-bearded_wildebeest_(Connochaetes_taurinus_mearnsi)_Mara_River_crossing_2d.jpg"
+          }
+        },
+        {
+          "image": "img/food-6dc3ee.webp",
+          "credit": {
+            "author": "Zenith4237",
+            "license": "CC BY-SA 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Impressions_of_Serengeti_(67).jpg"
+          }
+        }
+      ]
     },
     "stats": {
       "development": {
@@ -3100,7 +3432,36 @@
           "y": 0.5,
           "r": 0.29
         }
-      }
+      },
+      "food": [
+        {
+          "image": "img/food-7e996b.webp",
+          "credit": {
+            "author": "Diego Delso",
+            "license": "CC BY-SA 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Gacela_de_Thomson_(Eudorcas_thomsonii),_parque_nacional_de_Amboseli,_Kenia,_2024-05-23,_DD_11.jpg"
+          }
+        },
+        {
+          "image": "img/food-220239.webp",
+          "credit": {
+            "author": "Charles J. Sharp",
+            "license": "CC BY-SA 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Black-faced_impala_(Aepyceros_melampus_petersi)_male_2.jpg"
+          }
+        },
+        {
+          "image": "img/food-cfdbe5.webp",
+          "credit": {
+            "author": "Yathin S Krishnappa",
+            "license": "CC BY-SA 3.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Antidorcas_marsupialis,_male_(Etosha,_2012).jpg"
+          }
+        }
+      ]
     },
     "stats": {
       "lengthCm": {
@@ -3323,7 +3684,27 @@
           "y": 0.725,
           "r": 0.16
         }
-      }
+      },
+      "food": [
+        {
+          "image": "img/food-cdf497.webp",
+          "credit": {
+            "author": "Diego Delso",
+            "license": "CC BY-SA 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Acacia_(Vachellia_tortilis),_parque_nacional_Serengueti,_Tanzania,_2024-05-26,_DD_26.jpg"
+          }
+        },
+        {
+          "image": "img/food-7a4f91.webp",
+          "credit": {
+            "author": "Peripitus",
+            "license": "CC BY-SA 3.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Themeda_triandra_-_kangaroo_grass.jpg"
+          }
+        }
+      ]
     },
     "stats": {
       "heightCm": {
@@ -3535,7 +3916,27 @@
           "y": 0.61,
           "r": 0.19
         }
-      }
+      },
+      "food": [
+        {
+          "image": "img/food-54c599.webp",
+          "credit": {
+            "author": "Peripitus",
+            "license": "CC BY-SA 3.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Acacia_paradoxa_leaves_in_summer.jpg"
+          }
+        },
+        {
+          "image": "img/food-9a5da0.webp",
+          "credit": {
+            "author": "Chr. Kooyman",
+            "license": "CC BY-SA 3.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Vachellia_drepanolobium_thorns.jpg"
+          }
+        }
+      ]
     },
     "stats": {
       "development": {
@@ -3744,7 +4145,18 @@
           "y": 0.595,
           "r": 0.2
         }
-      }
+      },
+      "food": [
+        {
+          "image": "img/food-a75142.webp",
+          "credit": {
+            "author": "JMK",
+            "license": "CC BY-SA 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Themeda_triandra,_blompakkies_midsomer,_Skeerpoort,_a.jpg"
+          }
+        }
+      ]
     },
     "stats": {
       "development": {
@@ -3952,7 +4364,18 @@
           "y": 0.68,
           "r": 0.28
         }
-      }
+      },
+      "food": [
+        {
+          "image": "img/food-85e7ac.webp",
+          "credit": {
+            "author": "Robert Flogaus-Faust",
+            "license": "CC BY 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Cynodon_dactylon_RF.jpg"
+          }
+        }
+      ]
     },
     "stats": {
       "development": {
@@ -4171,7 +4594,27 @@
           "y": 0.36,
           "r": 0.35
         }
-      }
+      },
+      "food": [
+        {
+          "image": "img/food-bcd60b.webp",
+          "credit": {
+            "author": "SAplants",
+            "license": "CC BY-SA 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Vachellia_haematoxylon_S-1331.jpg"
+          }
+        },
+        {
+          "image": "img/food-c443cf.webp",
+          "credit": {
+            "author": "SAplants",
+            "license": "CC BY-SA 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Euphorbia_ingens_20D_4060.jpg"
+          }
+        }
+      ]
     },
     "stats": {
       "heightCm": {
@@ -4373,7 +4816,27 @@
           "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
           "sourceUrl": "https://commons.wikimedia.org/wiki/File:View_of_Dzanga_Bai_with_forest_stream,_Central_African_Republic.jpg"
         }
-      }
+      },
+      "food": [
+        {
+          "image": "img/food-2cf1be.webp",
+          "credit": {
+            "author": "Forest and Kim Starr",
+            "license": "CC BY 3.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Starr-110307-2190-Unknown_marantaceae-leaves-Kula_Botanical_Garden-Maui_(24447103894).jpg"
+          }
+        },
+        {
+          "image": "img/food-6325fd.webp",
+          "credit": {
+            "author": "Jawleyford",
+            "license": "Public domain",
+            "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Aframomum_angustifolium_fruit.jpg"
+          }
+        }
+      ]
     },
     "stats": {
       "heightCm": {
@@ -4585,7 +5048,27 @@
           "y": 0.47,
           "r": 0.15
         }
-      }
+      },
+      "food": [
+        {
+          "image": "img/food-271a67.webp",
+          "credit": {
+            "author": "Forest and Kim Starr",
+            "license": "CC BY 3.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Starr-080608-7678-Ficus_macrophylla-fruit_one_ripe_asynchronous-West_Beach_Sand_Island-Midway_Atoll_(24289989653).jpg"
+          }
+        },
+        {
+          "image": "img/food-1633ef.webp",
+          "credit": {
+            "author": "Jidanni",
+            "license": "CC BY-SA 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:P_20190624_104933_vHDR_On.jpg"
+          }
+        }
+      ]
     },
     "stats": {
       "development": {
@@ -4797,7 +5280,36 @@
           "y": 0.53,
           "r": 0.2
         }
-      }
+      },
+      "food": [
+        {
+          "image": "img/food-5fcfb1.webp",
+          "credit": {
+            "author": "USFWS/Southeast",
+            "license": "Public domain",
+            "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Red_spruce_cone_on_the_forest_floor_(22384651510).jpg"
+          }
+        },
+        {
+          "image": "img/food-85e741.webp",
+          "credit": {
+            "author": "Dominicus Johannes Bergsma",
+            "license": "CC BY-SA 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Ruscus_aculeatus_%27John_Redmond%27._Locatie,_Tuinreservaat_Jonkervallei_04.jpg"
+          }
+        },
+        {
+          "image": "img/food-75fa49.webp",
+          "credit": {
+            "author": "Anne Krediet",
+            "license": "CC BY 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Aporrectodea_longa_(Zuid-Holland,_Netherlands).jpg"
+          }
+        }
+      ]
     },
     "stats": {
       "lengthCm": {
@@ -5007,7 +5519,36 @@
           "y": 0.54,
           "r": 0.3
         }
-      }
+      },
+      "food": [
+        {
+          "image": "img/food-38d08c.webp",
+          "credit": {
+            "author": "Photo by David J. Stang",
+            "license": "CC BY-SA 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Rubus_idaeus_5zz.jpg"
+          }
+        },
+        {
+          "image": "img/food-fe67e7.webp",
+          "credit": {
+            "author": "The Cosmonaut",
+            "license": "CC BY-SA 2.5",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.5/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Matteuccia_struthiopteris_fiddleheads.jpg"
+          }
+        },
+        {
+          "image": "img/food-7fb6bc.webp",
+          "credit": {
+            "author": "Donald Hobern from Copenhagen, Denmark",
+            "license": "CC BY 2.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by/2.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Lumbricus_terrestris_(26559560801).jpg"
+          }
+        }
+      ]
     },
     "stats": {
       "lengthCm": {
@@ -5219,7 +5760,27 @@
           "y": 0.55,
           "r": 0.2
         }
-      }
+      },
+      "food": [
+        {
+          "image": "img/food-148e89.webp",
+          "credit": {
+            "author": "Steve Fitzgerald",
+            "license": "CC BY-SA 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Ficus-microcarpa-SF22183-03.jpg"
+          }
+        },
+        {
+          "image": "img/food-ebce5b.webp",
+          "credit": {
+            "author": "KellyC.5366",
+            "license": "CC BY 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Cicada_Emerging_from_Shell_-_6_of_8.png"
+          }
+        }
+      ]
     },
     "stats": {
       "development": {
@@ -5433,7 +5994,36 @@
           "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
           "sourceUrl": "https://commons.wikimedia.org/wiki/File:Bamboo_forest,_Taiwan_(cropped).jpg"
         }
-      }
+      },
+      "food": [
+        {
+          "image": "img/food-cc4d2c.webp",
+          "credit": {
+            "author": "Thomas Brown",
+            "license": "CC BY 2.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by/2.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Two-striped_Grass_Frog_(Hylarana_taipehensis)_%E5%8F%B0%E5%8C%97%E8%9B%994.jpg"
+          }
+        },
+        {
+          "image": "img/food-15e981.webp",
+          "credit": {
+            "author": "J. Patrick Fischer",
+            "license": "CC BY-SA 3.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Diploderma_swinhonis_in_Taiwan_2.jpg"
+          }
+        },
+        {
+          "image": "img/food-fd6b26.webp",
+          "credit": {
+            "author": "Pei-Jen Lee Shaner",
+            "license": "CC BY-SA 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Apodemus_semotus_Wulin_Shei-Pa_Nationa_Park_2014.jpg"
+          }
+        }
+      ]
     },
     "stats": {
       "lengthCm": {
@@ -5634,7 +6224,36 @@
           "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
           "sourceUrl": "https://commons.wikimedia.org/wiki/File:Qijiawan_Creek_TANG,_YOU_HSIN_1.jpg"
         }
-      }
+      },
+      "food": [
+        {
+          "image": "img/food-ccf851.webp",
+          "credit": {
+            "author": "Dave Huth from Allegany County, NY, USA",
+            "license": "CC BY 2.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by/2.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Mayfly_nymph_(rhithrogena_sp.)_(5789175336).png"
+          }
+        },
+        {
+          "image": "img/food-4f6a8b.webp",
+          "credit": {
+            "author": "Dave Huth from Allegany County, NY, USA",
+            "license": "CC BY 2.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by/2.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Stonefly_nymph_(5787610055).png"
+          }
+        },
+        {
+          "image": "img/food-e73a75.webp",
+          "credit": {
+            "author": "Bob Henricks from Charlottesville, United States",
+            "license": "CC BY-SA 2.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Lepidostomatid_caddisfly_larva_(22789788977).jpg"
+          }
+        }
+      ]
     },
     "stats": {
       "lengthCm": {
@@ -5848,7 +6467,27 @@
           "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
           "sourceUrl": "https://commons.wikimedia.org/wiki/File:202602_Kenting_landscape_from_Seaview_tower_in_Kenting_Forest_Recreation_Area_01.jpg"
         }
-      }
+      },
+      "food": [
+        {
+          "image": "img/food-3a31d5.webp",
+          "credit": {
+            "author": "Vinayaraj",
+            "license": "CC BY-SA 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Attacus_atlas_-_Atlas_moth_caterpillar_at_Mayyil_(16).jpg"
+          }
+        },
+        {
+          "image": "img/food-67d3d6.webp",
+          "credit": {
+            "author": "Forest and Kim Starr",
+            "license": "CC BY 3.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Starr-010515-0116-Cinnamomum_camphora-leaves-Makawao-Maui_(23904421664).jpg"
+          }
+        }
+      ]
     },
     "stats": {
       "wingspanCm": {
@@ -6244,7 +6883,27 @@
           "y": 0.4,
           "r": 0.32
         }
-      }
+      },
+      "food": [
+        {
+          "image": "img/food-d2e7d1.webp",
+          "credit": {
+            "author": "Die Infografen UG (haftungsbeschränkt)",
+            "license": "CC BY-SA 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Edmontosaurus_reconstruction.jpg"
+          }
+        },
+        {
+          "image": "img/food-3ba6c6.webp",
+          "credit": {
+            "author": "Antonio Rares Mihaila",
+            "license": "CC BY-SA 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Triceratops_horridus_2.jpg"
+          }
+        }
+      ]
     },
     "stats": {
       "lengthCm": {
@@ -6450,7 +7109,27 @@
           "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
           "sourceUrl": "https://commons.wikimedia.org/wiki/File:Kirroughtree_Forest,_Moss_Covered_Stane_Dyke_-_geograph.org.uk_-_3791800.jpg"
         }
-      }
+      },
+      "food": [
+        {
+          "image": "img/food-23d8cd.webp",
+          "credit": {
+            "author": "Z3lvs",
+            "license": "CC0 1.0",
+            "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Moss,_close-up,_Portland_Japanese_Garden.jpg"
+          }
+        },
+        {
+          "image": "img/food-9e997a.webp",
+          "credit": {
+            "author": "Hanan.n.r97",
+            "license": "CC BY-SA 4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Alga.jpg"
+          }
+        }
+      ]
     },
     "stats": {
       "lengthCm": {
@@ -6630,7 +7309,36 @@
           "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
           "sourceUrl": "https://commons.wikimedia.org/wiki/File:%E5%B1%B1%E6%AB%BB%E8%8A%B1_Taiwan_Cherry_-_panoramio.jpg"
         }
-      }
+      },
+      "food": [
+        {
+          "image": "img/food-2677dc.webp",
+          "credit": {
+            "author": "Forest and Kim Starr",
+            "license": "CC BY 3.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Starr-110307-2380-Prunus_campanulata-leaves-Kula_Botanical_Garden-Maui_(24447323484).jpg"
+          }
+        },
+        {
+          "image": "img/food-eda427.webp",
+          "credit": {
+            "author": "Jimmy Kao",
+            "license": "CC BY-SA 3.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Zosterops_simplex,_Taiwan_(64865787).jpg"
+          }
+        },
+        {
+          "image": "img/food-15482e.webp",
+          "credit": {
+            "author": "Forest and Kim Starr",
+            "license": "CC BY 3.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+            "sourceUrl": "https://commons.wikimedia.org/wiki/File:Starr-140401-0127-Prunus_campanulata-fruit-Rice_Park_Kula-Maui_(24614694613).jpg"
+          }
+        }
+      ]
     },
     "stats": {
       "heightCm": {
