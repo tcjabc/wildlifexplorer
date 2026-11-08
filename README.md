@@ -591,8 +591,17 @@ see-through and inert. 📖 opens and closes the card, 🔄 (or ↑ ↓ on a key
 The layout rules are pure functions in `js/card-layout.js` (tested in `tests/card-layout.test.mjs`). Every gesture
 ends settled: it commits, springs back or dismisses, also when the pointer is cancelled, the
 capture is lost or the window loses focus. A quarter of the way or
-a quick flick is enough; less springs back, and a touch that hardly moves is a tap. The first time a closed card settles, its cover peeks open a little, once per card
+a quick flick is enough; less springs back, and a touch that hardly moves is a tap. A tap or a
+scroll while the card is still settling lets it finish settling. The first time a closed card settles, its cover peeks open a little, once per card
 per explorer (not with reduced motion).
+
+**Turning the device** (or a browser bar coming or going): the card is laid out again for the new
+space whenever the desk changes size (a `ResizeObserver` on it, plus the window's and the visual
+viewport's `resize`), at most once a frame and without animation. Anything moving jumps to where it
+was going first (zooming in, opening, turning over; closing finishes closing; a drag lets go where
+it started). Each stage view fits its new size and keeps what it showed: the comparison its mode,
+partner and count so far, the magnifier its feature, the map redrawn to the new shape.
+`tests/card-rotate-touch.test.mjs` turns tablet and phone sizes both ways in every state.
 
 ## Packs and drops
 
