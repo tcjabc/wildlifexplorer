@@ -36,7 +36,7 @@ import { renderBadgeSections } from './lib/badges-report.mjs';
 import { migrateCard, orderKeys, factFileTodo, statsTodo, todosOf, termsOf } from './lib/card-schema.mjs';
 import { labelToneOf, AA, BUSY } from './lib/label-tone.mjs';
 import { habitatOf } from '../js/habitat.js';
-import { foodOf } from '../js/food.js';
+import { foodPhotos } from '../js/food.js';
 import { babiesOf } from '../js/stage-pictures.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -383,7 +383,7 @@ async function main() {
   for (const card of [...cards, ...orphans, ...entryCards]) {
     // The stage pictures (stage.habitat, .food, .babies: js/stage-pictures.js) are picture records
     // like the photo.
-    const pics = [['photo', card.photo], ['illustration', card.illustration], ['habitat', habitatOf(card)], ['babies', babiesOf(card)], ...foodOf(card).map((f, i) => [`food ${i + 1}`, f])];
+    const pics = [['photo', card.photo], ['illustration', card.illustration], ['habitat', habitatOf(card)], ['babies', babiesOf(card)], ...foodPhotos(card).map((f, i) => [`food ${i + 1}`, f])];
     for (const [kind, img] of pics) {
       if (!img?.file) continue;
       if (!isAllowedLicenseName(img.license)) imageProblems.push(`${card.id} ${kind}: licence "${img.license}" is not PD/CC0/CC BY/CC BY-SA`);
@@ -414,7 +414,7 @@ async function main() {
   extra.labelCorners = labelCorners;
 
   // Images on disk that no card uses any more (left in place; delete them if you like).
-  const referenced = new Set([...cards, ...orphans, ...entryCards].flatMap(c => [c.photo?.file, c.illustration?.file, habitatOf(c)?.file, babiesOf(c)?.file, ...foodOf(c).map(f => f.file)]).filter(Boolean));
+  const referenced = new Set([...cards, ...orphans, ...entryCards].flatMap(c => [c.photo?.file, c.illustration?.file, habitatOf(c)?.file, babiesOf(c)?.file, ...foodPhotos(c).map(f => f.file)]).filter(Boolean));
   const imgDir = path.join(ROOT, 'img');
   let unused = existsSync(imgDir)
     ? (await readdir(imgDir)).filter(f => /\.(webp|jpe?g|png)$/i.test(f) && !referenced.has(`img/${f}`))

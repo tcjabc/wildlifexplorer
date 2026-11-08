@@ -177,6 +177,7 @@
       },
       "food": [
         {
+          "icon": "🌰",
           "image": "img/food-c5380b.webp",
           "credit": {
             "author": "懶鋼砲",
@@ -186,6 +187,7 @@
           }
         },
         {
+          "icon": "🐛",
           "image": "img/food-ed3d23.webp",
           "credit": {
             "author": "Richard Bartz, Munich Makro Freak",
@@ -224,7 +226,14 @@
       "diet": {
         "en": "Omnivore: acorns, fruit, young leaves, insects and small animals",
         "zh": "雜食：橡實、果實、嫩葉、昆蟲和小動物"
-      }
+      },
+      "dietIcons": [
+        "🌰",
+        "🍎",
+        "🌿",
+        "🐛",
+        "🐭"
+      ]
     },
     "compare": {
       "width": 150
@@ -488,6 +497,7 @@
       },
       "food": [
         {
+          "icon": "🍎",
           "image": "img/food-d5712b.webp",
           "credit": {
             "author": "Tzu-Neng Yuan",
@@ -497,6 +507,7 @@
           }
         },
         {
+          "icon": "🌿",
           "image": "img/food-291f3a.webp",
           "credit": {
             "author": "Ping an Chang",
@@ -506,6 +517,7 @@
           }
         },
         {
+          "icon": "🐛",
           "image": "img/food-6e6c07.webp",
           "credit": {
             "author": "gailhampshire from Cradley, Malvern, U.K",
@@ -558,6 +570,12 @@
         "en": "Omnivore: fruit, young leaves, seeds and insects",
         "zh": "雜食：果實、嫩葉、種子和昆蟲"
       },
+      "dietIcons": [
+        "🍎",
+        "🌿",
+        "🌰",
+        "🐛"
+      ],
       "development": {
         "kind": "gestation",
         "days": {
@@ -773,6 +791,7 @@
       },
       "food": [
         {
+          "icon": "🐜",
           "image": "img/food-f76c09.webp",
           "credit": {
             "author": "Pradeep717",
@@ -782,6 +801,7 @@
           }
         },
         {
+          "icon": "🐛",
           "image": "img/food-bddf5c.webp",
           "credit": {
             "author": "Nikhil More",
@@ -809,7 +829,11 @@
       "weightKg": {
         "min": 3,
         "max": 7.6
-      }
+      },
+      "dietIcons": [
+        "🐜",
+        "🐛"
+      ]
     },
     "compare": {
       "width": 85
@@ -1015,6 +1039,7 @@
       },
       "food": [
         {
+          "icon": "🌿",
           "image": "img/food-1f99ae.webp",
           "credit": {
             "author": "Cossey25",
@@ -1024,6 +1049,7 @@
           }
         },
         {
+          "icon": "🍓",
           "image": "img/food-01741f.webp",
           "credit": {
             "author": "Photo by David J. Stang",
@@ -1033,6 +1059,7 @@
           }
         },
         {
+          "icon": "🌾",
           "image": "img/food-47c3f7.webp",
           "credit": {
             "author": "石川 Shihchuan",
@@ -1060,7 +1087,12 @@
       "weightKg": {
         "min": 18,
         "max": 30
-      }
+      },
+      "dietIcons": [
+        "🌿",
+        "🍓",
+        "🌾"
+      ]
     },
     "compare": {
       "height": 85
@@ -1272,6 +1304,7 @@
       },
       "food": [
         {
+          "icon": "🌾",
           "image": "img/food-e00e14.webp",
           "credit": {
             "author": "Dquai",
@@ -1281,6 +1314,7 @@
           }
         },
         {
+          "icon": "🌿",
           "image": "img/food-d7c993.webp",
           "credit": {
             "author": "Dmitry Makeev",
@@ -1290,6 +1324,7 @@
           }
         },
         {
+          "icon": "🌳",
           "image": "img/food-4ba4ea.webp",
           "credit": {
             "author": "Saral Shots",
@@ -1323,7 +1358,12 @@
       "weightKg": {
         "min": 100,
         "max": 200
-      }
+      },
+      "dietIcons": [
+        "🌾",
+        "🌿",
+        "🌳"
+      ]
     },
     "related": [],
     "silhouette": {
@@ -1526,6 +1566,7 @@
       },
       "food": [
         {
+          "icon": "🌿",
           "image": "img/food-be80e9.webp",
           "credit": {
             "author": "Vengolis",
@@ -1535,6 +1576,7 @@
           }
         },
         {
+          "icon": "🍓",
           "image": "img/food-201f84.webp",
           "credit": {
             "author": "Alpsdake",
@@ -1544,6 +1586,7 @@
           }
         },
         {
+          "icon": "🍄",
           "image": "img/food-d51fe9.webp",
           "credit": {
             "author": "Holger Krisp",
@@ -1580,7 +1623,14 @@
       "weightKg": {
         "min": 6,
         "max": 12
-      }
+      },
+      "dietIcons": [
+        "🌿",
+        "🌸",
+        "🍓",
+        "🌰",
+        "🍄"
+      ]
     },
     "related": [],
     "silhouette": {
@@ -1773,6 +1823,7 @@
       },
       "food": [
         {
+          "icon": "🍐",
           "image": "img/food-d17e3d.webp",
           "credit": {
             "author": "Wibowo Djatmiko ( Wie146 )",
@@ -1782,6 +1833,7 @@
           }
         },
         {
+          "icon": "🥭",
           "image": "img/food-67e64f.webp",
           "credit": {
             "author": "Tournasol7",
@@ -1791,6 +1843,7 @@
           }
         },
         {
+          "icon": "🍍",
           "image": "img/food-851bb9.webp",
           "credit": {
             "author": "AntanO",
@@ -1821,7 +1874,12 @@
       "weightKg": {
         "min": 0.4,
         "max": 0.5
-      }
+      },
+      "dietIcons": [
+        "🍐",
+        "🥭",
+        "🍍"
+      ]
     },
     "compare": {
       "width": 133,
@@ -2021,6 +2079,7 @@
       },
       "food": [
         {
+          "icon": "🐀",
           "image": "img/food-4de6ff.webp",
           "credit": {
             "author": "sunnyjosef",
@@ -2030,6 +2089,7 @@
           }
         },
         {
+          "icon": "🐁",
           "image": "img/food-fd6b26.webp",
           "credit": {
             "author": "Pei-Jen Lee Shaner",
@@ -2068,7 +2128,11 @@
       "weightKg": {
         "min": 3,
         "max": 6
-      }
+      },
+      "dietIcons": [
+        "🐀",
+        "🐁"
+      ]
     },
     "compare": {
       "width": 60
@@ -2270,6 +2334,7 @@
       },
       "food": [
         {
+          "icon": "🍐",
           "image": "img/food-aef6f3.webp",
           "credit": {
             "author": "Stefan Thiesen",
@@ -2279,6 +2344,7 @@
           }
         },
         {
+          "icon": "🍃",
           "image": "img/food-ff80f9.webp",
           "credit": {
             "author": "Patrick Roper",
@@ -2288,6 +2354,7 @@
           }
         },
         {
+          "icon": "🐞",
           "image": "img/food-3e0df8.webp",
           "credit": {
             "author": "E. Jones",
@@ -2317,7 +2384,12 @@
       "weightKg": {
         "min": 3,
         "max": 5
-      }
+      },
+      "dietIcons": [
+        "🍐",
+        "🍃",
+        "🐞"
+      ]
     },
     "compare": {
       "width": 100
@@ -2503,6 +2575,7 @@
       },
       "food": [
         {
+          "icon": "🍃",
           "image": "img/food-c7454a.webp",
           "credit": {
             "author": "Ping an Chang",
@@ -2512,6 +2585,7 @@
           }
         },
         {
+          "icon": "🌲",
           "image": "img/food-f75afd.webp",
           "credit": {
             "author": "Vyacheslav Argenberg",
@@ -2521,6 +2595,7 @@
           }
         },
         {
+          "icon": "🌰",
           "image": "img/food-5f65ab.webp",
           "credit": {
             "author": "עוזי פז",
@@ -2543,7 +2618,13 @@
       "weightKg": {
         "min": 1.2,
         "max": 1.5
-      }
+      },
+      "dietIcons": [
+        "🍃",
+        "🌲",
+        "🌰",
+        "🐛"
+      ]
     },
     "compare": {
       "width": 50
@@ -2748,6 +2829,7 @@
       },
       "food": [
         {
+          "icon": "🐟",
           "image": "img/food-b96960.webp",
           "credit": {
             "author": "Greg Hume",
@@ -2757,6 +2839,7 @@
           }
         },
         {
+          "icon": "🐠",
           "image": "img/food-40107f.webp",
           "credit": {
             "author": "DatGuy",
@@ -2784,7 +2867,11 @@
       "weightKg": {
         "min": 7,
         "max": 12
-      }
+      },
+      "dietIcons": [
+        "🐟",
+        "🐠"
+      ]
     },
     "compare": {
       "width": 80
@@ -2996,6 +3083,7 @@
       },
       "food": [
         {
+          "icon": "🦌",
           "image": "img/food-6d2580.webp",
           "credit": {
             "author": "Tisha Mukherjee",
@@ -3005,6 +3093,7 @@
           }
         },
         {
+          "icon": "🦌",
           "image": "img/food-37ed95.webp",
           "credit": {
             "author": "Charles J. Sharp",
@@ -3014,6 +3103,7 @@
           }
         },
         {
+          "icon": "🐗",
           "image": "img/food-0b8bd5.webp",
           "credit": {
             "author": "Tisha Mukherjee",
@@ -3050,7 +3140,12 @@
       "weightKg": {
         "min": 110,
         "max": 234
-      }
+      },
+      "dietIcons": [
+        "🦌",
+        "🦌",
+        "🐗"
+      ]
     },
     "compare": {
       "width": 225
@@ -3246,6 +3341,7 @@
       },
       "food": [
         {
+          "icon": "🐃",
           "image": "img/food-c7758a.webp",
           "credit": {
             "author": "Charles J. Sharp",
@@ -3255,6 +3351,7 @@
           }
         },
         {
+          "icon": "🦓",
           "image": "img/food-6dc3ee.webp",
           "credit": {
             "author": "Zenith4237",
@@ -3292,7 +3389,11 @@
       "weightKg": {
         "min": 120,
         "max": 230
-      }
+      },
+      "dietIcons": [
+        "🐃",
+        "🦓"
+      ]
     },
     "compare": {
       "width": 190
@@ -3492,6 +3593,7 @@
       },
       "food": [
         {
+          "icon": "🦌",
           "image": "img/food-7e996b.webp",
           "credit": {
             "author": "Diego Delso",
@@ -3501,6 +3603,7 @@
           }
         },
         {
+          "icon": "🦌",
           "image": "img/food-220239.webp",
           "credit": {
             "author": "Charles J. Sharp",
@@ -3510,6 +3613,7 @@
           }
         },
         {
+          "icon": "🦌",
           "image": "img/food-cfdbe5.webp",
           "credit": {
             "author": "Yathin S Krishnappa",
@@ -3548,7 +3652,12 @@
       "weightKg": {
         "min": 21,
         "max": 65
-      }
+      },
+      "dietIcons": [
+        "🦌",
+        "🦌",
+        "🦌"
+      ]
     },
     "compare": {
       "width": 190
@@ -3753,6 +3862,7 @@
       },
       "food": [
         {
+          "icon": "🌳",
           "image": "img/food-cdf497.webp",
           "credit": {
             "author": "Diego Delso",
@@ -3762,6 +3872,7 @@
           }
         },
         {
+          "icon": "🌾",
           "image": "img/food-7a4f91.webp",
           "credit": {
             "author": "Peripitus",
@@ -3799,7 +3910,11 @@
       "weightKg": {
         "min": 3000,
         "max": 6000
-      }
+      },
+      "dietIcons": [
+        "🌳",
+        "🌾"
+      ]
     },
     "related": [],
     "silhouette": {
@@ -3994,6 +4109,7 @@
       },
       "food": [
         {
+          "icon": "🌿",
           "image": "img/food-54c599.webp",
           "credit": {
             "author": "Peripitus",
@@ -4003,6 +4119,7 @@
           }
         },
         {
+          "icon": "🌵",
           "image": "img/food-9a5da0.webp",
           "credit": {
             "author": "Chr. Kooyman",
@@ -4040,7 +4157,11 @@
       "weightKg": {
         "min": 830,
         "max": 1190
-      }
+      },
+      "dietIcons": [
+        "🌿",
+        "🌵"
+      ]
     },
     "compare": {
       "height": 500
@@ -4232,6 +4353,7 @@
       },
       "food": [
         {
+          "icon": "🌾",
           "image": "img/food-a75142.webp",
           "credit": {
             "author": "JMK",
@@ -4269,7 +4391,10 @@
       "weightKg": {
         "min": 175,
         "max": 322
-      }
+      },
+      "dietIcons": [
+        "🌾"
+      ]
     },
     "compare": {
       "width": 230
@@ -4460,6 +4585,7 @@
       },
       "food": [
         {
+          "icon": "🌾",
           "image": "img/food-85e7ac.webp",
           "credit": {
             "author": "Robert Flogaus-Faust",
@@ -4497,7 +4623,10 @@
       "weightKg": {
         "min": 1300,
         "max": 1500
-      }
+      },
+      "dietIcons": [
+        "🌾"
+      ]
     },
     "compare": {
       "height": 150
@@ -4699,6 +4828,7 @@
       },
       "food": [
         {
+          "icon": "🌿",
           "image": "img/food-bcd60b.webp",
           "credit": {
             "author": "SAplants",
@@ -4708,6 +4838,7 @@
           }
         },
         {
+          "icon": "🌵",
           "image": "img/food-c443cf.webp",
           "credit": {
             "author": "SAplants",
@@ -4743,7 +4874,11 @@
       "weightKg": {
         "min": 800,
         "max": 1400
-      }
+      },
+      "dietIcons": [
+        "🌿",
+        "🌵"
+      ]
     },
     "related": [],
     "silhouette": {
@@ -4930,6 +5065,7 @@
       },
       "food": [
         {
+          "icon": "🌿",
           "image": "img/food-2cf1be.webp",
           "credit": {
             "author": "Forest and Kim Starr",
@@ -4939,6 +5075,7 @@
           }
         },
         {
+          "icon": "🌶️",
           "image": "img/food-6325fd.webp",
           "credit": {
             "author": "Jawleyford",
@@ -4974,7 +5111,12 @@
       "weightKg": {
         "min": 70,
         "max": 170
-      }
+      },
+      "dietIcons": [
+        "🌿",
+        "🌶️",
+        "🐜"
+      ]
     },
     "compare": {
       "height": 130
@@ -5171,6 +5313,7 @@
       },
       "food": [
         {
+          "icon": "🍐",
           "image": "img/food-271a67.webp",
           "credit": {
             "author": "Forest and Kim Starr",
@@ -5180,6 +5323,7 @@
           }
         },
         {
+          "icon": "🦗",
           "image": "img/food-1633ef.webp",
           "credit": {
             "author": "Jidanni",
@@ -5218,7 +5362,12 @@
       "weightKg": {
         "min": 0.254,
         "max": 0.26
-      }
+      },
+      "dietIcons": [
+        "🍐",
+        "🦗",
+        "🌰"
+      ]
     },
     "related": [],
     "silhouette": {
@@ -5412,6 +5561,7 @@
       },
       "food": [
         {
+          "icon": "🌰",
           "image": "img/food-5fcfb1.webp",
           "credit": {
             "author": "USFWS/Southeast",
@@ -5421,6 +5571,7 @@
           }
         },
         {
+          "icon": "🍒",
           "image": "img/food-85e741.webp",
           "credit": {
             "author": "Dominicus Johannes Bergsma",
@@ -5430,6 +5581,7 @@
           }
         },
         {
+          "icon": "🐛",
           "image": "img/food-75fa49.webp",
           "credit": {
             "author": "Anne Krediet",
@@ -5463,7 +5615,12 @@
       },
       "weightKg": {
         "min": 1.1
-      }
+      },
+      "dietIcons": [
+        "🌰",
+        "🍒",
+        "🐛"
+      ]
     },
     "related": [],
     "silhouette": {
@@ -5660,6 +5817,7 @@
       },
       "food": [
         {
+          "icon": "🍒",
           "image": "img/food-38d08c.webp",
           "credit": {
             "author": "Photo by David J. Stang",
@@ -5669,6 +5827,7 @@
           }
         },
         {
+          "icon": "🌿",
           "image": "img/food-fe67e7.webp",
           "credit": {
             "author": "The Cosmonaut",
@@ -5678,6 +5837,7 @@
           }
         },
         {
+          "icon": "🐛",
           "image": "img/food-7fb6bc.webp",
           "credit": {
             "author": "Donald Hobern from Copenhagen, Denmark",
@@ -5703,7 +5863,14 @@
       "weightKg": {
         "min": 0.7,
         "max": 1.1
-      }
+      },
+      "dietIcons": [
+        "🍒",
+        "🌿",
+        "🌸",
+        "🌰",
+        "🐛"
+      ]
     },
     "related": [],
     "silhouette": {
@@ -5901,6 +6068,7 @@
       },
       "food": [
         {
+          "icon": "🍐",
           "image": "img/food-148e89.webp",
           "credit": {
             "author": "Steve Fitzgerald",
@@ -5910,6 +6078,7 @@
           }
         },
         {
+          "icon": "🦗",
           "image": "img/food-ebce5b.webp",
           "credit": {
             "author": "KellyC.5366",
@@ -5946,7 +6115,11 @@
       "weightKg": {
         "min": 0.062,
         "max": 0.123
-      }
+      },
+      "dietIcons": [
+        "🍐",
+        "🦗"
+      ]
     },
     "compare": {
       "height": 21
@@ -6144,6 +6317,7 @@
       },
       "food": [
         {
+          "icon": "🐸",
           "image": "img/food-cc4d2c.webp",
           "credit": {
             "author": "Thomas Brown",
@@ -6153,6 +6327,7 @@
           }
         },
         {
+          "icon": "🦎",
           "image": "img/food-15e981.webp",
           "credit": {
             "author": "J. Patrick Fischer",
@@ -6162,6 +6337,7 @@
           }
         },
         {
+          "icon": "🐭",
           "image": "img/food-fd6b26.webp",
           "credit": {
             "author": "Pei-Jen Lee Shaner",
@@ -6192,7 +6368,14 @@
           "min": 30,
           "max": 60
         }
-      }
+      },
+      "dietIcons": [
+        "🐸",
+        "🦎",
+        "🐭",
+        "🐦",
+        "🦇"
+      ]
     },
     "compare": {
       "width": 30
@@ -6383,6 +6566,7 @@
       },
       "food": [
         {
+          "icon": "🦟",
           "image": "img/food-ccf851.webp",
           "credit": {
             "author": "Dave Huth from Allegany County, NY, USA",
@@ -6392,6 +6576,7 @@
           }
         },
         {
+          "icon": "🐜",
           "image": "img/food-4f6a8b.webp",
           "credit": {
             "author": "Dave Huth from Allegany County, NY, USA",
@@ -6401,6 +6586,7 @@
           }
         },
         {
+          "icon": "🐛",
           "image": "img/food-e73a75.webp",
           "credit": {
             "author": "Bob Henricks from Charlottesville, United States",
@@ -6414,7 +6600,12 @@
     "stats": {
       "lengthCm": {
         "min": 30
-      }
+      },
+      "dietIcons": [
+        "🦟",
+        "🐜",
+        "🐛"
+      ]
     },
     "compare": {
       "width": 30
@@ -6626,6 +6817,7 @@
       },
       "food": [
         {
+          "icon": "🐛",
           "image": "img/food-3a31d5.webp",
           "credit": {
             "author": "Vinayaraj",
@@ -6635,6 +6827,7 @@
           }
         },
         {
+          "icon": "🍃",
           "image": "img/food-67d3d6.webp",
           "credit": {
             "author": "Forest and Kim Starr",
@@ -6658,7 +6851,11 @@
       "wingspanCm": {
         "min": 20,
         "max": 25
-      }
+      },
+      "dietIcons": [
+        "🐛",
+        "🍃"
+      ]
     },
     "related": [],
     "silhouette": {
@@ -7051,6 +7248,7 @@
       },
       "food": [
         {
+          "icon": "🦕",
           "image": "img/food-d2e7d1.webp",
           "credit": {
             "author": "Die Infografen UG (haftungsbeschränkt)",
@@ -7060,6 +7258,7 @@
           }
         },
         {
+          "icon": "🦏",
           "image": "img/food-3ba6c6.webp",
           "credit": {
             "author": "Antonio Rares Mihaila",
@@ -7087,7 +7286,11 @@
       "weightKg": {
         "min": 5650,
         "max": 8400
-      }
+      },
+      "dietIcons": [
+        "🦕",
+        "🦏"
+      ]
     },
     "related": [],
     "silhouette": {
@@ -7286,6 +7489,7 @@
       },
       "food": [
         {
+          "icon": "🌱",
           "image": "img/food-23d8cd.webp",
           "credit": {
             "author": "Z3lvs",
@@ -7295,6 +7499,7 @@
           }
         },
         {
+          "icon": "🦠",
           "image": "img/food-9e997a.webp",
           "credit": {
             "author": "Hanan.n.r97",
@@ -7317,7 +7522,11 @@
     "stats": {
       "lengthCm": {
         "min": 0.05
-      }
+      },
+      "dietIcons": [
+        "🌱",
+        "🦠"
+      ]
     },
     "compare": {
       "partners": [
@@ -7495,6 +7704,7 @@
       },
       "food": [
         {
+          "icon": "☀️",
           "image": "img/food-2677dc.webp",
           "credit": {
             "author": "Forest and Kim Starr",
@@ -7504,6 +7714,7 @@
           }
         },
         {
+          "icon": "🐦",
           "image": "img/food-eda427.webp",
           "credit": {
             "author": "Jimmy Kao",
@@ -7513,6 +7724,7 @@
           }
         },
         {
+          "icon": "🍒",
           "image": "img/food-15482e.webp",
           "credit": {
             "author": "Forest and Kim Starr",
@@ -7527,7 +7739,12 @@
       "heightCm": {
         "min": 300,
         "max": 800
-      }
+      },
+      "dietIcons": [
+        "☀️",
+        "🐦",
+        "🍒"
+      ]
     },
     "compare": {
       "height": 550,

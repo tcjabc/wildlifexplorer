@@ -149,48 +149,37 @@ function profile(card) {
   return { el: h('div', { class: 'stage-profile' }, pic, detail) };
 }
 
-// What it eats: one to three photos of its food (js/food.js), prey always alive. Tap one and it fills
-// the stage; tap it again and it is back on the tray. No words. The tray loads the thumbnails, the
-// full picture only when one is opened.
-// How wide each photo on the tray is drawn, about, for the browser to pick the thumbnail or the full
-// picture: in portrait two photos stack and the big one of three goes across the top.
-const WIDE = '(orientation: portrait) 600px';
-const TILE_SIZES = {
-  1: ['(min-width: 700px) 600px, 100vw'],
-  2: [`${WIDE}, 360px`, `${WIDE}, 360px`],
-  3: [`${WIDE}, 420px`, '300px', '300px'],
-};
+// What it eats, one food at a time (js/food.js): its photo filling the stage, prey always alive, or
+// its emoji big on the paper when it has no photo. Under it, where the gallery's dots sit, one emoji
+// per food; the lit one is showing. It opens on the first; nothing moves by itself, and the photo
+// takes no swipe (sideways still changes card). 📷 gives the credit of the photo showing.
 function food(card, { onCredit }) {
-  const list = foodOf(card);
-  const big = h('div', { class: 'food-big', hidden: true });
-  const tiles = list.map((pic, i) => h('button', {
-    class: 'food-tray__item', type: 'button', 'aria-pressed': 'false',
-    'aria-label': `${label('ff.foodAndHunting')} ${i + 1}`, onclick: () => open(i),
-  }, h('img', {
-    class: 'pic', src: thumbOf(pic.file), alt: '', decoding: 'async', 'data-fallback': thumbOf(pic.file),
-    // A photo alone, or the big one of three, is about the stage's size: the full picture. Smaller ones
-    // need no more than the thumbnail.
-    srcset: `${thumbOf(pic.file)} 480w, ${pic.file} 1200w`, sizes: TILE_SIZES[list.length]?.[i] ?? '300px',
-  })));
-  const press = i => tiles.forEach((t, n) => t.setAttribute('aria-pressed', String(n === i)));
-  function open(i) {
-    const pic = list[i];
-    mount(big, h('img', {
-      class: 'pic', src: pic.file, alt: label('ff.foodAndHunting'), decoding: 'async',
-      srcset: `${thumbOf(pic.file)} 480w, ${pic.file} 1200w`, sizes: '(min-width: 700px) 600px, 100vw',
-      'data-fallback': thumbOf(pic.file),
-    }));
-    big.hidden = false;
-    press(i);
+  const items = foodOf(card);
+  const frame = h('div', { class: 'stage-pic stage-food' });
+  const credit = h('button', { class: 'cover__credit', type: 'button', 'aria-label': label('card.credit') }, '📷');
+  const pick = h('div', { class: 'stage-pic__dots food-pick', role: 'radiogroup', 'aria-label': label('ff.foodAndHunting') },
+    items.map((item, i) => h('button', {
+      class: 'food-pick__btn', type: 'button', role: 'radio', 'aria-checked': 'false',
+      'aria-label': `${label('ff.foodAndHunting')} ${i + 1}`, onclick: () => show(i),
+    }, h('span', { 'aria-hidden': 'true' }, item.icon))));
+  let on = 0;
+  credit.addEventListener('click', () => onCredit?.('food', items[on].pic));
+  function show(i) {
+    on = i;
+    const { icon, pic } = items[i];
+    mount(frame,
+      pic
+        ? h('img', {
+          class: 'pic', src: pic.file, alt: label('ff.foodAndHunting'), decoding: 'async',
+          srcset: `${thumbOf(pic.file)} 480w, ${pic.file} 1200w`, sizes: '(min-width: 700px) 600px, 100vw',
+          'data-fallback': thumbOf(pic.file),
+        })
+        : h('div', { class: 'food-emoji' }, h('span', { 'aria-hidden': 'true' }, icon)),
+      pic && credit, pick);
+    pick.querySelectorAll('button').forEach((b, n) => b.setAttribute('aria-checked', String(n === i)));
   }
-  const close = () => { big.hidden = true; mount(big); press(-1); };
-  big.addEventListener('click', close);
-  return {
-    el: h('div', { class: 'stage-food' },
-      h('div', { class: 'food-tray', 'data-count': String(list.length) }, tiles), big,
-      h('button', { class: 'cover__credit', type: 'button', 'aria-label': label('card.credit'), onclick: () => onCredit?.('food') }, '📷')),
-    stop: close,
-  };
+  show(0);
+  return { el: frame };
 }
 
 const MODES = [['length', '📏', 'card.length'], ['weight', '⚖️', 'card.weight'], ['lifespan', '⏳', 'card.lifespan']];

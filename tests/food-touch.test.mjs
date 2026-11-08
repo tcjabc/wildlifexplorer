@@ -1,7 +1,7 @@
 // The Food stage under real touches, in the real app in Chromium at the baseline tablet's size,
-// landscape and portrait: the tray of one to three photos inside the stage, a tapped photo filling the
-// stage and a second tap putting it back, the lit heading tapped again going back to the gallery, and
-// a swipe across the tray still changing card. How the photos look on the tablet can't be tested here.
+// landscape and portrait: one food at a time, an emoji per food under it (at least 48 px), a tap on one
+// showing its photo or, with none, its emoji big; 📷 the credit of the photo showing; the photo taking
+// no swipe of its own; the lit heading tapped again going back to the gallery.
 //
 // Skipped when the browser isn't installed: npx playwright install chromium
 // Run: npm run test:browser -- tests/food-touch.test.mjs
@@ -90,28 +90,29 @@ async function open(viewport) {
       async food() {
         await f.heading('food');
         await page.waitForFunction(() => {
-          const imgs = [...document.querySelectorAll('.food-tray__item img')];
-          return imgs.length > 0 && imgs.every(i => i.complete && i.naturalWidth > 0);
+          const img = document.querySelector('.stage-food .pic');
+          return img && img.complete && img.naturalWidth > 0;
         }, null, { timeout: 5000 });
       },
-      tiles: () => page.evaluate(() => [...document.querySelectorAll('.food-tray__item')].map(b => {
+      picks: () => page.evaluate(() => [...document.querySelectorAll('.food-pick__btn')].map(b => {
         const r = b.getBoundingClientRect();
-        return { x: r.x, y: r.y, w: r.width, h: r.height };
+        return { x: r.x, y: r.y, w: r.width, h: r.height, on: b.getAttribute('aria-checked') === 'true', icon: b.textContent };
       })),
       state: () => page.evaluate(() => {
-        const big = document.querySelector('.food-big');
+        const s = document.querySelector('.stage');
         return {
-          open: Boolean(big && !big.hidden), big: big?.querySelector('img')?.getAttribute('src') ?? null,
-          pressed: [...document.querySelectorAll('.food-tray__item')].map(t => t.getAttribute('aria-pressed') === 'true'),
-          stage: document.querySelector('.stage').firstElementChild?.className ?? null,
+          view: s.firstElementChild?.className ?? null,
+          src: s.querySelector('.stage-food .pic')?.getAttribute('src') ?? null,
+          emoji: s.querySelector('.food-emoji')?.textContent ?? null,
+          credit: Boolean(s.querySelector('.stage-food .cover__credit')),
           face: document.querySelector('.viewer__stage').dataset.face,
           lit: document.querySelector('.hbtn.is-on')?.dataset.heading ?? null, hash: location.hash,
         };
       }),
-      files: () => page.evaluate(async () => {
+      items: () => page.evaluate(async () => {
         const { foodOf } = await import('/js/food.js');
         const store = await import('/js/store.js');
-        return foodOf(store.state.byId.get(decodeURIComponent(location.hash.split('/')[2]))).map(p => p.file);
+        return foodOf(store.state.byId.get(decodeURIComponent(location.hash.split('/')[2]))).map(i => ({ icon: i.icon, file: i.pic?.file ?? null, author: i.pic?.author ?? null }));
       }),
     };
     return f;
@@ -123,54 +124,57 @@ const run = (name, fn, viewport = LANDSCAPE) => test(name, { skip }, async () =>
 });
 
 const inside = (t, s) => t.x >= s.x - 1 && t.y >= s.y - 1 && t.x + t.w <= s.x + s.w + 1 && t.y + t.h <= s.y + s.h + 1;
-const apart = (a, b) => a.x + a.w <= b.x + 1 || b.x + b.w <= a.x + 1 || a.y + a.h <= b.y + 1 || b.y + b.h <= a.y + 1;
 
 for (const [shape, viewport] of [['landscape', LANDSCAPE], ['portrait', PORTRAIT]]) {
-  run(`the macaque's three photos: on the stage, a tap fills it, a tap puts it back (${shape})`, async f => {
+  run(`the macaque's four foods: one emoji each, at least 48 px, a tap shows its photo or its emoji (${shape})`, async f => {
     await f.card('formosan-rock-macaque');
     await f.food();
-    const stage = await f.box('.stage'), tiles = await f.tiles(), files = await f.files();
-    assert.equal(tiles.length, 3);
-    assert.ok(tiles.every(t => inside(t, stage)), 'all on the stage');
-    assert.ok(apart(tiles[0], tiles[1]) && apart(tiles[0], tiles[2]) && apart(tiles[1], tiles[2]), 'none on another');
-    assert.ok(tiles[0].w * tiles[0].h > tiles[1].w * tiles[1].h, 'the first is the big one');
-    const start = await f.state();
-    assert.equal(start.stage, 'stage-food');
+    const stage = await f.box('.stage'), picks = await f.picks(), items = await f.items();
+    assert.deepEqual(picks.map(p => p.icon), ['🍎', '🌿', '🌰', '🐛']);
+    assert.ok(picks.every(p => p.w >= 48 && p.h >= 48), `big enough for small fingers: ${picks.map(p => Math.round(p.w))}`);
+    assert.ok(picks.every(p => inside(p, stage)), 'on the stage');
+    assert.deepEqual(picks.map(p => p.on), [true, false, false, false], 'it opens on the first');
+    let st = await f.state();
+    assert.deepEqual([st.view.includes('stage-food'), st.src, st.credit], [true, items[0].file, true]);
 
-    await f.tapAt(f.middle(tiles[1]));
-    const opened = await f.state();
-    assert.ok(opened.open, 'it fills the stage');
-    assert.equal(opened.big, files[1], 'the full picture of the photo tapped');
-    assert.deepEqual(opened.pressed, [false, true, false]);
-    const big = await f.box('.food-big');
-    assert.ok(Math.abs(big.w - stage.w) < 2 && Math.abs(big.h - stage.h) < 2, 'as big as the stage');
+    await f.tapAt(f.middle(picks[2]));
+    st = await f.state();
+    assert.deepEqual([st.src, st.emoji, st.credit], [null, '🌰', false], 'no photo: the emoji big on the paper, no credit');
+    assert.deepEqual((await f.picks()).map(p => p.on), [false, false, true, false]);
 
-    await f.tapAt(f.middle(big));
-    const back = await f.state();
-    assert.ok(!back.open, 'back on the tray');
-    assert.deepEqual(back.pressed, [false, false, false]);
-    assert.deepEqual([back.lit, back.face, back.hash], ['food', start.face, '#/card/formosan-rock-macaque']);
+    await f.tapAt(f.middle(picks[3]));
+    st = await f.state();
+    assert.equal(st.src, items[3].file, 'the bee');
+    // 📷: the credit of the photo showing, only.
+    await f.tapAt(f.middle(await f.box('.stage-food .cover__credit')));
+    const lines = await f.page.evaluate(() => [...document.querySelectorAll('dialog[open] .card-credits li')].map(li => li.textContent));
+    assert.equal(lines.length, 1);
+    assert.ok(lines[0].includes(items[3].author), lines[0]);
+    await f.page.evaluate(() => document.querySelector('dialog[open] .btn--primary').click());
+
+    // A tap on the photo does nothing; it stays on the bee.
+    await f.tapAt(f.middle(stage));
+    st = await f.state();
+    assert.deepEqual([st.src, st.lit, st.hash], [items[3].file, 'food', '#/card/formosan-rock-macaque']);
   }, viewport);
 }
 
-run('one photo fills the tray; the lit heading tapped again goes back to the gallery', async f => {
+run('one food: one emoji; the lit heading tapped again goes back to the gallery', async f => {
   await f.card('plains-zebra');
   await f.food();
-  const tiles = await f.tiles(), tray = await f.box('.food-tray');
-  assert.equal(tiles.length, 1);
-  assert.ok(Math.abs(tiles[0].w - tray.w) < 2 && Math.abs(tiles[0].h - tray.h) < 2);
+  assert.deepEqual((await f.picks()).map(p => p.icon), ['🌾']);
   await f.heading('food');
   const st = await f.state();
   assert.equal(st.lit, null);
-  assert.match(st.stage, /stage-pic/);
+  assert.match(st.view, /stage-pic/);
+  assert.doesNotMatch(st.view, /stage-food/);
 });
 
-run('a swipe across the tray still changes card, and opens nothing', async f => {
+run('a swipe across the food photo still changes card, and picks nothing', async f => {
   await f.card('formosan-rock-macaque');
   await f.food();
-  const t = await f.tiles(), s = await f.box('.stage');
-  const y = t[0].y + t[0].h / 2;
+  const s = await f.box('.stage');
+  const y = s.y + s.h * 0.4;
   await f.drag({ x: s.x + s.w * 0.85, y }, { x: s.x + s.w * 0.15, y });
   assert.notEqual(await f.page.evaluate(() => location.hash), '#/card/formosan-rock-macaque', 'on to the next card');
-  assert.equal(await f.page.evaluate(() => Boolean(document.querySelector('.food-big:not([hidden])'))), false);
 });

@@ -1,10 +1,10 @@
-// The Food stage (js/food.js): one to three photos of what each species card's animal eats, credited
-// like the photos, on our own files.
+// The Food stage (js/food.js): an emoji for every food each species card's text names, most with a
+// photo (prey always alive), credited like the photos, on our own files.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
-import { FOOD_MAX, foodOf } from '../js/food.js';
+import { foodOf, foodPhotos } from '../js/food.js';
 import { SPECIES_HEADINGS, VIEW_HAS, headingsFor, isTopic, viewFor } from '../js/headings.js';
 import { isAllowedLicenseName } from '../scripts/lib/licenses.mjs';
 import { thumbPath } from '../scripts/lib/images.mjs';
@@ -14,34 +14,44 @@ const species = cards.filter(c => !isTopic(c));
 const at = f => new URL(`../${f}`, import.meta.url);
 const food = SPECIES_HEADINGS[1];
 
-test('every species card has one to three food photos, credited like the photos', () => {
+// The emoji the cards use, all in Emoji 11 or older: the baseline tablet is Android 9, which draws
+// anything newer as an empty box. A new emoji goes here only after checking its version.
+const EMOJI_11 = new Set(['🌰', '🍎', '🌿', '🐛', '🐭', '🐜', '🍓', '🌾', '🌳', '🌸', '🍄', '🍐', '🥭', '🍍', '🐀', '🐁',
+  '🍃', '🐞', '🌲', '🐟', '🐠', '🦌', '🐗', '🐃', '🦓', '🌵', '🌶️', '🦗', '🍒', '🐸', '🦎', '🐦', '🦇', '🦟', '🦕', '🦏',
+  '🌱', '🦠', '☀️']);
+
+test('every species card has an emoji for each food, and a photo for most', () => {
   for (const c of species) {
-    const list = foodOf(c);
-    assert.ok(list.length >= 1 && list.length <= FOOD_MAX, `${c.id}: ${list.length}`);
-    assert.equal(list.length, c.stage.food.length, `${c.id}: every entry can be shown`);
-    for (const pic of list) {
-      assert.ok(existsSync(at(pic.file)), `${c.id}: ${pic.file} missing`);
-      assert.ok(existsSync(at(thumbPath(pic.file))), `${c.id}: thumbnail missing`);
+    const items = foodOf(c);
+    assert.ok(items.length >= 1 && items.length <= 5, `${c.id}: ${items.length} foods`);
+    assert.deepEqual(items.map(i => i.icon), c.stats.dietIcons, `${c.id}: one per emoji, in order`);
+    for (const { icon } of items) assert.ok(EMOJI_11.has(icon), `${c.id}: ${icon} is not on the Emoji 11 list`);
+    assert.ok(items[0].pic, `${c.id}: it opens on a photo`);
+    assert.equal(foodPhotos(c).length, c.stage.food.length, `${c.id}: every photo has its emoji`);
+    for (const pic of foodPhotos(c)) {
+      assert.ok(existsSync(at(pic.file)) && existsSync(at(thumbPath(pic.file))), `${c.id}: ${pic.file}`);
       assert.ok(isAllowedLicenseName(pic.license), `${c.id}: licence ${pic.license}`);
       for (const k of ['author', 'license', 'licenseUrl', 'sourceUrl']) assert.ok(pic[k], `${c.id}: no ${k}`);
     }
-    assert.equal(new Set(list.map(p => p.file)).size, list.length, `${c.id}: no photo twice`);
   }
+  assert.equal(species.reduce((n, c) => n + foodPhotos(c).length, 0), 72, 'the 72 approved photos');
+  const bear = foodOf(species.find(c => c.id === 'formosan-black-bear'));
+  assert.deepEqual(bear.map(i => [i.icon, Boolean(i.pic)]), [['🌰', true], ['🍎', false], ['🌿', false], ['🐛', true], ['🐭', false]], 'the old plate, two photos');
   assert.ok(cards.filter(isTopic).every(c => foodOf(c).length === 0), 'topic cards have none yet');
 });
 
-test('Food shows the tray on every species card; the plate is gone', () => {
+test('Food shows the carousel on every species card', () => {
   for (const c of species) assert.equal(viewFor(c, food), 'food', c.id);
   assert.ok(species.every(c => headingsFor(c)[1].enabled));
   assert.equal(VIEW_HAS.diet, undefined);
-  assert.ok(species.every(c => !c.stats?.dietIcons), 'no emoji plate data left');
-  assert.equal(viewFor({ group: 'mammals' }, food), 'photo', 'no photos: the gallery as before');
+  assert.equal(viewFor({ group: 'mammals' }, food), 'photo', 'no food: the gallery as before');
 });
 
-test('a food list keeps only what it can show, three at most', () => {
-  const card = food => ({ stage: { food } });
-  assert.deepEqual(foodOf(card('img/a.webp')), [], 'not a list');
-  assert.deepEqual(foodOf(card([{ image: 'https://example.com/a.webp' }, { image: 'img/b.webp', credit: { author: 'X' } }])),
-    [{ file: 'img/b.webp', author: 'X' }]);
-  assert.equal(foodOf(card(['a', 'b', 'c', 'd'].map(n => ({ image: `img/${n}.webp` })))).length, 3);
+test('each photo goes with its own emoji, two of the same in order; an emoji alone has no photo', () => {
+  const card = { stats: { dietIcons: ['🦌', '🦌', '🐗', '🍎'] }, stage: { food: [
+    { icon: '🦌', image: 'img/a.webp' }, { icon: '🐗', image: 'img/c.webp' }, { icon: '🦌', image: 'img/b.webp' },
+    { icon: '🐟', image: 'https://example.com/x.webp' }] } };
+  assert.deepEqual(foodOf(card).map(i => [i.icon, i.pic?.file ?? null]), [['🦌', 'img/a.webp'], ['🦌', 'img/b.webp'], ['🐗', 'img/c.webp'], ['🍎', null]]);
+  assert.deepEqual(foodOf({ stage: { food: [{ image: 'img/a.webp' }] } }).map(i => i.icon), ['🍽️'], 'a photo with no emoji still shows');
+  assert.deepEqual(foodOf({ stats: { dietIcons: '🌰' } }), [], 'not a list');
 });

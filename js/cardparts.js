@@ -9,7 +9,7 @@ import { worldMap } from './worldmap.js';
 import { opensGlobe } from './card-return.js';
 import { hasCall, hasMap } from './headings.js';
 import { habitatOf } from './habitat.js';
-import { foodOf } from './food.js';
+import { foodPhotos } from './food.js';
 import { babiesOf } from './stage-pictures.js';
 import { nameBi } from './zhuyin.js';
 import { glossBi } from './glossary.js';
@@ -218,23 +218,28 @@ export function relatedItem(r) {
     h('span', { class: 'related__name' }, tx('compare.notYet')));
 }
 
-// Every picture used on this card, for the credit sheet.
-export function cardCredits(card) {
+// One picture's line on the credit sheet: what it is, its author, licence and source.
+function creditLine(key, img) {
+  const href = safeUrl(img.sourceUrl);
+  const lic = safeUrl(img.licenseUrl);
+  return h('li', null,
+    h('strong', null, tx(key)), ' ',
+    img.author, ' · ',
+    lic ? h('a', { href: lic, target: '_blank', rel: 'noopener' }, img.license) : img.license,
+    href && ' · ',
+    href && h('a', { href, target: '_blank', rel: 'noopener' }, tx('card.source')));
+}
+
+// Every picture used on this card, for the credit sheet; or only one ({ only: picture, key: its
+// label key }), as the Food stage's 📷 asks for the photo showing.
+export function cardCredits(card, { only = null, key: onlyKey = 'credits.food' } = {}) {
   const pictureOf = k => (k === 'compare' ? card.compare?.silhouette : k === 'habitat' ? habitatOf(card) : k === 'babies' ? babiesOf(card) : card[k]);
   // Each food photo is a line of its own.
   const rows = [
     ['photo', 'card.photo'], ['illustration', 'card.illustration'], ['habitat', 'credits.habitat'], ['babies', 'credits.babies'], ['silhouette', 'credits.silhouette'], ['call', 'credits.call'], ['compare', 'credits.silhouette'],
-  ].map(([k, key]) => [key, pictureOf(k)]).concat(foodOf(card).map(img => ['credits.food', img]))
-    .filter(([, img]) => img?.file).map(([key, img]) => {
-    const href = safeUrl(img.sourceUrl);
-    const lic = safeUrl(img.licenseUrl);
-    return h('li', null,
-      h('strong', null, tx(key)), ' ',
-      img.author, ' · ',
-      lic ? h('a', { href: lic, target: '_blank', rel: 'noopener' }, img.license) : img.license,
-      href && ' · ',
-      href && h('a', { href, target: '_blank', rel: 'noopener' }, tx('card.source')));
-  });
+  ].map(([k, key]) => [key, pictureOf(k)]).concat(foodPhotos(card).map(img => ['credits.food', img]))
+    .filter(([, img]) => img?.file).map(([key, img]) => creditLine(key, img));
+  if (only) return h('ul', { class: 'card-credits' }, creditLine(onlyKey, only));
   return h('ul', { class: 'card-credits' }, rows,
     hasMap(card) && h('li', null, tx('credits.map')),
     card.range && h('li', null, tx('credits.gbif')));

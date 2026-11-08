@@ -293,7 +293,7 @@ Every card has the same grid (`js/headings.js`, tested on every card in `tests/h
 | Place | Species cards | Stage | Topic cards | Stage |
 |---|---|---|---|---|
 | 1 | 🏠 Habitat | its habitat picture (spot the animal), or photo | ❓ What is it? | photo |
-| 2 | 🍃 Food & Hunting | food tray, or photo | How it works (a gear) | photo |
+| 2 | 🍃 Food & Hunting | one food at a time, an emoji for each, or photo | How it works (a gear) | photo |
 | 3 | 🥚 Babies | a photo of its young, or photo | 👀 Who to look for | `related` cards, or photo |
 | 4 | 🐾 Behaviour | the Profile magnifier, or photo | 🕒 When | photo |
 | 5 | 📏 Size | creature comparison | ⭐ Wow! | photo |
@@ -318,8 +318,10 @@ card's credit sheet and the Credits page, and load only when their stage opens.
   when the animal is in it, is `{ x, y, r }`: its middle as fractions of the picture's width and height,
   and the radius a tap finds it within, as a fraction of the shorter side. A tap there rings it,
   buzzes once and shows its silhouette; anywhere else does nothing.
-- `"food": [{ image, credit }, …]` (`js/food.js`): one to three photos of what it eats, prey always
-  alive, on a tray. A tapped photo fills the stage; tapped again it goes back to the tray.
+- `"food": [{ icon, image, credit }, …]` (`js/food.js`): photos of what it eats, prey always alive,
+  each with its emoji from `stats.dietIcons`. The stage shows one food at a time, its photo filling
+  it; under it, where the gallery's dots sit, one emoji per food (at least 48 px on the screen), the
+  one showing lit. A food with no photo shows its emoji big on the paper. 📷 credits the photo showing.
 - `"babies": { image, credit }` (`js/stage-pictures.js`): one photo of its young (or a parent with its
   young), nothing to do but look. Never eggs being taken, a nest raid or a kill.
 
@@ -368,7 +370,9 @@ The inside uses these optional fields. Any you leave out are simply not shown.
   under 🐾 Behaviour. The build never touches `profile`, so hand-tuned values are safe.
 - **stats**: `length`, `weight`, `lifespan` and `diet` are the text shown. `lengthCm`, `weightKg` and
   `lifespanYears` are the numbers the comparisons use (the middle of `min`–`max`). If you only give
-  the numbers, the text is made from them.
+  the numbers, the text is made from them. `dietIcons`: one emoji per food the card's text names,
+  for the Food stage, Emoji 11 or older only (the baseline tablet is Android 9; the list is in
+  `tests/food.test.mjs`).
   `development` is gestation or incubation: `kind` is `"gestation"` (shown as Gestation 懷孕期) or
   `"incubation"` (Incubation 孵化期), `days` the time in days (`min`–`max`), with optional `en`/`zh`
   text instead. `youngCount` is the number of young (or eggs) at a time, with optional `young` text;

@@ -305,26 +305,22 @@
   animation: pop-in var(--t-slow) var(--ease-bounce);
 }
 .habitat__shape { max-width: 100%; max-height: 100%; object-fit: contain; }
-/* Food (js/food.js): one to three photos on the paper. Three: one big and two small, the big one at
-   the left of a wide stage and on top of a tall one. A tapped photo fills the stage. */
-.stage-food { position: absolute; inset: 0; padding: var(--s-3); background: var(--c-paper); }
-.food-tray { display: grid; gap: var(--s-3); width: 100%; height: 100%; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
-.food-tray[data-count="3"] { grid-template: repeat(2, minmax(0, 1fr)) / 3fr 2fr; grid-auto-flow: row; }
-.food-tray[data-count="3"] > :first-child { grid-row: span 2; }
-@container (orientation: portrait) {
-  .food-tray { grid-auto-flow: row; grid-auto-rows: minmax(0, 1fr); grid-template-rows: none; grid-template-columns: minmax(0, 1fr); }
-  .food-tray[data-count="3"] { grid-template: 3fr 2fr / repeat(2, minmax(0, 1fr)); }
-  .food-tray[data-count="3"] > :first-child { grid-row: auto; grid-column: span 2; }
+/* Food (js/food.js): one food at a time, its photo filling the stage (.stage-pic), or its emoji big on
+   the paper when it has none. Its emoji row sits where the gallery's dots do, each a whole tap target
+   on the screen (--food-pick, at least 48 px), the one showing lit like the lit dot. */
+.food-emoji {
+  position: absolute; inset: 0; display: grid; place-items: center; background: var(--c-paper);
+  font-size: var(--food-emoji); line-height: 1;
 }
-.food-tray__item {
-  position: relative; padding: 0; border: 0; border-radius: var(--r-md); overflow: hidden; cursor: pointer;
-  background: var(--c-bg-deep); box-shadow: var(--shadow-1);
+.food-pick { gap: calc(var(--s-1) / var(--card-s, 1)); padding-bottom: calc(var(--s-1) / var(--card-s, 1)); }
+.food-pick__btn {
+  display: grid; place-items: center; padding: 0; cursor: pointer;
+  width: calc(var(--food-pick) / var(--card-s, 1)); height: calc(var(--food-pick) / var(--card-s, 1));
+  border: calc(var(--bw-thin) / var(--card-s, 1)) solid transparent; border-radius: 50%;
+  background: var(--c-veil); box-shadow: 0 0 0 var(--bw-thin) var(--c-shade-strong);
+  font-size: calc(var(--food-pick-glyph) / var(--card-s, 1)); line-height: 1;
 }
-.food-tray__item .pic { position: absolute; inset: 0; }
-.food-big { position: absolute; inset: 0; cursor: pointer; background: var(--c-bg-deep); animation: pop-in var(--t-fast) ease-out; }
-.food-big[hidden] { display: none; }
-.food-big .pic { position: absolute; inset: 0; }
-.stage-food .cover__credit { z-index: 1; }
+.food-pick__btn[aria-checked="true"] { background: var(--c-accent); border-color: var(--c-surface); }
 /* Photo or illustration: two dots at the bottom centre, each a whole tap target on the screen. */
 .stage-pic__dots { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); display: flex; }
 .stage-pic__dot {

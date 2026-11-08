@@ -498,10 +498,11 @@ function readButton() {
   return btn;
 }
 
-function openCredits() {
+// kind, pic: from a stage showing one picture of several (Food), just that picture's credit.
+function openCredits(kind, pic) {
   mount(v.sheet,
     h('h2', { class: 'sheet__title' }, h('span', { 'aria-hidden': 'true' }, '📷'), tx('card.credits')),
-    cardCredits(v.card),
+    cardCredits(v.card, pic?.file ? { only: pic, key: `credits.${kind}` } : {}),
     h('div', { class: 'sheet__actions' },
       h('button', { class: 'btn btn--primary', type: 'button', onclick: () => v.sheet.close() }, tx('card.close'))));
   v.sheet.showModal();
