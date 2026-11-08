@@ -1,70 +1,25 @@
-// The open card, two sides: one large stage (js/stage-views.js) and the menu, a fixed grid of heading
-// buttons (js/headings.js) with the text of the one that is lit under it. Tapping a heading lights
-// it, shows its text and switches the stage to match; tapping it again goes back to the gallery.
-// Headings are silent, unless the card has a recorded narration for one.
-//
-// Which side goes where is up to the viewer (js/card-layout.js openLayout): beside the menu the stage
-// is the page on the left, on the back of the cover; above it, it sits in the menu page's own slot.
-// place() moves it, so what is on the stage carries on.
-import { h, mount } from './dom.js';
-import { bi, getMode, tx } from './i18n.js';
-import { state } from './store.js';
-import { statusBadge, taiwanBadge } from './components.js';
-import { comingSoonKey, glossed, preview, relatedItem, relatedOf, statCells, statRows } from './cardparts.js';
+// The card's front, for exploring: one large stage (js/stage-views.js) and the heading grid, a fixed
+// grid of buttons (js/headings.js) with their names. Nothing to read on it: the words are all on the
+// back (js/fact-back.js). Tapping a heading lights it and switches the stage to match; what the
+// viewer does besides (scroll the back to it, or turn the card over to it) is onHeading. Headings are
+// silent, unless the card has a recorded narration for one.
+import { h } from './dom.js';
+import { getMode, tx } from './i18n.js';
+import { groupById } from './store.js';
+import { groupChip, headerStrip, preview, relatedOf } from './cardparts.js';
 import { headingsFor } from './headings.js';
 import { lookalikesOf } from './lookalikes.js';
-import { nameBi } from './zhuyin.js';
 import { stageFor } from './stage-views.js';
 import { playNarration, stopCall } from './card-call.js';
 
-// The statistics that go with a heading, by their mode in statRows.
-const ROWS = { size: ['length', 'height', 'wingspan', 'weight', 'lifespan'], babies: ['development', 'young'], food: ['diet'] };
-
-const continentsOf = card => (card.continents ?? [])
-  .map(id => state.regions.continents.find(r => r.id === id)?.name).filter(Boolean);
-
-export function openCard(card, { onCredit, onMap, onCall } = {}) {
+// onHeading(id, { again }): a heading was tapped; again when it was already lit. It returns true
+// when it took care of an again (the card turned over to it); otherwise an again goes back to the
+// gallery.
+export function openCard(card, { onCredit, onMap, onCall, onHeading } = {}) {
   const ctx = { preview: preview(), lookalikes: lookalikesOf(card).length, related: relatedOf(card).length };
   const grid = headingsFor(card, ctx);
   const stage = stageFor(card, { onCredit, onMap, onCall });
-  const rows = statRows(card);
-  const rowsOf = x => rows.filter(r => ROWS[x.id]?.includes(r.mode));
   let current = null;
-
-  const statList = x => {
-    const list = rowsOf(x);
-    return list.length > 0 && h('div', { class: 'open__stats' }, list.map(r => h('div', { class: 'stat' }, statCells(card, r))));
-  };
-
-  // What goes between the heading's title and its text.
-  const extras = x => {
-    if (x.id === 'where') {
-      return [h('p', { class: 'ff__text' }, continentsOf(card).map(n => bi(n))), card.taiwan && taiwanBadge()];
-    }
-    return [x.id === 'status' && statusBadge(card.status), statList(x)];
-  };
-
-  const panel = x => [
-    h('h2', { class: 'cpage__heading' }, h('span', { 'aria-hidden': 'true' }, x.icon), tx(x.label)),
-    extras(x),
-    x.text.map(glossed),
-  ];
-
-  // Nothing lit: the card's name, and its relations if it has any.
-  const home = () => {
-    const related = relatedOf(card);
-    const empty = grid.every(x => !x.enabled);
-    return [
-      h('h2', { class: 'open__name' }, nameBi(card.name)),
-      h('p', { class: 'stat__hint' }, tx(empty ? comingSoonKey(card) : 'card.pickHeading')),
-      related.length > 0 && h('section', { class: 'open__related' },
-        h('h3', { class: 'cpage__label' }, tx('card.related')),
-        h('ul', { class: 'related' }, related.map(relatedItem))),
-    ];
-  };
-
-  const slot = h('div', { class: 'open__slot' });
-  const text = h('div', { class: 'open__text', 'data-scroll': '', tabindex: '0', 'aria-live': 'polite' });
 
   // quiet: coming back to a heading that was already lit, nothing to play.
   function select(id, { quiet = false } = {}) {
@@ -76,8 +31,6 @@ export function openCard(card, { onCredit, onMap, onCall } = {}) {
       b.setAttribute('aria-pressed', String(on));
     });
     stage.show(x?.view ?? 'gallery', x);
-    mount(text, x ? panel(x) : home());
-    text.scrollTop = 0;
     if (quiet) return;
     stopCall();
     if (x) playNarration(card, x.id, getMode());
@@ -88,21 +41,24 @@ export function openCard(card, { onCredit, onMap, onCall } = {}) {
   const buttons = grid.map(x => h('button', {
     class: 'hbtn', type: 'button', 'data-heading': x.id, 'data-slot': x.slot,
     'aria-pressed': 'false', 'aria-disabled': x.enabled ? null : 'true',
-    onclick: () => { if (x.enabled) select(x.id === current ? null : x.id); },
+    onclick: () => {
+      if (!x.enabled) return;
+      const again = x.id === current;
+      if (again && onHeading?.(x.id, { again })) return;
+      select(again ? null : x.id);
+      if (!again) onHeading?.(x.id, { again });
+    },
   }, h('span', { class: 'hbtn__icon', 'aria-hidden': 'true' }, x.icon), h('span', { class: 'hbtn__label' }, tx(x.label))));
 
-  const menu = h('div', { class: 'cpage cpage--menu', 'data-group': card.group },
-    slot, h('div', { class: 'hgrid' }, buttons), text);
+  const slot = h('div', { class: 'front__stage' }, stage.el);
+  const front = h('div', { class: 'cpage cpage--front', 'data-group': card.group },
+    headerStrip(card, groupChip(groupById(card.group))),
+    slot, h('div', { class: 'hgrid' }, buttons));
   select(null, { quiet: true });
 
   return {
-    menu,
-    // host: the page beside the menu, or nothing to use the menu page's own slot.
-    place(host) {
-      const to = host ?? slot;
-      if (stage.el.parentElement !== to) to.append(stage.el);
-      stage.layout();
-    },
+    el: front,
+    layout: () => stage.layout(),
     select,
     selected: () => current,
     replay: () => stage.replay(),

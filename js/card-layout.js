@@ -10,8 +10,8 @@
 //               expanded the panel covers the card
 //   'phone'   – collapsed: a small tab at the bottom-right (in the hint row); expanded: a
 //               full overlay
-// The open card fills the space the notebook leaves, the stage and the heading grid side by side
-// when that space is wide and one above the other when it isn't (openLayout).
+// The card fills the space the notebook leaves: front and back side by side when that space is wide,
+// one page that turns over when it isn't (openLayout).
 
 export const SPINE = 60;            // px: the strip at the right for the collapsed notebook
 export const PHONE_MAX = 600;       // px: narrower screens are phones
@@ -53,19 +53,23 @@ export function cardLayout({ W, Hs, P, H, mode, expanded, share = PANEL_SHARE })
   return { visibleW, s0: fitScale(visibleW, Hs, P, H) };
 }
 
-// The open card in the space left for it. The sizes are in card px, before the scale s.
-//   'side'    – stage and menu next to each other, each a page of the closed card's size. On a
-//               short screen the menu is wider, so its buttons still reach `tap` px.
-//   'stacked' – stage above menu, filling the space.
+// The card in the space left for it. It has two faces of the same size, the front (the stage and the
+// heading grid) and the back (the Fact File). The sizes are in card px, before the scale s.
+//   'side'    – room for two pages: front and back side by side, always both there. A page is the
+//               card's design size, wider on a short screen so the buttons still reach `tap` px.
+//   'stacked' – not: one page filling the space, turning over between front and back.
+// pageW × h: one page. w: the whole card (two pages, or one).
 export function openLayout({ visibleW, Hs, P, H, tap = 64 }) {
   const W = visibleW * FILL, T = Hs * FILL;
-  if (visibleW / Hs >= SIDE_RATIO) {
-    const s = whole(Math.min(W / (2 * P), T / H), P);
-    const menuW = Math.max(P, (GRID_COLS * tap) / s + GRID_ROOM);
-    return { kind: 'side', s, menuW, w: P + menuW, h: H };
+  const buttons = GRID_COLS * tap; // the screen px the grid's buttons need, at least
+  if (visibleW / Hs >= SIDE_RATIO && W / 2 > buttons) {
+    // Two pages wide enough for the buttons must fit across too: 2 (buttons + GRID_ROOM s) <= W.
+    const s = whole(Math.min(W / (2 * P), T / H, (W / 2 - buttons) / GRID_ROOM), P);
+    const pageW = Math.max(P, buttons / s + GRID_ROOM);
+    return { kind: 'side', s, menuW: pageW, pageW, w: 2 * pageW, h: H };
   }
   const s = whole(Math.min(W / P, T / H), P);
-  return { kind: 'stacked', s, menuW: W / s, w: W / s, h: T / s };
+  return { kind: 'stacked', s, menuW: W / s, pageW: W / s, w: W / s, h: T / s };
 }
 
 // Keep a box (screen px) left of the notebook.

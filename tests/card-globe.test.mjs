@@ -61,14 +61,15 @@ test('the card screen is kept once for the card left, and only that card takes i
   assert.equal(cardReturn.take('formosan-black-bear'), null);
 });
 
-test('which side was showing', () => {
-  assert.equal(cardReturn.sideOf({ p: 0 }), 'front');
-  assert.equal(cardReturn.sideOf({ p: 1 }), 'inside');
-  assert.equal(cardReturn.sideOf({ p: 0, f: 1 }), 'back');
-  assert.equal(cardReturn.sideOf({ p: 1, f: 1 }), 'back');
-  assert.equal(cardReturn.sideOf({ p: 1, f: 2 }), 'inside', 'turned on round: the side it came from');
-  assert.equal(cardReturn.underOf({ p: 1, f: 1 }), 'inside');
-  assert.deepEqual(cardReturn.SIDES, ['front', 'inside', 'back']);
+test('which side was showing: front or back, turned over either way', () => {
+  assert.equal(cardReturn.sideOf({ f: 0 }), 'front');
+  assert.equal(cardReturn.sideOf({ f: 1 }), 'back');
+  assert.equal(cardReturn.sideOf({ f: -1 }), 'back', 'over the other way');
+  assert.equal(cardReturn.sideOf({ f: 2 }), 'front', 'on round');
+  assert.equal(cardReturn.sideOf({ f: 0.4 }), 'front');
+  assert.equal(cardReturn.sideOf({ f: 0.6 }), 'back');
+  assert.equal(cardReturn.sideOf({}), 'front');
+  assert.deepEqual(cardReturn.SIDES, ['front', 'back']);
 });
 
 test('the router keeps the card screen when leaving it, and gives it back coming from the globe', () => {
@@ -78,11 +79,10 @@ test('the router keeps the card screen when leaving it, and gives it back coming
   // Asked before the binder is drawn behind the card (which changes what is shown).
   assert.ok(app.indexOf("const restore = ['globe', 'notes']") < app.indexOf("if (binderGroup() !== card.group) renderMain"), 'restore is decided first');
   const viewer = src('js/viewer.js');
-  assert.match(viewer, /restore\?\.side === 'inside' \|\| restore\?\.under === 'inside'\) v\.p = 1/);
-  assert.match(viewer, /restore\?\.side === 'back'\) v\.f = 1/, 'the back comes back too');
-  assert.match(viewer, /under: underOf\(v\)/, 'and what it lay over');
-  assert.match(viewer, /restore\?\.heading\) v\.built\.open\.select\(restore\.heading/, 'the lit heading comes back too');
-  assert.match(viewer, /heading: v\.built\.open\.selected\(\)/);
+  assert.match(viewer, /restore\?\.side === 'back'\) v\.f = 1/, 'the back comes back');
+  assert.match(viewer, /restore\?\.heading\) \{ v\.built\.front\.select\(restore\.heading/, 'the lit heading comes back too');
+  assert.match(viewer, /showSection\(v\.built\.back, restore\.heading/, 'and its section on the back');
+  assert.match(viewer, /heading: v\.built\.front\.selected\(\)/);
   assert.match(viewer, /start: notes/, 'the notebook opens where it was');
 });
 
@@ -93,9 +93,9 @@ test('only a card with a range, open in the viewer, gets a map that opens the gl
   assert.equal(opensGlobe({ range: 'data/ranges/x.json' }, onMap), true);
   assert.equal(opensGlobe({ mapBounds: { west: 0, east: 1, south: 0, north: 1 } }, onMap), false, 'no range data: no button');
   assert.equal(opensGlobe({ range: 'data/ranges/x.json' }, undefined), false, 'in a pack reveal: a plain map');
-  // Pack reveals build the cover without onMap.
+  // Pack reveals build the cover without onMap; in the viewer the back's map opens the globe.
   assert.match(src('js/reveal.js'), /coverPage\(card\)/);
-  assert.match(src('js/viewer.js'), /coverPage\(card, \{ onCredit, onMap, onCall \}\)/);
+  assert.match(src('js/viewer.js'), /factBack\(card, \{ onMap \}\)/);
 });
 
 test('the map is a tap target only: a drag that starts on it is still the card\'s', () => {

@@ -1,11 +1,9 @@
-// Coming back to a card from the globe or the full notebook: which side was showing (the cover, the
-// open card and which heading was lit, or the back with what was under it) and where the notebook was (collapsed or expanded, its
-// view and page). The card screen leaves this when it closes for another screen (app.js); opening the
+// Coming back to a card from the globe or the full notebook: which side was showing (the front, or the
+// back where the card turns over), which heading was lit, and where the notebook was (collapsed or
+// expanded, its view and page). The card screen leaves this when it closes for another screen (app.js); opening the
 // same card straight from there takes it back, once. Kept in memory only.
 //
-//   { cardId, side: 'front' | 'inside' | 'back', under: 'front' | 'inside', heading,
-//     notes: null | { expanded, view, scope, pageId }, viaMap, viaFull }
-// under: what the back lies over (the card turns over closed or open, and turns back to it).
+//   { cardId, side: 'front' | 'back', heading, notes: null | { expanded, view, scope, pageId }, viaMap, viaFull }
 // viaMap: the globe was opened from the card's map, so "Back to card" can go back in history.
 // viaFull: the full notebook was opened from the card's panel, and opens where the panel was.
 
@@ -49,6 +47,7 @@ export function leaveFull(cardId, ended, tagsOf) {
 export const opensGlobe = (card, onMap) => Boolean(onMap && card?.range);
 
 // Only these sides come back; anything else opens on the front.
-export const SIDES = ['front', 'inside', 'back'];
-export const sideOf = ({ p = 0, f = 0 } = {}) => (f > 0.5 && f < 1.5 ? 'back' : p > 0.5 ? 'inside' : 'front');
-export const underOf = ({ p = 0 } = {}) => (p > 0.5 ? 'inside' : 'front');
+export const SIDES = ['front', 'back'];
+// f: the turn-over, in half turns from the front (js/viewer.js): odd is the back, either way round.
+export const onBack = f => Math.abs(f - 2 * Math.round(f / 2)) > 0.5;
+export const sideOf = ({ f = 0 } = {}) => (onBack(f) ? 'back' : 'front');

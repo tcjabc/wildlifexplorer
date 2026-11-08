@@ -1,5 +1,5 @@
-// The open card under real touches, in the real app (index.html, the router, the card screen) in
-// Chromium at the baseline tablet's size, landscape and portrait. Any speech is recorded, not spoken.
+// The card, front and back, under real touches, in the real app (index.html, the router, the card
+// screen) in Chromium at the baseline tablet's size, landscape and portrait. Any speech is recorded, not spoken.
 // Frame rates, voices and the feel of it on the tablet can't be tested here.
 //
 // Skipped when the browser isn't installed: npx playwright install chromium
@@ -66,20 +66,20 @@ async function open(viewport, profile = {}, reducedMotion = 'no-preference') {
     const box = sel => page.evaluate(s => { const r = document.querySelector(s)?.getBoundingClientRect(); return r && { x: r.x, y: r.y, w: r.width, h: r.height }; }, sel);
     const middle = b => ({ x: b.x + b.w / 2, y: b.y + b.h / 2 });
     const f = {
-      browser, page, errors, wait, box,
+      browser, page, errors, wait, box, send,
       async card(id) {
         await page.evaluate(i => { location.hash = `#/card/${encodeURIComponent(i)}`; }, id);
         await page.waitForSelector('.viewer .card3d');
         await page.waitForFunction(i => document.querySelector('.viewer__bar') && location.hash.endsWith(i), id);
-        await f.rests('front'); // past the zoom in
+        await f.rests(); // past the zoom in
       },
-      // The card at rest in this pose (the pose only changes once the spring has settled).
-      rests: pose => page.waitForFunction(p => {
-        const c = document.querySelector('.card3d');
-        return c.classList.contains('is-rest') && c.dataset.pose === p;
-      }, pose, { timeout: 4000 }),
-      layout: () => page.evaluate(() => document.querySelector('.card3d').dataset.layout),
-      // Turned to this face ('front' or 'back') and nothing moving.
+      // Nothing moving: the card at rest, flat.
+      rests: () => page.waitForTimeout(40).then(() => page.waitForFunction(() => {
+        const s = document.querySelector('.viewer__stage');
+        return s && !s.classList.contains('is-3d');
+      }, null, { timeout: 4000 })),
+      layout: () => page.evaluate(() => document.querySelector('.viewer__stage').dataset.layout),
+      // Showing this face ('front', 'back', or 'both' side by side) and nothing moving.
       faces: face => page.waitForFunction(x => {
         const s = document.querySelector('.viewer__stage');
         return s?.dataset.face === x && !s.classList.contains('is-3d');
@@ -106,15 +106,22 @@ async function open(viewport, profile = {}, reducedMotion = 'no-preference') {
         await send('touchEnd', []);
         await wait(200);
       },
-      // A swipe across the middle of the closed card, which opens it.
-      async swipe() {
-        const c = await box('.card3d');
-        const y = c.y + c.h / 2;
-        await f.drag({ x: c.x + c.w * 0.8, y }, { x: c.x + c.w * 0.1, y });
-        await f.rests('open');
+      // A swipe sideways across the front: left for the next card, right for the one before.
+      async swipe(way = 'left', sel = '.card3d--front') {
+        const c = await box(sel);
+        const y = c.y + c.h * 0.4, a = c.x + c.w * 0.85, b = c.x + c.w * 0.15;
+        await f.drag({ x: way === 'left' ? a : b, y }, { x: way === 'left' ? b : a, y });
       },
       lit: () => page.evaluate(() => [...document.querySelectorAll('.hbtn.is-on')].map(b => b.dataset.heading)),
       stage: () => page.evaluate(() => document.querySelector('.stage').firstElementChild?.className),
+      back: () => page.evaluate(() => document.querySelector('.cpage--back').textContent),
+      // The section marked on the back, and whether it is in view in the back's scroll.
+      section: () => page.evaluate(() => {
+        const s = document.querySelector('.ff__section.is-lit'), b = document.querySelector('.ff__body');
+        if (!s) return null;
+        const r = s.getBoundingClientRect(), v = b.getBoundingClientRect();
+        return { id: s.dataset.heading, inView: r.top >= v.top - 2 && r.top < v.bottom - 20 };
+      }),
       said: () => page.evaluate(() => window.said.filter(Boolean).map(u => u.text)),
       forget: () => page.evaluate(() => { window.said.length = 0; }),
       // What the count row shows.
@@ -132,28 +139,35 @@ const both = (name, fn) => {
   run(`${name} (portrait)`, f => fn(f, 'stacked'), PORTRAIT);
 };
 
-both('a sideways swipe opens the card, the hand goes, and the stage and grid fill the screen', async (f, kind) => {
+both('front and back are the same size: side by side in landscape, one page in portrait; the front has nothing to read', async (f, kind) => {
   await f.card('formosan-black-bear');
-  // The first time, the cover peeks open first, and the hand waits for it.
-  await f.page.waitForFunction(() => !document.querySelector('.viewer__hand').hidden, null, { timeout: 4000 });
-  await f.rests('front');
-  await f.swipe();
-  await f.rests('open');
   assert.equal(await f.layout(), kind);
-  assert.equal(await f.page.evaluate(() => document.querySelector('.viewer__hand').hidden), true);
-  const stage = await f.box('.stage'), grid = await f.box('.hgrid');
-  if (kind === 'side') assert.ok(stage.x + stage.w <= grid.x, 'side by side');
-  else assert.ok(stage.y + stage.h <= grid.y, 'stage above the grid');
+  const front = await f.box('.card3d--front'), back = await f.box('.card3d--back');
+  assert.ok(Math.abs(front.w - back.w) <= 1 && Math.abs(front.h - back.h) <= 1, `the same size: ${JSON.stringify([front, back])}`);
+  if (kind === 'side') {
+    assert.ok(Math.abs(front.x + front.w - back.x) <= 1 && Math.abs(front.y - back.y) <= 1, 'the back beside the front');
+    assert.equal(await f.page.evaluate(() => document.querySelector('.viewer__stage').dataset.face), 'both');
+    assert.equal(await f.page.evaluate(() => document.querySelector('.viewer__flip').classList.contains('is-hidden')), true, 'no 🔄');
+  } else {
+    assert.ok(Math.abs(front.x - back.x) <= 1 && Math.abs(front.y - back.y) <= 1, 'the back where the front is');
+    assert.equal(await f.page.evaluate(() => document.querySelector('.viewer__stage').dataset.face), 'front');
+  }
+  const stage = await f.box('.front__stage'), grid = await f.box('.hgrid');
+  assert.ok(stage.y + stage.h <= grid.y, 'stage above the grid');
+  assert.ok(stage.w * stage.h > 0.12 * 1280 * 800, `a large stage: ${stage.w} x ${stage.h}`);
+  const front_ = await f.page.evaluate(() => {
+    const el = document.querySelector('.cpage--front');
+    return { words: el.querySelectorAll('.ff__text, .cover__features, .stat__hint, .open__text').length, open: Boolean(document.querySelector('.leaf, .base')) };
+  });
+  assert.deepEqual(front_, { words: 0, open: false }, 'no text panel, no cover to open');
   const size = await f.page.evaluate(() => [innerWidth, document.documentElement.scrollWidth]);
   assert.equal(size[1], size[0], 'no sideways scroll');
-  assert.ok(stage.w * stage.h > 0.2 * 1280 * 800, `a large stage: ${stage.w} x ${stage.h}`);
 });
 
 both('every heading button is at least 64 px, all eight, in the same place on every card', async f => {
   const seen = [];
   for (const id of ['formosan-black-bear', 'bengal-tiger', 'atlas-moth']) {
     await f.card(id);
-    await f.swipe();
     const grid = await f.page.evaluate(() => [...document.querySelectorAll('.hbtn')].map(b => {
       const r = b.getBoundingClientRect();
       return { id: b.dataset.heading, x: Math.round(r.x), y: Math.round(r.y), w: r.width, h: r.height, c: getComputedStyle(b).backgroundColor, grey: b.getAttribute('aria-disabled') === 'true' };
@@ -171,26 +185,44 @@ both('every heading button is at least 64 px, all eight, in the same place on ev
   assert.deepEqual(seen[1].filter(b => !b.grey).map(b => b.c), colour.filter((_, i) => !seen[1][i].grey), 'the same colours');
 });
 
-both('a heading lights up without a sound and switches the stage; again goes back', async f => {
+both('a heading lights up without a sound, switches the stage and finds its section on the back', async (f, kind) => {
   await f.card('formosan-black-bear');
-  await f.swipe();
   assert.deepEqual(await f.lit(), []);
   assert.match(await f.stage(), /stage-pic/, 'the gallery first');
   await f.forget();
   await f.tap('.hbtn[data-heading="status"]');
   assert.deepEqual(await f.lit(), ['status']);
   assert.match(await f.stage(), /stage-status/);
-  assert.match(await f.page.evaluate(() => document.querySelector('.open__text').textContent), /Red List/);
-  await f.tap('.hbtn[data-heading="status"]');
-  assert.deepEqual(await f.lit(), []);
-  assert.match(await f.stage(), /stage-pic/, 'back to the gallery');
+  if (kind === 'side') {
+    await f.wait(700); // it glides there
+    assert.deepEqual(await f.section(), { id: 'status', inView: true }, 'the back shows its section');
+    // Again: back to the gallery.
+    await f.tap('.hbtn[data-heading="status"]');
+    assert.deepEqual(await f.lit(), []);
+    assert.match(await f.stage(), /stage-pic/, 'back to the gallery');
+    assert.equal(await f.section(), null);
+  } else {
+    // Again: the card turns over, to its section.
+    await f.tap('.hbtn[data-heading="status"]');
+    await f.faces('back');
+    assert.deepEqual(await f.section(), { id: 'status', inView: true });
+    assert.match(await f.back(), /Red List/);
+    await f.vertical('.ff__section.is-lit', 'down');
+    if (await f.page.evaluate(() => document.querySelector('.viewer__stage').dataset.face) === 'back') {
+      // The back scrolled first: from its top, down turns it back.
+      await f.page.evaluate(() => { document.querySelector('.ff__body').scrollTop = 0; });
+      await f.vertical('.ff__body', 'down');
+    }
+    await f.faces('front');
+    assert.deepEqual(await f.lit(), ['status'], 'still lit on the front');
+  }
   await f.wait(150);
   assert.deepEqual(await f.said(), [], 'nothing was said');
 });
 
 const readButton = '.viewer__bar .btn--read';
 
-run('🔊 says the card\'s name and nothing else, cover or open, at the profile\'s speed', async f => {
+run('🔊 says the card\'s name and nothing else, at the profile\'s speed', async f => {
   await f.card('formosan-black-bear');
   await f.forget();
   await f.tap(readButton);
@@ -199,7 +231,6 @@ run('🔊 says the card\'s name and nothing else, cover or open, at the profile\
   assert.deepEqual(u.map(x => x.text), ['Formosan Black Bear']);
   assert.equal(u[0].lang, 'en-GB');
   assert.ok(Math.abs(u[0].rate - 0.95) < 1e-6);
-  await f.swipe();
   await f.tap('.hbtn[data-heading="habitat"]');
   await f.forget();
   await f.page.evaluate(() => speechSynthesis.cancel());
@@ -227,7 +258,6 @@ run('a heading plays its recording if the card has one, in the language, and not
     window.Audio = class { constructor(src) { this.src = src; window.played.push(src); } addEventListener() {} pause() {} play() { return Promise.resolve(); } };
   });
   await f.card('formosan-black-bear');
-  await f.swipe();
   await f.forget();
   await f.tap('.hbtn[data-heading="behaviour"]');
   assert.deepEqual(await f.page.evaluate(() => window.played), [], 'no file: nothing plays');
@@ -236,23 +266,45 @@ run('a heading plays its recording if the card has one, in the language, and not
   assert.deepEqual(await f.said(), []);
 });
 
-both('a grey heading does nothing when tapped, and a swipe that starts on it still closes the card', async f => {
-  await f.card('atlas-moth');
-  await f.swipe();
+both('a swipe sideways changes card, either way; with no card that way it springs back', async f => {
+  await f.card('formosan-black-bear'); // the first mammal
+  const order = await f.page.evaluate(async () => {
+    const s = await import('/js/store.js');
+    return s.cardsIn('mammals').filter(s.isVisible).map(c => c.id);
+  });
+  assert.equal(order[0], 'formosan-black-bear');
+  await f.swipe('right');
+  await f.rests();
+  assert.match(await f.page.evaluate(() => location.hash), /formosan-black-bear$/, 'nothing before the first: it stays');
+  await f.swipe('left');
+  await f.page.waitForFunction(id => location.hash.endsWith(id), order[1], { timeout: 3000 });
+  await f.rests();
+  await f.swipe('right');
+  await f.page.waitForFunction(id => location.hash.endsWith(id), order[0], { timeout: 3000 });
+});
+
+both('a grey heading does nothing when tapped, and a swipe that starts on it still moves the card', async f => {
+  await f.card('atlas-moth'); // the only invertebrate: no card either side, so it springs back
   assert.equal(await f.page.evaluate(() => document.querySelector('.hbtn[data-heading="status"]').getAttribute('aria-disabled')), 'true');
   await f.forget();
   await f.tap('.hbtn[data-heading="status"]');
   assert.deepEqual(await f.lit(), []);
   assert.deepEqual(await f.said(), []);
   const b = await f.box('.hbtn[data-heading="status"]');
-  const y = b.y + b.h / 2;
-  await f.drag({ x: b.x + b.w / 2, y }, { x: b.x + b.w / 2 + 400, y });
-  await f.rests('front');
+  const y = b.y + b.h / 2, x = b.x + b.w / 2;
+  const before = (await f.box('.card3d--front')).x;
+  await f.send('touchStart', [{ x, y, id: 1 }]);
+  for (let i = 1; i <= 8; i++) { await f.send('touchMove', [{ x: x - 25 * i, y, id: 1 }]); await f.wait(16); }
+  const during = (await f.box('.card3d--front')).x;
+  await f.send('touchEnd', []);
+  await f.rests();
+  assert.ok(during < before - 20, `it follows the finger (a little, with nowhere to go): ${before} → ${during}`);
+  assert.ok(Math.abs((await f.box('.card3d--front')).x - before) <= 1, 'and springs back');
+  assert.match(await f.page.evaluate(() => location.hash), /atlas-moth$/);
 });
 
 both('the water bear has partners of its own, and 2 of it make a grain of sand', async f => {
   await f.card('tardigrade-water-bear');
-  await f.swipe();
   await f.tap('.hbtn[data-heading="size"]');
   await f.wait(800);
   const who = await f.page.evaluate(() => [...document.querySelectorAll('.stage-cmp__who [data-value]')].map(b => b.dataset.value));
@@ -280,7 +332,6 @@ both('the water bear has partners of its own, and 2 of it make a grain of sand',
 
 run('the caption gives the card\'s statistic, not the size of the picture', async f => {
   await f.card('bengal-tiger');
-  await f.swipe();
   await f.tap('.hbtn[data-heading="size"]');
   await f.wait(800);
   const text = await f.page.evaluate(() => document.querySelector('.cmp-len').textContent);
@@ -290,7 +341,6 @@ run('the caption gives the card\'s statistic, not the size of the picture', asyn
 
 both('the cherry is drawn as a tree, with its own partners', async f => {
   await f.card('taiwan-cherry');
-  await f.swipe();
   await f.tap('.hbtn[data-heading="size"]');
   await f.wait(800);
   const who = await f.page.evaluate(() => [...document.querySelectorAll('.stage-cmp__who [data-value]')].map(b => b.dataset.value));
@@ -300,12 +350,11 @@ both('the cherry is drawn as a tree, with its own partners', async f => {
   assert.ok(Math.abs(tree / adult - 550 / 170) < 0.15, `one scale: ${tree} and ${adult}`);
   assert.equal(await f.page.evaluate(() => document.querySelectorAll('.count__fig').length), 3, 'about 3 grown-ups to the top of the tree');
   await f.page.evaluate(async () => (await import('/js/i18n.js')).setMode('zh'));
-  assert.match(await f.page.evaluate(() => document.querySelector('.open__text').textContent), /樹高/);
+  assert.match(await f.back(), /樹高/);
 });
 
-both('Size: the comparison fills the stage, the partners swap, and the row counts aloud', async f => {
+both('Size: the comparison fills the stage, the partners swap, and the length row counts', async f => {
   await f.card('formosan-black-bear');
-  await f.swipe();
   await f.tap('.hbtn[data-heading="size"]');
   assert.match(await f.stage(), /stage-cmp/);
   await f.wait(800);
@@ -329,9 +378,35 @@ both('Size: the comparison fills the stage, the partners swap, and the row count
   assert.equal(await f.page.evaluate(() => document.querySelectorAll('.count__fig.is-lit').length), 3);
 });
 
+both('Size, weight: the scales and the "× n" line, with exactly n on the pan, and no row to count', async f => {
+  await f.card('formosan-rock-macaque');
+  await f.tap('.hbtn[data-heading="size"]');
+  await f.wait(500);
+  await f.tap('.stage .cmp-toggle [data-value="weight"]');
+  await f.tap('.stage-cmp__who [data-value="adult"]');
+  await f.wait(2500);
+  const got = await f.page.evaluate(() => {
+    const cap = document.querySelector('.stage .cmp__caption').innerText;
+    const pan = document.querySelector('.cmp-wt__pan:has(.cmp-wt__count)');
+    const stage = document.querySelector('.stage').getBoundingClientRect();
+    const buttons = [...document.querySelectorAll('.stage-cmp__who, .stage-cmp__top')].map(e => e.getBoundingClientRect());
+    const icons = [...pan.querySelectorAll('.cmp-wt__stack > *')].map(e => e.getBoundingClientRect());
+    const hit = (a, b) => a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1;
+    return {
+      n: Number(/×\s*(\d+)/.exec(cap)?.[1]),
+      shown: icons.filter(r => r.top >= stage.top - 1 && r.bottom <= stage.bottom + 1).length,
+      covers: icons.some(r => buttons.some(b => hit(r, b))),
+      counts: document.querySelectorAll('.stage .count').length,
+    };
+  });
+  assert.ok(got.n > 1, `a "× n" line: ${got.n}`);
+  assert.equal(got.shown, got.n, 'as many on the pan as it says');
+  assert.equal(got.covers, false, 'the stack stays off the buttons');
+  assert.equal(got.counts, 0, 'no row to count');
+});
+
 run('with their height on the profile, the child comes first, and the figures are theirs', async f => {
   await f.card('formosan-black-bear');
-  await f.swipe();
   await f.tap('.hbtn[data-heading="size"]');
   await f.wait(800);
   assert.equal(await f.page.evaluate(() => document.querySelector('.stage-cmp__who [aria-checked="true"]').dataset.value), 'you');
@@ -350,7 +425,6 @@ both('Where: a range map fills the stage, and with no range the continent lights
     assert.ok(Math.abs(map.w - stage.w) < 2 && Math.abs(map.h - stage.h) < 2, 'as big as the stage');
   };
   await f.card('bengal-tiger');
-  await f.swipe();
   await f.tap('.hbtn[data-heading="where"]');
   await f.wait(300);
   assert.equal(await f.page.evaluate(() => document.querySelectorAll('.stage .map__continent').length), 1);
@@ -358,18 +432,16 @@ both('Where: a range map fills the stage, and with no range the continent lights
   await f.page.evaluate(() => { location.hash = '#/binder'; });
   await f.wait(700);
   await f.card('formosan-black-bear');
-  await f.swipe();
   await f.tap('.hbtn[data-heading="where"]');
   await f.page.waitForSelector('.stage .map__range', { state: 'attached' });
   assert.ok(await f.box('.stage .map-open'), 'it opens the globe');
   await fills();
 });
 
-run('back from the globe: the card is open on the same heading, and quiet', async f => {
+run('back from the globe: the same heading is lit, its section on the back, and quiet', async f => {
   await f.card('formosan-black-bear');
-  await f.swipe();
   await f.tap('.hbtn[data-heading="where"]');
-  await f.rests('open');
+  await f.rests();
   await f.page.waitForSelector('.stage .map-open');
   await f.tap('.stage .map-open');
   await f.page.waitForFunction(() => location.hash.startsWith('#/globe/'));
@@ -377,15 +449,28 @@ run('back from the globe: the card is open on the same heading, and quiet', asyn
   await f.forget();
   await f.page.evaluate(() => history.back());
   await f.page.waitForFunction(() => location.hash.startsWith('#/card/') && document.querySelector('.card3d'));
-  await f.rests('open');
+  await f.rests();
   assert.deepEqual(await f.lit(), ['where']);
   assert.match(await f.stage(), /stage-map/);
+  assert.equal((await f.section())?.id, 'where');
   assert.deepEqual(await f.said(), []);
 });
 
+run('back from the globe on one page: the back comes back too', async f => {
+  await f.card('formosan-black-bear');
+  await f.page.click('.viewer__bar .viewer__flip');
+  await f.faces('back');
+  await f.page.waitForSelector('.cpage--back .map-open');
+  await f.tap('.cpage--back .map-open');
+  await f.page.waitForFunction(() => location.hash.startsWith('#/globe/'));
+  await f.wait(500);
+  await f.page.evaluate(() => history.back());
+  await f.page.waitForFunction(() => location.hash.startsWith('#/card/') && document.querySelector('.card3d'));
+  await f.faces('back');
+}, PORTRAIT);
+
 run('Babies: a row to tap and count, silently, from the card\'s number of young', async f => {
   await f.card('taiwan-blue-magpie');
-  await f.swipe();
   await f.tap('.hbtn[data-heading="babies"]');
   assert.match(await f.stage(), /stage-babies/);
   assert.equal(await f.page.evaluate(() => document.querySelectorAll('.count__fig').length), 8);
@@ -395,57 +480,50 @@ run('Babies: a row to tap and count, silently, from the card\'s number of young'
   assert.deepEqual(await f.said(), []);
 });
 
-both('topic cards: their own set, in the same grid, with the facts where they were put', async f => {
+both('topic cards: their own set, in the same grid, with their facts on the back', async f => {
   await f.card('kenting-coral-reefs');
-  await f.swipe();
   const grid = await f.page.evaluate(() => [...document.querySelectorAll('.hbtn')].map(b => [b.dataset.heading, b.getAttribute('aria-disabled') !== 'true']));
   assert.deepEqual(grid.map(g => g[0]), ['what', 'how', 'who', 'when', 'wow', 'where', 'help', 'dyk']);
   assert.deepEqual(grid.filter(g => g[1]).map(g => g[0]), ['what', 'when', 'where']);
-  await f.tap('.hbtn[data-heading="when"]');
-  assert.match(await f.page.evaluate(() => document.querySelector('.open__text').textContent), /full moon/);
+  const ids = await f.page.evaluate(() => [...document.querySelectorAll('.ff__section')].map(x => x.dataset.heading));
+  assert.deepEqual(ids, ['what', 'when', 'where']);
+  assert.match(await f.back(), /full moon/);
   await f.tap('.hbtn[data-heading="where"]');
   await f.wait(300);
   assert.equal(await f.page.evaluate(() => document.querySelectorAll('.stage .map__spot').length), 1, 'a pin on the place');
 });
 
-run('beside the expanded notebook the open card stacks, in the room that is left', async f => {
+run('beside the expanded notebook the card is one page, in the room that is left', async f => {
   await f.card('formosan-black-bear');
-  await f.swipe();
   assert.equal(await f.layout(), 'side');
   await f.tap('.nbdock__spine');
   await f.wait(500);
   assert.equal(await f.layout(), 'stacked');
-  const base = await f.box('.base'), panel = await f.box('.nbdock__panel');
-  assert.ok(base.x + base.w <= panel.x, 'clear of the notebook');
+  const front = await f.box('.card3d--front'), panel = await f.box('.nbdock__panel');
+  assert.ok(front.x + front.w <= panel.x, 'clear of the notebook');
   const tile = await f.box('.hbtn');
   assert.ok(tile.w >= 64 && tile.h >= 64);
 });
 
-both('a swipe up turns the cover over to the Fact File, the cover\'s size; down turns it back, and down again goes to the binder', async f => {
+run('one page: a swipe up turns it over to the back, the same size and place; down turns it back, and down again over the other way', async f => {
   await f.card('formosan-black-bear');
-  const cover = await f.box('.card3d');
-  await f.vertical('.card3d', 'up');
+  const front = await f.box('.card3d--front');
+  await f.vertical('.front__stage', 'up');
   await f.faces('back');
   const back = await f.box('.card3d--back');
-  assert.ok(Math.abs(back.w - cover.w) <= 1 && Math.abs(back.h - cover.h) <= 1, `the cover's size: ${back.w} x ${back.h}`);
-  assert.ok(Math.abs(back.w / back.h - 0.8) < 0.01, '4:5');
-  assert.deepEqual(await f.page.evaluate(() => [document.querySelector('.card-pos').inert, getComputedStyle(document.querySelector('.card-pos')).opacity]), [true, '0'], 'the cover is out of reach');
-  await f.vertical('.cpage--back', 'down');
+  assert.ok(Math.abs(back.x - front.x) <= 1 && Math.abs(back.y - front.y) <= 1 && Math.abs(back.w - front.w) <= 1 && Math.abs(back.h - front.h) <= 1, `the front's size and place: ${JSON.stringify([front, back])}`);
+  assert.deepEqual(await f.page.evaluate(() => [document.querySelector('.card-pos').inert, getComputedStyle(document.querySelector('.card-pos')).opacity]), [true, '0'], 'the front is out of reach');
+  await f.vertical('.ff__body', 'down');
   await f.faces('front');
-  await f.rests('front');
-  await f.vertical('.card3d', 'down');
-  assert.equal(await f.page.evaluate(() => document.querySelector('.viewer')), null);
-  assert.match(await f.page.evaluate(() => location.hash), /^#\/binder/);
-});
-
-both('the open card turns over too; the back scrolls first, then up again turns it on round to the open card', async f => {
-  await f.card('formosan-black-bear');
-  const cover = await f.box('.card3d');
-  await f.swipe();
-  await f.vertical('.stage', 'up');
+  await f.vertical('.front__stage', 'down');
   await f.faces('back');
-  const back = await f.box('.card3d--back');
-  assert.ok(Math.abs(back.w - cover.w) <= 1 && Math.abs(back.h - cover.h) <= 1, 'the closed card\'s size and place, open or not');
+  assert.ok(await f.page.evaluate(() => document.querySelector('.viewer')), 'still the card: down no longer goes to the binder');
+}, PORTRAIT);
+
+run('one page: the back scrolls first, then up again turns it on round to the front', async f => {
+  await f.card('formosan-black-bear');
+  await f.vertical('.front__stage', 'up');
+  await f.faces('back');
   const scrolls = await f.page.evaluate(() => { const b = document.querySelector('.ff__body'); return b.scrollHeight > b.clientHeight; });
   assert.ok(scrolls, 'the bear has more than fits');
   await f.vertical('.ff__body', 'up');
@@ -454,14 +532,18 @@ both('the open card turns over too; the back scrolls first, then up again turns 
   await f.page.evaluate(() => { const b = document.querySelector('.ff__body'); b.scrollTop = b.scrollHeight; });
   await f.vertical('.ff__body', 'up');
   await f.faces('front');
-  await f.rests('open');
-  // Sideways still closes it.
-  const g = await f.box('.hgrid');
-  await f.drag({ x: g.x + g.w * 0.2, y: g.y + g.h / 2 }, { x: g.x + g.w * 0.9, y: g.y + g.h / 2 });
-  await f.rests('front');
+}, PORTRAIT);
+
+run('side by side, an up or down swipe turns nothing: both faces stay', async f => {
+  await f.card('formosan-black-bear');
+  await f.vertical('.front__stage', 'up');
+  await f.faces('both');
+  await f.vertical('.front__stage', 'down');
+  await f.faces('both');
+  assert.ok(await f.page.evaluate(() => document.querySelector('.viewer')), 'still the card');
 });
 
-run('the back is text only: the grid\'s headings in its order, none grey, with statistics, in the explorer\'s language', async f => {
+run('the back: everything to read, the grid\'s headings in its order, with statistics and the map, in the explorer\'s language', async f => {
   await f.card('formosan-black-bear');
   await f.page.click('.viewer__bar button[aria-label="翻面"]');
   await f.faces('back');
@@ -471,9 +553,12 @@ run('the back is text only: the grid\'s headings in its order, none grey, with s
     const card = state.byId.get('formosan-black-bear');
     const back = document.querySelector('.cpage--back');
     return {
-      ids: [...back.querySelectorAll('.ff__section')].map(x => x.dataset.heading),
+      ids: [...back.querySelectorAll('.ff__section:not(.ff__vitals)')].map(x => x.dataset.heading),
       want: backSections(card, { related: (card.related ?? []).length }).map(x => x.id),
-      imgs: back.querySelectorAll('img, svg, canvas').length,
+      first: [...back.querySelector('.ff__body').children].map(e => e.className.split(' ')[0]).slice(0, 5),
+      pictures: [...back.querySelectorAll('img, svg, canvas')].filter(e => !e.closest('.ff__where')).length,
+      map: Boolean(back.querySelector('.ff__where .map')),
+      badges: [...back.querySelectorAll('.ff__where .badge')].length,
       stats: back.querySelectorAll('.ff__vitals .stat').length,
       marks: [...back.querySelectorAll('.ff__mark')].map(m => getComputedStyle(m).backgroundColor),
       head: back.querySelector('.cover__top').textContent,
@@ -482,52 +567,62 @@ run('the back is text only: the grid\'s headings in its order, none grey, with s
     };
   });
   assert.deepEqual(got.ids, got.want);
-  assert.ok(!got.ids.includes('size'));
-  assert.equal(got.imgs, 0, 'no pictures');
+  assert.deepEqual(got.first, ['ff__cardname', 'ff__sci', 'ff__vitals', 'ff__where', 'ff__section'], 'title, Latin name, vital statistics, where in the world, then the headings');
+  assert.equal(got.pictures, 0, 'no pictures but the map');
+  assert.equal(got.map, true);
+  assert.equal(got.badges, 2, 'its status and Found in Taiwan');
   assert.ok(got.stats >= 2, 'length and weight at least');
   assert.equal(new Set(got.marks).size, got.marks.length, 'each heading its own colour');
   assert.match(got.head, /S1/);
   assert.equal(got.english, false, 'Chinese only');
   assert.equal(got.speech, 0, 'silent');
-}, LANDSCAPE, { lang: 'zh' });
+}, PORTRAIT, { lang: 'zh' });
 
-run('a topic card turns over to its own headings', async f => {
-  await f.card('kenting-coral-reefs');
-  await f.vertical('.card3d', 'up');
-  await f.faces('back');
-  const ids = await f.page.evaluate(() => [...document.querySelectorAll('.ff__section')].map(x => x.dataset.heading));
-  assert.deepEqual(ids, ['what', 'when', 'where']);
-  assert.match(await f.page.evaluate(() => document.querySelector('.cpage--back').textContent), /full moon/);
-});
-
-run('the hand shows the swipe up once, after the sideways swipe, the first three times', async f => {
+run('the hand shows the swipe up on the stage, on one page, the first three times', async f => {
   await f.card('formosan-black-bear');
-  await f.page.waitForFunction(() => document.querySelector('.viewer__hand').dataset.move === 'up', null, { timeout: 12000 });
-  await f.page.waitForFunction(() => !document.querySelector('.viewer__hand').dataset.move, null, { timeout: 6000 });
-  const n = await f.page.evaluate(() => Object.entries(localStorage).find(([k]) => k.startsWith('we-up-hint-'))?.[1]);
-  assert.equal(n, '1');
+  await f.page.waitForFunction(() => !document.querySelector('.viewer__hand').hidden, null, { timeout: 4000 });
+  const hand = await f.page.evaluate(() => {
+    const el = document.querySelector('.viewer__hand'), r = el.getBoundingClientRect();
+    const size = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hand-size'));
+    const dy = parseFloat(el.style.getPropertyValue('--hand-y'));
+    const p = document.querySelector('.front__stage').getBoundingClientRect();
+    return { inside: r.left - size / 2 >= p.left - 1 && r.left + size / 2 <= p.right + 1 && r.top - dy - size / 2 >= p.top - 1 && r.top + dy + size / 2 <= p.bottom + 1 };
+  });
+  assert.deepEqual(hand, { inside: true }, 'on the stage, never on words');
+  assert.equal(await f.page.evaluate(() => Object.entries(localStorage).find(([k]) => k.startsWith('we-up-hint-'))?.[1]), '1');
+  // Anything that moves the card, and it goes.
+  await f.vertical('.front__stage', 'up');
+  await f.faces('back');
+  assert.equal(await f.page.evaluate(() => document.querySelector('.viewer__hand').hidden), true);
   // After three, no more.
   await f.page.evaluate(() => { const k = Object.keys(localStorage).find(x => x.startsWith('we-up-hint-')); localStorage.setItem(k, '3'); });
   await f.page.evaluate(() => { location.hash = '#/binder'; });
   await f.wait(600);
   await f.card('formosan-rock-macaque');
-  await f.wait(5000);
-  assert.equal(await f.page.evaluate(() => document.querySelector('.viewer__hand').dataset.move ?? null), null);
+  await f.wait(1500);
+  assert.equal(await f.page.evaluate(() => document.querySelector('.viewer__hand').hidden), true);
+}, PORTRAIT);
+
+run('side by side there is no hand', async f => {
+  await f.card('formosan-black-bear');
+  await f.wait(1500);
+  assert.equal(await f.page.evaluate(() => document.querySelector('.viewer__hand').hidden), true);
 });
 
-run('with reduced motion the card still comes to rest, sharp, open and shut', async f => {
+run('with reduced motion the card still comes to rest, sharp, turned over and back', async f => {
   await f.card('formosan-black-bear');
   await f.wait(300); // no zoom to wait through: give the page a moment before the first touch
-  await f.swipe();
   await f.tap('.hbtn[data-heading="habitat"]');
   assert.deepEqual(await f.lit(), ['habitat']);
+  await f.vertical('.front__stage', 'up');
+  await f.faces('back');
+  // Habitat's section is in view: from the back's top, down turns it back.
+  await f.page.evaluate(() => { document.querySelector('.ff__body').scrollTop = 0; });
+  await f.vertical('.ff__body', 'down');
+  await f.faces('front');
   const b = await f.box('.hbtn[data-heading="size"]');
   const y = b.y + b.h / 2;
-  await f.drag({ x: b.x + b.w / 2, y }, { x: b.x + b.w / 2 + 400, y });
-  await f.rests('front');
-  await f.vertical('.card3d', 'up');
-  await f.faces('back');
-  await f.vertical('.cpage--back', 'down');
-  await f.faces('front');
-  await f.rests('front');
-}, LANDSCAPE, undefined, 'reduce');
+  await f.drag({ x: b.x + b.w / 2, y }, { x: b.x + b.w / 2 - 400, y });
+  await f.page.waitForFunction(() => location.hash.endsWith('formosan-rock-macaque'), null, { timeout: 3000 });
+  await f.rests();
+}, PORTRAIT, undefined, 'reduce');

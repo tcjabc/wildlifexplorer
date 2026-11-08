@@ -38,8 +38,9 @@
 /* 3D only while the card moves (viewer.js adds .is-3d); at rest everything is flat. */
 .viewer__stage.is-3d { perspective: 1800px; }
 .viewer__stage.is-3d .viewer__zoomer, .viewer__stage.is-3d .card-pos { transform-style: preserve-3d; }
-/* The hand that shows how to open the card (viewer.js places it on the closed card). It only moves
-   with a transform, and stands still with reduced motion. */
+/* The hand that shows how to turn the card over (viewer.js places it on the front's stage, and keeps
+   its swipe inside it: --hand-y). It only moves with a transform, and stands still with reduced
+   motion. */
 .viewer__hand { position: absolute; z-index: 1; pointer-events: none; }
 .viewer__hand[hidden] { display: none; }
 .viewer__hand-icon {
@@ -47,50 +48,26 @@
   display: grid; place-items: center; width: var(--hand-size); height: var(--hand-size);
   border-radius: 50%; background: var(--c-veil); box-shadow: var(--shadow-2);
   font-size: var(--hand-glyph); line-height: 1;
-  animation: hand-swipe var(--hand-ms) ease-in-out var(--t-slow) infinite backwards;
+  animation: hand-swipe-up var(--hand-ms) ease-in-out var(--t-slow) infinite backwards;
 }
-@keyframes hand-swipe {
-  0% { transform: translateX(var(--hand-travel)); opacity: 0; }
-  12% { transform: translateX(var(--hand-travel)); opacity: 1; }
-  52% { transform: translateX(calc(var(--hand-travel) * -1)); opacity: 1; }
-  64%, 100% { transform: translateX(calc(var(--hand-travel) * -1)); opacity: 0; }
-}
-/* The first few times a profile opens a card, one swipe up after the first sideways one (viewer.js). */
-.viewer__hand[data-move="up"] .viewer__hand-icon { animation: hand-swipe-up var(--hand-ms) ease-in-out 1 backwards; }
 @keyframes hand-swipe-up {
-  0% { transform: translateY(var(--hand-travel)); opacity: 0; }
-  12% { transform: translateY(var(--hand-travel)); opacity: 1; }
-  52% { transform: translateY(calc(var(--hand-travel) * -1)); opacity: 1; }
-  64%, 100% { transform: translateY(calc(var(--hand-travel) * -1)); opacity: 0; }
+  0% { transform: translateY(var(--hand-y, var(--hand-travel))); opacity: 0; }
+  12% { transform: translateY(var(--hand-y, var(--hand-travel))); opacity: 1; }
+  52% { transform: translateY(calc(var(--hand-y, var(--hand-travel)) * -1)); opacity: 1; }
+  64%, 100% { transform: translateY(calc(var(--hand-y, var(--hand-travel)) * -1)); opacity: 0; }
 }
-@media (prefers-reduced-motion: reduce) { .viewer__hand-icon, .viewer__hand[data-move="up"] .viewer__hand-icon { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .viewer__hand-icon { animation: none; } }
 
-/* ---------- 3D card ---------- */
-/* .card-pos places the card (left/top at rest, a transform while moving); .card3d is laid
-   out at design size and enlarged with CSS zoom, so it renders at real size. */
+/* ---------- The card: two faces ---------- */
+/* .card-pos places a face (left/top at rest, a transform while moving); .card3d is laid out at
+   card size and enlarged with CSS zoom, so it renders at real size. viewer.js sets the size: both
+   faces are always the same. While the card turns over, the face turned away is see-through. */
 .card-pos { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
-.card3d {
-  position: relative;
-  width: var(--card-w); height: var(--card-h);
-  transform-style: preserve-3d;
-}
-.base, .leaf { position: absolute; inset: 0; transform-style: preserve-3d; }
-.leaf { transform-origin: 0 50%; }
+.card3d { position: relative; width: var(--card-w); height: var(--card-h); transform-origin: 50% 50%; }
 .face {
   position: absolute; inset: 0; overflow: hidden;
   border-radius: var(--r-sm); background: var(--c-paper); box-shadow: var(--shadow-2);
-  backface-visibility: hidden; -webkit-backface-visibility: hidden;
 }
-.face--y { transform: rotateY(180deg); }
-
-/* At rest: no 3D. Only the faces you can see are shown, flat and untransformed. */
-.card3d.is-rest, .card3d.is-rest .base, .card3d.is-rest .leaf { transform-style: flat; }
-.card3d.is-rest .face { transform: none; backface-visibility: visible; -webkit-backface-visibility: visible; visibility: hidden; }
-.card3d.is-rest[data-pose="front"] .leaf > .face--front,
-.card3d.is-rest[data-pose="open"][data-layout="side"] .leaf > .face--back,
-.card3d.is-rest[data-pose="open"] .base > .face--front { visibility: visible; }
-/* Open: the cover lies flat to the left of the spine, inside facing up. */
-.card3d.is-rest[data-pose="open"] .leaf { inset: 0 100% 0 -100%; }
 
 /* Debug overlay of where gestures can start (grown-up preview, ?debug=gestures). */
 .gzones { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
@@ -275,11 +252,11 @@
   background: var(--c-callout); color: var(--c-callout-ink); font-weight: var(--fw-bold); font-size: var(--card-fs-sm);
 }
 
-/* The open card (js/card-open.js): the stage, and the menu with its heading grid and text. */
-.cpage--stage { padding: 0; }
-.cpage--menu { padding: var(--s-3); gap: var(--s-2); }
-.open__slot { display: none; position: relative; flex: 1 1 0; min-height: 0; border-radius: var(--r-sm); overflow: hidden; }
-.card3d[data-layout="stacked"] .open__slot { display: block; }
+/* The front (js/card-open.js): the stage, and the heading grid under it. Nothing to read. */
+.cpage--front { padding: 0; gap: 0; }
+.front__stage { position: relative; flex: 1 1 0; min-height: 0; margin: var(--s-2) var(--s-3) 0; border-radius: var(--r-sm); overflow: hidden; }
+.cpage--front .hgrid { padding: var(--s-2) var(--s-3) var(--s-3); }
+.cpage--front .hbtn { aspect-ratio: var(--heading-tile-ratio); }
 .hgrid { flex: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s-2); }
 .hbtn {
   --head: var(--c-paper-line); --head-ink: var(--c-ink);
@@ -305,18 +282,6 @@
 /* Nothing for this heading on this card: still there, in grey. */
 .hbtn[aria-disabled="true"] { background: var(--c-paper-line); color: var(--c-ink-faint); box-shadow: none; cursor: default; }
 .hbtn[aria-disabled="true"] .hbtn__icon { filter: grayscale(1); opacity: var(--o-dimmed); }
-.open__text {
-  flex: 1 1 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
-  display: flex; flex-direction: column; gap: var(--s-2); padding: var(--s-1);
-  scrollbar-width: thin;
-}
-.open__text > * { flex-shrink: 0; }
-.card3d[data-layout="stacked"] .open__text { flex: 0 0 var(--open-text-h); }
-.open__text .ff__text { font-size: var(--card-fs); }
-.open__name { font-size: var(--card-fs-title); line-height: 1.15; }
-.open__stats { display: flex; flex-direction: column; }
-.open__text > .badge { align-self: flex-start; }
-
 /* The stage (js/stage-views.js). */
 /* A size container, so what is drawn on it can fit its height (cqh): it is as big as its page gives it. */
 .stage { position: absolute; inset: 0; overflow: hidden; background: var(--c-bg-deep); container-type: size; }
@@ -333,7 +298,6 @@
 .stage-scene .cmp { flex: 1 1 auto; min-height: 0; justify-content: center; }
 .stage .cmp__caption { font-size: var(--card-fs); }
 .stage-profile { position: absolute; inset: 0; display: flex; flex-direction: column; gap: var(--s-2); padding: var(--s-2); background: var(--c-paper); }
-.card3d[data-layout="stacked"] .stage { --profile-pic-max-h: var(--profile-pic-max-h-stacked); }
 .stage { --plate: min(var(--stage-plate), 70cqh); --profile-pic-room: calc(100cqh - var(--profile-detail-min-h) - var(--s-2) * 3); }
 .stage .cmp-diet__food { font-size: var(--emoji-sm); }
 .stage-map { position: absolute; inset: 0; background: var(--c-map-sea); }
@@ -573,7 +537,14 @@ a.related__item { border-color: var(--g, var(--c-paper-line)); }
 .ff__stats .stat:last-child { border-bottom: 0; }
 .ff__facts { margin: var(--s-1) 0 0; padding-left: var(--s-4); font-size: var(--card-fs-sm); }
 .ff__facts li + li { margin-top: var(--s-hair); }
-.ff__section { --head: var(--c-paper-line); --head-ink: var(--c-ink); display: flex; flex-direction: column; gap: var(--s-1); }
+.ff__section { --head: var(--c-paper-line); --head-ink: var(--c-ink); display: flex; flex-direction: column; gap: var(--s-1); border-radius: var(--r-sm); }
+/* The heading lit on the front (viewer.js scrolls to it). */
+.ff__section.is-lit { background: var(--c-callout-soft); box-shadow: 0 0 0 var(--s-2) var(--c-callout-soft); }
+/* Where in the World, with its status and Found in Taiwan beside the map. */
+.ff__where { padding: var(--s-2); border: var(--bw-thin) solid var(--g, var(--c-line)); border-radius: var(--r-sm); background: var(--c-surface); }
+.ff__where-row { display: flex; align-items: center; gap: var(--s-3); }
+.ff__map { flex: 1 1 0; min-width: 0; }
+.ff__badges { flex: none; display: flex; flex-direction: column; align-items: flex-start; gap: var(--s-1); }
 .ff__head {
   display: flex; align-items: center; gap: var(--s-2);
   padding-bottom: var(--s-hair); border-bottom: var(--bw-mid) solid var(--head);

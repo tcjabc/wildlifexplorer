@@ -1,8 +1,10 @@
 // Turning the device with a card on screen, in the real app in Chromium: the viewport goes from
 // portrait to landscape and back (tablet 800 × 1280 ↔ 1280 × 800, phone 390 × 844 ↔ 844 × 390) with
-// the card closed, turned over, open on every stage view, and in the middle of zooming in,
-// opening, turning over and closing. After every turn the card is fully on the screen and centred
-// in its space (±2 px), and nothing on the stage reaches outside it. Views keep what they showed.
+// the card on its front, turned over, on every stage view, and in the middle of zooming in, turning
+// over and closing. After every turn what shows (both faces side by side, or the one turned up) is
+// fully on the screen and centred in its space (±2 px), front and back are exactly the same size,
+// and nothing on the stage reaches outside it. Views keep what they showed. Within a layout the card
+// never changes size after the zoom in.
 // Real rotation (browser bars, Android's order of events) can't be tested here: see the README's
 // rotation checklist.
 //
@@ -60,8 +62,7 @@ async function open(viewport) {
     await page.evaluate(async () => {
       const store = await import('/js/store.js');
       for (const c of store.state.cards) store.state.collected[c.id] = { cardId: c.id };
-      // No peek and no hand: they are hints, not part of the layout.
-      localStorage.setItem(`we-peeked-${store.state.profile.id}`, JSON.stringify(store.state.cards.map(c => c.id)));
+      // No hand: it is a hint, not part of the layout.
       localStorage.setItem(`we-up-hint-${store.state.profile.id}`, '3');
     });
     const f = {
@@ -76,14 +77,15 @@ async function open(viewport) {
       // (Two frames first, so a motion just started has shown.)
       settled: () => page.waitForTimeout(40).then(() => page.waitForFunction(() => {
         const s = document.querySelector('.viewer__stage');
-        const c = document.querySelector('.card3d');
-        return s && !s.classList.contains('is-3d') && c.classList.contains('is-rest');
+        return s && !s.classList.contains('is-3d');
       }, null, { timeout: 4000 })).catch(async err => {
-        const why = await page.evaluate(() => ({ viewer: Boolean(document.querySelector('.viewer')), hash: location.hash, is3d: document.querySelector('.viewer__stage')?.classList.contains('is-3d'), rest: document.querySelector('.card3d')?.classList.contains('is-rest') }));
+        const why = await page.evaluate(() => ({ viewer: Boolean(document.querySelector('.viewer')), hash: location.hash, is3d: document.querySelector('.viewer__stage')?.classList.contains('is-3d') }));
         throw new Error(`not settled: ${JSON.stringify(why)} (${err.message})`);
       }),
       button: glyph => page.evaluate(g => [...document.querySelectorAll('.viewer__bar button')].find(b => b.textContent.includes(g)).click(), glyph),
       heading: id => page.evaluate(i => document.querySelector(`.hbtn[data-heading="${i}"]`).click(), id),
+      layout: () => page.evaluate(() => document.querySelector('.viewer__stage').dataset.layout),
+      face: () => page.evaluate(() => document.querySelector('.viewer__stage').dataset.face),
       async turn(viewport) {
         await page.setViewportSize(viewport);
         await f.wait(120); // a frame or two for the re-layout
@@ -94,13 +96,10 @@ async function open(viewport) {
         const rect = el => el.getBoundingClientRect();
         const union = rs => rs.reduce((a, r) => ({ left: Math.min(a.left, r.left), top: Math.min(a.top, r.top), right: Math.max(a.right, r.right), bottom: Math.max(a.bottom, r.bottom) }));
         const stage = document.querySelector('.viewer__stage');
-        const root = document.querySelector('.card3d');
-        const back = stage.dataset.face === 'back';
-        const pose = root.dataset.pose;
-        const frame = back ? rect(document.querySelector('.card3d--back'))
-          // Open: the menu page, and beside it the stage page (the cover's back); stacked, the cover is hidden.
-          : pose === 'open' ? union([rect(document.querySelector('.base')), ...(root.dataset.layout === 'side' ? [rect(document.querySelector('.leaf'))] : [])])
-            : rect(root);
+        const front = rect(document.querySelector('.card3d--front')), back = rect(document.querySelector('.card3d--back'));
+        const face = stage.dataset.face;
+        // What shows: both faces side by side, or the one turned up.
+        const frame = face === 'both' ? union([front, back]) : face === 'back' ? back : front;
         const s = rect(stage);
         // The card's space: the stage, left of the notebook's spine when that stands beside it.
         const spine = document.querySelector('.nbdock__spine');
@@ -110,9 +109,13 @@ async function open(viewport) {
         if (frame.left < -0.5 || frame.top < -0.5 || frame.right > innerWidth + 0.5 || frame.bottom > innerHeight + 0.5) out.push(`off the screen: ${JSON.stringify(frame)} in ${innerWidth}x${innerHeight}`);
         const dx = (frame.left - s.left) - (right - frame.right), dy = (frame.top - s.top) - (s.bottom - frame.bottom);
         if (Math.abs(dx) > 4 || Math.abs(dy) > 4) out.push(`not centred: ${dx.toFixed(1)}, ${dy.toFixed(1)} (gaps differ by this; ±2 px each side)`);
+        // One frame: front and back exactly the same size; side by side the back beside the front, else on it.
+        if (Math.abs(front.width - back.width) > 2 || Math.abs(front.height - back.height) > 2) out.push(`faces differ: ${front.width}x${front.height} vs ${back.width}x${back.height}`);
+        const besideOk = face === 'both' ? Math.abs(back.left - front.right) <= 2 && Math.abs(back.top - front.top) <= 2 : Math.abs(back.left - front.left) <= 2 && Math.abs(back.top - front.top) <= 2;
+        if (!besideOk) out.push(`back not ${face === 'both' ? 'beside' : 'on'} the front`);
         // Nothing on the stage reaches outside it (what scrolls inside its own box is fine).
         const st = document.querySelector('.stage');
-        if (pose === 'open' && !back && st?.offsetWidth) {
+        if (face !== 'back' && st?.offsetWidth) {
           const b = rect(st);
           for (const el of st.querySelectorAll('*')) {
             if (el.closest('[data-scroll]') && el.closest('[data-scroll]') !== el) continue;
@@ -150,31 +153,62 @@ for (const [device, sizes] of [['tablet', TABLET], ['phone', PHONE]]) {
     const pair = start ? [sizes[1], sizes[0]] : sizes;
     const where = `${device}, from ${pair[0].width}x${pair[0].height}`;
 
-    run(`closed and turned over: centred and on the screen after turning (${where})`, async f => {
+    run(`front, and turned over: centred, one size, on the screen after turning (${where})`, async f => {
       await f.card('formosan-rock-macaque');
-      const bad = [...await f.check('closed'), ...await roundTrip(f, pair, 'closed')];
+      const bad = [...await f.check('front'), ...await roundTrip(f, pair, 'front')];
+      // Turned over (on one page; side by side both faces show anyway).
+      if (await f.layout() === 'side') await f.turn(pair[1]);
       await f.button('🔄');
       await f.settled();
-      bad.push(...await roundTrip(f, pair, 'back'));
+      assert.equal(await f.face(), 'back');
+      bad.push(...await roundTrip(f, [sizes[0], sizes[1]], 'turned over'));
       assert.deepEqual(bad, []);
     }, pair[0]);
 
-    run(`open on every stage view: the card fits and the stage holds its view (${where})`, async f => {
+    run(`every stage view: the card fits and the stage holds its view (${where})`, async f => {
       await f.card('formosan-rock-macaque');
-      await f.button('📖');
-      await f.settled();
-      const bad = [...await roundTrip(f, pair, 'open, gallery')];
+      const bad = [...await roundTrip(f, pair, 'gallery')];
       for (const id of ['food', 'babies', 'behaviour', 'size', 'where', 'status']) {
         await f.heading(id);
         await f.wait(250);
-        bad.push(...await roundTrip(f, pair, `open on ${id}`));
+        bad.push(...await roundTrip(f, pair, `on ${id}`));
       }
       assert.deepEqual(bad, []);
     }, pair[0]);
   }
 }
 
-run('mid-animation: zooming in, opening, turning over and closing jump to where they were going', async f => {
+// One frame per layout: after the zoom in, the card never changes size; front and back are the same.
+for (const [device, sizes] of [['tablet', TABLET], ['phone', PHONE]]) {
+  run(`one frame: the zoom lands on the final size, and nothing resizes after (${device}, both ways round)`, async f => {
+    const bad = [];
+    const box = sel => f.page.evaluate(x => { const r = document.querySelector(x).getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height }; }, sel);
+    const near = (a, b, what) => { for (const k of ['x', 'y', 'w', 'h']) if (Math.abs(a[k] - b[k]) > 2) { bad.push(`${what} ${k} ${a[k].toFixed(1)} vs ${b[k].toFixed(1)}`); return; } };
+    for (const size of [sizes[0], sizes[1]]) {
+      await f.page.setViewportSize(size);
+      const at = `${size.width}x${size.height}`;
+      await f.card('formosan-black-bear');
+      const front = await box('.card3d--front');
+      // Every heading, and (on one page) turned over and back: the same box.
+      for (const id of ['size', 'where', 'habitat']) {
+        await f.heading(id);
+        await f.wait(250);
+        near(await box('.card3d--front'), front, `${at}: front on ${id}`);
+      }
+      if (await f.layout() === 'stacked') {
+        await f.button('🔄'); await f.settled();
+        near(await box('.card3d--back'), front, `${at}: back`);
+        await f.button('🔄'); await f.settled();
+      } else near(await box('.card3d--back'), { ...front, x: front.x + front.w }, `${at}: back beside`);
+      near(await box('.card3d--front'), front, `${at}: front again`);
+      await f.page.evaluate(() => { location.hash = '#/binder'; });
+      await f.page.waitForFunction(() => !document.querySelector('.viewer'), null, { timeout: 3000 });
+    }
+    assert.deepEqual(bad, []);
+  }, sizes[0]);
+}
+
+run('mid-animation: zooming in, turning over and closing jump to where they were going', async f => {
   const [a, b] = TABLET;
   // Zooming in from the binder.
   await f.page.evaluate(() => { location.hash = '#/card/formosan-rock-macaque'; });
@@ -182,22 +216,18 @@ run('mid-animation: zooming in, opening, turning over and closing jump to where 
   await f.wait(60);
   await f.turn(b);
   const bad = [...await f.check('turned while zooming in')];
-  // Opening.
-  await f.button('📖');
-  await f.wait(60);
+  // Turning over (one page).
   await f.turn(a);
-  assert.equal(await f.page.evaluate(() => document.querySelector('.card3d').dataset.pose), 'open');
-  bad.push(...await f.check('turned while opening'));
-  // Turning over.
   await f.button('🔄');
   await f.wait(60);
   await f.turn(b);
-  assert.equal(await f.page.evaluate(() => document.querySelector('.viewer__stage').dataset.face), 'back');
   bad.push(...await f.check('turned while turning over'));
+  await f.turn(a);
+  assert.equal(await f.face(), 'back', 'it got there');
   // Closing: it closes.
   await f.button('←');
   await f.wait(60);
-  await f.page.setViewportSize(a);
+  await f.page.setViewportSize(b);
   await f.page.waitForFunction(() => !document.querySelector('.viewer'), null, { timeout: 2000 });
   assert.deepEqual(bad, []);
 }, TABLET[0]);
@@ -205,29 +235,25 @@ run('mid-animation: zooming in, opening, turning over and closing jump to where 
 run('the stage keeps what it showed: the mode, the partner, the count so far, the magnifier', async f => {
   const [a, b] = TABLET;
   await f.card('formosan-rock-macaque');
-  await f.button('📖');
-  await f.settled();
   await f.heading('size');
   await f.wait(300);
   await f.page.click('.stage .cmp-toggle [data-value="weight"]');
   await f.wait(200);
+  await f.page.click('.stage .cmp-toggle [data-value="length"]');
+  await f.wait(200);
   const cat = await f.page.$('.stage-cmp__who [data-value="cat"]');
   if (cat) { await cat.click(); await f.wait(200); }
   for (let i = 0; i < 2; i++) { await f.page.click('.stage .count'); await f.wait(80); }
-  const before = await f.page.evaluate(() => ({
-    mode: document.querySelector('.stage .cmp-toggle [aria-checked="true"][data-value="weight"]') != null,
+  const state = () => f.page.evaluate(() => ({
+    mode: document.querySelector('.stage .cmp-toggle [aria-checked="true"][data-value="length"]') != null,
     who: document.querySelector('.stage-cmp__who [aria-checked="true"]')?.dataset.value,
     lit: document.querySelectorAll('.stage .count__fig.is-lit').length,
   }));
+  const before = await state();
   assert.equal(before.lit, 2);
   await f.turn(b);
   await f.turn(a);
-  const afterTurn = await f.page.evaluate(() => ({
-    mode: document.querySelector('.stage .cmp-toggle [aria-checked="true"][data-value="weight"]') != null,
-    who: document.querySelector('.stage-cmp__who [aria-checked="true"]')?.dataset.value,
-    lit: document.querySelectorAll('.stage .count__fig.is-lit').length,
-  }));
-  assert.deepEqual(afterTurn, before);
+  assert.deepEqual(await state(), before);
   // The magnifier: a feature picked stays picked, its lens on the picture.
   await f.heading('behaviour');
   await f.wait(300);
@@ -248,12 +274,12 @@ run('the desk shrinks with no resize event (a browser bar coming in): the card f
   await f.page.evaluate(() => document.querySelector('.viewer__hintrow').style.setProperty('min-height', '240px'));
   await f.wait(120);
   await f.settled();
-  const bad = [...await f.check('closed, desk shorter')];
-  await f.button('📖');
-  await f.settled();
+  const bad = [...await f.check('desk shorter')];
+  await f.heading('size');
+  await f.wait(250);
   await f.page.evaluate(() => document.querySelector('.viewer__hintrow').style.removeProperty('min-height'));
   await f.wait(120);
   await f.settled();
-  bad.push(...await f.check('open, desk back to full height'));
+  bad.push(...await f.check('on Size, desk back to full height'));
   assert.deepEqual(bad, []);
 }, TABLET[0]);

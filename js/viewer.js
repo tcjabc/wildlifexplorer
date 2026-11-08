@@ -1,38 +1,36 @@
 // The card viewer: a full-screen layer over the binder.
 // - Opens by zooming the camera from the tapped binder tile onto the desk, the binder growing behind
-//   it, with the card filling the page.
-// - The card has two states: the cover, and open (js/card-open.js): a large stage and the heading
-//   grid, side by side or one above the other (js/card-layout.js openLayout). Closed or open, it
-//   turns over (rotateX) to its back, the Fact File for readers (js/fact-back.js), which is the
-//   size of the closed card; it turns back to whichever it was.
-// - Gestures are decided by direction, from anywhere on the card (or a margin around it, never
-//   the screen's right edge, where the notebook spine goes): sideways opens or closes the card
-//   (the cover turns around the spine like a book, rotateY); up turns it over; down on the cover
-//   goes back to the binder. On the back, down turns it back and up turns it on round. A movement
-//   under the slop is a tap, so the buttons on the card keep working. A quarter of the way, or a
-//   flick, is enough. The ‹ › buttons change cards.
-// - The first time a closed card settles, its cover peeks open a little (once per card per
-//   profile), to show that it opens, and a hand shows the swipe (and, the first few times, the
-//   swipe up).
-// Every gesture follows the finger; on release a spring finishes or undoes it.
-// - What has more than fits ([data-scroll]: a heading's text, the back) scrolls inside the card: a
+//   it, straight to the card's final size: it never changes size after that.
+// - The card has two faces of the same size: the front, to explore (js/card-open.js: the stage and
+//   the heading grid), and the back, to read (js/fact-back.js: the Fact File). Where there is room
+//   for two pages (js/card-layout.js openLayout) they lie side by side, both always there, and a
+//   heading tapped on the front also brings its section into view on the back. Where there isn't,
+//   the card is one page that turns over (rotateX): a swipe up or down, or 🔄; tapping the lit
+//   heading again turns it over to that heading's section.
+// - Gestures are decided by direction, from anywhere on the card (or a margin around it, never the
+//   screen's right edge, where the notebook spine goes): sideways changes card (as ‹ › do), up or
+//   down turns it over (one page only). A movement under the slop is a tap, so the buttons on the
+//   card keep working. A quarter of the way, or a flick, is enough. Every gesture follows the
+//   finger; on release a spring finishes or undoes it.
+// - What has more than fits ([data-scroll]: the back, a stage view's list) scrolls inside the card: a
 //   vertical drag there scrolls, and turns the card only from the end it is scrolled to.
+// - The first few times a profile opens a card on one page, a hand shows the swipe up, on the stage.
 //
 // Field Notes: the notebook is always there, collapsed (a spine at the right, or a tab on
-// phones) or expanded (a panel beside the card, or over it). Beside it the open card uses the space
+// phones) or expanded (a panel beside the card, or over it). Beside it the card uses the space
 // that is left (js/card-layout.js).
 //
 // Sharpness: the card is laid out at its real on-screen size with CSS zoom (never a small
 // card scaled up). While it moves it uses 3D transforms; at rest every transform comes off
-// and the cover or open card is drawn flat, so text and photos stay crisp.
+// and it is drawn flat, so text and photos stay crisp.
 import { h, mount, reducedMotion } from './dom.js';
 import { tx, label, getMode } from './i18n.js';
 import { state, cardsIn, isVisible, groupById, speechRate, watching, updateProfile, debugOn } from './store.js';
-import { dockMode, cardLayout, fitScale, openLayout, clipLeftOf } from './card-layout.js';
-import { sideOf, underOf } from './card-return.js';
-import { coverPage, cardCredits } from './cardparts.js';
+import { dockMode, cardLayout, openLayout, clipLeftOf } from './card-layout.js';
+import { onBack, sideOf } from './card-return.js';
+import { cardCredits } from './cardparts.js';
 import { openCard } from './card-open.js';
-import { factBack } from './fact-back.js';
+import { factBack, showSection } from './fact-back.js';
 import { cardNo, groupTitle } from './components.js';
 import { track, spring, tween, clamp, lerp, haptic } from './gesture.js';
 import { speak, stop, isSpeaking, speechSupported } from './speech.js';
@@ -42,9 +40,6 @@ import { closePopover } from './glossary.js';
 import { releaseOutcome } from './gesture-release.js';
 
 const cssNum = name => parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
-const DONE = 0.999;
-const HAND_DROP = 0.2; // the hand sits this share of the card's height below its middle
-const BASE_FADE = 3;   // the open card behind the turning cover is fully there this early in the turn
 
 let v = null; // the open viewer, or null
 
@@ -53,171 +48,142 @@ export const openCardId = () => v?.card.id ?? null;
 
 // ---------- building the card ----------
 
-function buildBook(card, onCredit, onMap) {
-  const onCall = playCall;
-  const open = openCard(card, { onCredit, onMap, onCall });
-  const left = h('div', { class: 'cpage cpage--stage', 'data-group': card.group });
-  const leaf = h('div', { class: 'leaf' },
-    h('div', { class: 'face face--front' }, coverPage(card, { onCredit, onMap, onCall })),
-    h('div', { class: 'face face--back face--y' }, left));
-  const base = h('div', { class: 'base' }, h('div', { class: 'face face--front' }, open.menu));
-  const root = h('div', { class: 'card3d' }, base, leaf);
-  // The back: a card of its own, where the closed card is, turning in as the book turns away.
-  const backRoot = h('div', { class: 'card3d card3d--back' }, h('div', { class: 'face face--front' }, factBack(card)));
-  const backPos = h('div', { class: 'card-pos' }, backRoot);
-  return { pos: h('div', { class: 'card-pos' }, root), root, base, leaf, left, open, backPos, backRoot };
+function buildCard(card) {
+  const onMap = openGlobe;
+  const front = openCard(card, { onCredit: openCredits, onMap, onCall: playCall, onHeading });
+  const back = factBack(card, { onMap });
+  const root = h('div', { class: 'card3d card3d--front' }, h('div', { class: 'face' }, front.el));
+  const backRoot = h('div', { class: 'card3d card3d--back' }, h('div', { class: 'face' }, back));
+  return { pos: h('div', { class: 'card-pos' }, root), root, front, back, backPos: h('div', { class: 'card-pos' }, backRoot), backRoot };
 }
 
-// The turn-over, f: 0 the front (closed or open), 1 the back, 2 round again to the front (then 0).
-// Up to half way the book shows, turning away; then the back, turning in.
-const onBack = f => f >= 0.5 && f <= 1.5;
+// The turn-over, f, in half turns: 0 the front, 1 the back; up adds one, down takes one away, and
+// the card is called 0 or 1 again once it gets there. Each face's angle, from flat:
+const frontAngle = f => 180 * (f - 2 * Math.round(f / 2));
+const backAngle = f => 180 * ((f - 1) - 2 * Math.round((f - 1) / 2));
+const settledSide = f => ((Math.round(f) % 2) + 2) % 2;
+
+const twoPages = () => v.L.open.kind === 'side';
 
 // ---------- layout and drawing ----------
 
-// The card's space (js/card-layout.js): the stage less what the notebook takes. The closed card
-// fits it (s0); the open card has a layout of its own (s1).
+// The card's space (js/card-layout.js): the stage less what the notebook takes. The card has one
+// scale and one size per layout; front and back are pages of the same size, side by side or in the
+// same place. front, back: where each page is, in stage px.
 function measure(again = true) {
   const r = v.stage.getBoundingClientRect();
   const P = cssNum('--card-w'), H = cssNum('--card-h');
   const W = r.width, Hs = r.height;
   const share = cssNum('--nb-panel-share') || undefined;
   const mode = v.dock ? dockMode({ vw: window.innerWidth, W, Hs, P, H, share }) : 'none';
-  const lay = v.dock
-    ? cardLayout({ W, Hs, P, H, mode, expanded: v.dock.expanded, share })
-    : { visibleW: W, s0: fitScale(W, Hs, P, H) };
+  const lay = v.dock ? cardLayout({ W, Hs, P, H, mode, expanded: v.dock.expanded, share }) : { visibleW: W };
   const open = openLayout({ visibleW: lay.visibleW, Hs, P, H, tap: cssNum('--tap-heading') });
-  v.L = { P, H, W, Hs, s0: lay.s0, s1: open.s, open, visibleW: lay.visibleW, cx: lay.visibleW / 2, cy: Hs / 2, left: r.left, top: r.top, mode };
+  const s = open.s, cx = lay.visibleW / 2, cy = Hs / 2;
+  const front = { x: Math.round(cx - (open.w * s) / 2), y: Math.round(cy - (open.h * s) / 2), w: open.pageW * s, h: open.h * s };
+  const back = open.kind === 'side' ? { ...front, x: Math.round(front.x + open.pageW * s) } : front;
+  v.L = { P, H, W, Hs, s, open, front, back, visibleW: lay.visibleW, cx, cy, left: r.left, top: r.top, mode };
   // A new mode can show or hide the notebook's tab (and so change the stage's height): measure again.
   if (v.el.dataset.dock !== mode) { v.el.dataset.dock = mode; if (again) { measure(false); return; } }
-  placeOpen();
-  // Where the zoom starts: the tapped tile, or a small card in the middle.
+  place();
+  // Where the zoom starts: the tapped tile, or a small card in the middle. The tile grows into the
+  // front page, at its final size and place; the back (beside it, or behind it) comes with it.
   const from = v.fromEl?.isConnected ? v.fromEl.getBoundingClientRect() : null;
   v.from = from
-    ? { cx: from.left + from.width / 2 - r.left, cy: from.top + from.height / 2 - r.top, k: from.width / (P * lay.s0) }
+    ? { cx: from.left + from.width / 2 - r.left, cy: from.top + from.height / 2 - r.top, k: from.width / front.w }
     : { cx: W / 2, cy: Hs / 2, k: 0.4 };
-  v.zoomer.style.setProperty('transform-origin', `${v.L.cx}px ${v.L.cy}px`);
+  v.zoomer.style.setProperty('transform-origin', `${front.x + front.w / 2}px ${front.y + front.h / 2}px`);
 }
 
-// The open card round the closed one: side by side the menu is the page under the cover, a little
-// wider on short screens; stacked it reaches past the cover on every side.
-function placeOpen() {
-  const { open, P, H } = v.L;
-  const { root, base, left } = v.built;
-  const side = open.kind === 'side';
-  const dx = side ? 0 : (open.w - P) / 2, dy = side ? 0 : (open.h - H) / 2;
-  root.dataset.layout = open.kind;
-  root.style.setProperty('--card-s', String(open.s));
-  base.style.setProperty('left', `${-dx}px`);
-  base.style.setProperty('right', `${side ? P - open.menuW : -dx}px`);
-  base.style.setProperty('top', `${-dy}px`);
-  base.style.setProperty('bottom', `${-dy}px`);
-  v.built.open.place(side ? left : null);
+// Both pages the same size, in card px; the bar's 🔄 only where the card turns over.
+function place() {
+  const { open, s } = v.L;
+  const { root, backRoot } = v.built;
+  v.stage.dataset.layout = open.kind;
+  for (const el of [root, backRoot]) {
+    el.style.setProperty('--card-s', String(s));
+    el.style.setProperty('zoom', String(s));
+    el.style.setProperty('width', `${open.pageW}px`);
+    el.style.setProperty('height', `${open.h}px`);
+  }
+  v.bar.querySelector('.viewer__flip')?.classList.toggle('is-hidden', open.kind === 'side');
+  v.built.front.layout();
 }
 
 const at = (x, a) => Math.abs(x - a) < 1e-4;
 
-// At rest: nothing moving, fully zoomed in, the card fully closed or open, and on one side.
+// At rest: nothing moving, fully zoomed in, on one side, not pulled sideways.
 function atRest() {
-  return !v.cancel && !v.zoomCancel && !v.dragging && at(v.z, 1) && (at(v.p, 0) || at(v.p, 1))
-    && (at(v.f, 0) || at(v.f, 1));
+  return !v.cancel && !v.zoomCancel && !v.dragging && at(v.z, 1) && at(v.f, Math.round(v.f)) && at(v.x, 0);
 }
 
 function draw() {
-  const { L, p, f, z, from } = v;
+  const { L, f, z, x, from } = v;
   const reduced = reducedMotion();
   const rest = atRest();
 
   // Binder behind: grows faster than the card (parallax), unless motion is reduced.
   const bg = 1 - (1 - z) ** 2;
-  if (!reduced) {
-    v.main.style.setProperty('transform', `scale(${1 + cssNum('--zoom-bg-scale') * bg})`);
-  }
+  if (!reduced) v.main?.style.setProperty('transform', `scale(${1 + cssNum('--zoom-bg-scale') * bg})`);
   v.scrim.style.setProperty('opacity', String(bg));
   v.chrome.forEach(el => el.style.setProperty('opacity', String(clamp((z - 0.6) / 0.4))));
 
-  // The card's layout scale (CSS zoom) only changes at rest; while moving, a transform
-  // makes up the difference.
-  const s = lerp(L.s0, L.s1, p);
-  if (rest || !v.zoom) v.zoom = s;
-  v.built.root.style.setProperty('zoom', String(v.zoom));
-
-  // Card pose: the closed card is centred in its space. Side by side the two pages are centred
-  // (the card's own left edge is the spine); stacked the card stays where it is.
-  const closedX = L.cx - (L.P * s) / 2;
-  const openX = L.open.kind === 'side' ? L.cx - (L.open.w * s) / 2 + L.P * s : closedX;
-  const x0 = lerp(closedX, openX, p);
-  const y0 = L.cy - (L.H * s) / 2;
-  const pos = v.built.pos;
   v.stage.classList.toggle('is-3d', !rest);
-  v.built.root.classList.toggle('is-rest', rest);
-  if (rest) {
-    v.built.root.dataset.pose = p > 0.5 ? 'open' : 'front';
-    if (v.built.root.dataset.pose === 'front' && at(z, 1)) requestAnimationFrame(peek);
-    pos.style.setProperty('left', `${Math.round(x0)}px`);
-    pos.style.setProperty('top', `${Math.round(y0)}px`);
-    pos.style.removeProperty('transform');
-    v.built.leaf.style.removeProperty('transform');
-    v.built.base.style.removeProperty('opacity');
-  } else {
-    pos.style.setProperty('left', '0px');
-    pos.style.setProperty('top', '0px');
-    pos.style.setProperty('transform', `translate(${x0}px, ${y0}px) scale(${s / v.zoom})`);
-    // Springs overshoot a little; the rotation is clamped so the cover never dips behind the
-    // page it covers (the position still gets the bounce).
-    v.built.leaf.style.setProperty('transform', `translateZ(1px) rotateY(${-180 * clamp(p)}deg)`);
-    // Stacked, the open card is bigger than the cover: it fades in round it.
-    if (L.open.kind === 'stacked') v.built.base.style.setProperty('opacity', String(clamp(p * BASE_FADE)));
-  }
-  drawTurn(rest);
+  const { pos, backPos } = v.built;
+  const two = twoPages();
+  const pose = (el, box, angle) => {
+    if (rest) {
+      el.style.setProperty('left', `${box.x}px`);
+      el.style.setProperty('top', `${box.y}px`);
+      el.style.removeProperty('transform');
+    } else {
+      el.style.setProperty('left', '0px');
+      el.style.setProperty('top', '0px');
+      // Pulled sideways by a swipe to change card.
+      el.style.setProperty('transform', `translate(${box.x + x}px, ${box.y}px)`);
+    }
+    // Turned about its middle (one page).
+    if (rest || at(angle, 0)) el.firstChild.style.removeProperty('transform');
+    else el.firstChild.style.setProperty('transform', `rotateX(${angle}deg)`);
+  };
+  pose(pos, L.front, two ? 0 : frontAngle(f));
+  pose(backPos, L.back, two ? 0 : backAngle(f));
+  // One page: the side turned away is see-through and can't be touched or reached (inert).
+  const back = !two && onBack(f);
+  const shown = (el, on) => { el.style.setProperty('opacity', on ? '1' : '0'); el.inert = !on; };
+  shown(pos, two || !back);
+  shown(backPos, two || back);
+  v.stage.dataset.face = two ? 'both' : back ? 'back' : 'front';
 
   // Zoom from the tile: starts scaled down to the tile and grows to its real size (FLIP).
   const q = 1 - z;
   if (reduced) v.zoomer.style.setProperty('opacity', String(z));
   else if (at(z, 1)) v.zoomer.style.removeProperty('transform');
-  else v.zoomer.style.setProperty('transform', `translate(${(from.cx - L.cx) * q}px, ${(from.cy - L.cy) * q}px) scale(${lerp(1, from.k, q)})`);
+  else v.zoomer.style.setProperty('transform', `translate(${(from.cx - L.front.x - L.front.w / 2) * q}px, ${(from.cy - L.front.y - L.front.h / 2) * q}px) scale(${lerp(1, from.k, q)})`);
 
   updateHand(rest);
   if (rest) drawZones();
 }
 
-// The turn-over: the book (closed or open) turns away about its middle, then the back turns in.
-// The back is laid out at the closed card's scale with CSS zoom, so at rest it is flat and sharp.
-// The side turned away is see-through and can't be touched or reached (inert).
-function drawTurn(rest) {
-  const { L, f } = v;
-  const { pos, root, backPos, backRoot } = v.built;
-  backRoot.style.setProperty('zoom', String(L.s0));
-  backPos.style.setProperty('left', `${Math.round(L.cx - (L.P * L.s0) / 2)}px`);
-  backPos.style.setProperty('top', `${Math.round(L.cy - (L.H * L.s0) / 2)}px`);
-  const back = onBack(f);
-  if (rest || at(f, 0) || at(f, 1)) {
-    root.style.removeProperty('transform');
-    backRoot.style.removeProperty('transform');
-  } else {
-    root.style.setProperty('transform', `rotateX(${180 * (f > 1.5 ? f - 2 : Math.min(f, 0.5))}deg)`);
-    backRoot.style.setProperty('transform', `rotateX(${180 * (clamp(f, 0.5, 1.5) - 1)}deg)`);
-  }
-  const shown = (el, on) => { el.style.setProperty('opacity', on ? '1' : '0'); el.inert = !on; };
-  shown(pos, !back);
-  shown(backPos, back);
-  v.stage.dataset.face = back ? 'back' : 'front';
-}
-
-// How to open the card: a hand showing the swipe, for children who can't read a hint. It sits on
-// the closed card at rest and goes as soon as anything moves.
+// How to turn the card over: a hand showing the swipe up, for children who can't read a hint, the
+// first few times a profile opens a card on one page. It sits on the stage (never on words), swiping
+// no further than the stage, and goes as soon as anything moves. Side by side there is nothing to
+// find: both faces are there, and ‹ › change card.
 function updateHand(rest) {
   const covered = v.dock?.expanded && v.L.mode !== 'side';
-  const show = rest && at(v.p, 0) && at(v.f, 0) && !covered;
+  const stage = v.built.front.el.querySelector('.front__stage');
+  const show = v.upHint && rest && !twoPages() && settledSide(v.f) === 0 && !covered && Boolean(stage);
   v.hand.hidden = !show;
   if (!show) return;
-  v.hand.style.setProperty('left', `${Math.round(v.L.cx)}px`);
-  v.hand.style.setProperty('top', `${Math.round(v.L.cy + v.L.H * v.L.s0 * HAND_DROP)}px`);
+  const r = stage.getBoundingClientRect(), size = cssNum('--hand-size'), most = cssNum('--hand-travel');
+  v.hand.style.setProperty('left', `${Math.round(r.left - v.L.left + r.width / 2)}px`);
+  v.hand.style.setProperty('top', `${Math.round(r.top - v.L.top + r.height / 2)}px`);
+  v.hand.style.setProperty('--hand-y', `${Math.max(0, Math.min(most, (r.height - size) / 2))}px`);
 }
 
 // ---------- motion ----------
 
-// Page turns have one animation slot; the zoom in/out has its own, so tapping open (or starting a
-// drag) while the card is still zooming in doesn't freeze the zoom.
+// The turn-over and the swipe have one animation slot; the zoom in/out has its own, so turning the
+// card (or starting a drag) while it is still zooming in doesn't freeze the zoom.
 function stopMotion() {
   v?.cancel?.(); v?.glide?.();
   if (v) { v.cancel = null; v.glide = null; }
@@ -225,18 +191,18 @@ function stopMotion() {
 
 function stopZoom() { v?.zoomCancel?.(); if (v) v.zoomCancel = null; }
 
-// Spring p, f or z to a target, then run `after`.
+// Spring f, x or z to a target, then run `after`.
 function settle(prop, target, velocity = 0, after) {
   const zoom = prop === 'z';
   if (zoom) stopZoom(); else stopMotion();
   let finished = false; // with reduced motion a spring is over before it returns
   const cancel = spring({
     from: v[prop], to: target, velocity,
-    onUpdate: x => { v[prop] = x; draw(); },
+    onUpdate: n => { v[prop] = n; draw(); },
     onDone: () => {
       finished = true;
       if (zoom) v.zoomCancel = null; else { v.cancel = null; v.motion = null; }
-      arrived(prop, target, after, { replay: true });
+      arrived(prop, target, after);
     },
   });
   if (finished) return;
@@ -244,28 +210,22 @@ function settle(prop, target, velocity = 0, after) {
 }
 
 // A spring has got there (or was sent there at once: finishMotion).
-function arrived(prop, target, after, { replay }) {
-  if (prop === 'f' && target === 2) v.f = 0; // turned on round: the front again
+function arrived(prop, target, after) {
+  if (prop === 'f') v.f = settledSide(target); // over the other way, or on round: 0 or 1 again
   draw();
-  // The comparison animation plays as the card finishes opening (not when a turn of the device
-  // finishes it early).
-  if (replay && prop === 'p' && target === 1) v.built.open.replay();
-  // Shut, the card has nothing more to say.
-  if (prop === 'p' && target === 0) { stop(); stopCall(); }
   after?.();
 }
 
 // The screen changed size (the device turned, a browser bar came or went) while something moved:
 // everything jumps to where it was going, so nothing carries on from the old size's numbers. A
-// drag is let go where it started; the peek shuts; closing finishes closing.
+// drag is let go where it started; closing finishes closing.
 function finishMotion() {
   if (v.closing) { v.finishClose?.(); return; }
   v.abortDrag?.();
-  if (v.peeking) { v.peeking = false; stopMotion(); v.p = 0; }
   const m = v.cancel ? v.motion : null;
   stopMotion();
   v.motion = null;
-  if (m) { v[m.prop] = m.target; arrived(m.prop, m.target, m.after, { replay: false }); }
+  if (m) { v[m.prop] = m.target; arrived(m.prop, m.target, m.after); }
   if (v.zoomCancel) { stopZoom(); v.z = 1; }
 }
 
@@ -285,45 +245,9 @@ function relayout() {
   });
 }
 
-// ---------- the peek hint ----------
+// ---------- the swipe-up hint ----------
 
-// Which cards have already peeked, per profile (kept on this device only).
-const PEEK = 0.15; // of a full turn: about 27°
-const peekKey = () => `we-peeked-${state.profile?.id ?? 'none'}`;
-function peekedCards() {
-  try { return new Set(JSON.parse(localStorage.getItem(peekKey()) ?? '[]')); } catch { return new Set(); }
-}
-function rememberPeek(id) {
-  const ids = peekedCards();
-  ids.add(id);
-  try { localStorage.setItem(peekKey(), JSON.stringify([...ids])); } catch { /* fine without */ }
-}
-
-// The cover swings open a little and eases shut again, once.
-function peek() {
-  if (!v || v.peeked || !atRest() || v.p !== 0 || v.f !== 0) return;
-  v.peeked = true;
-  if (reducedMotion() || peekedCards().has(v.card.id)) return;
-  rememberPeek(v.card.id);
-  v.peeking = true;
-  v.cancel = tween({
-    from: 0, to: 1, duration: 1300, ease: t => (1 - Math.cos(2 * Math.PI * t)) / 2,
-    onUpdate: u => { v.p = PEEK * u; draw(); },
-    onDone: () => { v.peeking = false; v.cancel = null; v.p = 0; draw(); },
-  });
-}
-
-// A touch during the peek stops it where it is: a sideways drag carries on opening from
-// there; anything else closes the cover again.
-function interruptPeek() {
-  if (!v.peeking) return false;
-  v.peeking = false;
-  stopMotion();
-  return true;
-}
-
-// The swipe up: the first few times a profile opens a card, the hand shows it once, after its first
-// sideways swipe (kept on this device only).
+// The first few times a profile opens a card (kept on this device only).
 const UP_HINTS = 3;
 const upKey = () => `we-up-hint-${state.profile?.id ?? 'none'}`;
 function takeUpHint() {
@@ -334,33 +258,34 @@ function takeUpHint() {
     return true;
   } catch { return false; }
 }
-function wireHand(hand, icon) {
-  icon.addEventListener('animationiteration', () => {
-    if (!v?.upHint) return;
-    v.upHint = false;
-    hand.dataset.move = 'up';
-    hand.setAttribute('aria-label', label('card.hintFlip'));
-  });
-  icon.addEventListener('animationend', () => {
-    delete hand.dataset.move;
-    hand.setAttribute('aria-label', label('card.hintBook'));
-  });
-}
 
-export function toggleOpen() {
-  if (!v || v.f > 0.01) return;
-  haptic(10);
-  settle('p', v.p > 0.5 ? 0 : 1);
-}
+// ---------- turning over, and the headings ----------
 
-// 🔄 and the arrow keys: over to the back, and back again (up goes on round, down turns back).
+// 🔄, the arrow keys, Space and Enter: over to the other side (one page only). Up goes over the top,
+// down the other way.
 export function toggleFlip(way = 'up') {
-  if (!v) return;
-  if (interruptPeek()) { v.p = 0; draw(); } // a cover left ajar by the peek shuts first
+  if (!v || twoPages()) return;
   haptic(10);
   closePopover();
-  if (!onBack(v.f)) settle('f', 1);
-  else settle('f', way === 'down' ? 0 : 2);
+  v.upHint = false;
+  const base = Math.round(v.f);
+  settle('f', base + (way === 'down' ? -1 : 1));
+}
+
+// A heading tapped on the front (js/card-open.js). Side by side, the back brings its section into
+// view (and the lit one again goes back to the gallery). On one page, its section is ready on the
+// back, and the lit one tapped again turns the card over to it.
+function onHeading(id, { again }) {
+  if (!v) return false;
+  const back = v.built.back;
+  if (twoPages()) {
+    showSection(back, again ? null : id);
+    return false;
+  }
+  showSection(back, id, { smooth: false });
+  if (!again) return false;
+  toggleFlip('up');
+  return true;
 }
 
 // ---------- gestures ----------
@@ -369,13 +294,11 @@ export function toggleFlip(way = 'up') {
 const SLOP = 11;          // px before a movement is a drag (less is a tap)
 const SIDEWAYS = Math.tan(30 * Math.PI / 180); // within 30° of horizontal counts as sideways
 const MARGIN = 40;        // px around the card that also start a gesture
-const OPEN_REACH = 0.5;   // the open zone reaches this share of a card's width to its right
-const CLOSE_MARGIN = 80;  // px around the open card that also start closing it
+const EDGE_PULL = 0.3;    // sideways with no card that way: the card follows the finger this much
 
 // Where a gesture may start, in screen pixels:
-//   card – the card itself (both sides when open)
-//   near – a margin around it (wider around the open card, for closing)
-//   open – the space right of the closed card: opening only
+//   card – the card itself (both pages side by side)
+//   near – a margin around it
 // Everything stays inside the stage (below the top bar) and left of the notebook: its spine,
 // its panel, or all of the stage while it covers the card. The notebook itself is not part of
 // the stage, so drawing in it never reaches these gestures.
@@ -387,25 +310,18 @@ function notebookLeft(s) {
   return s.left + v.L.visibleW;
 }
 function gestureZones() {
-  const back = onBack(v.f);
-  const r = (back ? v.built.backRoot : v.built.root).getBoundingClientRect();
+  const { front, back } = v.L;
   const s = v.stage.getBoundingClientRect();
-  const isOpen = v.p > 0.5 && !back;
   const nbLeft = notebookLeft(s);
   const fit = b => clipLeftOf({ left: Math.max(b.left, s.left), right: Math.min(b.right, s.right), top: Math.max(b.top, s.top), bottom: Math.min(b.bottom, s.bottom) }, nbLeft);
-  const b = v.built.base.getBoundingClientRect();
-  const stacked = v.L.open.kind === 'stacked';
-  const card = fit(!isOpen ? r : { left: stacked ? b.left : r.left - r.width, right: b.right, top: b.top, bottom: b.bottom });
-  const m = isOpen ? CLOSE_MARGIN : MARGIN;
-  const near = fit({ left: card.left - m, right: card.right + m, top: card.top - m, bottom: card.bottom + m });
-  const closed = v.p < PEEK + 0.01 && !back;
-  const open = closed ? fit({ left: r.right, right: r.right + r.width * OPEN_REACH, top: r.top, bottom: r.bottom }) : null;
+  const card = fit({ left: s.left + front.x, right: s.left + back.x + back.w, top: s.top + front.y, bottom: s.top + front.y + front.h });
+  const near = fit({ left: card.left - MARGIN, right: card.right + MARGIN, top: card.top - MARGIN, bottom: card.bottom + MARGIN });
   // The notebook's own area, for the debug overlay.
   const d = v.dock;
   const nbEl = !d ? null : d.expanded ? d.panel : v.L.mode === 'phone' ? d.tab : d.spine;
   const nbRect = nbEl?.getBoundingClientRect();
   const notebookBox = nbRect && nbRect.width ? { left: nbRect.left, right: nbRect.right, top: nbRect.top, bottom: nbRect.bottom } : null;
-  return { card, near, open, notebook: notebookBox, stage: s };
+  return { card, near, notebook: notebookBox, stage: s };
 }
 const inBox = (b, x, y) => Boolean(b && b.right > b.left && x >= b.left && x <= b.right && y >= b.top && y <= b.bottom);
 
@@ -424,9 +340,16 @@ function drawZones() {
     el.style.setProperty('height', `${b.bottom - b.top}px`);
     return el;
   };
-  mount(v.zones,
-    box('near', z.near), box('open', z.open), box('card', z.card), box('notebook', z.notebook));
+  mount(v.zones, box('near', z.near), box('card', z.card), box('notebook', z.notebook));
 }
+
+// The cards either side, in the binder's order.
+function siblings() {
+  const list = cardsIn(v.card.group).filter(isVisible);
+  const i = list.indexOf(v.card);
+  return { prev: list[i - 1] ?? null, next: list[i + 1] ?? null };
+}
+const goTo = card => { if (card) location.hash = `#/card/${encodeURIComponent(card.id)}`; };
 
 // A touch stops whatever was moving, to take hold of it. When it turns out to move nothing (a tap,
 // a scroll), the card was left where it stopped, maybe part-way or in a spring's overshoot, and
@@ -435,42 +358,41 @@ function toEnds() {
   if (!v || v.cancel || v.closing || v.dragging) return;
   const glide = v.glide;
   v.glide = null;
-  if (!at(v.p, 0) && !at(v.p, 1)) settle('p', v.p > 0.5 ? 1 : 0);
-  else if (!at(v.f, 0) && !at(v.f, 1)) settle('f', Math.round(clamp(v.f, 0, 2)));
+  if (!at(v.x, 0)) settle('x', 0);
+  else if (!at(v.f, Math.round(v.f))) settle('f', Math.round(v.f));
   v.glide = glide;
 }
 
 function wireGestures() {
-  let mode = null, base = null, scroller = null, dir = 1, zone = null;
+  let mode = null, base = null, scroller = null;
   const where = (x, y) => {
     const z = gestureZones();
-    return inBox(z.card, x, y) ? 'card' : inBox(z.near, x, y) ? 'near' : inBox(z.open, x, y) ? 'open' : null;
+    return inBox(z.card, x, y) ? 'card' : inBox(z.near, x, y) ? 'near' : null;
   };
   const atEdge = (el, dy) => !el || el.scrollHeight <= el.clientHeight + 1
     || (dy > 0 ? el.scrollTop <= 0 : el.scrollTop + el.clientHeight >= el.scrollHeight - 1);
-  const travel = () => ({ x: v.L.P * v.L.s0, y: v.L.H * v.L.s0 * 0.7 }); // finger travel for a full turn
-  // A finger's pixels in the scrolled page's pixels: the back has the closed card's scale.
-  const scale = () => (onBack(v.f) ? v.L.s0 : v.zoom);
+  // Finger travel for a whole turn (most of a 4:5 page's height) or a change of card (its width).
+  const travel = () => ({ x: v.L.front.w, y: Math.min(v.L.front.h, (v.L.front.w * v.L.H) / v.L.P) * 0.7 });
+  // The card is enlarged with CSS zoom, so a finger's pixels are fewer card pixels.
+  const scale = () => v.L.s;
   // The device turned mid-drag: let go, back where the drag started. The rest of this touch does
   // nothing (no mode), and its release finds the card already there.
   v.abortDrag = () => {
     if (!mode) return;
     mode = null;
     v.dragging = false;
-    if (base) { v.p = base.p; v.f = base.f; v.z = 1; }
+    if (base) { v.f = base.f; v.x = 0; }
   };
 
   v.untrack = track(v.stage, {
     start: ({ x, y, target }) => {
       if (v.closing || target.closest?.('[data-swipe], .gloss-pop')) return false;
-      zone = where(x, y);
-      if (!zone) return false;
-      const peeking = interruptPeek();
-      if (!peeking) stopMotion();
+      if (!where(x, y)) return false;
+      stopMotion();
       scroller = target.closest?.('[data-scroll]') ?? null;
       return true;
     },
-    tap: () => toEnds(), // e.g. tapped during the peek, or while the card was still settling
+    tap: () => toEnds(), // e.g. tapped while the card was still settling
     lock: ({ dx, dy }) => {
       mode = null;
       const ax = Math.abs(dx), ay = Math.abs(dy);
@@ -480,51 +402,28 @@ function wireGestures() {
       const clear = ay <= ax * SIDEWAYS || ax <= ay * SIDEWAYS;
       if (!clear && Math.hypot(dx, dy) < SLOP * 2) return null;
       const sideways = clear ? ay <= ax * SIDEWAYS : ax >= ay;
-      // The open zone right of the card is only for opening.
-      if (zone === 'open' && !sideways) return false;
-      const back = at(v.f, 1), front = at(v.f, 0);
-      const closed = v.p < PEEK + 0.01 && front;
-      if (sideways) {
-        if (closed) mode = 'open';
-        else if (v.p > DONE && front) mode = 'close';
-      } else if (back) {
-        // The back: its text scrolls; from the top, down turns it back; from the end, up turns it on.
-        if (!atEdge(scroller, dy)) mode = 'scroll';
-        else mode = dy > 0 ? 'unflip' : 'over';
-      } else if (closed) {
-        if (dy < 0) mode = 'flip';
-        else if (dy > 0) { mode = 'dismiss'; stopZoom(); }
-      } else if (v.p > DONE && front) {
-        // The open card: its text scrolls; up from the end of it (or off it) turns the card over.
-        if (!atEdge(scroller, dy)) mode = 'scroll';
-        else if (dy < 0) mode = 'flip';
-      }
-      if (zone === 'open' && mode !== 'open') mode = null;
-      // Anything but opening closes a cover left ajar by the peek.
-      if (mode !== 'open' && v.p > 0 && v.p <= PEEK + 0.01) { v.p = 0; draw(); }
+      if (sideways) mode = 'swap';
+      else if (!atEdge(scroller, dy)) mode = 'scroll';
+      else if (!twoPages()) mode = 'turn';
       if (!mode) return false;
-      if (mode === 'flip' || mode === 'unflip' || mode === 'over') closePopover();
-      dir = Math.sign(sideways ? dx : dy) || 1;
-      base = { p: v.p, f: v.f, z: v.z, top: scroller?.scrollTop ?? 0 };
+      if (mode === 'turn') { closePopover(); v.upHint = false; }
+      base = { f: Math.round(v.f), top: scroller?.scrollTop ?? 0, ...siblings() };
       v.dragging = true;
       return true;
     },
     move: ({ dx, dy }) => {
       const T = travel();
-      // How far towards the goal, whichever way the drag went.
-      const qx = (dx * dir) / T.x;
-      if (mode === 'open') v.p = clamp(base.p + qx);
-      if (mode === 'close') v.p = 1 - clamp(qx);
-      if (mode === 'flip') v.f = clamp(-dy / T.y);
-      if (mode === 'unflip') v.f = 1 - clamp(dy / T.y);
-      if (mode === 'over') v.f = 1 + clamp(-dy / T.y);
-      if (mode === 'dismiss') v.z = 1 - clamp(dy / (v.L.Hs * 0.6));
-      // The card is enlarged with CSS zoom, so a finger's pixels are fewer card pixels.
+      if (mode === 'swap') {
+        // Towards a card that isn't there, the card only gives a little.
+        const there = dx < 0 ? base.next : base.prev;
+        v.x = there ? dx : dx * EDGE_PULL;
+      }
+      if (mode === 'turn') v.f = clamp(base.f - dy / T.y, base.f - 1, base.f + 1);
       if (mode === 'scroll') { scroller.scrollTop = base.top - dy / scale(); return; }
       draw();
     },
     end: info => {
-      // Whatever happens, the gesture ends settled: committed, sprung back or dismissed.
+      // Whatever happens, the gesture ends settled: committed or sprung back.
       const m = mode;
       mode = null;
       v.dragging = false;
@@ -542,29 +441,34 @@ function wireGestures() {
   // Back to where the gesture started.
   function springBack() {
     if (!v || !base) return;
-    if (!at(v.p, base.p)) settle('p', base.p);
+    if (!at(v.x, 0)) settle('x', 0);
     else if (!at(v.f, base.f)) settle('f', base.f);
-    if (!at(v.z, 1)) settle('z', 1);
     draw();
   }
 
   // Apply what the release decided (js/gesture-release.js).
   function release(mode, info) {
-    const o = releaseOutcome(mode, { p: v.p, f: v.f, dir, travel: travel(), stageH: v.L.Hs }, info);
-    if (o.dismiss) { haptic(8); dismiss(); return; }
+    const o = releaseOutcome(mode, { f: v.f, base: base?.f, dx: v.x, travel: travel() }, info);
+    if (o.swap) {
+      const to = o.swap > 0 ? base.next : base.prev;
+      if (!to) { springBack(); return; }
+      haptic(12);
+      goTo(to);
+      return;
+    }
     if (o.springBack) { springBack(); return; }
     if (o.scroll) {
       // A flick keeps gliding a little.
       const el = scroller, from = el.scrollTop, to = from - (o.velocity / scale()) * 0.3;
-      if (Math.abs(o.velocity) > 200) v.glide = tween({ from, to, duration: 500, onUpdate: x => { el.scrollTop = x; } });
+      if (Math.abs(o.velocity) > 200) v.glide = tween({ from, to, duration: 500, onUpdate: n => { el.scrollTop = n; } });
       return;
     }
-    if (o.prop !== 'z' && o.target !== base[o.prop]) haptic(12);
+    if (o.target !== base.f) haptic(12);
     settle(o.prop, o.target, o.velocity);
   }
 }
 
-// ---------- the card's name, credits, chrome ----------
+// ---------- the bar, the card's name read aloud, credits ----------
 
 function readButton() {
   if (!speechSupported) return null;
@@ -591,11 +495,10 @@ function openCredits() {
 
 function buildBar(card) {
   const g = groupById(card.group);
-  const siblings = cardsIn(card.group).filter(isVisible);
-  const i = siblings.indexOf(card);
+  const { prev, next } = siblings();
   const nav = (target, key, glyph) => h('button', {
     class: ['btn btn--icon', !target && 'is-hidden'], type: 'button', 'aria-label': label(key),
-    onclick: () => { if (target) location.hash = `#/card/${encodeURIComponent(target.id)}`; },
+    onclick: () => goTo(target),
   }, glyph);
   return h('div', { class: 'viewer__bar', 'data-group': card.group },
     h('button', { class: 'btn btn--icon', type: 'button', 'aria-label': label('card.back'), onclick: () => dismiss() }, '←'),
@@ -603,31 +506,29 @@ function buildBar(card) {
     h('span', { class: 'viewer__no' }, cardNo(card.number)),
     h('span', { class: 'spacer' }),
     readButton(),
-    h('button', { class: 'btn btn--icon', type: 'button', 'aria-label': label('card.open'), onclick: toggleOpen }, '📖'),
-    h('button', { class: 'btn btn--icon', type: 'button', 'aria-label': label('card.turnOver'), onclick: () => toggleFlip() }, '🔄'),
-    nav(siblings[i - 1], 'card.prev', '‹'),
-    nav(siblings[i + 1], 'card.next', '›'));
+    h('button', { class: 'btn btn--icon viewer__flip', type: 'button', 'aria-label': label('card.turnOver'), onclick: () => toggleFlip() }, '🔄'),
+    nav(prev, 'card.prev', '‹'),
+    nav(next, 'card.next', '›'));
 }
 
 function setCard(card) {
   closePopover();
   stopCall();
-  v.built?.open.destroy();
+  v.built?.front.destroy();
   v.card = card;
-  v.built = buildBook(card, openCredits, openGlobe);
+  v.built = buildCard(card);
   mount(v.zoomer, v.built.pos, v.built.backPos);
-  v.zoom = 0;
   const bar = buildBar(card);
   v.bar.replaceWith(bar);
   v.bar = bar;
   v.chrome = [v.bar, v.hintRow, v.dock?.el].filter(Boolean);
-  v.p = 0; v.f = 0; v.peeked = false;
+  v.f = 0; v.x = 0;
 }
 
 // ---------- open / switch / close ----------
 
 // fromEl: the binder tile to zoom out of. onDismiss: called when the child closes the
-// card themselves (swipe down or ←), so the app can update the address.
+// card themselves (←, Escape), so the app can update the address.
 // restore: what js/card-return.js kept when this card was left for the globe or the full
 // notebook (its side, its heading and the notebook), to come back to exactly that.
 export function open(card, { fromEl, main, onDismiss, restore = null } = {}) {
@@ -635,8 +536,7 @@ export function open(card, { fromEl, main, onDismiss, restore = null } = {}) {
   const scrim = h('div', { class: 'viewer__scrim' });
   const zoomer = h('div', { class: 'viewer__zoomer' });
   const handIcon = h('span', { class: 'viewer__hand-icon', 'aria-hidden': 'true' }, '👆');
-  const hand = h('div', { class: 'viewer__hand', role: 'img', 'aria-label': label('card.hintBook'), hidden: true }, handIcon);
-  wireHand(hand, handIcon);
+  const hand = h('div', { class: 'viewer__hand', role: 'img', 'aria-label': label('card.hintFlip'), hidden: true }, handIcon);
   const stage = h('div', { class: 'viewer__stage' }, zoomer, hand);
   const bar = h('div');
   const sheet = h('dialog', { class: 'sheet' });
@@ -650,20 +550,19 @@ export function open(card, { fromEl, main, onDismiss, restore = null } = {}) {
   // The page itself never scrolls; pages inside the card that scroll do.
   el.addEventListener('wheel', e => { if (!e.target.closest?.('[data-scroll]')) e.preventDefault(); }, { passive: false });
   // A mouse pressed on a picture would start the browser's own image drag, which cancels the
-  // pointer (pointercancel) before a page turn can start. Pictures in the viewer never drag.
+  // pointer (pointercancel) before a swipe can start. Pictures in the viewer never drag.
   el.addEventListener('dragstart', e => e.preventDefault());
   document.body.append(el);
 
-  v = { el, pane, scrim, zoomer, stage, hand, hintRow, bar, sheet, dock, main, fromEl, onDismiss, p: 0, f: 0, z: 0, cancel: null };
-  v.upHint = !reducedMotion() && takeUpHint();
+  v = { el, pane, scrim, zoomer, stage, hand, hintRow, bar, sheet, dock, main, fromEl, onDismiss, f: 0, x: 0, z: 0, cancel: null };
   setCard(card);
+  v.upHint = !reducedMotion() && takeUpHint();
   // Collapsed or expanded, as this explorer left it last time (kept on this device), or as it
   // was when the card was left for the globe or the full notebook (and on that page).
   const notes = restore?.notes;
   if (dock && (notes ? notes.expanded : state.profile?.notesPanel === 'expanded')) setNotebook(true, { remember: false, layout: false, start: notes });
-  if (restore?.side === 'inside' || restore?.under === 'inside') v.p = 1;
   if (restore?.side === 'back') v.f = 1;
-  if (restore?.heading) v.built.open.select(restore.heading, { quiet: true });
+  if (restore?.heading) { v.built.front.select(restore.heading, { quiet: true }); showSection(v.built.back, restore.heading, { smooth: false }); }
   if (main && fromEl) {
     const m = main.getBoundingClientRect(), r = fromEl.getBoundingClientRect();
     main.style.setProperty('transform-origin', `${r.left + r.width / 2 - m.left}px ${r.top + r.height / 2 - m.top}px`);
@@ -684,7 +583,7 @@ export function open(card, { fromEl, main, onDismiss, restore = null } = {}) {
   if (!zoomed) v.zoomCancel = cancel;
 }
 
-// Show another card in the open viewer (‹ ›), with a quick cross-fade.
+// Show another card in the open viewer (‹ ›, a swipe sideways), with a quick cross-fade.
 export function show(card) {
   if (!v) return;
   stopMotion();
@@ -696,7 +595,7 @@ export function show(card) {
   v.z = 1;
   measure();
   draw();
-  if (!reducedMotion()) v.built.root.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 220, easing: 'ease-out' });
+  if (!reducedMotion()) [v.built.root, v.built.backRoot].forEach(el => el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 220, easing: 'ease-out' }));
 }
 
 function teardown() {
@@ -704,7 +603,7 @@ function teardown() {
   closePopover();
   v.untrack?.(); // also removes its window listeners
   v.dock?.book?.destroy();
-  v.built.open.destroy();
+  v.built.front.destroy();
   stopMotion();
   stopZoom();
   stop();
@@ -770,7 +669,7 @@ export function openNotes() { setNotebook(true); }
 export function snapshot() {
   if (!v) return null;
   return {
-    cardId: v.card.id, side: sideOf(v), under: underOf(v), heading: v.built.open.selected(), viaMap: Boolean(v.toGlobe), viaFull: Boolean(v.toFull),
+    cardId: v.card.id, side: sideOf(v), heading: v.built.front.selected(), viaMap: Boolean(v.toGlobe), viaFull: Boolean(v.toFull),
     notes: v.dock ? { expanded: v.dock.expanded, ...(v.dock.book?.where() ?? {}) } : null,
   };
 }
@@ -801,14 +700,17 @@ export function close({ animate = true } = {}) {
   stopZoom();
   stop();
   v.fromEl = v.main?.querySelector(`.tile[data-card="${CSS.escape(v.card.id)}"]`) ?? v.fromEl;
+  v.x = 0;
+  v.f = settledSide(v.f);
   measure();
-  const start = { p: v.p, f: v.f, z: v.z };
+  const start = { f: v.f, z: v.z };
   return new Promise(resolve => {
     // A turn of the device while it closes: closed at once (finishMotion).
     v.finishClose = () => { stopZoom(); teardown(); resolve(); };
     v.zoomCancel = tween({
       from: 0, to: 1, duration: 420,
-      onUpdate: u => { v.p = start.p * (1 - u); v.f = start.f * (1 - u); v.z = start.z * (1 - u); draw(); },
+      // On one page, the front is what goes back into the tile.
+      onUpdate: u => { v.f = start.f * (1 - u); v.z = start.z * (1 - u); draw(); },
       onDone: () => { teardown(); resolve(); },
     });
   });
@@ -825,17 +727,16 @@ export function onKey(e) {
   if (e.target.closest?.('input, textarea, select, [contenteditable], .nbdock')) return;
   if (e.key === 'Escape') dismiss();
   else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-    const siblings = cardsIn(v.card.group).filter(isVisible);
-    const target = siblings[siblings.indexOf(v.card) + (e.key === 'ArrowLeft' ? -1 : 1)];
-    if (target) location.hash = `#/card/${encodeURIComponent(target.id)}`;
+    const { prev, next } = siblings();
+    goTo(e.key === 'ArrowLeft' ? prev : next);
   } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
     // Not while a page inside the card has the keys to scroll with.
-    if (e.target.closest?.('[data-scroll]')) return;
+    if (e.target.closest?.('[data-scroll]') || twoPages()) return;
     e.preventDefault();
-    if (e.key === 'ArrowUp' || onBack(v.f)) toggleFlip(e.key === 'ArrowUp' ? 'up' : 'down');
+    toggleFlip(e.key === 'ArrowUp' ? 'up' : 'down');
   } else if (e.key === ' ' || e.key === 'Enter') {
-    if (e.target.closest?.('button, a')) return;
+    if (e.target.closest?.('button, a') || twoPages()) return;
     e.preventDefault();
-    toggleOpen();
+    toggleFlip();
   }
 }

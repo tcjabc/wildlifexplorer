@@ -52,7 +52,7 @@ export const relatedOf = c => (c.related ?? []).map(r => (typeof r === 'string'
 
 export const comingSoonKey = c => (c.group === 'plants' ? 'ff.comingSoonPlant' : 'ff.comingSoon');
 
-const groupChip = g => h('span', { class: 'chip chip--group', 'data-group': g.id },
+export const groupChip = g => h('span', { class: 'chip chip--group', 'data-group': g.id },
   h('span', { 'aria-hidden': 'true' }, g.emoji), bi(g.name));
 
 const smallTitle = key => h('h2', { class: 'cpage__label' }, tx(key));
