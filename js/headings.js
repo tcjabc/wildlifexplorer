@@ -8,7 +8,10 @@
 //   1. a line in VIEW_HAS here: can this card show it?
 //   2. a builder of the same name in js/stage-views.js
 //   3. its name in the `views` of a heading, or in a card's own "stage": { "<heading>": "<view>" }
+// A heading's entry in "stage" can instead be the view's own data, an object (Habitat's picture,
+// js/habitat.js): the heading then shows its usual views, and the view reads its data from there.
 import { modesFor } from './compare-data.js';
+import { habitatOf } from './habitat.js';
 
 const filled = p => p && (p.en || p.zh);
 const shown = (p, preview) => filled(p) && (!p.todo || preview);
@@ -16,7 +19,7 @@ const shown = (p, preview) => filled(p) && (!p.todo || preview);
 // slot: the place in the grid, 1–8, and the colour (--head-<slot> in css/tokens.css).
 // text: the Fact File section read out and shown under the grid.
 export const SPECIES_HEADINGS = [
-  { id: 'habitat', slot: 1, icon: '🏠', label: 'ff.habitat', text: 'habitat', views: ['photo'] },
+  { id: 'habitat', slot: 1, icon: '🏠', label: 'ff.habitat', text: 'habitat', views: ['habitat', 'photo'] },
   { id: 'food', slot: 2, icon: '🍃', label: 'ff.foodAndHunting', text: 'foodAndHunting', views: ['diet', 'photo'] },
   { id: 'babies', slot: 3, icon: '🥚', label: 'heading.babies', text: 'breeding', views: ['photo'] },
   { id: 'behaviour', slot: 4, icon: '🐾', label: 'ff.behaviour', text: 'behaviour', views: ['profile', 'photo'] },
@@ -62,6 +65,7 @@ export const hasMap = c => Boolean(c.map?.areas?.length || c.range || c.mapBound
 // FILLER don't make a heading worth tapping on their own.
 export const VIEW_HAS = {
   gallery: () => true,
+  habitat: c => Boolean(habitatOf(c)),
   photo: () => true,
   diet: c => Boolean(c.stats?.dietIcons?.length),
   profile: c => Boolean(c.profile?.callouts?.length && c[c.profile.image ?? 'photo']?.file),
@@ -100,7 +104,7 @@ export const backSections = (card, ctx = {}) => headingsFor(card, ctx)
 export function viewFor(card, heading, ctx = {}) {
   const can = id => Boolean(VIEW_HAS[id]?.(card, ctx));
   const own = card.stage?.[heading.id];
-  return can(own) ? own : heading.views.find(can) ?? null;
+  return typeof own === 'string' && can(own) ? own : heading.views.find(can) ?? null;
 }
 
 // The grid for a card: every heading in its place, with what it shows. enabled: false is greyed

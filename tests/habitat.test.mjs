@@ -5,13 +5,14 @@ import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { coverBox, findOnBox, habitatOf, isFound } from '../js/habitat.js';
-import { isTopic } from '../js/headings.js';
+import { SPECIES_HEADINGS, headingsFor, isTopic, viewFor } from '../js/headings.js';
 import { isAllowedLicenseName } from '../scripts/lib/licenses.mjs';
 import { thumbPath as thumbOf } from '../scripts/lib/images.mjs';
 
 const cards = JSON.parse(await readFile(new URL('../data/animals.json', import.meta.url), 'utf8'));
 const species = cards.filter(c => !isTopic(c));
 const at = f => new URL(`../${f}`, import.meta.url);
+const habitat = SPECIES_HEADINGS[0];
 
 test('every species card has a habitat picture, credited like the photos', () => {
   for (const c of species) {
@@ -33,6 +34,14 @@ test('17 cards have the animal to find, each one inside its picture', () => {
     const { x, y, r } = habitatOf(c).find;
     assert.ok(x > 0 && x < 1 && y > 0 && y < 1 && r > 0 && r < 0.5, c.id);
   }
+});
+
+test('Habitat shows the picture; with none, the photo as before', () => {
+  for (const c of species) assert.equal(viewFor(c, habitat), 'habitat', c.id);
+  assert.equal(viewFor({ group: 'mammals' }, habitat), 'photo');
+  assert.equal(viewFor({ group: 'mammals', stage: { habitat: { image: 'https://example.com/a.webp' } } }, habitat), 'photo', 'only our own img/ files');
+  assert.equal(viewFor({ group: 'mammals', stage: { habitat: { image: 'img/a.webp' } } }, habitat), 'habitat');
+  assert.ok(headingsFor({ group: 'mammals', stage: { habitat: { image: 'img/a.webp' } } })[0].enabled, 'a picture of its own lights the heading');
 });
 
 test('a find with numbers out of range is no find: the picture stays static', () => {

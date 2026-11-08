@@ -7,13 +7,15 @@
 //       as on turning the device). It keeps what the view is showing: no new animation, no reset.
 import { h, mount, reducedMotion } from './dom.js';
 import { bi, label, tx } from './i18n.js';
-import { state } from './store.js';
+import { state, thumbOf } from './store.js';
 import { picture, statusBadge } from './components.js';
 import { callable, mapButton, relatedItem, relatedOf } from './cardparts.js';
 import { comparePanel, partner } from './compare.js';
 import { PARTNERS, modesFor, startWith, whoOf } from './compare-data.js';
 import { lookalikePanel, lookalikesOf } from './lookalikes.js';
 import { hasMap } from './headings.js';
+import { coverBox, findOnBox, habitatOf, isFound } from './habitat.js';
+import { haptic } from './gesture.js';
 import { magnifier, featureOf } from './magnifier.js';
 import { placeMap, worldMap } from './worldmap.js';
 
@@ -45,6 +47,56 @@ function gallery(card, { onCredit, onCall }) {
   }
   show(showing);
   return { el: frame };
+}
+
+// Where it lives: a photo of its real home. When the animal is in it (find), a tap on the animal
+// rings it, buzzes once and shows its silhouette; a tap anywhere else does nothing. No timer, no
+// score, no words. The picture is cropped to the stage around the animal, so it is always in view.
+function habitat(card, { onCredit }) {
+  const hab = habitatOf(card);
+  const { find } = hab;
+  const img = h('img', {
+    class: 'pic', src: hab.file, alt: label('ff.habitat'), decoding: 'async',
+    srcset: `${thumbOf(hab.file)} 480w, ${hab.file} 1200w`, sizes: '(min-width: 700px) 600px, 100vw',
+    'data-fallback': thumbOf(hab.file),
+  });
+  if (find) img.style.setProperty('object-position', `${find.x * 100}% ${find.y * 100}%`);
+  const credit = h('button', {
+    class: 'cover__credit', type: 'button', 'aria-label': label('card.credit'), onclick: () => onCredit?.('habitat'),
+  }, '📷');
+  const frame = h('div', { class: 'stage-pic stage-habitat' }, img, credit);
+  if (!find) return { el: frame };
+
+  const sil = card.silhouette?.file;
+  const ring = h('span', { class: 'habitat__ring', 'aria-hidden': 'true' });
+  const found = h('span', { class: 'habitat__found', 'aria-hidden': 'true' },
+    sil ? h('img', { class: 'habitat__shape', src: sil, alt: '' }) : '✓');
+  let lit = false;
+  // The picture's box on the card (card px, before the card is scaled to the screen).
+  const box = () => (img.naturalWidth ? coverBox(img.naturalWidth, img.naturalHeight, img.offsetWidth, img.offsetHeight, find.x, find.y) : null);
+  const place = () => {
+    const b = box();
+    if (!lit || !b) return;
+    const c = findOnBox(find, b);
+    ring.style.setProperty('left', `${c.x}px`);
+    ring.style.setProperty('top', `${c.y}px`);
+    ring.style.setProperty('width', `${2 * c.r}px`);
+  };
+  frame.addEventListener('click', e => {
+    if (e.target.closest('button')) return;
+    const b = box();
+    const r = img.getBoundingClientRect();
+    if (!b || !r.width) return;
+    const k = img.offsetWidth / r.width;
+    if (!isFound(find, b, (e.clientX - r.left) * k, (e.clientY - r.top) * k)) return;
+    haptic(40);
+    lit = true;
+    place();
+    // Again on every find: the ring and the silhouette pop in once more.
+    for (const el of [ring, found]) { el.remove(); frame.append(el); }
+    frame.classList.add('is-found');
+  });
+  return { el: frame, layout: place };
 }
 
 // The interactive of the two cards that have one so far: numbered labels on the picture. Tap one to
@@ -205,6 +257,7 @@ function related(card) {
 export const STAGE_VIEWS = {
   gallery,
   photo: gallery,
+  habitat,
   profile,
   diet,
   compare,

@@ -315,6 +315,7 @@
   --stage-cmp-icon: 64px; /* figures on the weight balance, on the stage */
   --stage-life-bar: 30px; /* a lifespan timeline, on the stage */
   --stage-look-h: 170px;  /* the lookalike scene, on the stage */
+  --habitat-found: 76px;  /* the animal's silhouette, once it is found on the Habitat picture */
   --hand-size: 84px;    /* the hand that shows how to open a card: its disc */
   --hand-glyph: 3rem;   /* and the hand on it */
   --hand-travel: 110px; /* how far each way it swipes */

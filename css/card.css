@@ -287,6 +287,23 @@
 .stage { position: absolute; inset: 0; overflow: hidden; background: var(--c-bg-deep); container-type: size; }
 .stage-pic { position: absolute; inset: 0; }
 .stage-pic .pic { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+/* Habitat (js/habitat.js): a tap on the animal rings it, and its silhouette pops in at the top. */
+.habitat__ring {
+  position: absolute; aspect-ratio: 1; border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none;
+  border: var(--bw-thick) solid var(--c-surface);
+  box-shadow: 0 0 0 var(--bw-thin) var(--g, var(--c-accent)), inset 0 0 0 var(--bw-thin) var(--g, var(--c-accent));
+  animation: habitat-ring var(--t-slow) var(--ease-bounce);
+}
+@keyframes habitat-ring { from { transform: translate(-50%, -50%) scale(1.6); opacity: 0; } to { transform: translate(-50%, -50%); opacity: 1; } }
+.habitat__found {
+  position: absolute; right: var(--s-2); top: var(--s-2); pointer-events: none;
+  display: grid; place-items: center; width: var(--habitat-found); height: var(--habitat-found); padding: var(--s-2);
+  border: var(--bw-thick) solid var(--g, var(--c-accent)); border-radius: 50%;
+  background: var(--c-paper); box-shadow: var(--shadow-2);
+  font-size: var(--card-fs-title); font-weight: var(--fw-bold); color: var(--g, var(--c-accent));
+  animation: pop-in var(--t-slow) var(--ease-bounce);
+}
+.habitat__shape { max-width: 100%; max-height: 100%; object-fit: contain; }
 /* Photo or illustration: two dots at the bottom centre, each a whole tap target on the screen. */
 .stage-pic__dots { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); display: flex; }
 .stage-pic__dot {
