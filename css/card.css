@@ -287,12 +287,17 @@
 .stage { position: absolute; inset: 0; overflow: hidden; background: var(--c-bg-deep); container-type: size; }
 .stage-pic { position: absolute; inset: 0; }
 .stage-pic .pic { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.stage-pic__kinds { position: absolute; right: var(--s-2); bottom: var(--s-2); display: flex; gap: var(--s-2); }
-.stage-pic__kind {
-  width: var(--tap-xs); height: var(--tap-xs); padding: 0; border: 0; border-radius: 50%;
-  background: var(--c-veil); box-shadow: var(--shadow-1); font-size: var(--fs-md); cursor: pointer;
+/* Photo or illustration: two dots at the bottom centre, each a whole tap target on the screen. */
+.stage-pic__dots { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); display: flex; }
+.stage-pic__dot {
+  display: grid; place-items: center; padding: 0; border: 0; background: none; cursor: pointer;
+  width: calc(var(--tap-xs) / var(--card-s, 1)); height: calc(var(--tap-xs) / var(--card-s, 1));
 }
-.stage-pic__kind[aria-checked="true"] { background: var(--c-accent); }
+.stage-pic__dot::before {
+  content: ""; width: calc(var(--gallery-dot) / var(--card-s, 1)); height: calc(var(--gallery-dot) / var(--card-s, 1));
+  border-radius: 50%; background: var(--c-veil); box-shadow: 0 0 0 var(--bw-thin) var(--c-shade-strong);
+}
+.stage-pic__dot[aria-checked="true"]::before { background: var(--c-accent); }
 .stage-scene, .stage-related { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; padding: var(--s-3); background: var(--c-paper); }
 .stage-related { justify-content: flex-start; overflow-y: auto; }
 .stage-scene .cmp { flex: 1 1 auto; min-height: 0; justify-content: center; }

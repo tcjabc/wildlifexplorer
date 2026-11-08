@@ -20,14 +20,15 @@ import { placeMap, worldMap } from './worldmap.js';
 
 const cssNum = name => parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
 
-const KINDS = [['photo', '📷'], ['illustration', '🎨']];
+const KINDS = ['photo', 'illustration'];
 
-// The card's pictures, photo first, kept as separate files. With both, two buttons swap them.
+// The card's pictures, photo first, kept as separate files. With both, two dots at the bottom swap
+// them (no swipe: sideways changes card). One small button in the corner gives the credits.
 function gallery(card, { onCredit, onCall }) {
-  const kinds = KINDS.filter(([k]) => card[k]?.file);
+  const kinds = KINDS.filter(k => card[k]?.file);
   const frame = callable(card, h('div', { class: 'stage-pic' }), onCall);
-  let showing = kinds[0]?.[0];
-  const pick = h('div', { class: 'stage-pic__kinds', role: 'radiogroup', 'aria-label': label('card.pictureKind') });
+  let showing = kinds[0];
+  const pick = h('div', { class: 'stage-pic__dots', role: 'radiogroup', 'aria-label': label('card.pictureKind') });
   function show(kind) {
     showing = kind;
     mount(frame, picture(card, { kind }),
@@ -38,10 +39,10 @@ function gallery(card, { onCredit, onCall }) {
     pick.querySelectorAll('button').forEach(b => b.setAttribute('aria-checked', String(b.dataset.kind === showing)));
   }
   if (kinds.length > 1) {
-    pick.append(...kinds.map(([kind, icon]) => h('button', {
-      class: 'stage-pic__kind', type: 'button', role: 'radio', 'data-kind': kind,
+    pick.append(...kinds.map(kind => h('button', {
+      class: 'stage-pic__dot', type: 'button', role: 'radio', 'data-kind': kind,
       'aria-label': label(`card.${kind}`), onclick: () => show(kind),
-    }, icon)));
+    })));
   }
   show(showing);
   return { el: frame };

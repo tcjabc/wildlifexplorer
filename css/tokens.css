@@ -264,6 +264,7 @@
   --size-brand-sm: 38px;
   --size-dot: 36px;     /* numbered fact circles, IUCN code */
   --size-dot-lg: 40px;  /* "?" on locked cards */
+  --gallery-dot: 14px;  /* a dot under the stage's pictures (photo or illustration), on the screen */
   --size-thumb: 72px;
   --size-medal: 112px;
   --size-medal-lg: 190px;
