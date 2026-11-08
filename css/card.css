@@ -231,7 +231,7 @@
   position: relative; flex: none; align-self: center; max-width: 100%;
   border-radius: var(--r-sm); overflow: hidden; background: var(--c-bg-deep); cursor: pointer;
 }
-.profile__pic .pic { position: static; display: block; width: auto; max-width: 100%; height: auto; max-height: var(--profile-pic-max-h); }
+.profile__pic .pic { position: static; display: block; width: auto; max-width: 100%; height: auto; max-height: min(var(--profile-pic-max-h), var(--profile-pic-room, var(--profile-pic-max-h))); }
 .profile__marks { position: absolute; inset: 0; pointer-events: none; }
 .profile__mark {
   position: absolute; display: grid; place-items: center;
@@ -318,7 +318,8 @@
 .open__text > .badge { align-self: flex-start; }
 
 /* The stage (js/stage-views.js). */
-.stage { position: absolute; inset: 0; overflow: hidden; background: var(--c-bg-deep); }
+/* A size container, so what is drawn on it can fit its height (cqh): it is as big as its page gives it. */
+.stage { position: absolute; inset: 0; overflow: hidden; background: var(--c-bg-deep); container-type: size; }
 .stage-pic { position: absolute; inset: 0; }
 .stage-pic .pic { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .stage-pic__kinds { position: absolute; right: var(--s-2); bottom: var(--s-2); display: flex; gap: var(--s-2); }
@@ -333,7 +334,7 @@
 .stage .cmp__caption { font-size: var(--card-fs); }
 .stage-profile { position: absolute; inset: 0; display: flex; flex-direction: column; gap: var(--s-2); padding: var(--s-2); background: var(--c-paper); }
 .card3d[data-layout="stacked"] .stage { --profile-pic-max-h: var(--profile-pic-max-h-stacked); }
-.stage { --plate: var(--stage-plate); }
+.stage { --plate: min(var(--stage-plate), 70cqh); --profile-pic-room: calc(100cqh - var(--profile-detail-min-h) - var(--s-2) * 3); }
 .stage .cmp-diet__food { font-size: var(--emoji-sm); }
 .stage-map { position: absolute; inset: 0; background: var(--c-map-sea); }
 .stage-map .map { aspect-ratio: auto; width: 100%; height: 100%; border-radius: 0; }
