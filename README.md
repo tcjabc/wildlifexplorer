@@ -19,7 +19,7 @@ It runs at https://wildfile.app/ (Cloudflare) and works fully offline once it ha
 - **Badges**: for finishing a group, Bronze/Silver/Gold for continents and habitats, and secret
   badges. **Quiz**: picture → name, and true/false facts.
 - **Creature comparison**, on the whole stage: You (the animal against your own size, or a grown-up,
-  a cat or a car, with a row of figures to tap and count, silently) or Animal (lookalikes side by side, with how
+  a cat or a car; lengths with a row of figures to tap and count, silently) or Animal (lookalikes side by side, with how
   to tell them apart). **Globe**: filter the pins by continent or habitat, or hide
   them all with the paw button to see the map on its own.
 - **Field Notes**: a researcher's notebook per profile. Draw with a pencil, pen and highlighter
@@ -265,27 +265,28 @@ every field that already has a value as yours and leaves it alone.
 
 ### Inside a card
 
-A card has a cover, an inside and a back, at design size 448 × 560 (4:5), scaled as a whole. The
-inside is for children who can't read yet (pictures under the headings); the back is the Fact File,
-text only, for readers and grown-ups.
+A card has two faces, the same size: the **front**, to explore, for children who can't read yet, and
+the **back**, the Fact File, for readers and grown-ups. Pages are laid out at design size 448 × 560
+(4:5), scaled as a whole, wider or taller where the space is (`openLayout` in `js/card-layout.js`).
 
-- **The cover**: group, card number and series (S1), the taxonomy strip (order · family · genus and
-  species), the photo and name, **Key Features** (the first three facts) and **Where in the World**
-  (the small map, the IUCN status and "Found in Taiwan"). Pack reveals show this too.
-- **The inside**: a large **stage** and a **menu**, a fixed 4 × 2 grid of heading buttons with the text
-  of the lit one underneath. Side by side where the space is wide; stacked, stage on top, where it is
-  tall (portrait, or beside the expanded notebook): `openLayout` in `js/card-layout.js`. Tapping a
-  heading lights it, shows its text and switches the stage, without a sound. Tapping it again goes back
-  to the gallery (the photo and illustration). A heading a card has nothing for is grey,
-  never missing, so nothing ever moves. Buttons never go under 64 px on the screen (`--tap-heading`).
-- **The back** (`js/fact-back.js`), laid out like a printed card back, the size and place of the
-  closed card whether it was turned over closed or open: 📁 Fact File with the series and card
-  number, the card's name, a **Vital Statistics** box (the numbers, and the Key Features), then the
-  grid's headings in the grid's order, each with its icon and colour as a small marker and its full
-  text. Headings with nothing to read are left out (`backSections` in `js/headings.js`): Size is the
-  statistics box, Where lists the continents and "Found in Taiwan", Status shows its badge, a topic
-  card's Who to look for names its animals. No pictures, no speech; it scrolls inside the card. Text
-  still to check (`todo`) shows only to a grown-up in preview, as under the headings.
+- **The front** (`js/card-open.js`): the group, number and series, a large **stage**, and under it a
+  fixed 4 × 2 grid of heading buttons with their names. Nothing to read. Tapping a heading lights it
+  and switches the stage, without a sound; a heading a card has nothing for is grey, never missing,
+  so nothing ever moves. Buttons never go under 64 px on the screen (`--tap-heading`).
+- **The back** (`js/fact-back.js`), laid out like a printed card back: 📁 Fact File with the series
+  and card number, the card's name and Latin name, a **Vital Statistics** box (the numbers, and the Key
+  Features: the first three facts), **Where in the World** (the map, which opens the globe, with the
+  IUCN status and "Found in Taiwan"), then the grid's headings in the grid's order, each with its icon
+  and colour as a small marker and its full text. Headings with nothing to read are left out
+  (`backSections` in `js/headings.js`): Size is the statistics box, Where lists the continents, a topic
+  card's Who to look for names its animals. No speech; it scrolls inside the card. Text still to
+  check (`todo`) shows only to a grown-up in preview.
+- **Side by side** where there is room for two pages (landscape): front and back always both there,
+  the same height. A heading tapped on the front also brings its section into view on the back, marked;
+  tapped again, the front goes back to the gallery.
+- **One page** where there isn't (portrait, a phone, beside the expanded notebook): the card turns over
+  between front and back. The lit heading tapped again turns it over to that heading's section.
+- Pack reveals still show the old cover (`coverPage` in `js/cardparts.js`).
 
 Every card has the same grid (`js/headings.js`, tested on every card in `tests/headings.test.mjs`):
 
@@ -310,7 +311,7 @@ a line in `VIEW_HAS`, a builder in `STAGE_VIEWS` (`js/stage-views.js`), and its 
 `views` or a card's `stage`.
 
 **An animal's call**: `"call": { "file": "audio/calls/formosan-black-bear.m4a", "author": …, "license": …,
-"licenseUrl": …, "sourceUrl": … }` plays when the cover photo or the gallery is tapped. No card has one
+"licenseUrl": …, "sourceUrl": … }` plays when the gallery on the stage is tapped. No card has one
 yet. Before the first one: add `audio` to `ALLOW` in `scripts/build-site.mjs` and decide how the service
 worker keeps them. Mono AAC `.m4a`, 3–6 seconds, about 64 kbps, under 60 KB, at similar loudness.
 
@@ -361,16 +362,20 @@ The inside uses these optional fields. Any you leave out are simply not shown.
   text instead. `youngCount` is the number of young (or eggs) at a time, with optional `young` text;
   under 🥚 Babies it is a row of babies (eggs with incubation) to tap and count, up to `max`.
 - **related**: related species, as card ids or `{ scientificName, name }` for animals with no card.
-  They show on an open card with nothing lit, and on a topic card under 👀. A card the profile has opens on tap; one not collected yet shows as a locked silhouette; an animal
+  They show on a topic card under 👀. A card the profile has opens on tap; one not collected yet shows as a locked silhouette; an animal
   with no card is a small entry with its names. Cards not built yet are left out.
 - **Creature comparison** fills the stage under 📏 Size. Each scene plays an animation: **length**
-  (silhouettes side by side), **weight** (a balance; the lighter side fills with copies until it levels
-  out, with a counter and "= Elephant × n" for huge numbers) and **lifespan** (birthday timelines);
+  (silhouettes side by side, names and sizes in a row underneath), **weight** (a balance; the lighter
+  side fills with copies until it levels out, as many as the "× n" line says, sized to fit on the pan;
+  a counter and "= Elephant × n" for huge numbers) and **lifespan** (birthday timelines);
   **diet** (a plate filling up) is under 🍃 instead. "You" is 120 cm, 23 kg and 6 years old unless the
   profile has its own height, weight and age (Welcome form, or For grown-ups → Edit profile). A grown-up,
   a cat and a car can stand in (`PARTNERS` in `js/compare-data.js`), and a profile without the number a
-  scene needs starts with the grown-up. Under the scene, a row of the smaller one's figures to tap and
-  count, silently, with a short vibration ("1, 2, 3… 5 of you!" on the screen), from 2 to 20 of them.
+  scene needs starts with the grown-up. Under a length, a row of the smaller one's figures to tap and
+  count, silently, with a short vibration ("1, 2, 3… 5 of you!" on the screen), from 2 to 20 of them,
+  in one row (smaller when there are many). The partner buttons share the top row with the modes when
+  they fit. On a stage too short for it all (`--stage-short`, a phone on its side) the scene shows with
+  its modes only.
 - **compare**: how big the animal's silhouette is in cm, either `width` or `height`, of the whole
   picture. That is the picture's size, not the animal's: where a tail curls or hangs, a true nose-to-tail
   length would make the animal far too tall, so size it so the body comes out right and check the
@@ -426,9 +431,9 @@ the globe says so ("The globe needs the internet the first time…") with Try ag
 
 ### From a card to the globe
 
-A card's map (on the cover, and under 🌍 on the stage) opens the globe at that animal's range: the
+A card's map (on the back, and under 🌍 on the stage) opens the globe at that animal's range: the
 whole map is the button, with a small 🌏 in its corner. It is a tap only: a drag that starts on the
-map still opens or puts away the card. Only cards with a range
+map still changes card or turns it over. Only cards with a range
 file have it (`opensGlobe` in `js/card-return.js`), and not in pack reveals.
 
 - `#/globe/<card id>` lights the range up, turns to it and zooms so it fills about 40% of the
@@ -438,7 +443,7 @@ file have it (`opensGlobe` in `js/card-return.js`), and not in pack reveals.
   that card's own pin shows even when a filter would leave it out, until the filters change or
   another pin is picked.
 - "‹ Back to card" (Esc, or the device's back button) returns to the card as it was: the same
-  side (cover, open on the same heading, or the back over either, without saying it again) and the notebook collapsed or expanded, on the same page
+  side (front or back) and the same heading, without saying it again, and the notebook collapsed or expanded, on the same page
   (`js/card-return.js`, kept in memory only). `#/globe` on its own is the Globe tab as always.
 
 ### Globe map layers
@@ -574,31 +579,30 @@ The hero button at the top of the Globe's toolbar opens a picker that switches o
 - Sources and licences: [CREDITS.md](CREDITS.md).
 
 In the app, gestures on a card are decided by direction, from anywhere on the card or a 40 px
-margin around it. To the right of a closed card, an open zone about half a card wide also opens it
-with a sideways drag, and the open card can be closed from an 80 px margin around it. All of this stays below the top bar and never reaches the notebook
+margin around it. All of this stays below the top bar and never reaches the notebook
 (its spine, its panel or, on phones, its tab), so drawing never moves the card; on narrow screens
 the zones shrink to fit. A drag that starts at
 an in-between angle waits a few more pixels before deciding its direction. Grown-ups in preview can
 see these areas (the notebook's in purple): add `?debug=gestures` to the address (`?debug=off` to stop).
-On the cover: sideways opens the card, up turns it over, down puts it back in the binder, and a hand
-shows the swipe (the first three times an explorer opens a card, followed by one swipe up).
-On the open card: sideways closes it, up turns it over; a vertical drag on a heading's text scrolls
-it, and turns the card only from the end of the text. On the back: down turns it back, up turns it on
-round, both to what it was (cover or open card); its text scrolls first in the same way. The back
-turns about the card's middle (rotateX) while the book turns away; the side turned away is
-see-through and inert. 📖 opens and closes the card, 🔄 (or ↑ ↓ on a keyboard) turns it over, and
-‹ › change cards (on the front).
+Sideways changes card (left the next, right the one before, as ‹ › and ← → do); with no card that
+way it gives a little and springs back. On one page, up or down turns the card over (up over the top,
+down the other way; 🔄, ↑ ↓, Space or Enter too). A vertical drag on what scrolls (the back, a list on
+the stage) scrolls it, and turns the card only from the end it is scrolled to. Side by side nothing
+turns, and 🔄 is hidden. The card turns about its middle (rotateX); the face turned away is see-through
+and inert. ← (or Escape) goes back to the binder. The first three times an explorer opens a card on
+one page, a hand on the stage shows the swipe up until something moves (not with reduced motion);
+side by side there is no hand: both faces are there.
 The layout rules are pure functions in `js/card-layout.js` (tested in `tests/card-layout.test.mjs`). Every gesture
-ends settled: it commits, springs back or dismisses, also when the pointer is cancelled, the
-capture is lost or the window loses focus. A quarter of the way or
+ends settled: it commits or springs back, also when the pointer is cancelled, the
+capture is lost or the window loses focus (`js/gesture-release.js`). A quarter of the way or
 a quick flick is enough; less springs back, and a touch that hardly moves is a tap. A tap or a
-scroll while the card is still settling lets it finish settling. The first time a closed card settles, its cover peeks open a little, once per card
-per explorer (not with reduced motion).
+scroll while the card is still settling lets it finish settling. The zoom in from the binder lands on
+the card's final size (both faces side by side, or the one page): nothing resizes after it.
 
 **Turning the device** (or a browser bar coming or going): the card is laid out again for the new
 space whenever the desk changes size (a `ResizeObserver` on it, plus the window's and the visual
 viewport's `resize`), at most once a frame and without animation. Anything moving jumps to where it
-was going first (zooming in, opening, turning over; closing finishes closing; a drag lets go where
+was going first (zooming in, turning over; closing finishes closing; a drag lets go where
 it started). Each stage view fits its new size and keeps what it showed: the comparison its mode,
 partner and count so far, the magnifier its feature, the map redrawn to the new shape.
 `tests/card-rotate-touch.test.mjs` turns tablet and phone sizes both ways in every state.
@@ -850,7 +854,7 @@ notebook and back in the real app.
   right). Tap it to expand it: it takes half the stage (`--nb-panel-share`, `PANEL_SHARE` in
   `js/card-layout.js`) and the card is centred and scaled in the other half. Always in landscape;
   in portrait only while the card stays at least 340 px wide, otherwise (and on phones, under
-  600 px) the panel covers the card. Beside the panel an open card stacks in the room that is left.
+  600 px) the panel covers the card. Beside the panel the card is one page, in the room that is left.
   The panel has one bar: "Collapse ›" (which folds it
   back), the "All pages / Only this animal" chip and the page buttons; where it is too narrow it
   wraps between them rather than clip anything. The state is kept per profile on the device
