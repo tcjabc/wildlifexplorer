@@ -315,10 +315,11 @@
   --stage-life-bar: 30px; /* a lifespan timeline, on the stage */
   --stage-look-h: 170px;  /* the lookalike scene, on the stage */
   --habitat-found: 76px;  /* the animal's silhouette, once it is found on the Habitat picture */
-  --hand-size: 84px;    /* the hand that shows how to open a card: its disc */
-  --hand-glyph: 3rem;   /* and the hand on it */
-  --hand-travel: 110px; /* how far each way it swipes */
-  --hand-ms: 3000ms;    /* one swipe and the pause after it */
+  --hand-size: 52px;    /* the hand that shows how to turn a card over: its disc */
+  --hand-glyph: 1.75rem; /* and the hand on it */
+  --hand-travel: 34px;  /* how far each way it swipes, up from the stage's bottom corner */
+  --hand-ms: 2400ms;    /* one swipe and the pause after it */
+  --hand-plays: 2;      /* swipes before it is gone for good */
   /* The notebook on the card screens (js/card-layout.js uses the same numbers). */
   --nb-spine-w: 60px;   /* the collapsed spine: the strip at the screen's right */
   --nb-band-w: 6px;     /* its elastic band */

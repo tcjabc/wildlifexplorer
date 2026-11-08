@@ -461,16 +461,22 @@ run('back from the globe on one page: the back comes back too', async f => {
   await f.faces('back');
 }, PORTRAIT);
 
-run('Babies: lit by its text, the stage keeps the photo, the back shows the section', async f => {
-  for (const id of ['taiwan-blue-magpie', 'leopard-cat']) {
+run('Babies: its own photo of the young (nothing to tap); the gallery where there is none; the back shows the section', async f => {
+  for (const [id, own] of [['taiwan-blue-magpie', true], ['leopard-cat', true], ['formosan-black-bear', false]]) {
     await f.card(id);
     await f.tap('.hbtn[data-heading="babies"]');
     await f.rests();
     assert.deepEqual(await f.lit(), ['babies'], id);
-    assert.match(await f.stage(), /stage-pic/, `${id}: the gallery`);
-    assert.match(await f.page.evaluate(() => document.querySelector('.stage-pic img').getAttribute('src')), /-photo-/, `${id}: the photo first`);
+    const pic = await f.page.evaluate(() => ({ cls: document.querySelector('.stage').firstElementChild.className, src: document.querySelector('.stage .pic')?.getAttribute('src') }));
+    if (own) {
+      assert.match(pic.cls, /stage-babies/, id);
+      assert.match(pic.src, /-babies-/, `${id}: the photo of its young`);
+    } else {
+      assert.doesNotMatch(pic.cls, /stage-babies/, id);
+      assert.match(pic.src, /-photo-/, `${id}: the gallery photo`);
+    }
     assert.equal((await f.section())?.id, 'babies', id);
-    assert.equal(await f.page.evaluate(() => document.querySelectorAll('.stage button:not(.cover__credit):not(.stage-pic__dot)').length), 0, `${id}: nothing to tap and count`);
+    assert.equal(await f.page.evaluate(() => document.querySelectorAll('.stage button:not(.cover__credit):not(.stage-pic__dot)').length), 0, `${id}: nothing to tap`);
     await f.page.evaluate(() => { location.hash = '#/binder'; });
     await f.wait(700);
   }
@@ -574,29 +580,63 @@ run('the back: everything to read, the grid\'s headings in its order, with stati
   assert.equal(got.speech, 0, 'silent');
 }, PORTRAIT, { lang: 'zh' });
 
-run('the hand shows the swipe up on the stage, on one page, the first three times', async f => {
+// The hand: where it is and whether it is showing.
+const hand = f => f.page.evaluate(() => {
+  const el = document.querySelector('.viewer__hand');
+  if (el.hidden) return null;
+  const r = el.getBoundingClientRect(), p = document.querySelector('.front__stage').getBoundingClientRect();
+  const size = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hand-size'));
+  const dy = parseFloat(el.style.getPropertyValue('--hand-y'));
+  return {
+    x: r.left, y: r.top,
+    inside: r.left - size / 2 >= p.left - 1 && r.left + size / 2 <= p.right + 1 && r.top - dy - size / 2 >= p.top - 1 && r.top + dy + size / 2 <= p.bottom + 1,
+    lowRight: r.left > p.left + p.width * 0.6 && r.top > p.top + p.height * 0.5,
+    small: size <= 56,
+  };
+});
+const shown = f => f.page.waitForFunction(() => !document.querySelector('.viewer__hand').hidden, null, { timeout: 4000 });
+const hidden = f => f.page.evaluate(() => document.querySelector('.viewer__hand').hidden);
+
+run('the hand shows as a card opens, small in the stage\'s bottom corner, and never comes back on a heading tap', async f => {
   await f.card('formosan-black-bear');
-  await f.page.waitForFunction(() => !document.querySelector('.viewer__hand').hidden, null, { timeout: 4000 });
-  const hand = await f.page.evaluate(() => {
-    const el = document.querySelector('.viewer__hand'), r = el.getBoundingClientRect();
-    const size = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hand-size'));
-    const dy = parseFloat(el.style.getPropertyValue('--hand-y'));
-    const p = document.querySelector('.front__stage').getBoundingClientRect();
-    return { inside: r.left - size / 2 >= p.left - 1 && r.left + size / 2 <= p.right + 1 && r.top - dy - size / 2 >= p.top - 1 && r.top + dy + size / 2 <= p.bottom + 1 };
-  });
-  assert.deepEqual(hand, { inside: true }, 'on the stage, never on words');
-  assert.equal(await f.page.evaluate(() => Object.entries(localStorage).find(([k]) => k.startsWith('we-up-hint-'))?.[1]), '1');
-  // Anything that moves the card, and it goes.
-  await f.vertical('.front__stage', 'up');
-  await f.faces('back');
-  assert.equal(await f.page.evaluate(() => document.querySelector('.viewer__hand').hidden), true);
-  // After three, no more.
-  await f.page.evaluate(() => { const k = Object.keys(localStorage).find(x => x.startsWith('we-up-hint-')); localStorage.setItem(k, '3'); });
+  await shown(f);
+  const h = await hand(f);
+  assert.deepEqual([h.inside, h.lowRight, h.small], [true, true, true], 'small, on the stage, off its middle');
+  // It never takes a tap: what is under it gets it.
+  const under = await f.page.evaluate(([x, y]) => Boolean(document.elementFromPoint(x, y)?.closest('.viewer__hand')), [h.x, h.y]);
+  assert.equal(under, false, 'taps go through it');
+  await f.tap('.hbtn[data-heading="habitat"]');
+  assert.equal(await hidden(f), true, 'a heading tap ends it');
+  await f.tap('.hbtn[data-heading="food"]');
+  await f.wait(1500);
+  assert.equal(await hidden(f), true, 'and it stays gone');
+  // Once a session: the next card opened shows none.
   await f.page.evaluate(() => { location.hash = '#/binder'; });
   await f.wait(600);
   await f.card('formosan-rock-macaque');
   await f.wait(1500);
-  assert.equal(await f.page.evaluate(() => document.querySelector('.viewer__hand').hidden), true);
+  assert.equal(await hidden(f), true, 'not twice in a session');
+}, PORTRAIT);
+
+run('the hand plays its swipe a couple of times and is gone', async f => {
+  await f.card('formosan-black-bear');
+  await shown(f);
+  await f.page.waitForFunction(() => document.querySelector('.viewer__hand').hidden, null, { timeout: 9000 });
+}, PORTRAIT);
+
+run('once the explorer has turned a card over, the hand never shows again', async f => {
+  await f.card('formosan-black-bear');
+  await shown(f);
+  await f.vertical('.front__stage', 'up');
+  await f.faces('back');
+  assert.equal(await hidden(f), true, 'anything that moves the card ends it');
+  assert.equal(await f.page.evaluate(() => Object.entries(localStorage).find(([k]) => k.startsWith('we-flipped-'))?.[1]), '1');
+  // A new session: still none.
+  await f.page.evaluate(() => { sessionStorage.clear(); location.hash = '#/binder'; });
+  await f.wait(600);
+  await f.card('formosan-rock-macaque');
+  await f.wait(1500);
+  assert.equal(await hidden(f), true);
 }, PORTRAIT);
 
 run('side by side there is no hand', async f => {

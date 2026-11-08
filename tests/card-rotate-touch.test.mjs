@@ -63,7 +63,7 @@ async function open(viewport) {
       const store = await import('/js/store.js');
       for (const c of store.state.cards) store.state.collected[c.id] = { cardId: c.id };
       // No hand: it is a hint, not part of the layout.
-      localStorage.setItem(`we-up-hint-${store.state.profile.id}`, '3');
+      localStorage.setItem(`we-flipped-${store.state.profile.id}`, '1');
     });
     const f = {
       browser, page, errors,

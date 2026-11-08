@@ -38,17 +38,18 @@
 /* 3D only while the card moves (viewer.js adds .is-3d); at rest everything is flat. */
 .viewer__stage.is-3d { perspective: 1800px; }
 .viewer__stage.is-3d .viewer__zoomer, .viewer__stage.is-3d .card-pos { transform-style: preserve-3d; }
-/* The hand that shows how to turn the card over (viewer.js places it on the front's stage, and keeps
-   its swipe inside it: --hand-y). It only moves with a transform, and stands still with reduced
-   motion. */
-.viewer__hand { position: absolute; z-index: 1; pointer-events: none; }
+/* The hand that shows how to turn the card over (viewer.js puts it in the bottom corner of the front's
+   stage, its swipe inside it: --hand-y). It never takes a tap, plays --hand-plays times and is gone,
+   and only moves with a transform. Not shown with reduced motion. */
+.viewer__hand, .viewer__hand * { pointer-events: none; }
+.viewer__hand { position: absolute; z-index: 1; }
 .viewer__hand[hidden] { display: none; }
 .viewer__hand-icon {
   position: absolute; left: calc(var(--hand-size) / -2); top: calc(var(--hand-size) / -2);
   display: grid; place-items: center; width: var(--hand-size); height: var(--hand-size);
   border-radius: 50%; background: var(--c-veil); box-shadow: var(--shadow-2);
   font-size: var(--hand-glyph); line-height: 1;
-  animation: hand-swipe-up var(--hand-ms) ease-in-out var(--t-slow) infinite backwards;
+  animation: hand-swipe-up var(--hand-ms) ease-in-out var(--t-slow) var(--hand-plays) backwards;
 }
 @keyframes hand-swipe-up {
   0% { transform: translateY(var(--hand-y, var(--hand-travel))); opacity: 0; }

@@ -14,7 +14,8 @@
 //   finger; on release a spring finishes or undoes it.
 // - What has more than fits ([data-scroll]: the back, a stage view's list) scrolls inside the card: a
 //   vertical drag there scrolls, and turns the card only from the end it is scrolled to.
-// - The first few times a profile opens a card on one page, a hand shows the swipe up, on the stage.
+// - As a card opens on one page, a small hand shows the swipe up, until the explorer has turned a
+//   card over once (at most once a session before that).
 //
 // Field Notes: the notebook is always there, collapsed (a spine at the right, or a tab on
 // phones) or expanded (a panel beside the card, or over it). Beside it the card uses the space
@@ -164,20 +165,37 @@ function draw() {
   if (rest) drawZones();
 }
 
-// How to turn the card over: a hand showing the swipe up, for children who can't read a hint, the
-// first few times a profile opens a card on one page. It sits on the stage (never on words), swiping
-// no further than the stage, and goes as soon as anything moves. Side by side there is nothing to
-// find: both faces are there, and ‹ › change card.
+// How to turn the card over: a small hand showing the swipe up, for children who can't read a hint.
+// Only as a card opens (once it has zoomed in), on one page, and at most once a session, until this
+// explorer has turned a card over once: then never again (js below: the swipe-up hint). It sits in
+// the stage's bottom corner, away from the credit button, never takes a tap (pointer-events: none),
+// plays its swipe a couple of times and is gone; anything moving, or a heading tapped, ends it at
+// once and it doesn't come back. Side by side there is nothing to find: both faces are there.
+// v.upHint: 'waiting' (for the card to settle), 'showing', or false.
 function updateHand(rest) {
-  const covered = v.dock?.expanded && v.L.mode !== 'side';
-  const stage = v.built.front.el.querySelector('.front__stage');
-  const show = v.upHint && rest && !twoPages() && settledSide(v.f) === 0 && !covered && Boolean(stage);
+  if (rest && settledSide(v.f) === 1) noteFlipped();
+  if (v.upHint === 'showing' && !rest) v.upHint = false;
+  if (v.upHint === 'waiting' && rest) {
+    const covered = v.dock?.expanded && v.L.mode !== 'side';
+    const ok = !twoPages() && settledSide(v.f) === 0 && !covered && v.built.front.el.querySelector('.front__stage');
+    v.upHint = ok ? 'showing' : false;
+    if (ok) noteHintShown();
+  }
+  const show = v.upHint === 'showing';
   v.hand.hidden = !show;
   if (!show) return;
-  const r = stage.getBoundingClientRect(), size = cssNum('--hand-size'), most = cssNum('--hand-travel');
-  v.hand.style.setProperty('left', `${Math.round(r.left - v.L.left + r.width / 2)}px`);
-  v.hand.style.setProperty('top', `${Math.round(r.top - v.L.top + r.height / 2)}px`);
-  v.hand.style.setProperty('--hand-y', `${Math.max(0, Math.min(most, (r.height - size) / 2))}px`);
+  const stage = v.built.front.el.querySelector('.front__stage');
+  const r = stage.getBoundingClientRect(), size = cssNum('--hand-size'), travel = cssNum('--hand-travel');
+  const gap = cssNum('--s-3');
+  v.hand.style.setProperty('left', `${Math.round(r.right - v.L.left - gap - size / 2)}px`);
+  v.hand.style.setProperty('top', `${Math.round(r.bottom - v.L.top - gap - size / 2 - travel)}px`);
+  v.hand.style.setProperty('--hand-y', `${travel}px`);
+}
+
+function endHand() {
+  if (!v || !v.upHint) return;
+  v.upHint = false;
+  v.hand.hidden = true;
 }
 
 // ---------- motion ----------
@@ -247,16 +265,20 @@ function relayout() {
 
 // ---------- the swipe-up hint ----------
 
-// The first few times a profile opens a card (kept on this device only).
-const UP_HINTS = 3;
-const upKey = () => `we-up-hint-${state.profile?.id ?? 'none'}`;
-function takeUpHint() {
-  try {
-    const n = Number(localStorage.getItem(upKey())) || 0;
-    if (n >= UP_HINTS) return false;
-    localStorage.setItem(upKey(), String(n + 1));
-    return true;
-  } catch { return false; }
+// Per explorer, on this device only: once they have turned a card over (localStorage) the hand never
+// shows again; until then at most once a session (sessionStorage). No storage, no hand.
+const flippedKey = () => `we-flipped-${state.profile?.id ?? 'none'}`;
+const shownKey = () => `we-up-hint-shown-${state.profile?.id ?? 'none'}`;
+function canUpHint() {
+  try { return !localStorage.getItem(flippedKey()) && !sessionStorage.getItem(shownKey()); } catch { return false; }
+}
+function noteHintShown() {
+  try { sessionStorage.setItem(shownKey(), '1'); } catch { /* no storage */ }
+}
+function noteFlipped() {
+  if (v.flipped) return;
+  v.flipped = true;
+  try { localStorage.setItem(flippedKey(), '1'); } catch { /* no storage */ }
 }
 
 // ---------- turning over, and the headings ----------
@@ -276,6 +298,7 @@ export function toggleFlip(way = 'up') {
 // side it glides there; on one page it is ready for when the card turns over). The lit one tapped
 // again goes back to the gallery, and the back to no section.
 function onHeading(id, { again }) {
+  endHand();
   if (v) showSection(v.built.back, again ? null : id, { smooth: twoPages() });
 }
 
@@ -528,6 +551,8 @@ export function open(card, { fromEl, main, onDismiss, restore = null } = {}) {
   const zoomer = h('div', { class: 'viewer__zoomer' });
   const handIcon = h('span', { class: 'viewer__hand-icon', 'aria-hidden': 'true' }, '👆');
   const hand = h('div', { class: 'viewer__hand', role: 'img', 'aria-label': label('card.hintFlip'), hidden: true }, handIcon);
+  // It plays its swipe --hand-plays times, then it is over.
+  handIcon.addEventListener('animationend', () => endHand());
   const stage = h('div', { class: 'viewer__stage' }, zoomer, hand);
   const bar = h('div');
   const sheet = h('dialog', { class: 'sheet' });
@@ -547,7 +572,7 @@ export function open(card, { fromEl, main, onDismiss, restore = null } = {}) {
 
   v = { el, pane, scrim, zoomer, stage, hand, hintRow, bar, sheet, dock, main, fromEl, onDismiss, f: 0, x: 0, z: 0, cancel: null };
   setCard(card);
-  v.upHint = !reducedMotion() && takeUpHint();
+  v.upHint = !reducedMotion() && canUpHint() ? 'waiting' : false;
   // Collapsed or expanded, as this explorer left it last time (kept on this device), or as it
   // was when the card was left for the globe or the full notebook (and on that page).
   const notes = restore?.notes;

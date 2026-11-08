@@ -294,7 +294,7 @@ Every card has the same grid (`js/headings.js`, tested on every card in `tests/h
 |---|---|---|---|---|
 | 1 | 🏠 Habitat | its habitat picture (spot the animal), or photo | ❓ What is it? | photo |
 | 2 | 🍃 Food & Hunting | food tray, or photo | How it works (a gear) | photo |
-| 3 | 🥚 Babies | photo | 👀 Who to look for | `related` cards, or photo |
+| 3 | 🥚 Babies | a photo of its young, or photo | 👀 Who to look for | `related` cards, or photo |
 | 4 | 🐾 Behaviour | the Profile magnifier, or photo | 🕒 When | photo |
 | 5 | 📏 Size | creature comparison | ⭐ Wow! | photo |
 | 6 | 🌍 Where in the World | map | 🌍 Where | map |
@@ -320,6 +320,8 @@ card's credit sheet and the Credits page, and load only when their stage opens.
   buzzes once and shows its silhouette; anywhere else does nothing.
 - `"food": [{ image, credit }, …]` (`js/food.js`): one to three photos of what it eats, prey always
   alive, on a tray. A tapped photo fills the stage; tapped again it goes back to the tray.
+- `"babies": { image, credit }` (`js/stage-pictures.js`): one photo of its young (or a parent with its
+  young), nothing to do but look. Never eggs being taken, a nest raid or a kill.
 
 **An animal's call**: `"call": { "file": "audio/calls/formosan-black-bear.m4a", "author": …, "license": …,
 "licenseUrl": …, "sourceUrl": … }` plays when the gallery on the stage is tapped. No card has one
@@ -595,9 +597,11 @@ way it gives a little and springs back. On one page, up or down turns the card o
 down the other way; 🔄, ↑ ↓, Space or Enter too). A vertical drag on what scrolls (the back, a list on
 the stage) scrolls it, and turns the card only from the end it is scrolled to. Side by side nothing
 turns, and 🔄 is hidden. The card turns about its middle (rotateX); the face turned away is see-through
-and inert. ← (or Escape) goes back to the binder. The first three times an explorer opens a card on
-one page, a hand on the stage shows the swipe up until something moves (not with reduced motion);
-side by side there is no hand: both faces are there.
+and inert. ← (or Escape) goes back to the binder. As a card opens on one page, a small hand in the
+stage's bottom corner shows the swipe up twice and goes (sooner if anything moves or a heading is
+tapped); it never takes a tap. At most once a session, and never again once the explorer has turned a
+card over (per explorer, on the device). Not with reduced motion; side by side there is no hand: both
+faces are there.
 The layout rules are pure functions in `js/card-layout.js` (tested in `tests/card-layout.test.mjs`). Every gesture
 ends settled: it commits or springs back, also when the pointer is cancelled, the
 capture is lost or the window loses focus (`js/gesture-release.js`). A quarter of the way or
