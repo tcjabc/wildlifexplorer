@@ -124,8 +124,6 @@ async function open(viewport, profile = {}, reducedMotion = 'no-preference') {
       }),
       said: () => page.evaluate(() => window.said.filter(Boolean).map(u => u.text)),
       forget: () => page.evaluate(() => { window.said.length = 0; }),
-      // What the count row shows.
-      shown: () => page.evaluate(() => document.querySelector('.count__say').innerText.replace(/\s+/g, ' ').trim()),
     };
     return f;
   });
@@ -321,7 +319,7 @@ both('a grey heading does nothing when tapped, and a swipe that starts on it sti
   assert.match(await f.page.evaluate(() => location.hash), /atlas-moth$/);
 });
 
-both('the water bear has partners of its own, and 2 of it make a grain of sand', async f => {
+both('the water bear has partners of its own, each on one scale with it', async f => {
   await f.card('tardigrade-water-bear');
   await f.tap('.hbtn[data-heading="size"]');
   await f.wait(800);
@@ -330,22 +328,12 @@ both('the water bear has partners of its own, and 2 of it make a grain of sand',
   assert.match(await f.page.evaluate(() => document.querySelector('.cmp-len').textContent), /0\.5 mm/);
   const pics = await f.page.evaluate(() => [...document.querySelectorAll('.cmp-len__img')].map(i => i.getBoundingClientRect().width));
   assert.ok(Math.abs(pics[0] / pics[1] - 2) < 0.1, `one scale: ${pics}`);
-  await f.forget();
-  await f.tap('.count');
-  assert.equal(await f.shown(), '1');
-  await f.tap('.count');
-  assert.equal(await f.shown(), '2 water bears = 1 grain of sand');
-  assert.deepEqual(await f.said(), [], 'counting is silent');
   await f.tap('.stage-cmp__who [data-value="hair"]');
   await f.wait(800);
-  assert.equal(await f.page.evaluate(() => document.querySelectorAll('.count').length), 0, 'nothing to count against a hair');
   assert.match(await f.page.evaluate(() => document.querySelector('.cmp-len').textContent), /0\.07 mm/);
   await f.tap('.stage-cmp__who [data-value="salt"]');
   await f.wait(800);
-  await f.forget();
-  await f.tap('.count');
-  await f.tap('.count');
-  assert.equal(await f.shown(), '2 grains of salt = 1 water bear');
+  assert.match(await f.page.evaluate(() => document.querySelector('.cmp-len').textContent), /0\.3 mm/);
 });
 
 run('the caption gives the card\'s statistic, not the size of the picture', async f => {
@@ -366,12 +354,11 @@ both('the cherry is drawn as a tree, with its own partners', async f => {
   const tree = await f.page.evaluate(() => { const i = [...document.querySelectorAll('.cmp-len__img')].find(x => x.src.endsWith('cherry-tree.svg')); return i && i.getBoundingClientRect().height; });
   const adult = await f.page.evaluate(() => { const i = [...document.querySelectorAll('.cmp-len__img')].find(x => x.src.endsWith('grown-up.svg')); return i && i.getBoundingClientRect().height; });
   assert.ok(Math.abs(tree / adult - 550 / 170) < 0.15, `one scale: ${tree} and ${adult}`);
-  assert.equal(await f.page.evaluate(() => document.querySelectorAll('.count__fig').length), 3, 'about 3 grown-ups to the top of the tree');
   await f.page.evaluate(async () => (await import('/js/i18n.js')).setMode('zh'));
   assert.match(await f.back(), /樹高/);
 });
 
-both('Size: the comparison fills the stage, the partners swap, and the length row counts', async f => {
+both('Size: the comparison fills the stage, the partners swap, and nothing to tap and count', async f => {
   await f.card('formosan-black-bear');
   await f.tap('.hbtn[data-heading="size"]');
   assert.match(await f.stage(), /stage-cmp/);
@@ -383,20 +370,14 @@ both('Size: the comparison fills the stage, the partners swap, and the length ro
   assert.equal(await checked(), 'cat');
   const pics = await f.page.evaluate(() => [...document.querySelectorAll('.cmp-len__img')].map(i => i.getBoundingClientRect().width));
   assert.ok(Math.abs(pics[1] / pics[0] - 150 / 48) < 0.1, `one scale: ${pics}`);
-  assert.equal(await f.page.evaluate(() => document.querySelectorAll('.count__fig').length), 3, '150 cm is about 3 cats');
-  await f.forget();
-  await f.page.evaluate(() => { window.buzz = 0; navigator.vibrate = () => { window.buzz++; return true; }; });
-  await f.tap('.count');
-  assert.equal(await f.shown(), '1');
-  await f.tap('.count');
-  await f.tap('.count');
-  assert.equal(await f.shown(), '3 cats!');
-  assert.deepEqual(await f.said(), [], 'counting is silent');
-  assert.ok(await f.page.evaluate(() => window.buzz) >= 3, 'with a vibration for each tap');
-  assert.equal(await f.page.evaluate(() => document.querySelectorAll('.count__fig.is-lit').length), 3);
+  // Only the modes and the partners are buttons: the scene itself is to look at.
+  assert.ok(await f.page.evaluate(() => [...document.querySelectorAll('.stage button')].every(b => b.closest('.cmp-toggle'))), 'no buttons but the modes and the partners');
+  const body = await f.box('.stage-cmp__body'), stage = await f.box('.stage'), top = await f.box('.stage-cmp__top');
+  assert.ok(Math.abs(body.y + body.h - (stage.y + stage.h)) < 2, 'the scene runs to the bottom of the stage');
+  assert.ok(body.y >= top.y + top.h - 1, 'under the buttons');
 });
 
-both('Size, weight: the scales and the "× n" line, with exactly n on the pan, and no row to count', async f => {
+both('Size, weight: the scales and the "× n" line, with exactly n on the pan', async f => {
   await f.card('formosan-rock-macaque');
   await f.tap('.hbtn[data-heading="size"]');
   await f.wait(500);
@@ -414,27 +395,20 @@ both('Size, weight: the scales and the "× n" line, with exactly n on the pan, a
       n: Number(/×\s*(\d+)/.exec(cap)?.[1]),
       shown: icons.filter(r => r.top >= stage.top - 1 && r.bottom <= stage.bottom + 1).length,
       covers: icons.some(r => buttons.some(b => hit(r, b))),
-      counts: document.querySelectorAll('.stage .count').length,
     };
   });
   assert.ok(got.n > 1, `a "× n" line: ${got.n}`);
   assert.equal(got.shown, got.n, 'as many on the pan as it says');
   assert.equal(got.covers, false, 'the stack stays off the buttons');
-  assert.equal(got.counts, 0, 'no row to count');
 });
 
-run('with their height on the profile, the child comes first, and the figures are theirs', async f => {
+run('with their height on the profile, the child comes first, at their own height', async f => {
   await f.card('formosan-black-bear');
   await f.tap('.hbtn[data-heading="size"]');
   await f.wait(800);
   assert.equal(await f.page.evaluate(() => document.querySelector('.stage-cmp__who [aria-checked="true"]').dataset.value), 'you');
-  assert.equal(await f.page.evaluate(() => document.querySelector('.count__img').getAttribute('src')), 'assets/child.svg');
-  assert.equal(await f.page.evaluate(() => document.querySelectorAll('.count__fig').length), 2, '150 cm is about 2 of a 75 cm child');
-  await f.forget();
-  await f.tap('.count');
-  await f.tap('.count');
-  assert.equal(await f.shown(), '2 of you!');
-  assert.deepEqual(await f.said(), []);
+  assert.equal(await f.page.evaluate(() => document.querySelector('.cmp-len__img').getAttribute('src')), 'assets/child.svg');
+  assert.match(await f.page.evaluate(() => document.querySelector('.cmp-len').textContent), /75 cm/);
 }, LANDSCAPE, { heightCm: 75, weightKg: 12 });
 
 both('Where: a range map fills the stage, and with no range the continent lights up', async f => {
@@ -487,15 +461,19 @@ run('back from the globe on one page: the back comes back too', async f => {
   await f.faces('back');
 }, PORTRAIT);
 
-run('Babies: a row to tap and count, silently, from the card\'s number of young', async f => {
-  await f.card('taiwan-blue-magpie');
-  await f.tap('.hbtn[data-heading="babies"]');
-  assert.match(await f.stage(), /stage-babies/);
-  assert.equal(await f.page.evaluate(() => document.querySelectorAll('.count__fig').length), 8);
-  await f.forget();
-  await f.tap('.count');
-  assert.equal(await f.shown(), '1');
-  assert.deepEqual(await f.said(), []);
+run('Babies: lit by its text, the stage keeps the photo, the back shows the section', async f => {
+  for (const id of ['taiwan-blue-magpie', 'leopard-cat']) {
+    await f.card(id);
+    await f.tap('.hbtn[data-heading="babies"]');
+    await f.rests();
+    assert.deepEqual(await f.lit(), ['babies'], id);
+    assert.match(await f.stage(), /stage-pic/, `${id}: the gallery`);
+    assert.match(await f.page.evaluate(() => document.querySelector('.stage-pic img').getAttribute('src')), /-photo-/, `${id}: the photo first`);
+    assert.equal((await f.section())?.id, 'babies', id);
+    assert.equal(await f.page.evaluate(() => document.querySelectorAll('.stage button:not(.cover__credit):not(.stage-pic__dot)').length), 0, `${id}: nothing to tap and count`);
+    await f.page.evaluate(() => { location.hash = '#/binder'; });
+    await f.wait(700);
+  }
 });
 
 both('topic cards: their own set, in the same grid, with their facts on the back', async f => {

@@ -18,7 +18,7 @@ const shown = (p, preview) => filled(p) && (!p.todo || preview);
 export const SPECIES_HEADINGS = [
   { id: 'habitat', slot: 1, icon: '🏠', label: 'ff.habitat', text: 'habitat', views: ['photo'] },
   { id: 'food', slot: 2, icon: '🍃', label: 'ff.foodAndHunting', text: 'foodAndHunting', views: ['diet', 'photo'] },
-  { id: 'babies', slot: 3, icon: '🥚', label: 'heading.babies', text: 'breeding', views: ['babies', 'photo'] },
+  { id: 'babies', slot: 3, icon: '🥚', label: 'heading.babies', text: 'breeding', views: ['photo'] },
   { id: 'behaviour', slot: 4, icon: '🐾', label: 'ff.behaviour', text: 'behaviour', views: ['profile', 'photo'] },
   { id: 'size', slot: 5, icon: '📏', label: 'heading.size', views: ['compare'] },
   { id: 'where', slot: 6, icon: '🌍', label: 'card.where', views: ['map'] },
@@ -64,7 +64,6 @@ export const VIEW_HAS = {
   gallery: () => true,
   photo: () => true,
   diet: c => Boolean(c.stats?.dietIcons?.length),
-  babies: (c, { preview }) => Boolean(c.stats?.youngCount?.min && (!c.stats.youngCount.todo || preview)),
   profile: c => Boolean(c.profile?.callouts?.length && c[c.profile.image ?? 'photo']?.file),
   compare: (c, { lookalikes = 0 }) => {
     const m = modesFor(c);

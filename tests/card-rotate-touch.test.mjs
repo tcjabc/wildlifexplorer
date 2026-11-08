@@ -232,7 +232,7 @@ run('mid-animation: zooming in, turning over and closing jump to where they were
   assert.deepEqual(bad, []);
 }, TABLET[0]);
 
-run('the stage keeps what it showed: the mode, the partner, the count so far, the magnifier', async f => {
+run('the stage keeps what it showed: the mode, the partner, the magnifier', async f => {
   const [a, b] = TABLET;
   await f.card('formosan-rock-macaque');
   await f.heading('size');
@@ -243,14 +243,12 @@ run('the stage keeps what it showed: the mode, the partner, the count so far, th
   await f.wait(200);
   const cat = await f.page.$('.stage-cmp__who [data-value="cat"]');
   if (cat) { await cat.click(); await f.wait(200); }
-  for (let i = 0; i < 2; i++) { await f.page.click('.stage .count'); await f.wait(80); }
   const state = () => f.page.evaluate(() => ({
     mode: document.querySelector('.stage .cmp-toggle [aria-checked="true"][data-value="length"]') != null,
     who: document.querySelector('.stage-cmp__who [aria-checked="true"]')?.dataset.value,
-    lit: document.querySelectorAll('.stage .count__fig.is-lit').length,
   }));
   const before = await state();
-  assert.equal(before.lit, 2);
+  assert.equal(before.mode, true);
   await f.turn(b);
   await f.turn(a);
   assert.deepEqual(await state(), before);

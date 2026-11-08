@@ -6,14 +6,13 @@
 //     layout(w, h): the stage has this size now, in card px (when shown, and whenever it changes,
 //       as on turning the device). It keeps what the view is showing: no new animation, no reset.
 import { h, mount, reducedMotion } from './dom.js';
-import { bi, label, t, tx } from './i18n.js';
+import { bi, label, tx } from './i18n.js';
 import { state } from './store.js';
 import { picture, statusBadge } from './components.js';
 import { callable, mapButton, relatedItem, relatedOf } from './cardparts.js';
-import { animalImg, comparePanel, partner, whoImg } from './compare.js';
-import { PARTNERS, countFor, modesFor, startWith, whoOf } from './compare-data.js';
+import { comparePanel, partner } from './compare.js';
+import { PARTNERS, modesFor, startWith, whoOf } from './compare-data.js';
 import { lookalikePanel, lookalikesOf } from './lookalikes.js';
-import { countRow } from './count-row.js';
 import { hasMap } from './headings.js';
 import { magnifier, featureOf } from './magnifier.js';
 import { placeMap, worldMap } from './worldmap.js';
@@ -95,18 +94,6 @@ function diet(card) {
   return { el: h('div', { class: 'stage-scene' }, panel.el), replay };
 }
 
-// How many babies it has at a time, to tap and count, under its picture.
-function babies(card, ctx) {
-  const { min, max } = card.stats.youngCount;
-  const count = max ?? min;
-  const egg = card.stats.development?.kind === 'incubation';
-  const figure = () => (egg || !card.silhouette?.file
-    ? h('span', { class: 'count__emoji', 'aria-hidden': 'true' }, egg ? '🥚' : '🍼')
-    : h('img', { class: 'count__img', src: card.silhouette.file, alt: '' }));
-  const done = t(count === 1 ? 'stage.oneBaby' : max != null && max !== min ? 'stage.upToBabies' : 'stage.babies', { n: count });
-  return { el: h('div', { class: 'stage-babies' }, h('div', { class: 'stage-babies__pic' }, gallery(card, ctx).el), countRow({ count, figure, done })) };
-}
-
 const MODES = [['length', '📏', 'card.length'], ['weight', '⚖️', 'card.weight'], ['lifespan', '⏳', 'card.lifespan']];
 const whoChoice = id => (id === 'you' ? ['you', '🧒', 'compare.you'] : [id, PARTNERS[id].icon, `compare.partner.${id}`]);
 
@@ -123,8 +110,7 @@ function chooser(items, on, onPick, { cls, words = true, name }) {
 }
 
 // The creature comparison, on the whole stage. You: the animal beside the child, or a grown-up, a
-// cat or a car; lengths with a row of figures to count how many make the other. Animal (with lookalikes):
-// the animal beside its lookalikes.
+// cat or a car. Animal (with lookalikes): the animal beside its lookalikes.
 function compare(card) {
   const modes = MODES.filter(([m]) => modesFor(card)[m]);
   const looks = lookalikesOf(card);
@@ -134,27 +120,15 @@ function compare(card) {
   let who = startWith(mode, state.profile, whoOf(card));
   let view = mode ? 'you' : 'animal';
 
-  const count = h('div', { class: 'stage-cmp__count' });
-  function drawCount() {
-    // Only lengths are counted out: the balance already shows how many make the other.
-    const c = mode === 'length' ? countFor(card, mode, partner(who)) : null;
-    if (!c) { mount(count); return; }
-    const figure = () => (c.side === 'who' ? whoImg(partner(who), 'count__img') : animalImg(card, 'count__img'));
-    const { one, many } = card.compare?.counted ?? {};
-    const done = c.side === 'who' || PARTNERS[who]?.micro ? t(`compare.count.${who}`, { n: c.n, one, many }) : t('compare.count.animal', { n: c.n, name: card.name });
-    mount(count, countRow({ count: c.n, figure, done }));
-  }
-
   const whoRow = chooser(whoOf(card).map(whoChoice), who, value => { who = value; draw(); }, { cls: 'stage-cmp__who', name: 'compare.with' });
   function draw() {
     // A car has no birthdays: lifespans are the child's. Lookalikes need no partner.
     whoRow.hidden = mode === 'lifespan' || view === 'animal';
     if (view === 'animal') { others.show(); return; }
     panel.show(mode, partner(mode === 'lifespan' ? 'you' : who));
-    drawCount();
   }
 
-  const you = mode && h('div', { class: 'stage-cmp__body' }, panel.el, count);
+  const you = mode && h('div', { class: 'stage-cmp__body' }, panel.el);
   const animal = others && h('div', { class: 'stage-cmp__body stage-cmp__body--scroll', 'data-scroll': '' }, others.el);
   const setView = value => {
     view = value;
@@ -175,14 +149,14 @@ function compare(card) {
   return {
     el,
     // The scenes are measured from the stage, so they are drawn once it is there; after that a
-    // new size only fits the scene to it, keeping the mode, the partner and the count so far.
+    // new size only fits the scene to it, keeping the mode and the partner.
     layout(w, height) {
       const size = `${w}x${height}`;
       if (drawn === size) return;
       const first = !drawn;
       drawn = size;
-      // A stage too short for the scene, its partners and a row to count (a phone on its side): the
-      // scene and its modes only.
+      // A stage too short for the scene and its partners (a phone on its side): the scene and its
+      // modes only.
       el.dataset.short = String(el.getBoundingClientRect().height < cssNum('--stage-short'));
       if (first) draw(); else panel.resize();
     },
@@ -233,7 +207,6 @@ export const STAGE_VIEWS = {
   photo: gallery,
   profile,
   diet,
-  babies,
   compare,
   map,
   status,

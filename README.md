@@ -19,7 +19,7 @@ It runs at https://wildfile.app/ (Cloudflare) and works fully offline once it ha
 - **Badges**: for finishing a group, Bronze/Silver/Gold for continents and habitats, and secret
   badges. **Quiz**: picture → name, and true/false facts.
 - **Creature comparison**, on the whole stage: You (the animal against your own size, or a grown-up,
-  a cat or a car; lengths with a row of figures to tap and count, silently) or Animal (lookalikes side by side, with how
+  a cat or a car) or Animal (lookalikes side by side, with how
   to tell them apart). **Globe**: filter the pins by continent or habitat, or hide
   them all with the paw button to see the map on its own.
 - **Field Notes**: a researcher's notebook per profile. Draw with a pencil, pen and highlighter
@@ -294,7 +294,7 @@ Every card has the same grid (`js/headings.js`, tested on every card in `tests/h
 |---|---|---|---|---|
 | 1 | 🏠 Habitat | photo | ❓ What is it? | photo |
 | 2 | 🍃 Food & Hunting | diet plate, or photo | How it works (a gear) | photo |
-| 3 | 🥚 Babies | babies to count, or photo | 👀 Who to look for | `related` cards, or photo |
+| 3 | 🥚 Babies | photo | 👀 Who to look for | `related` cards, or photo |
 | 4 | 🐾 Behaviour | the Profile magnifier, or photo | 🕒 When | photo |
 | 5 | 📏 Size | creature comparison | ⭐ Wow! | photo |
 | 6 | 🌍 Where in the World | map | 🌍 Where | map |
@@ -360,7 +360,7 @@ The inside uses these optional fields. Any you leave out are simply not shown.
   `development` is gestation or incubation: `kind` is `"gestation"` (shown as Gestation 懷孕期) or
   `"incubation"` (Incubation 孵化期), `days` the time in days (`min`–`max`), with optional `en`/`zh`
   text instead. `youngCount` is the number of young (or eggs) at a time, with optional `young` text;
-  under 🥚 Babies it is a row of babies (eggs with incubation) to tap and count, up to `max`.
+  it is in the back's statistics block.
 - **related**: related species, as card ids or `{ scientificName, name }` for animals with no card.
   They show on a topic card under 👀. A card the profile has opens on tap; one not collected yet shows as a locked silhouette; an animal
   with no card is a small entry with its names. Cards not built yet are left out.
@@ -371,10 +371,8 @@ The inside uses these optional fields. Any you leave out are simply not shown.
   **diet** (a plate filling up) is under 🍃 instead. "You" is 120 cm, 23 kg and 6 years old unless the
   profile has its own height, weight and age (Welcome form, or For grown-ups → Edit profile). A grown-up,
   a cat and a car can stand in (`PARTNERS` in `js/compare-data.js`), and a profile without the number a
-  scene needs starts with the grown-up. Under a length, a row of the smaller one's figures to tap and
-  count, silently, with a short vibration ("1, 2, 3… 5 of you!" on the screen), from 2 to 20 of them,
-  in one row (smaller when there are many). The partner buttons share the top row with the modes when
-  they fit. On a stage too short for it all (`--stage-short`, a phone on its side) the scene shows with
+  scene needs starts with the grown-up. There is nothing to tap and count: the scene takes all the room
+  under the buttons. The partner buttons share the top row with the modes when they fit. On a stage too short for it all (`--stage-short`, a phone on its side) the scene shows with
   its modes only.
 - **compare**: how big the animal's silhouette is in cm, either `width` or `height`, of the whole
   picture. That is the picture's size, not the animal's: where a tail curls or hangs, a true nose-to-tail
@@ -383,8 +381,7 @@ The inside uses these optional fields. Any you leave out are simply not shown.
   Also: `partners`, who it can stand beside when it isn't You, a grown-up, a cat and a car (`you`, `adult`,
   `cat`, `car`, `sand`, `hair`, `salt`: `PARTNERS` in `js/compare-data.js`); `silhouette`, a picture of its
   own for the comparison, with the usual credit fields, when the card's silhouette isn't the right one
-  (a cherry's is its fruit); `counted`, `{ one, many }`, the words for the sand and salt counts; and
-  `noCount`, no row of figures for the length (a coiled snake); and `stat`, which statistic the caption
+  (a cherry's is its fruit); and `stat`, which statistic the caption
   shows, when it isn't the usual one (a flying fox, drawn wings out, shows `wingspanCm`). The caption
   always gives the card's statistic, never the size of the picture. The silhouette itself is found by the build (from
   PhyloPic, CC0/PD/CC BY/CC BY-SA only) and stored in `silhouette`. If there is none for the exact
@@ -604,7 +601,7 @@ space whenever the desk changes size (a `ResizeObserver` on it, plus the window'
 viewport's `resize`), at most once a frame and without animation. Anything moving jumps to where it
 was going first (zooming in, turning over; closing finishes closing; a drag lets go where
 it started). Each stage view fits its new size and keeps what it showed: the comparison its mode,
-partner and count so far, the magnifier its feature, the map redrawn to the new shape.
+partner, the magnifier its feature, the map redrawn to the new shape.
 `tests/card-rotate-touch.test.mjs` turns tablet and phone sizes both ways in every state.
 
 ## Packs and drops

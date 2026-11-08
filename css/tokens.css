@@ -310,9 +310,8 @@
   --heading-tile-ratio: 1; /* a heading tile on the front, width to height: as big as the grid allows */
   --stage-plate: 280px; /* the diet plate on the stage */
   --stage-spot: 22px;   /* a place's pin on the stage's map */
-  --stage-short: 220px; /* a stage shorter than this on the screen shows Size without its partners or row to count */
+  --stage-short: 220px; /* a stage shorter than this on the screen shows Size without its partners */
   --stage-step-h: 64px; /* a step of the Red List scale */
-  --count-fig: 48px;    /* a figure to tap and count, on the screen */
   --stage-cmp-icon: 64px; /* figures on the weight balance, on the stage */
   --stage-look-h: 170px;  /* the lookalike scene, on the stage */
   --hand-size: 84px;    /* the hand that shows how to open a card: its disc */

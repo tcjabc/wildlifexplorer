@@ -7,7 +7,7 @@ import {
   SPECIES_HEADINGS, TOPIC_HEADINGS, VIEW_HAS, backSections, hasCall, headingSet, headingsFor, isTopic, narrationFiles, textOf, viewFor,
 } from '../js/headings.js';
 import { KEY_ORDER } from '../scripts/lib/card-schema.mjs';
-import { COUNT_MAX, EVERYDAY, PARTNERS, compareImage, countFor, modesFor, sizeOf, sizeStat, startWith, whoOf } from '../js/compare-data.js';
+import { EVERYDAY, PARTNERS, compareImage, modesFor, sizeOf, sizeStat, startWith, whoOf } from '../js/compare-data.js';
 
 const cards = JSON.parse(await readFile(new URL('../data/animals.json', import.meta.url), 'utf8'));
 const species = cards.filter(c => !isTopic(c));
@@ -126,17 +126,6 @@ test('a size number with a source names one that is on the card', () => {
   }
 });
 
-test('counting: how many of the smaller one make the bigger one', () => {
-  const bear = { stats: { lengthCm: { min: 120, max: 180 }, weightKg: { min: 100, max: 140 } } };
-  assert.deepEqual(countFor(bear, 'weight', { kg: 20 }), { n: 6, side: 'who' });
-  assert.deepEqual(countFor(bear, 'weight', PARTNERS.car), { n: 12, side: 'animal' });
-  assert.deepEqual(countFor(bear, 'length', { cm: 50 }), { n: 3, side: 'who' });
-  assert.equal(countFor(bear, 'length', { cm: 140 }), null, 'about the same size: nothing to count');
-  assert.equal(countFor(bear, 'weight', { kg: 1 }), null, `more than ${COUNT_MAX}: a number instead`);
-  assert.equal(countFor({}, 'weight', { kg: 20 }), null);
-  assert.equal(countFor(bear, 'lifespan', { kg: 20, cm: 100 }), null);
-});
-
 test('a comparison starts with the child only if their profile has the number it needs', () => {
   assert.equal(startWith('length', { heightCm: 95 }), 'you');
   assert.equal(startWith('weight', { heightCm: 95 }), 'adult');
@@ -149,7 +138,8 @@ test('the partners\' pictures have the shape the scenes draw them at', async () 
     const svg = await readFile(new URL(`../${p.img}`, import.meta.url), 'utf8');
     const [, , w, h] = svg.match(/viewBox="([\d. ]+)"/)[1].split(' ').map(Number);
     assert.ok(Math.abs(h / w - p.ratio) < 0.001, p.id);
-    if (!p.micro) assert.equal(p.across ? w : h, p.cm, `${p.id}: 1 unit = 1 cm`);
+    // A grain of sand, a hair or a grain of salt is drawn at a scale of its own.
+    if (p.cm >= 1) assert.equal(p.across ? w : h, p.cm, `${p.id}: 1 unit = 1 cm`);
   }
 });
 
@@ -181,18 +171,6 @@ test('the caption says what the card says, not how big the picture is drawn', ()
   assert.deepEqual(stat('atlas-moth'), { min: 20, max: 25 });
   assert.deepEqual(stat('taiwan-cherry'), { min: 300, max: 800 });
   assert.equal(sizeStat({ compare: { width: 50 } }), null);
-});
-
-test('a coiled snake has no count: its picture is 30 cm across, the snake 85 cm long', () => {
-  const viper = cards.find(c => c.id === 'brown-spotted-pit-viper');
-  assert.equal(countFor(viper, 'length', { cm: 95 }), null);
-});
-
-test('the water bear: 2 of them to a grain of sand, 2 grains of salt to one of them, and no count for a hair', () => {
-  const bear = cards.find(c => c.id === 'tardigrade-water-bear');
-  assert.deepEqual(countFor(bear, 'length', PARTNERS.sand), { n: 2, side: 'animal' });
-  assert.deepEqual(countFor(bear, 'length', PARTNERS.salt), { n: 2, side: 'who' });
-  assert.equal(countFor(bear, 'length', PARTNERS.hair), null);
 });
 
 test('only a sound in audio/calls/ counts as a card\'s call', () => {

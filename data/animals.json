@@ -5094,8 +5094,7 @@
       }
     },
     "compare": {
-      "width": 30,
-      "noCount": true
+      "width": 30
     },
     "related": [],
     "silhouette": {
@@ -6059,17 +6058,7 @@
         "sand",
         "hair",
         "salt"
-      ],
-      "counted": {
-        "one": {
-          "en": "water bear",
-          "zh": "水熊蟲"
-        },
-        "many": {
-          "en": "water bears",
-          "zh": "水熊蟲"
-        }
-      }
+      ]
     },
     "related": [],
     "silhouette": {

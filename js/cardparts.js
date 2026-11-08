@@ -30,7 +30,7 @@ import { lengthText, weightText, imperial } from './units.js';
  *   stats?: { development?: Development, youngCount?: Range, young?: Pair, [k: string]: any },
  *   related?: Related[], taxonomy?: Record<string, { sci: string, en: string, zh: string }>,
  *   stage?: Record<string, string>, factHeadings?: string[],
- *   compare?: { width?: number, height?: number, partners?: string[], silhouette?: object, counted?: object, noCount?: boolean },
+ *   compare?: { width?: number, height?: number, partners?: string[], silhouette?: object },
  *   call?: { file: string, author: string, license: string, licenseUrl: string, sourceUrl: string },
  *   narration?: Record<string, { en?: string, zh?: string }> }} Card
  *   stage: a heading's stage view, where it isn't the usual one (js/headings.js).
