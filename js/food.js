@@ -1,7 +1,7 @@
 // The Food stage: photos of what the animal eats, from its own "stage": { "food": [{ image, credit },
 // …] } in data/animals.json, one to three of them. Prey is always shown alive. The view is in
 // js/stage-views.js; tested in tests/food.test.mjs.
-import { stagePicture } from './habitat.js';
+import { stagePicture } from './stage-pictures.js';
 
 export const FOOD_MAX = 3;
 

@@ -10,6 +10,7 @@ import { opensGlobe } from './card-return.js';
 import { hasCall, hasMap } from './headings.js';
 import { habitatOf } from './habitat.js';
 import { foodOf } from './food.js';
+import { babiesOf } from './stage-pictures.js';
 import { nameBi } from './zhuyin.js';
 import { glossBi } from './glossary.js';
 import { lengthText, weightText, imperial } from './units.js';
@@ -219,10 +220,10 @@ export function relatedItem(r) {
 
 // Every picture used on this card, for the credit sheet.
 export function cardCredits(card) {
-  const pictureOf = k => (k === 'compare' ? card.compare?.silhouette : k === 'habitat' ? habitatOf(card) : card[k]);
+  const pictureOf = k => (k === 'compare' ? card.compare?.silhouette : k === 'habitat' ? habitatOf(card) : k === 'babies' ? babiesOf(card) : card[k]);
   // Each food photo is a line of its own.
   const rows = [
-    ['photo', 'card.photo'], ['illustration', 'card.illustration'], ['habitat', 'credits.habitat'], ['silhouette', 'credits.silhouette'], ['call', 'credits.call'], ['compare', 'credits.silhouette'],
+    ['photo', 'card.photo'], ['illustration', 'card.illustration'], ['habitat', 'credits.habitat'], ['babies', 'credits.babies'], ['silhouette', 'credits.silhouette'], ['call', 'credits.call'], ['compare', 'credits.silhouette'],
   ].map(([k, key]) => [key, pictureOf(k)]).concat(foodOf(card).map(img => ['credits.food', img]))
     .filter(([, img]) => img?.file).map(([key, img]) => {
     const href = safeUrl(img.sourceUrl);

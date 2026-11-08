@@ -59,6 +59,7 @@ const SHELL = [
   'js/stage-views.js',
   'js/habitat.js',
   'js/food.js',
+  'js/stage-pictures.js',
   'js/card-call.js',
   'js/continents.js',
   'js/magnifier.js',

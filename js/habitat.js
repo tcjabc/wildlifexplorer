@@ -4,15 +4,9 @@
 // it, as a fraction of the picture's shorter side. Plain data and sums, so it can be tested without a
 // page (tests/habitat.test.mjs); the view itself is in js/stage-views.js.
 
-const FILE = /^img\/[a-z0-9-]+\.webp$/;
-const frac = v => typeof v === 'number' && v >= 0 && v <= 1;
+import { stagePicture } from './stage-pictures.js';
 
-// A stage picture ({ image, credit }, in our own img/) as a picture record like card.photo: { file,
-// author, license, licenseUrl, sourceUrl }. Null when it isn't one it can show. Food uses it too.
-export function stagePicture(entry) {
-  if (!entry || typeof entry !== 'object' || !FILE.test(entry.image ?? '')) return null;
-  return { file: entry.image, ...(entry.credit ?? {}) };
-}
+const frac = v => typeof v === 'number' && v >= 0 && v <= 1;
 
 // The card's habitat picture, with its find.
 export function habitatOf(card) {
