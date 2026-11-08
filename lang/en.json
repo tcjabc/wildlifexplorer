@@ -99,6 +99,7 @@
   "credits.data": "Animal names, classification and conservation status come from Wikidata (CC0), unless a card names another source. Photos come from Wikimedia Commons and iNaturalist.",
   "credits.photo": "Photo",
   "credits.illustration": "Illustration",
+  "credits.habitat": "Habitat photo",
   "credits.none": "No pictures yet.",
   "nav.main": "Main",
   "nav.groups": "Card groups",

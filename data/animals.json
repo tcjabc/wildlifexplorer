@@ -165,6 +165,17 @@
         }
       ]
     },
+    "stage": {
+      "habitat": {
+        "image": "img/formosan-black-bear-habitat-3d79d8.webp",
+        "credit": {
+          "author": "lienyuan lee",
+          "license": "CC BY 3.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Daxueshan_%E5%A4%A7%E9%9B%AA%E5%B1%B1_-_panoramio_(1).jpg"
+        }
+      }
+    },
     "stats": {
       "length": {
         "en": "120–180 cm",
@@ -447,6 +458,22 @@
         }
       ]
     },
+    "stage": {
+      "habitat": {
+        "image": "img/formosan-rock-macaque-habitat-c9d168.webp",
+        "credit": {
+          "author": "Odinwang",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Hapen_WSY_03.jpg"
+        },
+        "find": {
+          "x": 0.41,
+          "y": 0.55,
+          "r": 0.45
+        }
+      }
+    },
     "stats": {
       "length": {
         "en": "50–60 cm",
@@ -689,6 +716,17 @@
       "north": 25.68
     },
     "range": "data/ranges/chinese-pangolin.json",
+    "stage": {
+      "habitat": {
+        "image": "img/chinese-pangolin-habitat-e04f7d.webp",
+        "credit": {
+          "author": "Jerome Ko",
+          "license": "CC BY 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Manis_pentadactyla_pentadactyla_182659164.jpg"
+        }
+      }
+    },
     "stats": {
       "lengthCm": {
         "min": 40,
@@ -900,6 +938,17 @@
       "north": 25.24
     },
     "range": "data/ranges/taiwan-serow.json",
+    "stage": {
+      "habitat": {
+        "image": "img/taiwan-serow-habitat-b47bc8.webp",
+        "credit": {
+          "author": "Wei-Te Wong",
+          "license": "CC BY-SA 2.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Mossy_cliff_on_the_way_to_Mt._Jade_Main_Peak.jpg"
+        }
+      }
+    },
     "stats": {
       "heightCm": {
         "min": 50,
@@ -1112,6 +1161,22 @@
       "north": 25.66
     },
     "range": "data/ranges/formosan-sambar-deer.json",
+    "stage": {
+      "habitat": {
+        "image": "img/formosan-sambar-deer-habitat-e18123.webp",
+        "credit": {
+          "author": "呂一起(Lu i-chi)",
+          "license": "CC BY 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Rusa_unicolor_swinhoii_64310424.jpg"
+        },
+        "find": {
+          "x": 0.53,
+          "y": 0.47,
+          "r": 0.21
+        }
+      }
+    },
     "stats": {
       "heightCm": {
         "min": 100,
@@ -1312,6 +1377,22 @@
     },
     "illustration": null,
     "labelTone": "light",
+    "stage": {
+      "habitat": {
+        "image": "img/formosan-muntjac-habitat-3ad56e.webp",
+        "credit": {
+          "author": "Weie0722",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Fushan_botanical_garden_Muntiacus_reevesi.jpg"
+        },
+        "find": {
+          "x": 0.25,
+          "y": 0.59,
+          "r": 0.24
+        }
+      }
+    },
     "stats": {
       "heightCm": {
         "min": 40,
@@ -1510,6 +1591,17 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Pteropus_formosus_by_J.G._Keulemans_(PZS_1873_PL_XXII).jpg"
     },
     "labelTone": "light",
+    "stage": {
+      "habitat": {
+        "image": "img/formosan-flying-fox-habitat-8ca0a6.webp",
+        "credit": {
+          "author": "Peellden",
+          "license": "CC BY-SA 3.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Gueishan_Island_the_Head.jpg"
+        }
+      }
+    },
     "stats": {
       "lengthCm": {
         "min": 18,
@@ -1718,6 +1810,17 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Prionailurus_bengalensis_-_CHANG,_Yun-Hsin.jpg"
     },
     "labelTone": "dark",
+    "stage": {
+      "habitat": {
+        "image": "img/leopard-cat-habitat-66eedd.webp",
+        "credit": {
+          "author": "LiCheng Shih",
+          "license": "CC BY 2.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/2.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Mountains_in_Nantou_(38363092685).jpg"
+        }
+      }
+    },
     "stats": {
       "lengthCm": {
         "min": 55,
@@ -1927,6 +2030,17 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Paguma_larvata_Hardwicke.jpg"
     },
     "labelTone": "light",
+    "stage": {
+      "habitat": {
+        "image": "img/masked-palm-civet-habitat-ec82f6.webp",
+        "credit": {
+          "author": "Ivan Tsung-Yi Lin",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:KaTeBoLa_Creek,_Ivan_Tsung-Yi_Lin,_009.jpg"
+        }
+      }
+    },
     "stats": {
       "development": {
         "kind": "gestation",
@@ -2116,6 +2230,22 @@
     },
     "illustration": null,
     "labelTone": "dark",
+    "stage": {
+      "habitat": {
+        "image": "img/red-and-white-giant-flying-squirrel-habitat-269b20.webp",
+        "credit": {
+          "author": "Jerome Ko",
+          "license": "CC BY 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Petaurista_lena_39303562.jpg"
+        },
+        "find": {
+          "x": 0.37,
+          "y": 0.55,
+          "r": 0.28
+        }
+      }
+    },
     "stats": {
       "lengthCm": {
         "min": 37,
@@ -2321,6 +2451,17 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Otter_(Lutra_lutra)_Otter._Lutra._Loutre._(titel_op_object),_RP-T-BR-2017-1-1-65.jpg"
     },
     "labelTone": "light",
+    "stage": {
+      "habitat": {
+        "image": "img/eurasian-otter-habitat-f73d68.webp",
+        "credit": {
+          "author": "StormyNeuron",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:KINMEN%2BEMILYLIU%2B10.jpg"
+        }
+      }
+    },
     "stats": {
       "lengthCm": {
         "min": 57,
@@ -2516,6 +2657,22 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Civetkat_(Viverra),_alpenmarmot_(Marmota_marmota),_luipaard_(Panthera_pardus)_en_tijger_(Panthera_tigris),_RP-T-BR-2017-1-1-95.jpg"
     },
     "labelTone": "dark",
+    "stage": {
+      "habitat": {
+        "image": "img/bengal-tiger-habitat-96ca6b.webp",
+        "credit": {
+          "author": "Soumyajit Nandy",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Bengal_Tiger_walking_in_the_grassland_in_Sundarban.jpg"
+        },
+        "find": {
+          "x": 0.315,
+          "y": 0.705,
+          "r": 0.22
+        }
+      }
+    },
     "stats": {
       "development": {
         "kind": "gestation",
@@ -2712,6 +2869,22 @@
     },
     "illustration": null,
     "labelTone": "dark",
+    "stage": {
+      "habitat": {
+        "image": "img/lion-habitat-ce805b.webp",
+        "credit": {
+          "author": "Daniel Case",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Lioness_in_landscape,_Maasai_Mara_National_Reserve,_Kenya.jpg"
+        },
+        "find": {
+          "x": 0.315,
+          "y": 0.62,
+          "r": 0.13
+        }
+      }
+    },
     "stats": {
       "development": {
         "kind": "gestation",
@@ -2913,6 +3086,22 @@
     },
     "illustration": null,
     "labelTone": "light",
+    "stage": {
+      "habitat": {
+        "image": "img/cheetah-habitat-65242a.webp",
+        "credit": {
+          "author": "Eric Kilby",
+          "license": "CC BY-SA 2.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Two_Cheetah_on_a_Termite_Mound.jpg"
+        },
+        "find": {
+          "x": 0.48,
+          "y": 0.5,
+          "r": 0.29
+        }
+      }
+    },
     "stats": {
       "lengthCm": {
         "min": 110,
@@ -3120,6 +3309,22 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Loxodonta_africana2.jpg"
     },
     "labelTone": "light",
+    "stage": {
+      "habitat": {
+        "image": "img/african-elephant-habitat-e7311f.webp",
+        "credit": {
+          "author": "Fernando Anuang'a",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:A_lone_Elephant_at_Amboseli.jpg"
+        },
+        "find": {
+          "x": 0.285,
+          "y": 0.725,
+          "r": 0.16
+        }
+      }
+    },
     "stats": {
       "heightCm": {
         "min": 250,
@@ -3316,6 +3521,22 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Giraffa_camelopardalis_(Giraf),_RP-T-1914-17-150.jpg"
     },
     "labelTone": "light",
+    "stage": {
+      "habitat": {
+        "image": "img/giraffe-habitat-8d12bb.webp",
+        "credit": {
+          "author": "Ssemmanda will",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Graceful_Giant_of_the_Savanna_(Giraffe)_01.jpg"
+        },
+        "find": {
+          "x": 0.26,
+          "y": 0.61,
+          "r": 0.19
+        }
+      }
+    },
     "stats": {
       "development": {
         "kind": "gestation",
@@ -3509,6 +3730,22 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Equus_quagga_quagga_lithograph.jpg"
     },
     "labelTone": "light",
+    "stage": {
+      "habitat": {
+        "image": "img/plains-zebra-habitat-aab18b.webp",
+        "credit": {
+          "author": "David Dennis from Pozuelo de Alarcón, Madrid, Spain",
+          "license": "CC BY-SA 2.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Zebra_in_the_Serengeti_Wildebeest_Migration.jpg"
+        },
+        "find": {
+          "x": 0.745,
+          "y": 0.595,
+          "r": 0.2
+        }
+      }
+    },
     "stats": {
       "development": {
         "kind": "gestation",
@@ -3701,6 +3938,22 @@
     },
     "illustration": null,
     "labelTone": "dark",
+    "stage": {
+      "habitat": {
+        "image": "img/hippopotamus-habitat-d4ed04.webp",
+        "credit": {
+          "author": "Bjørn Christian Tørrissen",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Kruger-Park-Hippo-And-Crocodile.jpg"
+        },
+        "find": {
+          "x": 0.61,
+          "y": 0.68,
+          "r": 0.28
+        }
+      }
+    },
     "stats": {
       "development": {
         "kind": "gestation",
@@ -3904,6 +4157,22 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Diceros_bicornis_introduction.jpg"
     },
     "labelTone": "light",
+    "stage": {
+      "habitat": {
+        "image": "img/black-rhinoceros-habitat-a577db.webp",
+        "credit": {
+          "author": "Gwasheya",
+          "license": "CC0 1.0",
+          "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Guardian_of_the_Savanna,_Rhino_in_Etosha.jpg"
+        },
+        "find": {
+          "x": 0.46,
+          "y": 0.36,
+          "r": 0.35
+        }
+      }
+    },
     "stats": {
       "heightCm": {
         "min": 140,
@@ -4095,6 +4364,17 @@
       "sourceUrl": "https://commons.wikimedia.org/wiki/File:Gorila_de_llanura_occidental._Gorilla_gorilla_-_Blanca_Mart%C3%AD_de_Ahumada.jpg"
     },
     "labelTone": "dark",
+    "stage": {
+      "habitat": {
+        "image": "img/western-lowland-gorilla-habitat-95f10b.webp",
+        "credit": {
+          "author": "JosepMGracia",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:View_of_Dzanga_Bai_with_forest_stream,_Central_African_Republic.jpg"
+        }
+      }
+    },
     "stats": {
       "heightCm": {
         "min": 140,
@@ -4291,6 +4571,22 @@
       "north": 25.68
     },
     "range": "data/ranges/taiwan-blue-magpie.json",
+    "stage": {
+      "habitat": {
+        "image": "img/taiwan-blue-magpie-habitat-71bc01.webp",
+        "credit": {
+          "author": "Gulumeemee",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Taiwan_blue_magpie_(Urocissa_caerulea).jpg"
+        },
+        "find": {
+          "x": 0.46,
+          "y": 0.47,
+          "r": 0.15
+        }
+      }
+    },
     "stats": {
       "development": {
         "kind": "incubation",
@@ -4487,6 +4783,22 @@
       "north": 25.68
     },
     "range": "data/ranges/swinhoe-s-pheasant.json",
+    "stage": {
+      "habitat": {
+        "image": "img/swinhoe-s-pheasant-habitat-a5d705.webp",
+        "credit": {
+          "author": "V9320032",
+          "license": "CC0 1.0",
+          "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:%E5%A4%AA%E5%B9%B3%E5%B1%B1%E5%9C%8B%E5%AE%B6%E6%A3%AE%E6%9E%97%E9%81%8A%E6%A8%82%E5%8D%80%E8%97%8D%E8%85%B9%E9%B7%B4.jpg"
+        },
+        "find": {
+          "x": 0.52,
+          "y": 0.53,
+          "r": 0.2
+        }
+      }
+    },
     "stats": {
       "lengthCm": {
         "min": 50,
@@ -4547,6 +4859,9 @@
       }
     },
     "wikidata": "Q715245",
+    "locked": [
+      "silhouette"
+    ],
     "_draft": [
       "facts",
       "tags",
@@ -4582,9 +4897,6 @@
           "stats.weightKg"
         ]
       }
-    ],
-    "locked": [
-      "silhouette"
     ]
   },
   {
@@ -4681,6 +4993,22 @@
       "north": 25.13
     },
     "range": "data/ranges/mikado-pheasant.json",
+    "stage": {
+      "habitat": {
+        "image": "img/mikado-pheasant-habitat-1ba49e.webp",
+        "credit": {
+          "author": "pondhawk from Winter Park, Florida, USA",
+          "license": "CC BY 2.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/2.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Syrmaticus_mikado_male_Taiwan.jpg"
+        },
+        "find": {
+          "x": 0.42,
+          "y": 0.54,
+          "r": 0.3
+        }
+      }
+    },
     "stats": {
       "lengthCm": {
         "min": 47,
@@ -4877,6 +5205,22 @@
       "north": 25.68
     },
     "range": "data/ranges/taiwan-barbet.json",
+    "stage": {
+      "habitat": {
+        "image": "img/taiwan-barbet-habitat-f19594.webp",
+        "credit": {
+          "author": "Gulumeemee",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Taiwan_Barbet_on_tree.jpg"
+        },
+        "find": {
+          "x": 0.56,
+          "y": 0.55,
+          "r": 0.2
+        }
+      }
+    },
     "stats": {
       "development": {
         "kind": "incubation",
@@ -5080,6 +5424,17 @@
       "north": 28.02
     },
     "range": "data/ranges/brown-spotted-pit-viper.json",
+    "stage": {
+      "habitat": {
+        "image": "img/brown-spotted-pit-viper-habitat-360450.webp",
+        "credit": {
+          "author": "Bernard Gagnon",
+          "license": "CC BY-SA 3.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Bamboo_forest,_Taiwan_(cropped).jpg"
+        }
+      }
+    },
     "stats": {
       "lengthCm": {
         "min": 60,
@@ -5270,6 +5625,17 @@
       "north": 24.86
     },
     "range": "data/ranges/formosan-landlocked-salmon.json",
+    "stage": {
+      "habitat": {
+        "image": "img/formosan-landlocked-salmon-habitat-df1707.webp",
+        "credit": {
+          "author": "Tom.Taipei",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Qijiawan_Creek_TANG,_YOU_HSIN_1.jpg"
+        }
+      }
+    },
     "stats": {
       "lengthCm": {
         "min": 30
@@ -5473,6 +5839,17 @@
       "north": 33.09
     },
     "range": "data/ranges/atlas-moth.json",
+    "stage": {
+      "habitat": {
+        "image": "img/atlas-moth-habitat-80868f.webp",
+        "credit": {
+          "author": "Junyu-K",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:202602_Kenting_landscape_from_Seaview_tower_in_Kenting_Forest_Recreation_Area_01.jpg"
+        }
+      }
+    },
     "stats": {
       "wingspanCm": {
         "min": 20,
@@ -5853,6 +6230,22 @@
       "lng": -106.3,
       "site": "Hell Creek Formation, Montana, USA"
     },
+    "stage": {
+      "habitat": {
+        "image": "img/tyrannosaurus-rex-habitat-22f537.webp",
+        "credit": {
+          "author": "ABelov2014",
+          "license": "CC BY 3.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Dakotaraptor,_Edmontosaurus,_Pachycephalosaurus_and_Tyrannosaurus.jpg"
+        },
+        "find": {
+          "x": 0.42,
+          "y": 0.4,
+          "r": 0.32
+        }
+      }
+    },
     "stats": {
       "lengthCm": {
         "min": 1100,
@@ -6048,6 +6441,17 @@
       "north": 99.66
     },
     "range": "data/ranges/tardigrade-water-bear.json",
+    "stage": {
+      "habitat": {
+        "image": "img/tardigrade-water-bear-habitat-473826.webp",
+        "credit": {
+          "author": "Billy McCrorie",
+          "license": "CC BY-SA 2.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Kirroughtree_Forest,_Moss_Covered_Stane_Dyke_-_geograph.org.uk_-_3791800.jpg"
+        }
+      }
+    },
     "stats": {
       "lengthCm": {
         "min": 0.05
@@ -6217,6 +6621,17 @@
       "north": 39.83
     },
     "range": "data/ranges/taiwan-cherry.json",
+    "stage": {
+      "habitat": {
+        "image": "img/taiwan-cherry-habitat-152873.webp",
+        "credit": {
+          "author": "lienyuan lee",
+          "license": "CC BY 3.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:%E5%B1%B1%E6%AB%BB%E8%8A%B1_Taiwan_Cherry_-_panoramio.jpg"
+        }
+      }
+    },
     "stats": {
       "heightCm": {
         "min": 300,

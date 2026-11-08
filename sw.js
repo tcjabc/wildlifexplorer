@@ -57,6 +57,7 @@ const SHELL = [
   'js/card-open.js',
   'js/fact-back.js',
   'js/stage-views.js',
+  'js/habitat.js',
   'js/card-call.js',
   'js/continents.js',
   'js/magnifier.js',

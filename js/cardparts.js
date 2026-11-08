@@ -8,6 +8,7 @@ import { picture, statusBadge, taiwanBadge, cardNo } from './components.js';
 import { worldMap } from './worldmap.js';
 import { opensGlobe } from './card-return.js';
 import { hasCall, hasMap } from './headings.js';
+import { habitatOf } from './habitat.js';
 import { nameBi } from './zhuyin.js';
 import { glossBi } from './glossary.js';
 import { lengthText, weightText, imperial } from './units.js';
@@ -217,10 +218,11 @@ export function relatedItem(r) {
 
 // Every picture used on this card, for the credit sheet.
 export function cardCredits(card) {
+  const pictureOf = k => (k === 'compare' ? card.compare?.silhouette : k === 'habitat' ? habitatOf(card) : card[k]);
   const rows = [
-    ['photo', 'card.photo'], ['illustration', 'card.illustration'], ['silhouette', 'credits.silhouette'], ['call', 'credits.call'], ['compare', 'credits.silhouette'],
-  ].filter(([k]) => (k === 'compare' ? card.compare?.silhouette : card[k])?.file).map(([k, key]) => {
-    const img = k === 'compare' ? card.compare.silhouette : card[k];
+    ['photo', 'card.photo'], ['illustration', 'card.illustration'], ['habitat', 'credits.habitat'], ['silhouette', 'credits.silhouette'], ['call', 'credits.call'], ['compare', 'credits.silhouette'],
+  ].filter(([k]) => pictureOf(k)?.file).map(([k, key]) => {
+    const img = pictureOf(k);
     const href = safeUrl(img.sourceUrl);
     const lic = safeUrl(img.licenseUrl);
     return h('li', null,
