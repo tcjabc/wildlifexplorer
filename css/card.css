@@ -55,7 +55,15 @@
   52% { transform: translateX(calc(var(--hand-travel) * -1)); opacity: 1; }
   64%, 100% { transform: translateX(calc(var(--hand-travel) * -1)); opacity: 0; }
 }
-@media (prefers-reduced-motion: reduce) { .viewer__hand-icon { animation: none; } }
+/* The first few times a profile opens a card, one swipe up after the first sideways one (viewer.js). */
+.viewer__hand[data-move="up"] .viewer__hand-icon { animation: hand-swipe-up var(--hand-ms) ease-in-out 1 backwards; }
+@keyframes hand-swipe-up {
+  0% { transform: translateY(var(--hand-travel)); opacity: 0; }
+  12% { transform: translateY(var(--hand-travel)); opacity: 1; }
+  52% { transform: translateY(calc(var(--hand-travel) * -1)); opacity: 1; }
+  64%, 100% { transform: translateY(calc(var(--hand-travel) * -1)); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .viewer__hand-icon, .viewer__hand[data-move="up"] .viewer__hand-icon { animation: none; } }
 
 /* ---------- 3D card ---------- */
 /* .card-pos places the card (left/top at rest, a transform while moving); .card3d is laid

@@ -286,6 +286,31 @@ function interruptPeek() {
   return true;
 }
 
+// The swipe up: the first few times a profile opens a card, the hand shows it once, after its first
+// sideways swipe (kept on this device only).
+const UP_HINTS = 3;
+const upKey = () => `we-up-hint-${state.profile?.id ?? 'none'}`;
+function takeUpHint() {
+  try {
+    const n = Number(localStorage.getItem(upKey())) || 0;
+    if (n >= UP_HINTS) return false;
+    localStorage.setItem(upKey(), String(n + 1));
+    return true;
+  } catch { return false; }
+}
+function wireHand(hand, icon) {
+  icon.addEventListener('animationiteration', () => {
+    if (!v?.upHint) return;
+    v.upHint = false;
+    hand.dataset.move = 'up';
+    hand.setAttribute('aria-label', label('card.hintFlip'));
+  });
+  icon.addEventListener('animationend', () => {
+    delete hand.dataset.move;
+    hand.setAttribute('aria-label', label('card.hintBook'));
+  });
+}
+
 export function toggleOpen() {
   if (!v || v.f > 0.01) return;
   haptic(10);
@@ -294,7 +319,8 @@ export function toggleOpen() {
 
 // 🔄 and the arrow keys: over to the back, and back again (up goes on round, down turns back).
 export function toggleFlip(way = 'up') {
-  if (!v || v.peeking) return;
+  if (!v) return;
+  if (interruptPeek()) { v.p = 0; draw(); } // a cover left ajar by the peek shuts first
   haptic(10);
   closePopover();
   if (!onBack(v.f)) settle('f', 1);
@@ -551,8 +577,9 @@ export function open(card, { fromEl, main, onDismiss, restore = null } = {}) {
   if (v) teardown();
   const scrim = h('div', { class: 'viewer__scrim' });
   const zoomer = h('div', { class: 'viewer__zoomer' });
-  const hand = h('div', { class: 'viewer__hand', role: 'img', 'aria-label': label('card.hintBook'), hidden: true },
-    h('span', { class: 'viewer__hand-icon', 'aria-hidden': 'true' }, '👆'));
+  const handIcon = h('span', { class: 'viewer__hand-icon', 'aria-hidden': 'true' }, '👆');
+  const hand = h('div', { class: 'viewer__hand', role: 'img', 'aria-label': label('card.hintBook'), hidden: true }, handIcon);
+  wireHand(hand, handIcon);
   const stage = h('div', { class: 'viewer__stage' }, zoomer, hand);
   const bar = h('div');
   const sheet = h('dialog', { class: 'sheet' });
@@ -571,6 +598,7 @@ export function open(card, { fromEl, main, onDismiss, restore = null } = {}) {
   document.body.append(el);
 
   v = { el, pane, scrim, zoomer, stage, hand, hintRow, bar, sheet, dock, main, fromEl, onDismiss, p: 0, f: 0, z: 0, cancel: null };
+  v.upHint = !reducedMotion() && takeUpHint();
   setCard(card);
   // Collapsed or expanded, as this explorer left it last time (kept on this device), or as it
   // was when the card was left for the globe or the full notebook (and on that page).

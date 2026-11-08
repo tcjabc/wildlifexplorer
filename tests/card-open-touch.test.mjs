@@ -79,6 +79,17 @@ async function open(viewport, profile = {}, reducedMotion = 'no-preference') {
         return c.classList.contains('is-rest') && c.dataset.pose === p;
       }, pose, { timeout: 4000 }),
       layout: () => page.evaluate(() => document.querySelector('.card3d').dataset.layout),
+      // Turned to this face ('front' or 'back') and nothing moving.
+      faces: face => page.waitForFunction(x => {
+        const s = document.querySelector('.viewer__stage');
+        return s?.dataset.face === x && !s.classList.contains('is-3d');
+      }, face, { timeout: 4000 }),
+      // A swipe up or down through the middle of whatever shows.
+      async vertical(sel, way) {
+        const c = await box(sel);
+        const x = c.x + c.w / 2, top = c.y + c.h * 0.25, bottom = c.y + c.h * 0.75;
+        await f.drag({ x, y: way === 'up' ? bottom : top }, { x, y: way === 'up' ? top : bottom });
+      },
       async drag(from, to, steps = 8) {
         await send('touchStart', [{ ...from, id: 1 }]);
         for (let i = 1; i <= steps; i++) {
@@ -410,16 +421,98 @@ run('beside the expanded notebook the open card stacks, in the room that is left
   assert.ok(tile.w >= 64 && tile.h >= 64);
 });
 
-run('swiping up no longer turns the card over, and swiping down still goes back to the binder', async f => {
+both('a swipe up turns the cover over to the Fact File, the cover\'s size; down turns it back, and down again goes to the binder', async f => {
   await f.card('formosan-black-bear');
-  const c = await f.box('.card3d');
-  const x = c.x + c.w / 2;
-  await f.drag({ x, y: c.y + c.h * 0.8 }, { x, y: c.y + c.h * 0.2 });
+  const cover = await f.box('.card3d');
+  await f.vertical('.card3d', 'up');
+  await f.faces('back');
+  const back = await f.box('.card3d--back');
+  assert.ok(Math.abs(back.w - cover.w) <= 1 && Math.abs(back.h - cover.h) <= 1, `the cover's size: ${back.w} x ${back.h}`);
+  assert.ok(Math.abs(back.w / back.h - 0.8) < 0.01, '4:5');
+  assert.deepEqual(await f.page.evaluate(() => [document.querySelector('.card-pos').inert, getComputedStyle(document.querySelector('.card-pos')).opacity]), [true, '0'], 'the cover is out of reach');
+  await f.vertical('.cpage--back', 'down');
+  await f.faces('front');
   await f.rests('front');
-  assert.equal(await f.page.evaluate(() => document.querySelectorAll('.face--x, .cpage--back').length), 0);
-  await f.drag({ x, y: c.y + c.h * 0.2 }, { x, y: c.y + c.h * 0.9 });
+  await f.vertical('.card3d', 'down');
   assert.equal(await f.page.evaluate(() => document.querySelector('.viewer')), null);
   assert.match(await f.page.evaluate(() => location.hash), /^#\/binder/);
+});
+
+both('the open card turns over too; the back scrolls first, then up again turns it on round to the open card', async f => {
+  await f.card('formosan-black-bear');
+  const cover = await f.box('.card3d');
+  await f.swipe();
+  await f.vertical('.stage', 'up');
+  await f.faces('back');
+  const back = await f.box('.card3d--back');
+  assert.ok(Math.abs(back.w - cover.w) <= 1 && Math.abs(back.h - cover.h) <= 1, 'the closed card\'s size and place, open or not');
+  const scrolls = await f.page.evaluate(() => { const b = document.querySelector('.ff__body'); return b.scrollHeight > b.clientHeight; });
+  assert.ok(scrolls, 'the bear has more than fits');
+  await f.vertical('.ff__body', 'up');
+  await f.faces('back');
+  assert.ok(await f.page.evaluate(() => document.querySelector('.ff__body').scrollTop) > 0, 'it scrolled, and stayed on the back');
+  await f.page.evaluate(() => { const b = document.querySelector('.ff__body'); b.scrollTop = b.scrollHeight; });
+  await f.vertical('.ff__body', 'up');
+  await f.faces('front');
+  await f.rests('open');
+  // Sideways still closes it.
+  const g = await f.box('.hgrid');
+  await f.drag({ x: g.x + g.w * 0.2, y: g.y + g.h / 2 }, { x: g.x + g.w * 0.9, y: g.y + g.h / 2 });
+  await f.rests('front');
+});
+
+run('the back is text only: the grid\'s headings in its order, none grey, with statistics, in the explorer\'s language', async f => {
+  await f.card('formosan-black-bear');
+  await f.page.click('.viewer__bar button[aria-label="翻面"]');
+  await f.faces('back');
+  const got = await f.page.evaluate(async () => {
+    const { backSections } = await import('/js/headings.js');
+    const { state } = await import('/js/store.js');
+    const card = state.byId.get('formosan-black-bear');
+    const back = document.querySelector('.cpage--back');
+    return {
+      ids: [...back.querySelectorAll('.ff__section')].map(x => x.dataset.heading),
+      want: backSections(card, { related: (card.related ?? []).length }).map(x => x.id),
+      imgs: back.querySelectorAll('img, svg, canvas').length,
+      stats: back.querySelectorAll('.ff__vitals .stat').length,
+      marks: [...back.querySelectorAll('.ff__mark')].map(m => getComputedStyle(m).backgroundColor),
+      head: back.querySelector('.cover__top').textContent,
+      english: /Habitat|forests|Least Concern/.test(back.innerText), // (IUCN is in the Chinese too)
+      speech: window.said.filter(Boolean).length,
+    };
+  });
+  assert.deepEqual(got.ids, got.want);
+  assert.ok(!got.ids.includes('size'));
+  assert.equal(got.imgs, 0, 'no pictures');
+  assert.ok(got.stats >= 2, 'length and weight at least');
+  assert.equal(new Set(got.marks).size, got.marks.length, 'each heading its own colour');
+  assert.match(got.head, /S1/);
+  assert.equal(got.english, false, 'Chinese only');
+  assert.equal(got.speech, 0, 'silent');
+}, LANDSCAPE, { lang: 'zh' });
+
+run('a topic card turns over to its own headings', async f => {
+  await f.card('kenting-coral-reefs');
+  await f.vertical('.card3d', 'up');
+  await f.faces('back');
+  const ids = await f.page.evaluate(() => [...document.querySelectorAll('.ff__section')].map(x => x.dataset.heading));
+  assert.deepEqual(ids, ['what', 'when', 'where']);
+  assert.match(await f.page.evaluate(() => document.querySelector('.cpage--back').textContent), /full moon/);
+});
+
+run('the hand shows the swipe up once, after the sideways swipe, the first three times', async f => {
+  await f.card('formosan-black-bear');
+  await f.page.waitForFunction(() => document.querySelector('.viewer__hand').dataset.move === 'up', null, { timeout: 12000 });
+  await f.page.waitForFunction(() => !document.querySelector('.viewer__hand').dataset.move, null, { timeout: 6000 });
+  const n = await f.page.evaluate(() => Object.entries(localStorage).find(([k]) => k.startsWith('we-up-hint-'))?.[1]);
+  assert.equal(n, '1');
+  // After three, no more.
+  await f.page.evaluate(() => { const k = Object.keys(localStorage).find(x => x.startsWith('we-up-hint-')); localStorage.setItem(k, '3'); });
+  await f.page.evaluate(() => { location.hash = '#/binder'; });
+  await f.wait(600);
+  await f.card('formosan-rock-macaque');
+  await f.wait(5000);
+  assert.equal(await f.page.evaluate(() => document.querySelector('.viewer__hand').dataset.move ?? null), null);
 });
 
 run('with reduced motion the card still comes to rest, sharp, open and shut', async f => {
@@ -431,5 +524,10 @@ run('with reduced motion the card still comes to rest, sharp, open and shut', as
   const b = await f.box('.hbtn[data-heading="size"]');
   const y = b.y + b.h / 2;
   await f.drag({ x: b.x + b.w / 2, y }, { x: b.x + b.w / 2 + 400, y });
+  await f.rests('front');
+  await f.vertical('.card3d', 'up');
+  await f.faces('back');
+  await f.vertical('.cpage--back', 'down');
+  await f.faces('front');
   await f.rests('front');
 }, LANDSCAPE, undefined, 'reduce');
