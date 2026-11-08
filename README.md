@@ -265,8 +265,9 @@ every field that already has a value as yours and leaves it alone.
 
 ### Inside a card
 
-A card has a cover and an inside, both at design size 448 × 560 (4:5), scaled as a whole. There is no
-back: everything is under the headings.
+A card has a cover, an inside and a back, at design size 448 × 560 (4:5), scaled as a whole. The
+inside is for children who can't read yet (pictures under the headings); the back is the Fact File,
+text only, for readers and grown-ups.
 
 - **The cover**: group, card number and series (S1), the taxonomy strip (order · family · genus and
   species), the photo and name, **Key Features** (the first three facts) and **Where in the World**
@@ -277,6 +278,14 @@ back: everything is under the headings.
   heading lights it, shows its text and switches the stage, without a sound. Tapping it again goes back
   to the gallery (the photo and illustration). A heading a card has nothing for is grey,
   never missing, so nothing ever moves. Buttons never go under 64 px on the screen (`--tap-heading`).
+- **The back** (`js/fact-back.js`), laid out like a printed card back, the size and place of the
+  closed card whether it was turned over closed or open: 📁 Fact File with the series and card
+  number, the card's name, a **Vital Statistics** box (the numbers, and the Key Features), then the
+  grid's headings in the grid's order, each with its icon and colour as a small marker and its full
+  text. Headings with nothing to read are left out (`backSections` in `js/headings.js`): Size is the
+  statistics box, Where lists the continents and "Found in Taiwan", Status shows its badge, a topic
+  card's Who to look for names its animals. No pictures, no speech; it scrolls inside the card. Text
+  still to check (`todo`) shows only to a grown-up in preview, as under the headings.
 
 Every card has the same grid (`js/headings.js`, tested on every card in `tests/headings.test.mjs`):
 
@@ -429,7 +438,7 @@ file have it (`opensGlobe` in `js/card-return.js`), and not in pack reveals.
   that card's own pin shows even when a filter would leave it out, until the filters change or
   another pin is picked.
 - "‹ Back to card" (Esc, or the device's back button) returns to the card as it was: the same
-  side (cover or open, on the same heading, without saying it again) and the notebook collapsed or expanded, on the same page
+  side (cover, open on the same heading, or the back over either, without saying it again) and the notebook collapsed or expanded, on the same page
   (`js/card-return.js`, kept in memory only). `#/globe` on its own is the Globe tab as always.
 
 ### Globe map layers
@@ -571,9 +580,14 @@ with a sideways drag, and the open card can be closed from an 80 px margin aroun
 the zones shrink to fit. A drag that starts at
 an in-between angle waits a few more pixels before deciding its direction. Grown-ups in preview can
 see these areas (the notebook's in purple): add `?debug=gestures` to the address (`?debug=off` to stop).
-On the cover: sideways opens the card, down puts it back in the binder, and a hand shows the swipe.
-On the open card: sideways closes it; a vertical drag on a heading's text scrolls it. 📖 opens and
-closes it too, and ‹ › change cards.
+On the cover: sideways opens the card, up turns it over, down puts it back in the binder, and a hand
+shows the swipe (the first three times an explorer opens a card, followed by one swipe up).
+On the open card: sideways closes it, up turns it over; a vertical drag on a heading's text scrolls
+it, and turns the card only from the end of the text. On the back: down turns it back, up turns it on
+round, both to what it was (cover or open card); its text scrolls first in the same way. The back
+turns about the card's middle (rotateX) while the book turns away; the side turned away is
+see-through and inert. 📖 opens and closes the card, 🔄 (or ↑ ↓ on a keyboard) turns it over, and
+‹ › change cards (on the front).
 The layout rules are pure functions in `js/card-layout.js` (tested in `tests/card-layout.test.mjs`). Every gesture
 ends settled: it commits, springs back or dismisses, also when the pointer is cancelled, the
 capture is lost or the window loses focus. A quarter of the way or
