@@ -87,7 +87,7 @@ test('on today\'s 30 species cards: what is lit and what is grey', () => {
   assert.equal(on('dyk').length, 30);
   assert.equal(on('where').length, 30, 'a range map, or the continent');
   assert.equal(on('food').length, 30, 'the food tray');
-  assert.deepEqual(species.map(c => c.id).filter(id => !on('babies').includes(id)), ['red-and-white-giant-flying-squirrel', 'eurasian-otter']);
+  assert.deepEqual(species.map(c => c.id).filter(id => !on('babies').includes(id)), ['red-and-white-giant-flying-squirrel'], 'the otter has a photo of its cubs');
   assert.deepEqual(species.map(c => c.id).filter(id => !on('status').includes(id)), ['atlas-moth', 'tardigrade-water-bear']);
   assert.deepEqual(species.map(c => c.id).filter(id => !on('size').includes(id)), []);
 });

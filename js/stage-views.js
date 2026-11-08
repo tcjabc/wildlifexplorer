@@ -16,6 +16,7 @@ import { lookalikePanel, lookalikesOf } from './lookalikes.js';
 import { hasMap } from './headings.js';
 import { coverBox, findOnBox, habitatOf, isFound } from './habitat.js';
 import { foodOf } from './food.js';
+import { babiesOf } from './stage-pictures.js';
 import { haptic } from './gesture.js';
 import { magnifier, featureOf } from './magnifier.js';
 import { placeMap, worldMap } from './worldmap.js';
@@ -50,22 +51,31 @@ function gallery(card, { onCredit, onCall }) {
   return { el: frame };
 }
 
+// One stage picture (js/stage-pictures.js) filling the stage, with the credit button in its corner.
+// alt: the heading's label key; cls: the view's own class.
+function stagePhoto(pic, alt, cls, onCredit) {
+  const img = h('img', {
+    class: 'pic', src: pic.file, alt: label(alt), decoding: 'async',
+    srcset: `${thumbOf(pic.file)} 480w, ${pic.file} 1200w`, sizes: '(min-width: 700px) 600px, 100vw',
+    'data-fallback': thumbOf(pic.file),
+  });
+  const credit = h('button', { class: 'cover__credit', type: 'button', 'aria-label': label('card.credit'), onclick: onCredit }, '📷');
+  return { frame: h('div', { class: ['stage-pic', cls] }, img, credit), img };
+}
+
+// Its young: one photo, nothing to do but look.
+function babies(card, { onCredit }) {
+  return { el: stagePhoto(babiesOf(card), 'heading.babies', 'stage-babies', () => onCredit?.('babies')).frame };
+}
+
 // Where it lives: a photo of its real home. When the animal is in it (find), a tap on the animal
 // rings it, buzzes once and shows its silhouette; a tap anywhere else does nothing. No timer, no
 // score, no words. The picture is cropped to the stage around the animal, so it is always in view.
 function habitat(card, { onCredit }) {
   const hab = habitatOf(card);
   const { find } = hab;
-  const img = h('img', {
-    class: 'pic', src: hab.file, alt: label('ff.habitat'), decoding: 'async',
-    srcset: `${thumbOf(hab.file)} 480w, ${hab.file} 1200w`, sizes: '(min-width: 700px) 600px, 100vw',
-    'data-fallback': thumbOf(hab.file),
-  });
+  const { frame, img } = stagePhoto(hab, 'ff.habitat', 'stage-habitat', () => onCredit?.('habitat'));
   if (find) img.style.setProperty('object-position', `${find.x * 100}% ${find.y * 100}%`);
-  const credit = h('button', {
-    class: 'cover__credit', type: 'button', 'aria-label': label('card.credit'), onclick: () => onCredit?.('habitat'),
-  }, '📷');
-  const frame = h('div', { class: 'stage-pic stage-habitat' }, img, credit);
   if (!find) return { el: frame };
 
   const sil = card.silhouette?.file;
@@ -297,6 +307,7 @@ export const STAGE_VIEWS = {
   habitat,
   profile,
   food,
+  babies,
   compare,
   map,
   status,
