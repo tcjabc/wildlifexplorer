@@ -810,7 +810,16 @@
             "sourceUrl": "https://commons.wikimedia.org/wiki/File:Odontotermes_obesus_Termites_Isoptera_(1)_27.jpg"
           }
         }
-      ]
+      ],
+      "behaviour": {
+        "image": "img/chinese-pangolin-behaviour-0cad41.webp",
+        "credit": {
+          "author": "Yung-Lun Lin",
+          "license": "CC BY 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Manis_pentadactyla_pentadactyla_462300623.jpg"
+        }
+      }
     },
     "stats": {
       "lengthCm": {
@@ -1068,7 +1077,16 @@
             "sourceUrl": "https://commons.wikimedia.org/wiki/File:Yushania_niitakayamensis_near_Yuanfeng,_Taiwan.jpg"
           }
         }
-      ]
+      ],
+      "behaviour": {
+        "image": "img/taiwan-serow-behaviour-19b306.webp",
+        "credit": {
+          "author": "laiet17",
+          "license": "CC0 1.0",
+          "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "sourceUrl": "https://www.inaturalist.org/photos/109599837"
+        }
+      }
     },
     "stats": {
       "heightCm": {
@@ -1342,6 +1360,15 @@
           "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
           "sourceUrl": "https://commons.wikimedia.org/wiki/File:Sambar_deer,_mother_and_fawn_pair_at_Nagarahole_wildlife_sanctuary.jpg"
         }
+      },
+      "behaviour": {
+        "image": "img/formosan-sambar-deer-behaviour-0ed199.webp",
+        "credit": {
+          "author": "Yu-Chang Chen",
+          "license": "CC BY 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "sourceUrl": "https://www.inaturalist.org/photos/556816336"
+        }
       }
     },
     "stats": {
@@ -1604,6 +1631,15 @@
           "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
           "sourceUrl": "https://commons.wikimedia.org/wiki/File:Muntjac_Deer_Fawn_-_geograph.org.uk_-_2448971.jpg"
         }
+      },
+      "behaviour": {
+        "image": "img/formosan-muntjac-behaviour-b9ef9f.webp",
+        "credit": {
+          "author": "王朝威",
+          "license": "CC BY 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Muntiacus_reevesi_micrurus_230869896_(cropped).jpg"
+        }
       }
     },
     "stats": {
@@ -1852,7 +1888,16 @@
             "sourceUrl": "https://commons.wikimedia.org/wiki/File:Pandanus_tectorius_fruit_(riped).JPG"
           }
         }
-      ]
+      ],
+      "behaviour": {
+        "image": "img/formosan-flying-fox-behaviour-66a41b.webp",
+        "credit": {
+          "author": "尹若宇",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Pteropus_dasymallus_formosus_185065182.jpg"
+        }
+      }
     },
     "stats": {
       "lengthCm": {
@@ -2106,6 +2151,15 @@
           "license": "CC BY 4.0",
           "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
           "sourceUrl": "https://www.inaturalist.org/photos/81345740"
+        }
+      },
+      "behaviour": {
+        "image": "img/leopard-cat-behaviour-ddf767.webp",
+        "credit": {
+          "author": "Weiting Liu",
+          "license": "CC BY 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Prionailurus_bengalensis_euptilurus_167280844.jpg"
         }
       }
     },
@@ -2363,7 +2417,16 @@
             "sourceUrl": "https://commons.wikimedia.org/wiki/File:Green_tortoise_beetle_with_black_stripes.jpg"
           }
         }
-      ]
+      ],
+      "behaviour": {
+        "image": "img/masked-palm-civet-behaviour-677696.webp",
+        "credit": {
+          "author": "Tony Hara",
+          "license": "CC BY-SA 2.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:%E3%83%8F%E3%82%AF%E3%83%93%E3%82%B7%E3%83%B3_%E7%99%BD%E9%BC%BB%E8%8A%AF_Masked_Palm_Civet.jpg"
+        }
+      }
     },
     "stats": {
       "development": {
@@ -2605,7 +2668,16 @@
             "sourceUrl": "https://commons.wikimedia.org/wiki/File:PikiWiki_Israel_80638_acorn_of_mt_tabor_oak.jpg"
           }
         }
-      ]
+      ],
+      "behaviour": {
+        "image": "img/red-and-white-giant-flying-squirrel-behaviour-9a531d.webp",
+        "credit": {
+          "author": "林孫鋒",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Petaurista_lena_192689147.jpg"
+        }
+      }
     },
     "stats": {
       "lengthCm": {
@@ -2857,6 +2929,15 @@
           "license": "CC BY 4.0",
           "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
           "sourceUrl": "https://www.inaturalist.org/photos/678945596"
+        }
+      },
+      "behaviour": {
+        "image": "img/eurasian-otter-behaviour-528647.webp",
+        "credit": {
+          "author": "Peter Trimming from Croydon, England",
+          "license": "CC BY 2.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/2.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Swimming_Otter_(6115616372).jpg"
         }
       }
     },
@@ -3122,6 +3203,15 @@
           "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
           "sourceUrl": "https://commons.wikimedia.org/wiki/File:Young_Bengal_Tiger_Resting_In_Marsh_Water_Plants.jpg"
         }
+      },
+      "behaviour": {
+        "image": "img/bengal-tiger-behaviour-995b4d.webp",
+        "credit": {
+          "author": "Badal Chandra Sarker",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Royal_bengal_tiger_Swimming.jpg"
+        }
       }
     },
     "stats": {
@@ -3369,6 +3459,15 @@
           "license": "CC BY 4.0",
           "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
           "sourceUrl": "https://commons.wikimedia.org/wiki/File:Asiatic_lioness_nursing_and_resting_with_four_cubs_in_Gir_National_Park.jpg"
+        }
+      },
+      "behaviour": {
+        "image": "img/lion-behaviour-e414a3.webp",
+        "credit": {
+          "author": "Benh LIEU SONG",
+          "license": "CC BY-SA 3.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Lions_Family_Portrait_Masai_Mara.jpg"
         }
       }
     },
@@ -3632,6 +3731,15 @@
           "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
           "sourceUrl": "https://commons.wikimedia.org/wiki/File:Cheetah_with_cubs_near_Ndutu_Lodge,_Serengeti_(16866917548).jpg"
         }
+      },
+      "behaviour": {
+        "image": "img/cheetah-behaviour-8c66d6.webp",
+        "credit": {
+          "author": "Hein waschefort",
+          "license": "CC BY-SA 3.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Cheetah_chase.jpg"
+        }
       }
     },
     "stats": {
@@ -3891,6 +3999,15 @@
           "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
           "sourceUrl": "https://commons.wikimedia.org/wiki/File:Mother_Calf_African_Bush_Elephant_Kafue_Jul23_A7C_05569.jpg"
         }
+      },
+      "behaviour": {
+        "image": "img/african-elephant-behaviour-841faf.webp",
+        "credit": {
+          "author": "Bernard DUPONT from FRANCE",
+          "license": "CC BY-SA 2.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Savanna_Elephants_(Loxodonta_africana)_family_drinking_..._(Photo_JC_PLE)_(52843890612).jpg"
+        }
       }
     },
     "stats": {
@@ -4138,6 +4255,15 @@
           "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
           "sourceUrl": "https://commons.wikimedia.org/wiki/File:Giraffe_and_her_calf_(Unsplash).jpg"
         }
+      },
+      "behaviour": {
+        "image": "img/giraffe-behaviour-2ca517.webp",
+        "credit": {
+          "author": "Bernard DUPONT from FRANCE",
+          "license": "CC BY-SA 2.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Giraffe_(Giraffa_camelopardalis)_browsing_..._(52514090014).jpg"
+        }
       }
     },
     "stats": {
@@ -4372,6 +4498,15 @@
           "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
           "sourceUrl": "https://commons.wikimedia.org/wiki/File:Burchell%27s_Zebras_(Equus_quagga_burchellii)_mare_and_foal_..._(51790824612).jpg"
         }
+      },
+      "behaviour": {
+        "image": "img/plains-zebra-behaviour-9350de.webp",
+        "credit": {
+          "author": "Michael Mwakalundwa",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Zebra_Herd_Michael_makalundwa.jpg"
+        }
       }
     },
     "stats": {
@@ -4603,6 +4738,15 @@
           "license": "CC BY-SA 2.0",
           "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
           "sourceUrl": "https://commons.wikimedia.org/wiki/File:Hippopotamus_Calf_on_Back_of_Mother_-_Mikumi_National_Park_-_Tanzania_(8892763085).jpg"
+        }
+      },
+      "behaviour": {
+        "image": "img/hippopotamus-behaviour-e595fc.webp",
+        "credit": {
+          "author": "safaritravelplus",
+          "license": "CC0 1.0",
+          "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Hippopotamus_River.jpg"
         }
       }
     },
@@ -4857,6 +5001,15 @@
           "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
           "sourceUrl": "https://commons.wikimedia.org/wiki/File:Diceros_bicornis_calf_(Etosha).jpg"
         }
+      },
+      "behaviour": {
+        "image": "img/black-rhinoceros-behaviour-88cb39.webp",
+        "credit": {
+          "author": "Yathin S Krishnappa",
+          "license": "CC BY-SA 3.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Diceros_bicornis_-_profile_-_Etosha_2014.jpg"
+        }
       }
     },
     "stats": {
@@ -5093,6 +5246,15 @@
           "license": "CC0 1.0",
           "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
           "sourceUrl": "https://commons.wikimedia.org/wiki/File:Western_Lowland_Gorilla_mother_and_baby.jpg"
+        }
+      },
+      "behaviour": {
+        "image": "img/western-lowland-gorilla-behaviour-557931.webp",
+        "credit": {
+          "author": "TheLeftCoast",
+          "license": "CC0 1.0",
+          "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Wild_silverback_western_lowland_gorilla_with_his_family.jpg"
         }
       }
     },
@@ -5341,6 +5503,15 @@
           "license": "CC BY-SA 4.0",
           "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
           "sourceUrl": "https://commons.wikimedia.org/wiki/File:Taiwan_Blue_Magpie_juvenile.jpg"
+        }
+      },
+      "behaviour": {
+        "image": "img/taiwan-blue-magpie-behaviour-975d84.webp",
+        "credit": {
+          "author": "Thibaud Aronson",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "sourceUrl": "https://www.inaturalist.org/photos/33629468"
         }
       }
     },
@@ -5600,6 +5771,15 @@
           "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
           "sourceUrl": "https://commons.wikimedia.org/wiki/File:%E8%97%8D%E8%85%B9%E9%B7%B4%E4%BA%9E%E6%88%90Taiwan_Blue_Pheasant.jpg"
         }
+      },
+      "behaviour": {
+        "image": "img/swinhoe-s-pheasant-behaviour-3117eb.webp",
+        "credit": {
+          "author": "呂一起(Lyu yi-chi)",
+          "license": "CC BY 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "sourceUrl": "https://www.inaturalist.org/photos/378478953"
+        }
       }
     },
     "stats": {
@@ -5847,7 +6027,16 @@
             "sourceUrl": "https://commons.wikimedia.org/wiki/File:Lumbricus_terrestris_(26559560801).jpg"
           }
         }
-      ]
+      ],
+      "behaviour": {
+        "image": "img/mikado-pheasant-behaviour-9324bb.webp",
+        "credit": {
+          "author": "Cullen Hanks",
+          "license": "CC BY 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "sourceUrl": "https://www.inaturalist.org/photos/490564915"
+        }
+      }
     },
     "stats": {
       "lengthCm": {
@@ -6096,6 +6285,15 @@
           "license": "CC BY-SA 3.0",
           "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
           "sourceUrl": "https://commons.wikimedia.org/wiki/File:Taiwan_Barbet_7609.jpg"
+        }
+      },
+      "behaviour": {
+        "image": "img/taiwan-barbet-behaviour-bc1176.webp",
+        "credit": {
+          "author": "孫鋒 林",
+          "license": "CC BY-SA 2.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:%E4%BA%94%E8%89%B2%E9%B3%A5-%E8%87%BA%E7%81%A3%E6%93%AC%E5%95%84%E6%9C%A8%E9%B3%A5_(Megalaima_nuchalis-Taiwan_Barbet)_-_27668608284.jpg"
         }
       }
     },
@@ -6356,6 +6554,15 @@
           "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
           "sourceUrl": "https://www.inaturalist.org/photos/396373208"
         }
+      },
+      "behaviour": {
+        "image": "img/brown-spotted-pit-viper-behaviour-78de6a.webp",
+        "credit": {
+          "author": "Licheng Shih",
+          "license": "CC BY 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Protobothrops_mucrosquamatus_91784939.jpg"
+        }
       }
     },
     "stats": {
@@ -6596,7 +6803,16 @@
             "sourceUrl": "https://commons.wikimedia.org/wiki/File:Lepidostomatid_caddisfly_larva_(22789788977).jpg"
           }
         }
-      ]
+      ],
+      "behaviour": {
+        "image": "img/formosan-landlocked-salmon-behaviour-e8fd9f.webp",
+        "credit": {
+          "author": "Kyo chen",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:%E7%BE%A4%E8%81%9A%E7%9A%84%E6%AB%BB%E8%8A%B1%E9%89%A4%E5%90%BB%E9%AE%AD.jpg"
+        }
+      }
     },
     "stats": {
       "lengthCm": {
@@ -7277,6 +7493,15 @@
           "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
           "sourceUrl": "https://commons.wikimedia.org/wiki/File:Baby_T-rex_0496.JPG"
         }
+      },
+      "behaviour": {
+        "image": "img/tyrannosaurus-rex-behaviour-828b45.webp",
+        "credit": {
+          "author": "Zissoudisctrucker",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:FMNH_Tyrannosaurus_rex_Sue.jpg"
+        }
       }
     },
     "stats": {
@@ -7518,6 +7743,15 @@
           "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
           "sourceUrl": "https://commons.wikimedia.org/wiki/File:TardigradeEggsInShedCuticle.jpg"
         }
+      },
+      "behaviour": {
+        "image": "img/tardigrade-water-bear-behaviour-4fd89f.webp",
+        "credit": {
+          "author": "Schokraie E, Warnken U, Hotz-Wagenblatt A, Grohme MA, Hengherr S, et al. (2012)",
+          "license": "CC BY 2.5",
+          "licenseUrl": "https://creativecommons.org/licenses/by/2.5/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:SEM_image_of_Milnesium_tardigradum_in_tun_state_-_journal.pone.0045682.g001-3.png"
+        }
       }
     },
     "stats": {
@@ -7734,7 +7968,16 @@
             "sourceUrl": "https://commons.wikimedia.org/wiki/File:Starr-140401-0127-Prunus_campanulata-fruit-Rice_Park_Kula-Maui_(24614694613).jpg"
           }
         }
-      ]
+      ],
+      "behaviour": {
+        "image": "img/taiwan-cherry-behaviour-082ff6.webp",
+        "credit": {
+          "author": "lienyuan lee",
+          "license": "CC BY 3.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:%E5%B1%B1%E6%AB%BB%E8%8A%B1_Prunus_campanulata_Maxim._-_panoramio.jpg"
+        }
+      }
     },
     "stats": {
       "heightCm": {

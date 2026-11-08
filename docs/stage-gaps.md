@@ -18,3 +18,4 @@ Not published: `docs/` isn't in the site's allow-list (`scripts/build-site.mjs`)
 | Mikado pheasant | 🥚 Babies | An illustration of a hen with her chicks |
 | Formosan landlocked salmon | 🥚 Babies | A diagram of eggs, fry and young fish, or an openly licensed hatchery photo (Shei-Pa National Park) |
 | Taiwan cherry | 🥚 Babies | A photo of a seed and seedling (a generic cherry seedling would do), or an illustration of fruit, seed and sapling |
+| Atlas moth | 🐾 Behaviour | A wild photo of an adult Atlas moth resting in the forest (no glass, netting or hands): its text is that the adult never eats. The open-licence ones found were in a glasshouse, a museum or a hand |
