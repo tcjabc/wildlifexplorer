@@ -17,7 +17,7 @@ const food = SPECIES_HEADINGS[1];
 // The emoji the cards use, all in Emoji 11 or older: the baseline tablet is Android 9, which draws
 // anything newer as an empty box. A new emoji goes here only after checking its version.
 const EMOJI_11 = new Set(['🌰', '🍎', '🌿', '🐛', '🐭', '🐜', '🍓', '🌾', '🌳', '🌸', '🍄', '🍐', '🥭', '🍍', '🐀', '🐁',
-  '🍃', '🐞', '🌲', '🐟', '🐠', '🦌', '🐗', '🐃', '🦓', '🌵', '🌶️', '🦗', '🍒', '🐸', '🦎', '🐦', '🦇', '🦟', '🦕', '🦏',
+  '🍃', '🐞', '🐝', '🌲', '🐟', '🐠', '🦌', '🐗', '🐃', '🦓', '🌵', '🦗', '🍒', '🐸', '🦎', '🐦', '🦇', '🦕', '🦏',
   '🌱', '🦠', '☀️']);
 
 test('every species card has an emoji for each food, and a photo for most', () => {

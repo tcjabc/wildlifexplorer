@@ -130,7 +130,7 @@ for (const [shape, viewport] of [['landscape', LANDSCAPE], ['portrait', PORTRAIT
     await f.card('formosan-rock-macaque');
     await f.food();
     const stage = await f.box('.stage'), picks = await f.picks(), items = await f.items();
-    assert.deepEqual(picks.map(p => p.icon), ['🍎', '🌿', '🌰', '🐛']);
+    assert.deepEqual(picks.map(p => p.icon), ['🍎', '🌿', '🌰', '🐝']);
     assert.ok(picks.every(p => p.w >= 48 && p.h >= 48), `big enough for small fingers: ${picks.map(p => Math.round(p.w))}`);
     assert.ok(picks.every(p => inside(p, stage)), 'on the stage');
     assert.deepEqual(picks.map(p => p.on), [true, false, false, false], 'it opens on the first');
