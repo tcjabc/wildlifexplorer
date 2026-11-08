@@ -4,7 +4,6 @@
 //   length   – silhouettes side by side, growing up from the ground
 //   weight   – a balance; the lighter side fills with copies until it levels out
 //   lifespan – birthday timelines, candles ticking along
-//   diet     – a plate filling with what the animal eats
 // The child defaults to 120 cm / 23 kg / 6 years; each profile can set its own (Welcome form).
 import { h, mount, reducedMotion } from './dom.js';
 import { bi, t, tx } from './i18n.js';
@@ -30,7 +29,6 @@ const ELEPHANT_KG = 6000;
 const MAX_COPIES = 20;   // more than this and the balance shows a counter instead
 const MAX_TILT = 16;     // degrees
 const fmt = n => Math.round(n).toLocaleString('en');
-const filled = p => p && (p.en || p.zh);
 
 // ---------- animation helpers (all skipped with reduced motion) ----------
 
@@ -265,27 +263,7 @@ function lifespanScene(card, run) {
   return [h('div', { class: 'cmp-life' }, animal.el, kid.el)];
 }
 
-// ---------- diet ----------
-
-function dietScene(card, run) {
-  const s = card.stats ?? {};
-  const icons = s.dietIcons ?? [];
-  const plate = h('div', { class: 'cmp-diet__plate' });
-  sequence(run, icons.length, 220, i => {
-    // Spread the food around the plate.
-    const a = (i / icons.length) * Math.PI * 2 - Math.PI / 2;
-    const r = icons.length > 1 ? 30 : 0;
-    const el = h('span', {
-      class: 'cmp-diet__food', 'aria-hidden': 'true',
-      style: { left: `${50 + Math.cos(a) * r}%`, top: `${50 + Math.sin(a) * r}%` },
-    }, icons[i]);
-    plate.append(el);
-    play(el, [{ transform: 'translate(-50%, -160%) scale(.5)', opacity: 0 }, { transform: 'translate(-50%, -50%)', opacity: 1 }], { duration: 420 });
-  });
-  return [h('div', { class: 'cmp-diet' }, plate), filled(s.diet) && h('p', { class: 'cmp__caption' }, bi(s.diet))];
-}
-
-const SCENES = { length: lengthScene, weight: weightScene, lifespan: lifespanScene, diet: dietScene };
+const SCENES = { length: lengthScene, weight: weightScene, lifespan: lifespanScene };
 
 // The comparison panel. show(mode, who) swaps the scene and replays its animation.
 export function comparePanel(card) {

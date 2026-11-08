@@ -308,7 +308,6 @@
   --heading-h: 88px;    /* a heading button, in card px */
   --heading-icon: 30px;
   --heading-tile-ratio: 1; /* a heading tile on the front, width to height: as big as the grid allows */
-  --stage-plate: 280px; /* the diet plate on the stage */
   --stage-spot: 22px;   /* a place's pin on the stage's map */
   --stage-short: 220px; /* a stage shorter than this on the screen shows Size without its partners */
   --stage-step-h: 64px; /* a step of the Red List scale */
@@ -398,7 +397,6 @@
   --gsheet-pic: min(calc(38 * var(--dvh)), 320px); /* photo in the Globe card sheet */
   --cmp-icon: 44px;     /* figures on the weight balance */
   --life-bar: 22px;
-  --plate: 140px;
   --compare-h: 150px;   /* height of the size-comparison scene */
   --compare-look-h: 110px; /* … and of the lookalike scene, which also lists differences */
 

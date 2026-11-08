@@ -292,8 +292,8 @@ Every card has the same grid (`js/headings.js`, tested on every card in `tests/h
 
 | Place | Species cards | Stage | Topic cards | Stage |
 |---|---|---|---|---|
-| 1 | 🏠 Habitat | photo | ❓ What is it? | photo |
-| 2 | 🍃 Food & Hunting | diet plate, or photo | How it works (a gear) | photo |
+| 1 | 🏠 Habitat | its habitat picture (spot the animal), or photo | ❓ What is it? | photo |
+| 2 | 🍃 Food & Hunting | food tray, or photo | How it works (a gear) | photo |
 | 3 | 🥚 Babies | photo | 👀 Who to look for | `related` cards, or photo |
 | 4 | 🐾 Behaviour | the Profile magnifier, or photo | 🕒 When | photo |
 | 5 | 📏 Size | creature comparison | ⭐ Wow! | photo |
@@ -309,6 +309,17 @@ otherwise a pin on the card's `place`, otherwise its `continents` lit up (`js/co
 can. **A new kind of view** (a Stepper, say) is three small steps, listed at the top of `js/headings.js`:
 a line in `VIEW_HAS`, a builder in `STAGE_VIEWS` (`js/stage-views.js`), and its name in a heading's
 `views` or a card's `stage`.
+
+**Stage pictures**: a heading's entry in `stage` can also be the view's own pictures, each `{ image,
+credit: { author, license, licenseUrl, sourceUrl } }`, with `image` a WebP in `img/` (1200 px, quality
+60, plus its 480 px thumbnail in `img/thumbs/`; licences as for the photos). They are credited on the
+card's credit sheet and the Credits page, and load only when their stage opens.
+- `"habitat": { image, credit, find }` (`js/habitat.js`): a photo of the animal's real home. `find`,
+  when the animal is in it, is `{ x, y, r }`: its middle as fractions of the picture's width and height,
+  and the radius a tap finds it within, as a fraction of the shorter side. A tap there rings it,
+  buzzes once and shows its silhouette; anywhere else does nothing.
+- `"food": [{ image, credit }, …]` (`js/food.js`): one to three photos of what it eats, prey always
+  alive, on a tray. A tapped photo fills the stage; tapped again it goes back to the tray.
 
 **An animal's call**: `"call": { "file": "audio/calls/formosan-black-bear.m4a", "author": …, "license": …,
 "licenseUrl": …, "sourceUrl": … }` plays when the gallery on the stage is tapped. No card has one
@@ -336,7 +347,6 @@ The inside uses these optional fields. Any you leave out are simply not shown.
   "lifespan": { "en": "20–30 years", "zh": "20–30 年" },
   "lifespanYears": { "min": 20, "max": 30 },
   "diet": { "en": "Omnivore: …", "zh": "雜食：…" },
-  "dietIcons": ["🌰", "🍎", "🌿", "🐛", "🐭"],
   "development": { "kind": "gestation", "days": { "min": …, "max": … } },
   "youngCount": { "min": …, "max": … }
 },
@@ -356,7 +366,7 @@ The inside uses these optional fields. Any you leave out are simply not shown.
   under 🐾 Behaviour. The build never touches `profile`, so hand-tuned values are safe.
 - **stats**: `length`, `weight`, `lifespan` and `diet` are the text shown. `lengthCm`, `weightKg` and
   `lifespanYears` are the numbers the comparisons use (the middle of `min`–`max`). If you only give
-  the numbers, the text is made from them. `dietIcons` are emoji for the diet plate.
+  the numbers, the text is made from them.
   `development` is gestation or incubation: `kind` is `"gestation"` (shown as Gestation 懷孕期) or
   `"incubation"` (Incubation 孵化期), `days` the time in days (`min`–`max`), with optional `en`/`zh`
   text instead. `youngCount` is the number of young (or eggs) at a time, with optional `young` text;
@@ -367,8 +377,7 @@ The inside uses these optional fields. Any you leave out are simply not shown.
 - **Creature comparison** fills the stage under 📏 Size. Each scene plays an animation: **length**
   (silhouettes side by side, names and sizes in a row underneath), **weight** (a balance; the lighter
   side fills with copies until it levels out, as many as the "× n" line says, sized to fit on the pan;
-  a counter and "= Elephant × n" for huge numbers) and **lifespan** (birthday timelines);
-  **diet** (a plate filling up) is under 🍃 instead. "You" is 120 cm, 23 kg and 6 years old unless the
+  a counter and "= Elephant × n" for huge numbers) and **lifespan** (birthday timelines). "You" is 120 cm, 23 kg and 6 years old unless the
   profile has its own height, weight and age (Welcome form, or For grown-ups → Edit profile). A grown-up,
   a cat and a car can stand in (`PARTNERS` in `js/compare-data.js`), and a profile without the number a
   scene needs starts with the grown-up. There is nothing to tap and count: the scene takes all the room

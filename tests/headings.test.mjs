@@ -59,7 +59,7 @@ test('text marked todo is for grown-ups only', () => {
 test('a heading falls back to the photo, and a card can choose its own view', () => {
   const food = SPECIES_HEADINGS[1], behaviour = SPECIES_HEADINGS[3];
   assert.equal(viewFor({ group: 'mammals' }, food), 'photo');
-  assert.equal(viewFor({ group: 'mammals', stats: { dietIcons: ['🌰'] } }, food), 'diet');
+  assert.equal(viewFor({ group: 'mammals', stage: { food: [{ image: 'img/a.webp' }] } }, food), 'food');
   const callouts = [{ x: 1, y: 1, en: 'a', zh: 'b' }];
   assert.equal(viewFor({ group: 'mammals', photo: { file: 'a.webp' }, profile: { callouts } }, behaviour), 'profile');
   assert.equal(viewFor({ group: 'mammals', stage: { food: 'status' }, status: 'VU' }, food), 'status');
@@ -86,7 +86,7 @@ test('on today\'s 30 species cards: what is lit and what is grey', () => {
   assert.equal(on('behaviour').length, 30);
   assert.equal(on('dyk').length, 30);
   assert.equal(on('where').length, 30, 'a range map, or the continent');
-  assert.deepEqual(species.map(c => c.id).filter(id => !on('food').includes(id)), ['taiwan-barbet']);
+  assert.equal(on('food').length, 30, 'the food tray');
   assert.deepEqual(species.map(c => c.id).filter(id => !on('babies').includes(id)), ['red-and-white-giant-flying-squirrel', 'eurasian-otter']);
   assert.deepEqual(species.map(c => c.id).filter(id => !on('status').includes(id)), ['atlas-moth', 'tardigrade-water-bear']);
   assert.deepEqual(species.map(c => c.id).filter(id => !on('size').includes(id)), []);

@@ -5,13 +5,14 @@ import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { FOOD_MAX, foodOf } from '../js/food.js';
-import { isTopic } from '../js/headings.js';
+import { SPECIES_HEADINGS, VIEW_HAS, headingsFor, isTopic, viewFor } from '../js/headings.js';
 import { isAllowedLicenseName } from '../scripts/lib/licenses.mjs';
 import { thumbPath } from '../scripts/lib/images.mjs';
 
 const cards = JSON.parse(await readFile(new URL('../data/animals.json', import.meta.url), 'utf8'));
 const species = cards.filter(c => !isTopic(c));
 const at = f => new URL(`../${f}`, import.meta.url);
+const food = SPECIES_HEADINGS[1];
 
 test('every species card has one to three food photos, credited like the photos', () => {
   for (const c of species) {
@@ -27,6 +28,14 @@ test('every species card has one to three food photos, credited like the photos'
     assert.equal(new Set(list.map(p => p.file)).size, list.length, `${c.id}: no photo twice`);
   }
   assert.ok(cards.filter(isTopic).every(c => foodOf(c).length === 0), 'topic cards have none yet');
+});
+
+test('Food shows the tray on every species card; the plate is gone', () => {
+  for (const c of species) assert.equal(viewFor(c, food), 'food', c.id);
+  assert.ok(species.every(c => headingsFor(c)[1].enabled));
+  assert.equal(VIEW_HAS.diet, undefined);
+  assert.ok(species.every(c => !c.stats?.dietIcons), 'no emoji plate data left');
+  assert.equal(viewFor({ group: 'mammals' }, food), 'photo', 'no photos: the gallery as before');
 });
 
 test('a food list keeps only what it can show, three at most', () => {

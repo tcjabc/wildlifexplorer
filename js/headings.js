@@ -12,6 +12,7 @@
 // js/habitat.js): the heading then shows its usual views, and the view reads its data from there.
 import { modesFor } from './compare-data.js';
 import { habitatOf } from './habitat.js';
+import { foodOf } from './food.js';
 
 const filled = p => p && (p.en || p.zh);
 const shown = (p, preview) => filled(p) && (!p.todo || preview);
@@ -20,7 +21,7 @@ const shown = (p, preview) => filled(p) && (!p.todo || preview);
 // text: the Fact File section read out and shown under the grid.
 export const SPECIES_HEADINGS = [
   { id: 'habitat', slot: 1, icon: '🏠', label: 'ff.habitat', text: 'habitat', views: ['habitat', 'photo'] },
-  { id: 'food', slot: 2, icon: '🍃', label: 'ff.foodAndHunting', text: 'foodAndHunting', views: ['diet', 'photo'] },
+  { id: 'food', slot: 2, icon: '🍃', label: 'ff.foodAndHunting', text: 'foodAndHunting', views: ['food', 'photo'] },
   { id: 'babies', slot: 3, icon: '🥚', label: 'heading.babies', text: 'breeding', views: ['photo'] },
   { id: 'behaviour', slot: 4, icon: '🐾', label: 'ff.behaviour', text: 'behaviour', views: ['profile', 'photo'] },
   { id: 'size', slot: 5, icon: '📏', label: 'heading.size', views: ['compare'] },
@@ -67,7 +68,7 @@ export const VIEW_HAS = {
   gallery: () => true,
   habitat: c => Boolean(habitatOf(c)),
   photo: () => true,
-  diet: c => Boolean(c.stats?.dietIcons?.length),
+  food: c => foodOf(c).length > 0,
   profile: c => Boolean(c.profile?.callouts?.length && c[c.profile.image ?? 'photo']?.file),
   compare: (c, { lookalikes = 0 }) => {
     const m = modesFor(c);

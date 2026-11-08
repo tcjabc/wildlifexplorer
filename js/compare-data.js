@@ -1,7 +1,6 @@
 // The numbers behind the creature comparison, and which comparisons a card can show. Plain data in
 // and out, so the heading table (js/headings.js) and its tests can use it without a page.
 
-const filled = p => p && (p.en || p.zh);
 const mid = r => (r == null ? null : typeof r === 'number' ? r : r.max == null ? r.min : (r.min + r.max) / 2);
 
 // Numbers for the comparisons: lengthCm / weightKg / lifespanYears ({ min, max }, the midpoint
@@ -49,12 +48,10 @@ export const compareImage = card => card.compare?.silhouette?.file ?? card.silho
 
 export function modesFor(card) {
   const n = numbers(card);
-  const s = card.stats ?? {};
   return {
     length: Boolean(compareImage(card) && sizeOf(card)),
     weight: Boolean(n.weightKg),
     lifespan: Boolean(n.lifespanYears),
-    diet: Boolean(s.dietIcons?.length || filled(s.diet)),
   };
 }
 

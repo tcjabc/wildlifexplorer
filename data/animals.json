@@ -224,14 +224,7 @@
       "diet": {
         "en": "Omnivore: acorns, fruit, young leaves, insects and small animals",
         "zh": "雜食：橡實、果實、嫩葉、昆蟲和小動物"
-      },
-      "dietIcons": [
-        "🌰",
-        "🍎",
-        "🌿",
-        "🐛",
-        "🐭"
-      ]
+      }
     },
     "compare": {
       "width": 150
@@ -556,12 +549,6 @@
         "en": "Omnivore: fruit, young leaves, seeds and insects",
         "zh": "雜食：果實、嫩葉、種子和昆蟲"
       },
-      "dietIcons": [
-        "🍎",
-        "🌿",
-        "🌰",
-        "🐛"
-      ],
       "development": {
         "kind": "gestation",
         "days": {

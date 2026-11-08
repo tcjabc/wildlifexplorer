@@ -304,6 +304,26 @@
   animation: pop-in var(--t-slow) var(--ease-bounce);
 }
 .habitat__shape { max-width: 100%; max-height: 100%; object-fit: contain; }
+/* Food (js/food.js): one to three photos on the paper. Three: one big and two small, the big one at
+   the left of a wide stage and on top of a tall one. A tapped photo fills the stage. */
+.stage-food { position: absolute; inset: 0; padding: var(--s-3); background: var(--c-paper); }
+.food-tray { display: grid; gap: var(--s-3); width: 100%; height: 100%; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+.food-tray[data-count="3"] { grid-template: repeat(2, minmax(0, 1fr)) / 3fr 2fr; grid-auto-flow: row; }
+.food-tray[data-count="3"] > :first-child { grid-row: span 2; }
+@container (orientation: portrait) {
+  .food-tray { grid-auto-flow: row; grid-auto-rows: minmax(0, 1fr); grid-template-rows: none; grid-template-columns: minmax(0, 1fr); }
+  .food-tray[data-count="3"] { grid-template: 3fr 2fr / repeat(2, minmax(0, 1fr)); }
+  .food-tray[data-count="3"] > :first-child { grid-row: auto; grid-column: span 2; }
+}
+.food-tray__item {
+  position: relative; padding: 0; border: 0; border-radius: var(--r-md); overflow: hidden; cursor: pointer;
+  background: var(--c-bg-deep); box-shadow: var(--shadow-1);
+}
+.food-tray__item .pic { position: absolute; inset: 0; }
+.food-big { position: absolute; inset: 0; cursor: pointer; background: var(--c-bg-deep); animation: pop-in var(--t-fast) ease-out; }
+.food-big[hidden] { display: none; }
+.food-big .pic { position: absolute; inset: 0; }
+.stage-food .cover__credit { z-index: 1; }
 /* Photo or illustration: two dots at the bottom centre, each a whole tap target on the screen. */
 .stage-pic__dots { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); display: flex; }
 .stage-pic__dot {
@@ -320,8 +340,7 @@
 .stage-scene .cmp { flex: 1 1 auto; min-height: 0; justify-content: center; }
 .stage .cmp__caption { font-size: var(--card-fs); }
 .stage-profile { position: absolute; inset: 0; display: flex; flex-direction: column; gap: var(--s-2); padding: var(--s-2); background: var(--c-paper); }
-.stage { --plate: min(var(--stage-plate), 70cqh); --profile-pic-room: calc(100cqh - var(--profile-detail-min-h) - var(--s-2) * 3); }
-.stage .cmp-diet__food { font-size: var(--emoji-sm); }
+.stage { --profile-pic-room: calc(100cqh - var(--profile-detail-min-h) - var(--s-2) * 3); }
 .stage-map { position: absolute; inset: 0; background: var(--c-map-sea); }
 .stage-map .map { aspect-ratio: auto; width: 100%; height: 100%; border-radius: 0; }
 .stage-map .map-open { height: 100%; border-radius: 0; }
@@ -457,15 +476,6 @@
 .cmp-life__candle { position: absolute; bottom: 70%; transform: translateX(-50%); font-size: var(--card-fs-sm); line-height: 1; }
 .cmp-life__cake { position: absolute; top: 50%; margin-top: calc(var(--card-fs) * -0.7); transform: translateX(-50%); font-size: var(--card-fs-title); line-height: 1; }
 .cmp-life__row .cmp__num { min-width: 2.2em; text-align: right; font-weight: var(--fw-bold); color: var(--c-ink); }
-
-/* diet: a plate */
-.cmp-diet { display: grid; place-items: center; padding: var(--s-1) 0; }
-.cmp-diet__plate {
-  position: relative; width: var(--plate); aspect-ratio: 1; border-radius: 50%;
-  background: radial-gradient(circle, var(--c-surface) 55%, var(--c-paper-line) 56% 63%, var(--c-surface) 64%);
-  box-shadow: var(--shadow-1);
-}
-.cmp-diet__food { position: absolute; transform: translate(-50%, -50%); font-size: var(--card-fs-name); line-height: 1; }
 
 /* Related Species: a card you have, one not collected yet (locked), or an animal with no card. */
 .related { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-2); }
