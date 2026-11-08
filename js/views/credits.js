@@ -3,7 +3,7 @@ import { bi, tx } from '../i18n.js';
 import { state, thumbOf, isVisible } from '../store.js';
 import { habitatOf } from '../habitat.js';
 import { foodPhotos } from '../food.js';
-import { babiesOf, behaviourOf } from '../stage-pictures.js';
+import { babiesOf, behaviourOf, dykOf } from '../stage-pictures.js';
 import { LAYERS, LAYER_CREDITS } from '../layers.js';
 
 function link(url, text) {
@@ -19,6 +19,7 @@ export function render(main) {
     .concat(foodPhotos(card).map(img => ({ card, kind: 'food', img })))
     .concat(babiesOf(card) ? [{ card, kind: 'babies', img: babiesOf(card) }] : [])
     .concat(behaviourOf(card) ? [{ card, kind: 'behaviour', img: behaviourOf(card) }] : [])
+    .concat(dykOf(card) ? [{ card, kind: 'dyk', img: dykOf(card) }] : [])
     .concat(card.compare?.silhouette?.file ? [{ card, kind: 'silhouette', img: card.compare.silhouette }] : []));
   // Standalone lookalikes (no card of their own) are always shown, so never blurred.
   const entries = Object.values(state.lookalikes.entries ?? {}).flatMap(e => ['photo', 'silhouette']

@@ -196,7 +196,16 @@
             "sourceUrl": "https://commons.wikimedia.org/wiki/File:Camponotus_herculeanus_queen_high_res.jpg"
           }
         }
-      ]
+      ],
+      "dyk": {
+        "image": "img/formosan-black-bear-dyk-01f133.webp",
+        "credit": {
+          "author": "Abu0804",
+          "license": "CC BY-SA 3.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Ursus_thibetanus_formosanus_V_character.jpg"
+        }
+      }
     },
     "stats": {
       "length": {
@@ -1369,6 +1378,15 @@
           "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
           "sourceUrl": "https://www.inaturalist.org/photos/556816336"
         }
+      },
+      "dyk": {
+        "image": "img/formosan-sambar-deer-dyk-7325a5.webp",
+        "credit": {
+          "author": "Yu-Chang Chen",
+          "license": "CC BY 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "sourceUrl": "https://www.inaturalist.org/photos/364121818"
+        }
       }
     },
     "stats": {
@@ -2426,6 +2444,15 @@
           "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
           "sourceUrl": "https://commons.wikimedia.org/wiki/File:%E3%83%8F%E3%82%AF%E3%83%93%E3%82%B7%E3%83%B3_%E7%99%BD%E9%BC%BB%E8%8A%AF_Masked_Palm_Civet.jpg"
         }
+      },
+      "dyk": {
+        "image": "img/masked-palm-civet-dyk-030d91.webp",
+        "credit": {
+          "author": "Rejoice Gassah",
+          "license": "CC BY 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Paguma_larvata_75496722.jpg"
+        }
       }
     },
     "stats": {
@@ -3211,6 +3238,15 @@
           "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
           "sourceUrl": "https://commons.wikimedia.org/wiki/File:Royal_bengal_tiger_Swimming.jpg"
         }
+      },
+      "dyk": {
+        "image": "img/bengal-tiger-dyk-5f459e.webp",
+        "credit": {
+          "author": "Soumyajit Nandy",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Sundarban_tiger_swimming.jpg"
+        }
       }
     },
     "stats": {
@@ -3467,6 +3503,15 @@
           "license": "CC BY-SA 3.0",
           "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
           "sourceUrl": "https://commons.wikimedia.org/wiki/File:Lions_Family_Portrait_Masai_Mara.jpg"
+        }
+      },
+      "dyk": {
+        "image": "img/lion-dyk-61320c.webp",
+        "credit": {
+          "author": "Charles J. Sharp",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Lion_(Panthera_leo)_old_male_Chobe.jpg"
         }
       }
     },
@@ -4007,6 +4052,15 @@
           "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
           "sourceUrl": "https://commons.wikimedia.org/wiki/File:Savanna_Elephants_(Loxodonta_africana)_family_drinking_..._(Photo_JC_PLE)_(52843890612).jpg"
         }
+      },
+      "dyk": {
+        "image": "img/african-elephant-dyk-072501.webp",
+        "credit": {
+          "author": "Cosal",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Elephant_mother_and_calf_Sabi_Sand.jpg"
+        }
       }
     },
     "stats": {
@@ -4505,6 +4559,15 @@
           "license": "CC BY-SA 4.0",
           "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
           "sourceUrl": "https://commons.wikimedia.org/wiki/File:Zebra_Herd_Michael_makalundwa.jpg"
+        }
+      },
+      "dyk": {
+        "image": "img/plains-zebra-dyk-a9cfcf.webp",
+        "credit": {
+          "author": "Alandmanson",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Zebra_2013_10_06_1274.jpg"
         }
       }
     },
@@ -5009,6 +5072,15 @@
           "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
           "sourceUrl": "https://commons.wikimedia.org/wiki/File:Diceros_bicornis_-_profile_-_Etosha_2014.jpg"
         }
+      },
+      "dyk": {
+        "image": "img/black-rhinoceros-dyk-b1c356.webp",
+        "credit": {
+          "author": "Garst, Warren, 1922-2016, photographer",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Black_rhinoceros_walking_in_grass_-_DPLA_-_a1a00f7c1d13c94d09fc6e092f1b8c73.jpg"
+        }
       }
     },
     "stats": {
@@ -5511,6 +5583,15 @@
           "license": "CC BY-SA 4.0",
           "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
           "sourceUrl": "https://www.inaturalist.org/photos/33629468"
+        }
+      },
+      "dyk": {
+        "image": "img/taiwan-blue-magpie-dyk-7067e5.webp",
+        "credit": {
+          "author": "Charles Lam from Hong Kong, China",
+          "license": "CC BY-SA 2.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Flying_(16777110723).jpg"
         }
       }
     },
@@ -6294,6 +6375,15 @@
           "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
           "sourceUrl": "https://commons.wikimedia.org/wiki/File:%E4%BA%94%E8%89%B2%E9%B3%A5-%E8%87%BA%E7%81%A3%E6%93%AC%E5%95%84%E6%9C%A8%E9%B3%A5_(Megalaima_nuchalis-Taiwan_Barbet)_-_27668608284.jpg"
         }
+      },
+      "dyk": {
+        "image": "img/taiwan-barbet-dyk-c921c7.webp",
+        "credit": {
+          "author": "Charles Lam from Hong Kong, China",
+          "license": "CC BY-SA 2.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:Sweet_Home_(16975857994).jpg"
+        }
       }
     },
     "stats": {
@@ -6810,6 +6900,15 @@
           "license": "CC BY-SA 4.0",
           "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
           "sourceUrl": "https://commons.wikimedia.org/wiki/File:%E7%BE%A4%E8%81%9A%E7%9A%84%E6%AB%BB%E8%8A%B1%E9%89%A4%E5%90%BB%E9%AE%AD.jpg"
+        }
+      },
+      "dyk": {
+        "image": "img/formosan-landlocked-salmon-dyk-b8ee99.webp",
+        "credit": {
+          "author": "Kyo chen",
+          "license": "CC BY-SA 4.0",
+          "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+          "sourceUrl": "https://commons.wikimedia.org/wiki/File:%E6%B0%B4%E6%B3%A2%E5%85%89%E5%BD%B1%E4%B8%AD%E7%9A%84%E6%AB%BB%E8%8A%B1%E9%89%A4%E5%90%BB%E9%AE%AD.jpg"
         }
       }
     },

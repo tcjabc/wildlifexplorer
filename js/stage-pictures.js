@@ -1,8 +1,8 @@
 // Stage pictures: a heading's own photos in a card's "stage" in data/animals.json, each { image,
 // credit: { author, license, licenseUrl, sourceUrl } } with image a WebP in our own img/. Habitat
-// (js/habitat.js) and Food (js/food.js) build on this; Babies and Behaviour are one static photo
-// each: "stage": { "babies": { image, credit }, "behaviour": { image, credit } }. Plain data, tested in
-// tests/stage-pictures.test.mjs.
+// (js/habitat.js) and Food (js/food.js) build on this; Babies, Behaviour and Did You Know are one
+// static photo each: "stage": { "babies" | "behaviour" | "dyk": { image, credit } }. Plain data,
+// tested in tests/stage-pictures.test.mjs.
 
 const FILE = /^img\/[a-z0-9-]+\.webp$/;
 
@@ -18,3 +18,6 @@ export const babiesOf = card => stagePicture(card?.stage?.babies);
 
 // The card's photo of the behaviour its text names, or null.
 export const behaviourOf = card => stagePicture(card?.stage?.behaviour);
+
+// The card's photo of its Did You Know fact, or null.
+export const dykOf = card => stagePicture(card?.stage?.dyk);
