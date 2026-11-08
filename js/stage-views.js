@@ -3,7 +3,8 @@
 //   build(card, ctx, heading) → { el, replay?, stop?, layout? }
 //     ctx: { onCredit, onMap, onCall }. heading: the heading that asked for it, or null.
 //     replay: run its animation again. stop: it is leaving, stop whatever it started.
-//     layout(w, h): the stage has this size now, in card px (when shown, and whenever it changes).
+//     layout(w, h): the stage has this size now, in card px (when shown, and whenever it changes,
+//       as on turning the device). It keeps what the view is showing: no new animation, no reset.
 import { h, mount, reducedMotion } from './dom.js';
 import { bi, label, t, tx } from './i18n.js';
 import { state } from './store.js';
@@ -166,8 +167,15 @@ function compare(card) {
   let drawn = '';
   return {
     el: h('div', { class: 'stage-cmp' }, top.childElementCount > 0 && top, you, animal),
-    // The scenes are measured from the stage, so they are drawn once it is there.
-    layout(w, height) { if (drawn !== `${w}x${height}`) { drawn = `${w}x${height}`; draw(); } },
+    // The scenes are measured from the stage, so they are drawn once it is there; after that a
+    // new size only fits the scene to it, keeping the mode, the partner and the count so far.
+    layout(w, height) {
+      const size = `${w}x${height}`;
+      if (drawn === size) return;
+      const first = !drawn;
+      drawn = size;
+      if (first) draw(); else panel.resize();
+    },
     replay: draw,
     stop() { panel.stop(); others?.stop(); },
   };
@@ -227,6 +235,9 @@ export function stageFor(card, ctx) {
   const el = h('div', { class: 'stage', 'data-group': card.group });
   let view = null, id = null;
   const layout = () => { if (el.offsetWidth && el.offsetHeight) view?.layout?.(el.offsetWidth, el.offsetHeight); };
+  // Whenever the stage itself changes size (the device turns, the notebook opens), the view fits it.
+  const watch = typeof ResizeObserver === 'function' ? new ResizeObserver(() => layout()) : null;
+  watch?.observe(el);
   return {
     el,
     layout,
@@ -242,6 +253,6 @@ export function stageFor(card, ctx) {
       if (!reducedMotion()) view.el.animate?.([{ opacity: 0 }, { opacity: 1 }], { duration: 180, easing: 'ease-out' });
     },
     replay: () => view?.replay?.(),
-    destroy: () => view?.stop?.(),
+    destroy: () => { watch?.disconnect(); view?.stop?.(); },
   };
 }

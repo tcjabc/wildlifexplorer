@@ -92,9 +92,9 @@ function lengthScene(card, run, who) {
     h('figure', { class: 'cmp-len__item' }, pic,
       h('figcaption', null, bi(card.name), h('span', { class: 'cmp__num' }, bi(stat ? lengthText(stat.min, stat.max) : lengthText(size.cm))))));
 
-  // Once the silhouette's shape is known, size both so 1 cm is the same on each.
-  const layout = () => {
-    if (!run.alive) return;
+  // Once the silhouette's shape is known, size both so 1 cm is the same on each. Sized again
+  // (without the animation) whenever the stage changes size: run.resize.
+  const size1 = () => {
     const ratio = pic.naturalHeight / pic.naturalWidth || 0.6;
     const w = size.across ? size.cm : size.cm / ratio;
     const whoW = who.across ? who.cm : who.cm / who.ratio;
@@ -105,6 +105,11 @@ function lengthScene(card, run, who) {
     const pxPerCm = Math.min(avail / tallest, availW / (w + whoW));
     kidImg.style.setProperty('width', `${whoW * pxPerCm}px`);
     pic.style.setProperty('width', `${w * pxPerCm}px`);
+  };
+  const layout = () => {
+    if (!run.alive) return;
+    size1();
+    run.resize = size1;
     [kidImg, pic].forEach((el, i) => play(el, [{ transform: 'scaleY(0)' }, { transform: 'scaleY(1)' }], { duration: 600, delay: i * 180 }));
   };
   if (pic.complete) requestAnimationFrame(layout); else pic.addEventListener('load', () => requestAnimationFrame(layout));
@@ -250,6 +255,8 @@ export function comparePanel(card) {
       run = { alive: true };
       mount(body, SCENES[mode](card, run, who));
     },
+    // The stage changed size: the scene fits it again, where it is, without starting over.
+    resize() { if (run.alive) run.resize?.(); },
     stop() { run.alive = false; },
   };
 }
