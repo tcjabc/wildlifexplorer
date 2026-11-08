@@ -103,7 +103,7 @@ async function open(viewport) {
         return {
           view: s.firstElementChild?.className ?? null,
           src: s.querySelector('.stage-food .pic')?.getAttribute('src') ?? null,
-          emoji: s.querySelector('.food-emoji')?.textContent ?? null,
+          emoji: s.querySelector('.stage-emoji')?.textContent ?? null,
           credit: Boolean(s.querySelector('.stage-food .cover__credit')),
           face: document.querySelector('.viewer__stage').dataset.face,
           lit: document.querySelector('.hbtn.is-on')?.dataset.heading ?? null, hash: location.hash,

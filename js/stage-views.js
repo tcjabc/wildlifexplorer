@@ -63,6 +63,15 @@ function stagePhoto(pic, alt, cls, onCredit) {
   return { frame: h('div', { class: ['stage-pic', cls] }, img, credit), img };
 }
 
+// A heading with nothing of its own yet: its emoji, big on the paper (docs/stage-gaps.md).
+function placeholder(card, ctx, heading) {
+  return {
+    el: h('div', { class: 'stage-pic stage-placeholder' },
+      h('div', { class: 'stage-emoji', role: 'img', 'aria-label': heading ? label(heading.label) : '' },
+        h('span', { 'aria-hidden': 'true' }, heading?.icon ?? '')))
+  };
+}
+
 // Its young: one photo, nothing to do but look.
 function babies(card, { onCredit }) {
   return { el: stagePhoto(babiesOf(card), 'heading.babies', 'stage-babies', () => onCredit?.('babies')).frame };
@@ -180,7 +189,7 @@ function food(card, { onCredit }) {
           srcset: `${thumbOf(pic.file)} 480w, ${pic.file} 1200w`, sizes: '(min-width: 700px) 600px, 100vw',
           'data-fallback': thumbOf(pic.file),
         })
-        : h('div', { class: 'food-emoji' }, h('span', { 'aria-hidden': 'true' }, icon)),
+        : h('div', { class: 'stage-emoji' }, h('span', { 'aria-hidden': 'true' }, icon)),
       pic && credit, pick);
     pick.querySelectorAll('button').forEach((b, n) => b.setAttribute('aria-checked', String(n === i)));
   }
@@ -304,6 +313,7 @@ export const STAGE_VIEWS = {
   food,
   babies,
   behaviour,
+  placeholder,
   compare,
   map,
   status,

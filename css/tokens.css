@@ -316,7 +316,7 @@
   --stage-look-h: 170px;  /* the lookalike scene, on the stage */
   --food-pick: 52px;      /* a food's emoji button under the Food stage, on the screen (at least 48) */
   --food-pick-glyph: 28px; /* and its emoji */
-  --food-emoji: 42cqmin;  /* a food with no photo: its emoji, big on the paper */
+  --stage-emoji: 42cqmin; /* a food with no photo, or a heading with nothing yet: its emoji, big on the paper */
   --habitat-found: 76px;  /* the animal's silhouette, once it is found on the Habitat picture */
   --hand-size: 52px;    /* the hand that shows how to turn a card over: its disc */
   --hand-glyph: 1.75rem; /* and the hand on it */

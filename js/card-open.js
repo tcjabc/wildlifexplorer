@@ -22,7 +22,7 @@ export function openCard(card, { onCredit, onMap, onCall, onHeading } = {}) {
 
   // quiet: coming back to a heading that was already lit, nothing to play.
   function select(id, { quiet = false } = {}) {
-    const x = grid.find(g => g.id === id && g.enabled) ?? null;
+    const x = grid.find(g => g.id === id) ?? null;
     current = x?.id ?? null;
     buttons.forEach(b => {
       const on = b.dataset.heading === current;
@@ -35,13 +35,11 @@ export function openCard(card, { onCredit, onMap, onCall, onHeading } = {}) {
     if (x) playNarration(card, x.id, getMode());
   }
 
-  // A grey heading is still in the grid and still part of the card for a swipe that starts on it,
-  // so it is marked rather than disabled.
+  // Every heading can be tapped (js/headings.js); one with nothing of its own shows its placeholder.
   const buttons = grid.map(x => h('button', {
     class: 'hbtn', type: 'button', 'data-heading': x.id, 'data-slot': x.slot,
-    'aria-pressed': 'false', 'aria-disabled': x.enabled ? null : 'true',
+    'aria-pressed': 'false',
     onclick: () => {
-      if (!x.enabled) return;
       const again = x.id === current;
       select(again ? null : x.id);
       onHeading?.(x.id, { again });

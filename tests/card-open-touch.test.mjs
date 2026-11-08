@@ -168,7 +168,7 @@ both('every heading button is at least 64 px, all eight, in the same place on ev
     await f.card(id);
     const grid = await f.page.evaluate(() => [...document.querySelectorAll('.hbtn')].map(b => {
       const r = b.getBoundingClientRect();
-      return { id: b.dataset.heading, x: Math.round(r.x), y: Math.round(r.y), w: r.width, h: r.height, c: getComputedStyle(b).backgroundColor, grey: b.getAttribute('aria-disabled') === 'true' };
+      return { id: b.dataset.heading, x: Math.round(r.x), y: Math.round(r.y), w: r.width, h: r.height, c: getComputedStyle(b).backgroundColor, grey: b.hasAttribute('aria-disabled') };
     }));
     assert.equal(grid.length, 8, id);
     for (const b of grid) assert.ok(b.w >= 64 && b.h >= 64, `${id} ${b.id}: ${b.w} x ${b.h}`);
@@ -180,7 +180,8 @@ both('every heading button is at least 64 px, all eight, in the same place on ev
   assert.deepEqual(place(seen[1]), place(seen[0]));
   assert.deepEqual(place(seen[2]), place(seen[0]));
   const colour = seen[0].map(b => b.c);
-  assert.deepEqual(seen[1].filter(b => !b.grey).map(b => b.c), colour.filter((_, i) => !seen[1][i].grey), 'the same colours');
+  for (const g of seen) assert.deepEqual(g.map(b => b.c), colour, 'the same colours, every one lit');
+  assert.ok(seen.flat().every(b => !b.grey), 'nothing greyed out');
 });
 
 both('a heading lights up without a sound, switches the stage and finds its section on the back', async (f, kind) => {
@@ -299,13 +300,15 @@ both('a swipe sideways changes card, either way; with no card that way it spring
   await f.page.waitForFunction(id => location.hash.endsWith(id), order[0], { timeout: 3000 });
 });
 
-both('a grey heading does nothing when tapped, and a swipe that starts on it still moves the card', async f => {
+both('a heading with nothing of its own is lit and shows its emoji; a swipe that starts on it still moves the card', async f => {
   await f.card('atlas-moth'); // the only invertebrate: no card either side, so it springs back
-  assert.equal(await f.page.evaluate(() => document.querySelector('.hbtn[data-heading="status"]').getAttribute('aria-disabled')), 'true');
+  assert.equal(await f.page.evaluate(() => document.querySelector('.hbtn[data-heading="status"]').hasAttribute('aria-disabled')), false);
   await f.forget();
   await f.tap('.hbtn[data-heading="status"]');
-  assert.deepEqual(await f.lit(), []);
-  assert.deepEqual(await f.said(), []);
+  assert.deepEqual(await f.lit(), ['status']);
+  assert.deepEqual(await f.said(), [], 'silent, like every heading');
+  assert.deepEqual(await f.page.evaluate(() => [document.querySelector('.stage').firstElementChild.className, document.querySelector('.stage .stage-emoji')?.textContent]),
+    ['stage-pic stage-placeholder', '❤️'], 'its own emoji, big on the paper');
   const b = await f.box('.hbtn[data-heading="status"]');
   const y = b.y + b.h / 2, x = b.x + b.w / 2;
   const before = (await f.box('.card3d--front')).x;
@@ -461,7 +464,7 @@ run('back from the globe on one page: the back comes back too', async f => {
   await f.faces('back');
 }, PORTRAIT);
 
-run('Babies: its own photo of the young (nothing to tap); the gallery where there is none; the back shows the section', async f => {
+run('Babies: its own photo of the young (nothing to tap); its placeholder where there is none; the back shows the section', async f => {
   for (const [id, own] of [['taiwan-blue-magpie', true], ['leopard-cat', true], ['formosan-black-bear', false]]) {
     await f.card(id);
     await f.tap('.hbtn[data-heading="babies"]');
@@ -472,8 +475,8 @@ run('Babies: its own photo of the young (nothing to tap); the gallery where ther
       assert.match(pic.cls, /stage-babies/, id);
       assert.match(pic.src, /-babies-/, `${id}: the photo of its young`);
     } else {
-      assert.doesNotMatch(pic.cls, /stage-babies/, id);
-      assert.match(pic.src, /-photo-/, `${id}: the gallery photo`);
+      assert.match(pic.cls, /stage-placeholder/, `${id}: its placeholder`);
+      assert.equal(await f.page.evaluate(() => document.querySelector('.stage .stage-emoji')?.textContent), '🥚', id);
     }
     assert.equal((await f.section())?.id, 'babies', id);
     assert.equal(await f.page.evaluate(() => document.querySelectorAll('.stage button:not(.cover__credit):not(.stage-pic__dot)').length), 0, `${id}: nothing to tap`);
@@ -482,8 +485,8 @@ run('Babies: its own photo of the young (nothing to tap); the gallery where ther
   }
 });
 
-run('Behaviour: its own photo (nothing to tap); the Profile where a card has one; the gallery where there is neither', async f => {
-  for (const [id, want] of [['lion', 'photo'], ['formosan-black-bear', 'profile'], ['atlas-moth', 'gallery']]) {
+run('Behaviour: its own photo (nothing to tap); the Profile where a card has one; its placeholder where there is neither', async f => {
+  for (const [id, want] of [['lion', 'photo'], ['formosan-black-bear', 'profile'], ['atlas-moth', 'placeholder']]) {
     await f.card(id);
     await f.tap('.hbtn[data-heading="behaviour"]');
     await f.rests();
@@ -496,8 +499,8 @@ run('Behaviour: its own photo (nothing to tap); the Profile where a card has one
     } else if (want === 'profile') {
       assert.match(got.cls, /stage-profile/, `${id}: the Profile magnifier stays`);
     } else {
-      assert.doesNotMatch(got.cls, /stage-behaviour|stage-profile/, id);
-      assert.match(got.src, /-photo-/, `${id}: the gallery photo`);
+      assert.match(got.cls, /stage-placeholder/, `${id}: its placeholder`);
+      assert.equal(await f.page.evaluate(() => document.querySelector('.stage .stage-emoji')?.textContent), '🐾', id);
     }
     assert.equal((await f.section())?.id, 'behaviour', id);
     await f.page.evaluate(() => { location.hash = '#/binder'; });
@@ -507,15 +510,24 @@ run('Behaviour: its own photo (nothing to tap); the Profile where a card has one
 
 both('topic cards: their own set, in the same grid, with their facts on the back', async f => {
   await f.card('kenting-coral-reefs');
-  const grid = await f.page.evaluate(() => [...document.querySelectorAll('.hbtn')].map(b => [b.dataset.heading, b.getAttribute('aria-disabled') !== 'true']));
+  const grid = await f.page.evaluate(() => [...document.querySelectorAll('.hbtn')].map(b => [b.dataset.heading, !b.hasAttribute('aria-disabled')]));
   assert.deepEqual(grid.map(g => g[0]), ['what', 'how', 'who', 'when', 'wow', 'where', 'help', 'dyk']);
-  assert.deepEqual(grid.filter(g => g[1]).map(g => g[0]), ['what', 'when', 'where']);
+  assert.ok(grid.every(g => g[1]), 'every tile lit');
   const ids = await f.page.evaluate(() => [...document.querySelectorAll('.ff__section')].map(x => x.dataset.heading));
   assert.deepEqual(ids, ['what', 'when', 'where']);
   assert.match(await f.back(), /full moon/);
   await f.tap('.hbtn[data-heading="where"]');
   await f.wait(300);
   assert.equal(await f.page.evaluate(() => document.querySelectorAll('.stage .map__spot').length), 1, 'a pin on the place');
+  // A heading with no fact and no view of its own: its emoji on the stage; the back has no section
+  // for it, so nothing is marked and it doesn't scroll.
+  const top = await f.page.evaluate(() => document.querySelector('.ff__body').scrollTop);
+  await f.tap('.hbtn[data-heading="how"]');
+  await f.wait(400);
+  assert.deepEqual(await f.lit(), ['how']);
+  assert.equal(await f.page.evaluate(() => document.querySelector('.stage .stage-emoji')?.textContent), '⚙️');
+  assert.equal(await f.section(), null, 'no section to mark');
+  assert.equal(await f.page.evaluate(() => document.querySelector('.ff__body').scrollTop), top, 'the back stays where it was');
 });
 
 run('beside the expanded notebook the card is one page, in the room that is left', async f => {

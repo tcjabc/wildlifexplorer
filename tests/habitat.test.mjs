@@ -36,12 +36,12 @@ test('17 cards have the animal to find, each one inside its picture', () => {
   }
 });
 
-test('Habitat shows the picture; with none, the photo as before', () => {
+test('Habitat shows the picture; with none, its placeholder', () => {
   for (const c of species) assert.equal(viewFor(c, habitat), 'habitat', c.id);
-  assert.equal(viewFor({ group: 'mammals' }, habitat), 'photo');
-  assert.equal(viewFor({ group: 'mammals', stage: { habitat: { image: 'https://example.com/a.webp' } } }, habitat), 'photo', 'only our own img/ files');
+  assert.equal(viewFor({ group: 'mammals' }, habitat), 'placeholder');
+  assert.equal(viewFor({ group: 'mammals', stage: { habitat: { image: 'https://example.com/a.webp' } } }, habitat), 'placeholder', 'only our own img/ files');
   assert.equal(viewFor({ group: 'mammals', stage: { habitat: { image: 'img/a.webp' } } }, habitat), 'habitat');
-  assert.ok(headingsFor({ group: 'mammals', stage: { habitat: { image: 'img/a.webp' } } })[0].enabled, 'a picture of its own lights the heading');
+  assert.equal(headingsFor({ group: 'mammals', stage: { habitat: { image: 'img/a.webp' } } })[0].view, 'habitat', 'a picture of its own');
 });
 
 test('a find with numbers out of range is no find: the picture stays static', () => {

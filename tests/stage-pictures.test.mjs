@@ -38,10 +38,10 @@ test('21 species cards have a photo of their young, credited like the photos', (
   }
 });
 
-test('Babies shows the photo where there is one, the gallery where there isn\'t', () => {
-  for (const c of species) assert.equal(viewFor(c, babies), babiesOf(c) ? 'babies' : 'photo', c.id);
+test('Babies shows the photo where there is one, its placeholder where there isn\'t', () => {
+  for (const c of species) assert.equal(viewFor(c, babies), babiesOf(c) ? 'babies' : 'placeholder', c.id);
   const noText = { ...species.find(c => c.id === 'eurasian-otter'), factFile: {} };
-  assert.ok(headingsFor(noText)[2].enabled, 'a photo lights the heading even with no Babies text');
+  assert.equal(headingsFor(noText)[2].view, 'babies', 'its photo even with no Babies text');
 });
 
 // Behaviour: one photo of what its text says it does, on 27 species cards. The bear and the macaque
@@ -61,7 +61,7 @@ test('27 species cards have a behaviour photo; the Profile comes first where the
     assert.equal(viewFor(c, behaviour), 'behaviour', c.id);
   }
   for (const id of ['formosan-black-bear', 'formosan-rock-macaque']) assert.equal(viewFor(species.find(c => c.id === id), behaviour), 'profile', id);
-  assert.equal(viewFor(species.find(c => c.id === 'atlas-moth'), behaviour), 'photo', 'the gallery, for now');
+  assert.equal(viewFor(species.find(c => c.id === 'atlas-moth'), behaviour), 'placeholder', 'its placeholder, for now');
   const pics = cards.flatMap(c => [babiesOf(c), behaviourOf(c)].filter(Boolean).map(p => p.sourceUrl));
   assert.equal(new Set(pics).size, pics.length, 'no photo used twice');
 });

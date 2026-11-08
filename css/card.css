@@ -281,8 +281,6 @@
 /* Lit: pushed in, with a ring in the page's ink. */
 .hbtn.is-on { box-shadow: 0 0 0 var(--bw-mid) var(--c-ink); }
 /* Nothing for this heading on this card: still there, in grey. */
-.hbtn[aria-disabled="true"] { background: var(--c-paper-line); color: var(--c-ink-faint); box-shadow: none; cursor: default; }
-.hbtn[aria-disabled="true"] .hbtn__icon { filter: grayscale(1); opacity: var(--o-dimmed); }
 /* The stage (js/stage-views.js). */
 /* A size container, so what is drawn on it can fit its height (cqh): it is as big as its page gives it. */
 .stage { position: absolute; inset: 0; overflow: hidden; background: var(--c-bg-deep); container-type: size; }
@@ -307,10 +305,11 @@
 .habitat__shape { max-width: 100%; max-height: 100%; object-fit: contain; }
 /* Food (js/food.js): one food at a time, its photo filling the stage (.stage-pic), or its emoji big on
    the paper when it has none. Its emoji row sits where the gallery's dots do, each a whole tap target
-   on the screen (--food-pick, at least 48 px), the one showing lit like the lit dot. */
-.food-emoji {
+   on the screen (--food-pick, at least 48 px), the one showing lit like the lit dot.
+   .stage-emoji, the big emoji on the paper, is also a heading's placeholder (js/stage-views.js). */
+.stage-emoji {
   position: absolute; inset: 0; display: grid; place-items: center; background: var(--c-paper);
-  font-size: var(--food-emoji); line-height: 1;
+  font-size: var(--stage-emoji); line-height: 1;
 }
 .food-pick { gap: calc(var(--s-1) / var(--card-s, 1)); padding-bottom: calc(var(--s-1) / var(--card-s, 1)); }
 .food-pick__btn {

@@ -1,6 +1,6 @@
 // The heading grid on an open card: eight buttons, the same icon, colour and place on every card, so
-// children who can't read yet learn them. A card with nothing for a heading shows it greyed out,
-// never missing, so nothing ever moves. Topic cards have a set of their own, with 🌍 ❤️ 💡 in the
+// children who can't read yet learn them. Every one is lit on every card: one with nothing of its own
+// shows its emoji big on the stage, so nothing ever moves or greys out. Topic cards have a set of their own, with 🌍 ❤️ 💡 in the
 // same places. Plain data in and out, so it can be tested without a page (tests/headings.test.mjs).
 //
 // Each heading names the stage views it would like, best first; the first this card can show is
@@ -21,25 +21,25 @@ const shown = (p, preview) => filled(p) && (!p.todo || preview);
 // slot: the place in the grid, 1–8, and the colour (--head-<slot> in css/tokens.css).
 // text: the Fact File section read out and shown under the grid.
 export const SPECIES_HEADINGS = [
-  { id: 'habitat', slot: 1, icon: '🏠', label: 'ff.habitat', text: 'habitat', views: ['habitat', 'photo'] },
-  { id: 'food', slot: 2, icon: '🍃', label: 'ff.foodAndHunting', text: 'foodAndHunting', views: ['food', 'photo'] },
-  { id: 'babies', slot: 3, icon: '🥚', label: 'heading.babies', text: 'breeding', views: ['babies', 'photo'] },
-  { id: 'behaviour', slot: 4, icon: '🐾', label: 'ff.behaviour', text: 'behaviour', views: ['profile', 'behaviour', 'photo'] },
-  { id: 'size', slot: 5, icon: '📏', label: 'heading.size', views: ['compare'] },
-  { id: 'where', slot: 6, icon: '🌍', label: 'card.where', views: ['map'] },
-  { id: 'status', slot: 7, icon: '❤️', label: 'heading.status', text: 'conservation', views: ['status'] },
-  { id: 'dyk', slot: 8, icon: '💡', label: 'ff.didYouKnow', text: 'didYouKnow', views: ['photo'] },
+  { id: 'habitat', slot: 1, icon: '🏠', label: 'ff.habitat', text: 'habitat', views: ['habitat', 'placeholder'] },
+  { id: 'food', slot: 2, icon: '🍃', label: 'ff.foodAndHunting', text: 'foodAndHunting', views: ['food', 'placeholder'] },
+  { id: 'babies', slot: 3, icon: '🥚', label: 'heading.babies', text: 'breeding', views: ['babies', 'placeholder'] },
+  { id: 'behaviour', slot: 4, icon: '🐾', label: 'ff.behaviour', text: 'behaviour', views: ['profile', 'behaviour', 'placeholder'] },
+  { id: 'size', slot: 5, icon: '📏', label: 'heading.size', views: ['compare', 'placeholder'] },
+  { id: 'where', slot: 6, icon: '🌍', label: 'card.where', views: ['map', 'placeholder'] },
+  { id: 'status', slot: 7, icon: '❤️', label: 'heading.status', text: 'conservation', views: ['status', 'placeholder'] },
+  { id: 'dyk', slot: 8, icon: '💡', label: 'ff.didYouKnow', text: 'didYouKnow', views: ['placeholder'] },
 ];
 
 export const TOPIC_HEADINGS = [
-  { id: 'what', slot: 1, icon: '❓', label: 'heading.what', views: ['photo'] },
-  { id: 'how', slot: 2, icon: '⚙️', label: 'heading.how', views: ['photo'] },
-  { id: 'who', slot: 3, icon: '👀', label: 'heading.who', views: ['related', 'photo'] },
-  { id: 'when', slot: 4, icon: '🕒', label: 'heading.when', views: ['photo'] },
-  { id: 'wow', slot: 5, icon: '⭐', label: 'heading.wow', views: ['photo'] },
-  { id: 'where', slot: 6, icon: '🌍', label: 'card.where', views: ['map'] },
-  { id: 'help', slot: 7, icon: '❤️', label: 'heading.help', views: ['photo'] },
-  { id: 'dyk', slot: 8, icon: '💡', label: 'ff.didYouKnow', views: ['photo'] },
+  { id: 'what', slot: 1, icon: '❓', label: 'heading.what', views: ['placeholder'] },
+  { id: 'how', slot: 2, icon: '⚙️', label: 'heading.how', views: ['placeholder'] },
+  { id: 'who', slot: 3, icon: '👀', label: 'heading.who', views: ['related', 'placeholder'] },
+  { id: 'when', slot: 4, icon: '🕒', label: 'heading.when', views: ['placeholder'] },
+  { id: 'wow', slot: 5, icon: '⭐', label: 'heading.wow', views: ['placeholder'] },
+  { id: 'where', slot: 6, icon: '🌍', label: 'card.where', views: ['map', 'placeholder'] },
+  { id: 'help', slot: 7, icon: '❤️', label: 'heading.help', views: ['placeholder'] },
+  { id: 'dyk', slot: 8, icon: '💡', label: 'ff.didYouKnow', views: ['placeholder'] },
 ];
 
 export const TOPIC_GROUPS = new Set(['behavior', 'world-explorer', 'conservation', 'how-animals-work']);
@@ -63,12 +63,14 @@ export function narrationFiles(card, heading, mode = 'both') {
 export const hasMap = c => Boolean(c.map?.areas?.length || c.range || c.mapBounds);
 
 // Can this card show a view? ctx: { preview, lookalikes, related } (how many it has to show).
-// `photo` always can: with no picture it shows the group's emoji on paper. Views marked by
-// FILLER don't make a heading worth tapping on their own.
+// `placeholder` always can: the heading's own emoji, big on the paper, until the card has something
+// of its own to show there (docs/stage-gaps.md). `gallery` and `photo` (the same) are the card's
+// pictures, when no heading is lit.
 export const VIEW_HAS = {
   gallery: () => true,
   habitat: c => Boolean(habitatOf(c)),
   photo: () => true,
+  placeholder: () => true,
   food: c => foodOf(c).length > 0,
   babies: c => Boolean(babiesOf(c)),
   behaviour: c => Boolean(behaviourOf(c)),
@@ -81,7 +83,6 @@ export const VIEW_HAS = {
   status: c => Boolean(c.status),
   related: (c, { related = 0 }) => related > 0,
 };
-const FILLER = new Set(['gallery', 'photo']);
 
 // The text under a heading: a list of pairs (glossary marks and all; todo text for grown-ups only).
 export function textOf(card, heading, { preview = false } = {}) {
@@ -111,12 +112,13 @@ export function viewFor(card, heading, ctx = {}) {
   return typeof own === 'string' && can(own) ? own : heading.views.find(can) ?? null;
 }
 
-// The grid for a card: every heading in its place, with what it shows. enabled: false is greyed
-// out. A heading is worth tapping when it has text, or a view of its own.
+// The grid for a card: every heading in its place, with what it shows. Every one is lit and can be
+// tapped: a heading with nothing of its own shows its placeholder; with no text, the back has no
+// section to bring into view.
 export function headingsFor(card, ctx = {}) {
   return headingSet(card).map(heading => {
     const view = viewFor(card, heading, ctx);
     const text = textOf(card, heading, ctx);
-    return { ...heading, view, text, enabled: text.length > 0 || Boolean(view && !FILLER.has(view)) };
+    return { ...heading, view, text };
   });
 }

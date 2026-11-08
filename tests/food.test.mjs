@@ -42,9 +42,8 @@ test('every species card has an emoji for each food, and a photo for most', () =
 
 test('Food shows the carousel on every species card', () => {
   for (const c of species) assert.equal(viewFor(c, food), 'food', c.id);
-  assert.ok(species.every(c => headingsFor(c)[1].enabled));
   assert.equal(VIEW_HAS.diet, undefined);
-  assert.equal(viewFor({ group: 'mammals' }, food), 'photo', 'no food: the gallery as before');
+  assert.equal(viewFor({ group: 'mammals' }, food), 'placeholder', 'no food: its placeholder');
 });
 
 test('each photo goes with its own emoji, two of the same in order; an emoji alone has no photo', () => {

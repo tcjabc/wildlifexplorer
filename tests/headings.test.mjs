@@ -12,7 +12,9 @@ import { EVERYDAY, PARTNERS, compareImage, modesFor, sizeOf, sizeStat, startWith
 const cards = JSON.parse(await readFile(new URL('../data/animals.json', import.meta.url), 'utf8'));
 const species = cards.filter(c => !isTopic(c));
 const topics = cards.filter(isTopic);
-const on = id => species.filter(c => headingsFor(c).find(x => x.id === id).enabled).map(c => c.id);
+// The cards whose heading shows something of its own (not the placeholder).
+const own = id => species.filter(c => headingsFor(c).find(x => x.id === id).view !== 'placeholder').map(c => c.id);
+const without = id => species.map(c => c.id).filter(i => !own(id).includes(i));
 
 test('both sets fill the grid: eight headings, one to a place', () => {
   for (const set of [SPECIES_HEADINGS, TOPIC_HEADINGS]) {
@@ -36,10 +38,16 @@ test('every card shows all eight, in the same order, greyed out or not', () => {
   }
 });
 
-test('a card with no data at all still has the whole grid, all greyed out', () => {
+test('a card with no data at all still has the whole grid, every heading showing its placeholder', () => {
   const grid = headingsFor({ id: 'x', group: 'mammals', name: { en: 'X', zh: 'X' } });
   assert.equal(grid.length, 8);
-  assert.ok(grid.every(x => !x.enabled));
+  assert.ok(grid.every(x => x.view === 'placeholder'));
+  assert.ok(grid.every(x => !('enabled' in x)), 'nothing is greyed out any more');
+});
+
+test('every heading on every card shows something: its own view, or its placeholder', () => {
+  for (const c of cards) for (const x of headingsFor(c, { related: 1, lookalikes: 1 })) assert.ok(x.view, `${c.id} ${x.id}`);
+  for (const set of [SPECIES_HEADINGS, TOPIC_HEADINGS]) for (const x of set) assert.equal(x.views.at(-1), 'placeholder', x.id);
 });
 
 test('topic cards are the four topic groups; T. rex and plants are species', () => {
@@ -52,19 +60,19 @@ test('text marked todo is for grown-ups only', () => {
   const habitat = SPECIES_HEADINGS[0];
   assert.deepEqual(textOf(card, habitat), []);
   assert.equal(textOf(card, habitat, { preview: true }).length, 1);
-  assert.equal(headingsFor(card)[0].enabled, false);
-  assert.equal(headingsFor(card, { preview: true })[0].enabled, true);
+  assert.deepEqual(headingsFor(card)[0].text, []);
+  assert.equal(headingsFor(card, { preview: true })[0].text.length, 1);
 });
 
-test('a heading falls back to the photo, and a card can choose its own view', () => {
+test('a heading falls back to its placeholder, and a card can choose its own view', () => {
   const food = SPECIES_HEADINGS[1], behaviour = SPECIES_HEADINGS[3];
-  assert.equal(viewFor({ group: 'mammals' }, food), 'photo');
+  assert.equal(viewFor({ group: 'mammals' }, food), 'placeholder');
   assert.equal(viewFor({ group: 'mammals', stage: { food: [{ image: 'img/a.webp' }] } }, food), 'food');
   const callouts = [{ x: 1, y: 1, en: 'a', zh: 'b' }];
   assert.equal(viewFor({ group: 'mammals', photo: { file: 'a.webp' }, profile: { callouts } }, behaviour), 'profile');
   assert.equal(viewFor({ group: 'mammals', stage: { food: 'status' }, status: 'VU' }, food), 'status');
-  assert.equal(viewFor({ group: 'mammals', stage: { food: 'status' } }, food), 'photo', 'it can\'t: the usual one');
-  assert.equal(viewFor({ group: 'mammals', stage: { food: 'stepper' } }, food), 'photo', 'a view not built yet is ignored');
+  assert.equal(viewFor({ group: 'mammals', stage: { food: 'status' } }, food), 'placeholder', 'it can\'t: the usual one');
+  assert.equal(viewFor({ group: 'mammals', stage: { food: 'stepper' } }, food), 'placeholder', 'a view not built yet is ignored');
 });
 
 test('every view a heading asks for is known', () => {
@@ -80,16 +88,16 @@ test('a size can be a length, a height or a wingspan', () => {
   assert.equal(modesFor({ stats: { heightCm: { min: 300 } } }).length, false, 'no silhouette to draw');
 });
 
-test('on today\'s 30 species cards: what is lit and what is grey', () => {
+test('on today\'s 30 species cards: what shows something of its own, and what the placeholder', () => {
   assert.equal(species.length, 30);
-  assert.equal(on('habitat').length, 30);
-  assert.equal(on('behaviour').length, 30);
-  assert.equal(on('dyk').length, 30);
-  assert.equal(on('where').length, 30, 'a range map, or the continent');
-  assert.equal(on('food').length, 30, 'the food tray');
-  assert.deepEqual(species.map(c => c.id).filter(id => !on('babies').includes(id)), [], 'every card has Babies text or a photo');
-  assert.deepEqual(species.map(c => c.id).filter(id => !on('status').includes(id)), ['atlas-moth', 'tardigrade-water-bear']);
-  assert.deepEqual(species.map(c => c.id).filter(id => !on('size').includes(id)), []);
+  assert.equal(own('habitat').length, 30);
+  assert.deepEqual(without('behaviour'), ['atlas-moth']);
+  assert.equal(own('dyk').length, 0, 'the placeholder until its photos come');
+  assert.equal(own('where').length, 30, 'a range map, or the continent');
+  assert.equal(own('food').length, 30, 'the food carousel');
+  assert.equal(without('babies').length, 9, 'the Babies gaps in docs/stage-gaps.md');
+  assert.deepEqual(without('status'), ['formosan-landlocked-salmon', 'atlas-moth', 'tyrannosaurus-rex', 'tardigrade-water-bear', 'taiwan-cherry'], 'no Red List status: its text, and the placeholder');
+  assert.deepEqual(without('size'), []);
 });
 
 test('the back: the headings with something to read, in the grid order, none greyed out', () => {
@@ -103,7 +111,6 @@ test('the back: the headings with something to read, in the grid order, none gre
     const set = headingSet(c).map(x => x.id);
     const back = backSections(c, { related: 1 });
     assert.deepEqual(back.map(x => x.id), set.filter(id => back.some(x => x.id === id)), `${c.id}: grid order`);
-    assert.ok(back.every(x => x.enabled), `${c.id}: nothing grey`);
     assert.ok(!back.some(x => x.id === 'size'), `${c.id}: size is the statistics block`);
   }
   assert.deepEqual(backSections({ id: 'x', group: 'mammals' }), [], 'nothing to read: an empty back');
@@ -198,12 +205,12 @@ test('a heading\'s narration: only recordings in audio/narration/, in the langua
   assert.ok(cards.every(c => !c.narration), 'none yet');
 });
 
-test('the topic cards light up what the owner put under each heading', () => {
-  const lit = id => headingsFor(cards.find(c => c.id === id)).filter(x => x.enabled).map(x => x.id);
+test('the topic cards have their facts under the headings the owner put them under', () => {
+  const lit = id => headingsFor(cards.find(c => c.id === id)).filter(x => x.text.length).map(x => x.id);
   assert.deepEqual(lit('migration'), ['what', 'who', 'wow']);
-  assert.deepEqual(lit('central-mountain-range'), ['what', 'how', 'wow', 'where']);
+  assert.deepEqual(lit('central-mountain-range'), ['what', 'how', 'wow']);
   assert.deepEqual(lit('kenting-coral-reefs'), ['what', 'when', 'where']);
-  assert.deepEqual(lit('saving-the-formosan-black-bear'), ['what', 'where', 'help']);
+  assert.deepEqual(lit('saving-the-formosan-black-bear'), ['what', 'help']);
   assert.deepEqual(lit('how-animals-fly'), ['how', 'wow']);
   for (const c of topics) {
     assert.equal(c.factHeadings.length, c.facts.length, c.id);
@@ -213,5 +220,5 @@ test('the topic cards light up what the owner put under each heading', () => {
 
 test('a topic card nobody has sorted yet still shows its facts', () => {
   const card = { group: 'behavior', facts: [{ en: 'a', zh: 'b' }, { en: 'c', zh: 'd' }, { en: 'e', zh: 'f' }] };
-  assert.deepEqual(headingsFor(card).filter(x => x.enabled).map(x => x.id), ['what', 'wow', 'dyk']);
+  assert.deepEqual(headingsFor(card).filter(x => x.text.length).map(x => x.id), ['what', 'wow', 'dyk']);
 });

@@ -218,7 +218,7 @@ Each card looks like this:
 - **factFile**: the text under a card's headings, written for older kids (pre-teen) with real
   vocabulary. Each section (`habitat`, `breeding`, `behaviour`, `foodAndHunting`, `conservation`)
   is a list of short paragraphs, each one `{ en, zh }` pair; `didYouKnow` is a list of 1–2 pairs.
-  A heading with nothing to show is greyed out. Empty slots are not shown, and the build report lists them under "Still to
+  A heading with nothing to show still lights up, with its placeholder on the stage. Empty slots are not shown, and the build report lists them under "Still to
   write". Topic cards have no `factFile`.
   - **todo**: a paragraph (or `stats.development` / `stats.youngCount`) with `"todo": "what to
     check, and the source tried"` has not been confirmed. Only grown-ups in preview see it, marked
@@ -271,8 +271,9 @@ the **back**, the Fact File, for readers and grown-ups. Pages are laid out at de
 
 - **The front** (`js/card-open.js`): the group, number and series, a large **stage**, and under it a
   fixed 4 × 2 grid of heading buttons with their names. Nothing to read. Tapping a heading lights it
-  and switches the stage, without a sound; a heading a card has nothing for is grey, never missing,
-  so nothing ever moves. Buttons never go under 64 px on the screen (`--tap-heading`).
+  and switches the stage, without a sound. Every heading is lit on every card: one with nothing of its
+  own yet shows its **placeholder**, its emoji big on the paper (and the back, with no section for it,
+  doesn't scroll), so nothing ever moves or greys out. Buttons never go under 64 px on the screen (`--tap-heading`).
 - **The back** (`js/fact-back.js`), laid out like a printed card back: 📁 Fact File with the series
   and card number, the card's name and Latin name, a **Vital Statistics** box (the numbers, and the Key
   Features: the first three facts), **Where in the World** (the map, which opens the globe, with the
@@ -292,14 +293,18 @@ Every card has the same grid (`js/headings.js`, tested on every card in `tests/h
 
 | Place | Species cards | Stage | Topic cards | Stage |
 |---|---|---|---|---|
-| 1 | 🏠 Habitat | its habitat picture (spot the animal), or photo | ❓ What is it? | photo |
-| 2 | 🍃 Food & Hunting | one food at a time, an emoji for each, or photo | How it works (a gear) | photo |
-| 3 | 🥚 Babies | a photo of its young, or photo | 👀 Who to look for | `related` cards, or photo |
-| 4 | 🐾 Behaviour | the Profile magnifier, or a photo of what it does, or photo | 🕒 When | photo |
-| 5 | 📏 Size | creature comparison | ⭐ Wow! | photo |
+| 1 | 🏠 Habitat | its habitat picture (spot the animal) | ❓ What is it? | placeholder |
+| 2 | 🍃 Food & Hunting | one food at a time, an emoji for each | How it works (a gear) | placeholder |
+| 3 | 🥚 Babies | a photo of its young | 👀 Who to look for | `related` cards |
+| 4 | 🐾 Behaviour | the Profile magnifier, or a photo of what it does | 🕒 When | placeholder |
+| 5 | 📏 Size | creature comparison | ⭐ Wow! | placeholder |
 | 6 | 🌍 Where in the World | map | 🌍 Where | map |
-| 7 | ❤️ Status | Red List scale | ❤️ How we help | photo |
-| 8 | 💡 Did You Know? | photo | 💡 Did you know | photo |
+| 7 | ❤️ Status | Red List scale | ❤️ How we help | placeholder |
+| 8 | 💡 Did You Know? | placeholder | 💡 Did you know | placeholder |
+
+Every heading falls back to its placeholder when the card has nothing else for it (the gaps are in
+`docs/stage-gaps.md`). The gallery (the card's photo and illustration) is what the stage shows when no
+heading is lit.
 
 Topic cards are the four groups Exploring Behavior, World Explorer, Conservation Issues and How Animals
 Work. Their text is their `facts`, sorted by `factHeadings`. The map shows the range if there is one,
