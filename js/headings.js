@@ -13,7 +13,7 @@
 import { modesFor } from './compare-data.js';
 import { habitatOf } from './habitat.js';
 import { foodOf } from './food.js';
-import { babiesOf, behaviourOf } from './stage-pictures.js';
+import { babiesOf, behaviourOf, dykOf } from './stage-pictures.js';
 
 const filled = p => p && (p.en || p.zh);
 const shown = (p, preview) => filled(p) && (!p.todo || preview);
@@ -28,7 +28,7 @@ export const SPECIES_HEADINGS = [
   { id: 'size', slot: 5, icon: '📏', label: 'heading.size', views: ['compare', 'placeholder'] },
   { id: 'where', slot: 6, icon: '🌍', label: 'card.where', views: ['map', 'placeholder'] },
   { id: 'status', slot: 7, icon: '❤️', label: 'heading.status', text: 'conservation', views: ['status', 'placeholder'] },
-  { id: 'dyk', slot: 8, icon: '💡', label: 'ff.didYouKnow', text: 'didYouKnow', views: ['placeholder'] },
+  { id: 'dyk', slot: 8, icon: '💡', label: 'ff.didYouKnow', text: 'didYouKnow', views: ['dyk', 'placeholder'] },
 ];
 
 export const TOPIC_HEADINGS = [
@@ -74,6 +74,7 @@ export const VIEW_HAS = {
   food: c => foodOf(c).length > 0,
   babies: c => Boolean(babiesOf(c)),
   behaviour: c => Boolean(behaviourOf(c)),
+  dyk: c => Boolean(dykOf(c)),
   profile: c => Boolean(c.profile?.callouts?.length && c[c.profile.image ?? 'photo']?.file),
   compare: (c, { lookalikes = 0 }) => {
     const m = modesFor(c);

@@ -92,7 +92,7 @@ test('on today\'s 30 species cards: what shows something of its own, and what th
   assert.equal(species.length, 30);
   assert.equal(own('habitat').length, 30);
   assert.deepEqual(without('behaviour'), ['atlas-moth']);
-  assert.equal(own('dyk').length, 0, 'the placeholder until its photos come');
+  assert.equal(own('dyk').length, 11, 'a photo of its fact; the rest the placeholder');
   assert.equal(own('where').length, 30, 'a range map, or the continent');
   assert.equal(own('food').length, 30, 'the food carousel');
   assert.equal(without('babies').length, 9, 'the Babies gaps in docs/stage-gaps.md');

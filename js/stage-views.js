@@ -16,7 +16,7 @@ import { lookalikePanel, lookalikesOf } from './lookalikes.js';
 import { hasMap } from './headings.js';
 import { coverBox, findOnBox, habitatOf, isFound } from './habitat.js';
 import { foodOf } from './food.js';
-import { babiesOf, behaviourOf } from './stage-pictures.js';
+import { babiesOf, behaviourOf, dykOf } from './stage-pictures.js';
 import { haptic } from './gesture.js';
 import { magnifier, featureOf } from './magnifier.js';
 import { placeMap, worldMap } from './worldmap.js';
@@ -81,6 +81,11 @@ function babies(card, { onCredit }) {
 // one, comes first (js/headings.js).
 function behaviour(card, { onCredit }) {
   return { el: stagePhoto(behaviourOf(card), 'ff.behaviour', 'stage-behaviour', () => onCredit?.('behaviour')).frame };
+}
+
+// Did you know: one photo of the card's fact.
+function dyk(card, { onCredit }) {
+  return { el: stagePhoto(dykOf(card), 'ff.didYouKnow', 'stage-dyk', () => onCredit?.('dyk')).frame };
 }
 
 // Where it lives: a photo of its real home. When the animal is in it (find), a tap on the animal
@@ -313,6 +318,7 @@ export const STAGE_VIEWS = {
   food,
   babies,
   behaviour,
+  dyk,
   placeholder,
   compare,
   map,

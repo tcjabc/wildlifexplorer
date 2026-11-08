@@ -485,6 +485,32 @@ run('Babies: its own photo of the young (nothing to tap); its placeholder where 
   }
 });
 
+run('Did You Know: a photo of its fact (nothing to tap), or 💡 big on the paper', async f => {
+  for (const [id, photo] of [['lion', true], ['cheetah', false]]) {
+    await f.card(id);
+    await f.tap('.hbtn[data-heading="dyk"]');
+    await f.rests();
+    assert.deepEqual(await f.lit(), ['dyk'], id);
+    const got = await f.page.evaluate(() => ({
+      cls: document.querySelector('.stage').firstElementChild.className,
+      src: document.querySelector('.stage .pic')?.getAttribute('src') ?? null,
+      emoji: document.querySelector('.stage .stage-emoji')?.textContent ?? null,
+      buttons: document.querySelectorAll('.stage button:not(.cover__credit)').length,
+    }));
+    if (photo) {
+      assert.match(got.cls, /stage-dyk/, id);
+      assert.match(got.src, /-dyk-/, id);
+    } else {
+      assert.match(got.cls, /stage-placeholder/, id);
+      assert.equal(got.emoji, '💡', id);
+    }
+    assert.equal(got.buttons, 0, `${id}: nothing to tap`);
+    assert.equal((await f.section())?.id, 'dyk', `${id}: its fact on the back`);
+    await f.page.evaluate(() => { location.hash = '#/binder'; });
+    await f.wait(700);
+  }
+});
+
 run('Behaviour: its own photo (nothing to tap); the Profile where a card has one; its placeholder where there is neither', async f => {
   for (const [id, want] of [['lion', 'photo'], ['formosan-black-bear', 'profile'], ['atlas-moth', 'placeholder']]) {
     await f.card(id);

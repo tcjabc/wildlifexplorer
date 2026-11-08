@@ -65,3 +65,24 @@ test('27 species cards have a behaviour photo; the Profile comes first where the
   const pics = cards.flatMap(c => [babiesOf(c), behaviourOf(c)].filter(Boolean).map(p => p.sourceUrl));
   assert.equal(new Set(pics).size, pics.length, 'no photo used twice');
 });
+
+// Did You Know: one new photo of the card's fact, on 11 species cards; the rest keep the 💡
+// placeholder (docs/stage-gaps.md).
+test('11 species cards have a Did You Know photo, new to the card; the rest show 💡', async () => {
+  const { dykOf, behaviourOf } = await import('../js/stage-pictures.js');
+  const { habitatOf } = await import('../js/habitat.js');
+  const { foodPhotos } = await import('../js/food.js');
+  const dykHeading = SPECIES_HEADINGS[7];
+  const have = species.filter(c => dykOf(c));
+  assert.equal(have.length, 11);
+  for (const c of species) assert.equal(viewFor(c, dykHeading), dykOf(c) ? 'dyk' : 'placeholder', c.id);
+  for (const c of have) {
+    const pic = dykOf(c);
+    assert.ok(existsSync(at(pic.file)) && existsSync(at(thumbPath(pic.file))), `${c.id}: files`);
+    assert.ok(isAllowedLicenseName(pic.license), `${c.id}: licence ${pic.license}`);
+    for (const k of ['author', 'license', 'licenseUrl', 'sourceUrl']) assert.ok(pic[k], `${c.id}: no ${k}`);
+    assert.ok(!/@/.test(pic.author), `${c.id}: no email in the credit`);
+    const others = [c.photo, c.illustration, habitatOf(c), babiesOf(c), behaviourOf(c), ...foodPhotos(c)].filter(Boolean).map(p => p.sourceUrl);
+    assert.ok(!others.includes(pic.sourceUrl), `${c.id}: not a photo the card already shows`);
+  }
+});

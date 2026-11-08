@@ -300,7 +300,7 @@ Every card has the same grid (`js/headings.js`, tested on every card in `tests/h
 | 5 | 📏 Size | creature comparison | ⭐ Wow! | placeholder |
 | 6 | 🌍 Where in the World | map | 🌍 Where | map |
 | 7 | ❤️ Status | Red List scale | ❤️ How we help | placeholder |
-| 8 | 💡 Did You Know? | placeholder | 💡 Did you know | placeholder |
+| 8 | 💡 Did You Know? | a photo of its fact | 💡 Did you know | placeholder |
 
 Every heading falls back to its placeholder when the card has nothing else for it (the gaps are in
 `docs/stage-gaps.md`). The gallery (the card's photo and illustration) is what the stage shows when no
@@ -331,6 +331,8 @@ card's credit sheet and the Credits page, and load only when their stage opens.
   young), nothing to do but look. Never eggs being taken, a nest raid or a kill.
 - `"behaviour": { image, credit }` (`js/stage-pictures.js`): one photo of the behaviour its text names,
   nothing to tap. A card with the Profile magnifier shows that first.
+- `"dyk": { image, credit }` (`js/stage-pictures.js`): one new photo of its Did You Know fact (never a
+  photo the card already shows), nothing to tap.
 
 **An animal's call**: `"call": { "file": "audio/calls/formosan-black-bear.m4a", "author": …, "license": …,
 "licenseUrl": …, "sourceUrl": … }` plays when the gallery on the stage is tapped. No card has one
