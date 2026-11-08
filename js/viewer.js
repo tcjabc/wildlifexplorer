@@ -235,18 +235,54 @@ function settle(prop, target, velocity = 0, after) {
     onUpdate: x => { v[prop] = x; draw(); },
     onDone: () => {
       finished = true;
-      if (zoom) v.zoomCancel = null; else v.cancel = null;
-      if (prop === 'f' && target === 2) v.f = 0; // turned on round: the front again
-      draw();
-      // The comparison animation plays as the card finishes opening.
-      if (prop === 'p' && target === 1) v.built.open.replay();
-      // Shut, the card has nothing more to say.
-      if (prop === 'p' && target === 0) { stop(); stopCall(); }
-      after?.();
+      if (zoom) v.zoomCancel = null; else { v.cancel = null; v.motion = null; }
+      arrived(prop, target, after, { replay: true });
     },
   });
   if (finished) return;
-  if (zoom) v.zoomCancel = cancel; else v.cancel = cancel;
+  if (zoom) v.zoomCancel = cancel; else { v.cancel = cancel; v.motion = { prop, target, after }; }
+}
+
+// A spring has got there (or was sent there at once: finishMotion).
+function arrived(prop, target, after, { replay }) {
+  if (prop === 'f' && target === 2) v.f = 0; // turned on round: the front again
+  draw();
+  // The comparison animation plays as the card finishes opening (not when a turn of the device
+  // finishes it early).
+  if (replay && prop === 'p' && target === 1) v.built.open.replay();
+  // Shut, the card has nothing more to say.
+  if (prop === 'p' && target === 0) { stop(); stopCall(); }
+  after?.();
+}
+
+// The screen changed size (the device turned, a browser bar came or went) while something moved:
+// everything jumps to where it was going, so nothing carries on from the old size's numbers. A
+// drag is let go where it started; the peek shuts; closing finishes closing.
+function finishMotion() {
+  if (v.closing) { v.finishClose?.(); return; }
+  v.abortDrag?.();
+  if (v.peeking) { v.peeking = false; stopMotion(); v.p = 0; }
+  const m = v.cancel ? v.motion : null;
+  stopMotion();
+  v.motion = null;
+  if (m) { v[m.prop] = m.target; arrived(m.prop, m.target, m.after, { replay: false }); }
+  if (v.zoomCancel) { stopZoom(); v.z = 1; }
+}
+
+// Lay the card out again for the stage's new size, at most once a frame, with no animation.
+function relayout() {
+  if (!v || v.layoutFrame) return;
+  v.layoutFrame = requestAnimationFrame(() => {
+    if (!v) return;
+    v.layoutFrame = 0;
+    const r = v.stage.getBoundingClientRect();
+    const same = v.L && r.width === v.L.W && r.height === v.L.Hs && r.left === v.L.left && r.top === v.L.top;
+    if (same) return;
+    finishMotion();
+    if (!v) return; // it was closing: now it's closed
+    measure();
+    draw();
+  });
 }
 
 // ---------- the peek hint ----------
@@ -392,6 +428,18 @@ function drawZones() {
     box('near', z.near), box('open', z.open), box('card', z.card), box('notebook', z.notebook));
 }
 
+// A touch stops whatever was moving, to take hold of it. When it turns out to move nothing (a tap,
+// a scroll), the card was left where it stopped, maybe part-way or in a spring's overshoot, and
+// would never come to rest: it springs on to the nearer end. A scroll keeps gliding.
+function toEnds() {
+  if (!v || v.cancel || v.closing || v.dragging) return;
+  const glide = v.glide;
+  v.glide = null;
+  if (!at(v.p, 0) && !at(v.p, 1)) settle('p', v.p > 0.5 ? 1 : 0);
+  else if (!at(v.f, 0) && !at(v.f, 1)) settle('f', Math.round(clamp(v.f, 0, 2)));
+  v.glide = glide;
+}
+
 function wireGestures() {
   let mode = null, base = null, scroller = null, dir = 1, zone = null;
   const where = (x, y) => {
@@ -403,6 +451,14 @@ function wireGestures() {
   const travel = () => ({ x: v.L.P * v.L.s0, y: v.L.H * v.L.s0 * 0.7 }); // finger travel for a full turn
   // A finger's pixels in the scrolled page's pixels: the back has the closed card's scale.
   const scale = () => (onBack(v.f) ? v.L.s0 : v.zoom);
+  // The device turned mid-drag: let go, back where the drag started. The rest of this touch does
+  // nothing (no mode), and its release finds the card already there.
+  v.abortDrag = () => {
+    if (!mode) return;
+    mode = null;
+    v.dragging = false;
+    if (base) { v.p = base.p; v.f = base.f; v.z = 1; }
+  };
 
   v.untrack = track(v.stage, {
     start: ({ x, y, target }) => {
@@ -414,7 +470,7 @@ function wireGestures() {
       scroller = target.closest?.('[data-scroll]') ?? null;
       return true;
     },
-    tap: () => { if (v.p > 0 && v.p < DONE && !v.cancel) settle('p', 0); }, // e.g. tapped during the peek
+    tap: () => toEnds(), // e.g. tapped during the peek, or while the card was still settling
     lock: ({ dx, dy }) => {
       mode = null;
       const ax = Math.abs(dx), ay = Math.abs(dy);
@@ -473,9 +529,10 @@ function wireGestures() {
       mode = null;
       v.dragging = false;
       try { release(m, info); } catch (err) { springBack(); throw err; }
+      toEnds();
     },
     // No pointerup (capture lost, window lost focus, a second finger): spring back.
-    cancel: () => { mode = null; v.dragging = false; springBack(); },
+    cancel: () => { mode = null; v.dragging = false; springBack(); toEnds(); },
     // A second finger cancels a drag (the card has no pinch of its own).
     pinchStart: () => { if (mode) springBack(); mode = null; v.dragging = false; },
     pinchMove: () => {},
@@ -614,8 +671,13 @@ export function open(card, { fromEl, main, onDismiss, restore = null } = {}) {
   measure();
   draw();
   wireGestures();
-  v.onResize = () => { measure(); draw(); };
+  // Every change of size: the desk itself (a ResizeObserver, which also sees the notebook and the
+  // hint row come and go), the window, and the visual viewport (phones' browser bars).
+  v.onResize = relayout;
   window.addEventListener('resize', v.onResize);
+  window.visualViewport?.addEventListener('resize', v.onResize);
+  v.watch = typeof ResizeObserver === 'function' ? new ResizeObserver(relayout) : null;
+  v.watch?.observe(v.stage);
 
   let zoomed = false; // with reduced motion it is over before it returns
   const cancel = tween({ from: 0, to: 1, duration: 520, onUpdate: z => { v.z = z; draw(); }, onDone: () => { zoomed = true; v.zoomCancel = null; draw(); } });
@@ -648,6 +710,9 @@ function teardown() {
   stop();
   stopCall();
   window.removeEventListener('resize', v.onResize);
+  window.visualViewport?.removeEventListener('resize', v.onResize);
+  v.watch?.disconnect();
+  if (v.layoutFrame) cancelAnimationFrame(v.layoutFrame);
   ['transform', 'transform-origin'].forEach(p => v.main?.style.removeProperty(p));
   v.el.remove();
   v = null;
@@ -739,6 +804,8 @@ export function close({ animate = true } = {}) {
   measure();
   const start = { p: v.p, f: v.f, z: v.z };
   return new Promise(resolve => {
+    // A turn of the device while it closes: closed at once (finishMotion).
+    v.finishClose = () => { stopZoom(); teardown(); resolve(); };
     v.zoomCancel = tween({
       from: 0, to: 1, duration: 420,
       onUpdate: u => { v.p = start.p * (1 - u); v.f = start.f * (1 - u); v.z = start.z * (1 - u); draw(); },
