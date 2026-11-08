@@ -2,12 +2,15 @@
 // scroll gliding. Plain numbers in, a decision out, so it can be tested without a page
 // (tests/gesture-release.test.mjs). viewer.js applies the decision.
 //
-// mode: 'open' | 'close' | 'dismiss' | 'scroll' | anything else
-// s:    { p, dir, travel: { x }, stageH } – where the card is now, which way the gesture went (±1),
-//       finger travel for a full turn, stage height
+// mode: 'open' | 'close' | 'flip' | 'unflip' | 'over' | 'dismiss' | 'scroll' | anything else
+//       flip: up, to the back (f 0 → 1). unflip: down from the back (f 1 → 0). over: up again
+//       from the back, on round to the side it came from (f 1 → 2; the viewer then calls 2 zero).
+// s:    { p, f, dir, travel: { x, y }, stageH } – where the card is now, which way the gesture went
+//       (±1), finger travel for a full turn, stage height
 // info: { dy, vx, vy } – total vertical movement and release speed in px/s
 // Returns one of:
-//   { prop: 'p' | 'z', target: 0 | 1, velocity }         spring the page turn / zoom there
+//   { prop: 'p' | 'f' | 'z', target, velocity }          spring the page turn / turn-over / zoom there
+//                                                        (p and z: 0 or 1; f: 0, 1 or 2)
 //   { dismiss: true }                                    zoom back into the binder
 //   { scroll: true, velocity }                           let the scroll glide (velocity px/s)
 //   { springBack: true }                                 back to where the gesture started
@@ -21,8 +24,8 @@ const num = (x, fallback = 0) => (Number.isFinite(x) ? x : fallback);
 
 export function releaseOutcome(mode, s, info = {}) {
   const dir = num(s?.dir, 1) || 1;
-  const tx = num(s?.travel?.x, 1) || 1;
-  const p = num(s?.p);
+  const tx = num(s?.travel?.x, 1) || 1, ty = num(s?.travel?.y, 1) || 1;
+  const p = num(s?.p), f = num(s?.f);
   const dy = num(info.dy), vx = num(info.vx), vy = num(info.vy);
   // Commit past a quarter, or on a flick towards the goal; a flick away springs back.
   const decide = (q, speed) => (speed > FLICK ? true : speed < -FLICK ? false : q > COMMIT);
@@ -32,6 +35,13 @@ export function releaseOutcome(mode, s, info = {}) {
     const speed = (vx * dir) / tx;
     const target = decide(q, speed) === (mode === 'open') ? 1 : 0;
     return { prop: 'p', target, velocity: mode === 'open' ? speed : -speed };
+  }
+  if (mode === 'flip' || mode === 'unflip' || mode === 'over') {
+    // How far towards the goal, and the speed towards it (up is towards it for flip and over).
+    const from = mode === 'flip' ? 0 : 1, to = mode === 'unflip' ? 0 : mode === 'flip' ? 1 : 2;
+    const q = (f - from) / (to - from);
+    const speed = mode === 'unflip' ? vy / ty : -vy / ty;
+    return { prop: 'f', target: decide(q, speed) ? to : from, velocity: -vy / ty };
   }
   if (mode === 'dismiss') {
     const h = num(s?.stageH, 1) || 1;

@@ -85,6 +85,18 @@ export function textOf(card, heading, { preview = false } = {}) {
   return heading.text ? (card.factFile?.[heading.text] ?? []).filter(p => shown(p, preview)) : [];
 }
 
+// The back of the card, the Fact File for readers: the headings that have something to read, in the
+// grid's order, with nothing greyed out (it is for reading, not for learning places). Size has no
+// text: its numbers are in the back's statistics block. Where reads out the continents, Status its
+// badge, Who to look for the animals' names.
+const BACK_EXTRA = {
+  where: c => Boolean(c.continents?.length || c.taiwan),
+  status: c => Boolean(c.status),
+  who: (c, { related = 0 }) => related > 0,
+};
+export const backSections = (card, ctx = {}) => headingsFor(card, ctx)
+  .filter(x => x.id !== 'size' && (x.text.length > 0 || Boolean(BACK_EXTRA[x.id]?.(card, ctx))));
+
 // Which view a heading shows on this card: the card's own choice if it can, else the first it can.
 export function viewFor(card, heading, ctx = {}) {
   const can = id => Boolean(VIEW_HAS[id]?.(card, ctx));

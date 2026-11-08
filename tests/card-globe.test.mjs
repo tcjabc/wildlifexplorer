@@ -64,7 +64,11 @@ test('the card screen is kept once for the card left, and only that card takes i
 test('which side was showing', () => {
   assert.equal(cardReturn.sideOf({ p: 0 }), 'front');
   assert.equal(cardReturn.sideOf({ p: 1 }), 'inside');
-  assert.deepEqual(cardReturn.SIDES, ['front', 'inside']);
+  assert.equal(cardReturn.sideOf({ p: 0, f: 1 }), 'back');
+  assert.equal(cardReturn.sideOf({ p: 1, f: 1 }), 'back');
+  assert.equal(cardReturn.sideOf({ p: 1, f: 2 }), 'inside', 'turned on round: the side it came from');
+  assert.equal(cardReturn.underOf({ p: 1, f: 1 }), 'inside');
+  assert.deepEqual(cardReturn.SIDES, ['front', 'inside', 'back']);
 });
 
 test('the router keeps the card screen when leaving it, and gives it back coming from the globe', () => {

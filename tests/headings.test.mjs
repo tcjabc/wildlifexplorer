@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import {
-  SPECIES_HEADINGS, TOPIC_HEADINGS, VIEW_HAS, hasCall, headingSet, headingsFor, isTopic, narrationFiles, textOf, viewFor,
+  SPECIES_HEADINGS, TOPIC_HEADINGS, VIEW_HAS, backSections, hasCall, headingSet, headingsFor, isTopic, narrationFiles, textOf, viewFor,
 } from '../js/headings.js';
 import { KEY_ORDER } from '../scripts/lib/card-schema.mjs';
 import { COUNT_MAX, EVERYDAY, PARTNERS, compareImage, countFor, modesFor, sizeOf, sizeStat, startWith, whoOf } from '../js/compare-data.js';
@@ -90,6 +90,32 @@ test('on today\'s 30 species cards: what is lit and what is grey', () => {
   assert.deepEqual(species.map(c => c.id).filter(id => !on('babies').includes(id)), ['red-and-white-giant-flying-squirrel', 'eurasian-otter']);
   assert.deepEqual(species.map(c => c.id).filter(id => !on('status').includes(id)), ['atlas-moth', 'tardigrade-water-bear']);
   assert.deepEqual(species.map(c => c.id).filter(id => !on('size').includes(id)), []);
+});
+
+test('the back: the headings with something to read, in the grid order, none greyed out', () => {
+  const ids = c => backSections(c).map(x => x.id);
+  const squirrel = cards.find(c => c.id === 'red-and-white-giant-flying-squirrel');
+  // Its babies text is still to check (todo): only a grown-up in preview reads it.
+  assert.deepEqual(ids(squirrel), ['habitat', 'food', 'behaviour', 'where', 'status', 'dyk']);
+  assert.deepEqual(backSections(squirrel, { preview: true }).map(x => x.id), ['habitat', 'food', 'babies', 'behaviour', 'where', 'status', 'dyk']);
+  for (const c of cards) {
+    const set = headingSet(c).map(x => x.id);
+    const back = backSections(c, { related: 1 });
+    assert.deepEqual(back.map(x => x.id), set.filter(id => back.some(x => x.id === id)), `${c.id}: grid order`);
+    assert.ok(back.every(x => x.enabled), `${c.id}: nothing grey`);
+    assert.ok(!back.some(x => x.id === 'size'), `${c.id}: size is the statistics block`);
+  }
+  assert.deepEqual(backSections({ id: 'x', group: 'mammals' }), [], 'nothing to read: an empty back');
+});
+
+test('topic cards turn over to their own headings', () => {
+  for (const c of topics) {
+    const ids = backSections(c).map(x => x.id);
+    assert.ok(ids.every(id => TOPIC_HEADINGS.some(x => x.id === id)), c.id);
+    assert.ok(ids.length > 0, `${c.id} has something on its back`);
+  }
+  const who = { id: 't', group: 'behavior', related: ['a'] };
+  assert.deepEqual(backSections(who, { related: 1 }).map(x => x.id), ['who'], 'the animals to look for, by name');
 });
 
 test('a size number with a source names one that is on the card', () => {
