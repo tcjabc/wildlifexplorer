@@ -6,7 +6,7 @@
 //   for two pages (js/card-layout.js openLayout) they lie side by side, both always there, and a
 //   heading tapped on the front also brings its section into view on the back. Where there isn't,
 //   the card is one page that turns over (rotateX): a swipe up or down, or 🔄, to the back with that
-//   heading's section in view.
+//   heading's section in view; the lit heading tapped again turns it over there too.
 // - Gestures are decided by direction, from anywhere on the card (or a margin around it, never the
 //   screen's right edge, where the notebook spine goes): sideways changes card (as ‹ › do), up or
 //   down turns it over (one page only). A movement under the slop is a tap, so the buttons on the
@@ -51,7 +51,7 @@ export const openCardId = () => v?.card.id ?? null;
 
 function buildCard(card) {
   const onMap = openGlobe;
-  const front = openCard(card, { onCredit: openCredits, onMap, onCall: playCall, onHeading });
+  const front = openCard(card, { onCredit: openCredits, onMap, onCall: playCall, onHeading, onePage: () => !twoPages(), onTurnTo });
   const back = factBack(card, { onMap });
   const root = h('div', { class: 'card3d card3d--front' }, h('div', { class: 'face' }, front.el));
   const backRoot = h('div', { class: 'card3d card3d--back' }, h('div', { class: 'face' }, back));
@@ -295,11 +295,20 @@ export function toggleFlip(way = 'up') {
 }
 
 // A heading tapped on the front (js/card-open.js): its section comes into view on the back (side by
-// side it glides there; on one page it is ready for when the card turns over). The lit one tapped
-// again goes back to the gallery, and the back to no section.
+// side it glides there; on one page it is ready for when the card turns over). Back to the gallery
+// (again: the lit one tapped again side by side, the stage tapped on one page), the back to no section.
 function onHeading(id, { again }) {
   endHand();
   if (v) showSection(v.built.back, again ? null : id, { smooth: twoPages() });
+}
+
+// One page, the lit heading tapped again: over to the back, with its section in view and marked (the
+// top of the back where it has none), the same turn as a swipe up. It stays lit on the front.
+function onTurnTo(id) {
+  if (!v || twoPages()) return;
+  endHand();
+  if (!showSection(v.built.back, id, { smooth: false })) v.built.back.querySelector('.ff__body')?.scrollTo({ top: 0 });
+  toggleFlip('up');
 }
 
 // ---------- gestures ----------

@@ -204,8 +204,9 @@ both('a heading lights up without a sound, switches the stage and finds its sect
     await f.page.click('.viewer__bar .viewer__flip');
     await f.faces('front');
   }
-  // Again: back to the gallery, in both, and the card stays on the side it shows.
-  await f.tap('.hbtn[data-heading="status"]');
+  // Back to the gallery, and the card stays on the side it shows: side by side the heading tapped
+  // again, on one page a tap on the stage (the heading again turns over: heading-flip-touch).
+  await f.tap(kind === 'side' ? '.hbtn[data-heading="status"]' : '.front__stage');
   assert.deepEqual(await f.lit(), []);
   assert.match(await f.stage(), /stage-pic/, 'back to the gallery');
   assert.equal(await f.section(), null);

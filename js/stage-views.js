@@ -5,6 +5,8 @@
 //     replay: run its animation again. stop: it is leaving, stop whatever it started.
 //     layout(w, h): the stage has this size now, in card px (when shown, and whenever it changes,
 //       as on turning the device). It keeps what the view is showing: no new animation, no reset.
+//   A view whose picture takes taps of its own (anywhere, not only on its buttons) marks its element
+//   data-taps: on one page a tap on the stage otherwise goes back to the card's photo.
 import { h, mount, reducedMotion } from './dom.js';
 import { bi, label, tx } from './i18n.js';
 import { state, thumbOf } from './store.js';
@@ -113,6 +115,7 @@ function habitat(card, { onCredit }) {
     ring.style.setProperty('top', `${c.y}px`);
     ring.style.setProperty('width', `${2 * c.r}px`);
   };
+  frame.dataset.taps = ''; // a tap that finds nothing stays here (js/card-open.js)
   frame.addEventListener('click', e => {
     if (e.target.closest('button')) return;
     const b = box();
@@ -166,7 +169,7 @@ function profile(card) {
   };
   pic.addEventListener('click', () => pick(null));
   showDetail(null);
-  return { el: h('div', { class: 'stage-profile' }, pic, detail) };
+  return { el: h('div', { class: 'stage-profile', 'data-taps': '' }, pic, detail) };
 }
 
 // What it eats, one food at a time (js/food.js): its photo filling the stage, prey always alive, or
