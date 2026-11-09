@@ -5,7 +5,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { nightShade, lightsOn, lightCount, LIGHTS_FAR, NIGHT_ALPHA } from '../js/globe.js';
-import { sunVector } from '../js/layers.js';
+import { sunVector, sunAt } from '../js/layers.js';
 
 const src = path => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
 const lights = JSON.parse(src('assets/layers/lights.json'));
@@ -68,6 +68,36 @@ test('the sun is overhead near the Tropic of Capricorn at the December solstice,
   const lat = (Math.asin(z) * 180) / Math.PI, lon = (Math.atan2(y, x) * 180) / Math.PI;
   assert.ok(Math.abs(lat + 23.44) < 0.3, `latitude ${lat}`);
   assert.ok(Math.abs(lon) < 2, `longitude ${lon}`);
+});
+
+const latLon = ([x, y, z]) => [(Math.asin(z) * 180) / Math.PI, (Math.atan2(y, x) * 180) / Math.PI];
+const angle = (a, b) => ((((a - b) % 360) + 540) % 360) - 180;
+
+test('sunAt: a month and a UTC hour; the equinoxes on the equator, the solstices on the tropics', () => {
+  const at = (m, hr) => latLon(sunAt(m, hr, { year: 2026 }));
+  for (const [m, lat, tol] of [[3, 0, 0.6], [6, 23.44, 0.1], [9, 0, 0.8], [12, -23.44, 0.1]]) {
+    const [la, lo] = at(m, 12);
+    assert.ok(Math.abs(la - lat) < tol, `month ${m}: latitude ${la}`);
+    assert.ok(Math.abs(lo) < 2.5, `month ${m} at 12:00 UTC: noon near 0°, at ${lo}`);
+  }
+  assert.ok(Math.abs(angle(at(6, 0)[1], 180)) < 2.5, 'at 00:00 UTC noon is on the far side');
+  // An hour later, noon is 15° further west.
+  assert.ok(Math.abs(angle(at(6, 13)[1], at(6, 12)[1]) + 15) < 0.1);
+  // The same as sunVector for that moment; another day of the month.
+  assert.deepEqual(sunAt(11, 5.5, { day: 9, year: 2026 }), sunVector(new Date('2026-11-09T05:30:00Z')));
+});
+
+test('midnight sun and polar night: lit all day in the north in June, dark all day in December', () => {
+  const shade = (m, hr, lon, lat) => {
+    const s = sunAt(m, hr, { year: 2026 }), c = Math.cos((lat * Math.PI) / 180);
+    const v = [c * Math.cos((lon * Math.PI) / 180), c * Math.sin((lon * Math.PI) / 180), Math.sin((lat * Math.PI) / 180)];
+    return nightShade(s[0] * v[0] + s[1] * v[1] + s[2] * v[2]).alpha;
+  };
+  for (let hr = 0; hr < 24; hr += 3) {
+    assert.equal(shade(6, hr, 0, 80), 0, `June ${hr}:00 at 80° N: day`);
+    assert.ok(Math.abs(shade(12, hr, 0, 80) - NIGHT_ALPHA) < 1e-9, `December ${hr}:00 at 80° N: night`);
+    assert.equal(shade(12, hr, 0, -80), 0, `December ${hr}:00 at 80° S: day`);
+  }
 });
 
 test('no night picture any more, and no WebGL night mode', () => {

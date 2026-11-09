@@ -35,6 +35,14 @@ export function sunVector(date = new Date()) {
   return toVec((ra - gmst) / DEG, dec / DEG);
 }
 
+// Where the sun is overhead in a month (1–12) at an hour of the day in UTC (0–24), this year, by
+// sunVector's maths: the month gives the declination (the 21st: the solstices, and the equinoxes
+// to within a day), the hour where on the Earth it is noon. day: another day of the month (the
+// real one, for Day & night's "Now").
+export function sunAt(month, utcHour, { day = 21, year = new Date().getUTCFullYear() } = {}) {
+  return sunVector(new Date(Date.UTC(year, month - 1, day) + utcHour * 3600000));
+}
+
 const rgb = c => {
   const m = c.match(/^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
   return m ? m.slice(1).map(x => parseInt(x, 16) / 255) : [0, 0, 0];
