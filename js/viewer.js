@@ -258,7 +258,12 @@ function relayout() {
     if (same) return;
     finishMotion();
     if (!v) return; // it was closing: now it's closed
+    const kind = v.L?.open.kind;
     measure();
+    // One page to two or back (the device turned): the lit heading's section in view again on the
+    // back, at the new size (side by side, the spread shows it at once).
+    const lit = v.L.open.kind !== kind && v.built.front.selected();
+    if (lit) showSection(v.built.back, lit, { smooth: false });
     draw();
   });
 }
