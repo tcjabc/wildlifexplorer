@@ -338,12 +338,14 @@ export function stageFor(card, ctx) {
     el,
     layout,
     show(next, heading) {
-      const name = STAGE_VIEWS[next] ? next : 'gallery';
+      const known = STAGE_VIEWS[next] ? next : 'gallery';
+      // A placeholder is the heading's own: one to the next shows the new emoji.
+      const name = known === 'placeholder' ? `placeholder:${heading?.id ?? ''}` : known;
       // A picture stays put from one heading to the next.
-      if (name === id || (STAGE_VIEWS[name] === STAGE_VIEWS[id] && STAGE_VIEWS[name] === gallery)) { id = name; return; }
+      if (name === id || (STAGE_VIEWS[known] === STAGE_VIEWS[id] && STAGE_VIEWS[known] === gallery)) { id = name; return; }
       view?.stop?.();
       id = name;
-      view = STAGE_VIEWS[name](card, ctx, heading);
+      view = STAGE_VIEWS[known](card, ctx, heading);
       mount(el, view.el);
       layout();
       if (!reducedMotion()) view.el.animate?.([{ opacity: 0 }, { opacity: 1 }], { duration: 180, easing: 'ease-out' });
