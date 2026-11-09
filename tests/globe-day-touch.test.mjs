@@ -4,7 +4,7 @@
 // hour-at-a-time playing without WebGL, and watch mode. The clock bar: the globe's own, one row at
 // its bottom, there with the panel collapsed or open, never over the globe's middle, never under a
 // phone's open strip, and none for a layer without a clock. Temperature plays on it too.
-// Smoothness on the tablet can't be tested here: see the G Pad checklist in the README.
+// Smoothness on the tablet can't be tested here: the owner checks it on the G Pad itself.
 //
 // Skipped when the browser isn't installed: npx playwright install chromium
 // Run: npm run test:browser -- tests/globe-day-touch.test.mjs
