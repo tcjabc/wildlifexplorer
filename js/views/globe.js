@@ -32,6 +32,7 @@ import { nameBi } from '../zhuyin.js';
 import { LAYERS, tempStops } from '../layers.js';
 import { rampBytes } from '../globe-base.js';
 import { TEMP_BANDS, MORPH_MS, PLAY_MS, bandSteps, nearestMonth, wrapPos } from '../globe-months.js';
+import { clockLoop, clockRow } from '../globe-clock.js';
 import { pinShown, pinHint, noFilters, filterCount, optionCount, onGlobe } from '../globe-filter.js';
 import { tempText } from '../units.js';
 import { countryName } from '../countries.js';
@@ -40,6 +41,7 @@ const NEAR_SIDE = 0.06;   // pins this close to the rim fade out
 const TOUCH = 0.8;        // pins closer than this many pin widths stack up
 const FAN_MS = 300;
 const JUMP = 0.6;         // months: a slider move this big is a tap on the track, not a scrub
+const ARROWS = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 }; // a slider's keys, a step each
 const whenIdle = fn => (window.requestIdleCallback ?? (f => setTimeout(f, 300)))(fn, { timeout: 4000 });
 
 let globe = null;
@@ -619,8 +621,7 @@ export function render(main, [cardId] = []) {
   }
   // ---------- Temperature's year ----------
   const tempLayer = LAYERS.find(l => l.id === 'temp');
-  let monthUi = null;      // { name, slider, play } in the panel, while it shows
-  let playing = 0;
+  let monthUi = null;      // its clockRow (js/globe-clock.js) in the panel, while it shows
   // To a place in the year. morph: a change of month, not a scrub.
   function toMonth(pos, { morph = false } = {}) {
     monthPos = pos;
@@ -635,26 +636,15 @@ export function render(main, [cardId] = []) {
     if (globe.usesBase) globe.month(pos, morph ? MORPH_MS : 0);
     else if (changed) show(tempLayer);
   }
-  function drawPlay() {
-    if (!monthUi?.play) return;
-    monthUi.play.setAttribute('aria-pressed', String(Boolean(playing)));
-    monthUi.play.setAttribute('aria-label', label(playing ? 'layer.temp.pause' : 'layer.temp.play'));
-  }
   // The year going round, a month a second.
+  const year = clockLoop({ advance: ms => toMonth(wrapPos(monthPos + ms / PLAY_MS)) });
   function play(on) {
-    if (on === Boolean(playing)) return;
-    if (!on) { cancelAnimationFrame(playing); playing = 0; drawPlay(); return; }
-    let last = performance.now();
-    const step = t => {
-      toMonth(wrapPos(monthPos + (t - last) / PLAY_MS));
-      last = t;
-      playing = requestAnimationFrame(step);
-    };
-    playing = requestAnimationFrame(step);
-    drawPlay();
+    if (on === year.on) return;
+    if (on) year.start(); else year.stop();
+    monthUi?.setPlaying(on);
   }
   // Any touch stops it, wherever it lands, except on the button that does that anyway.
-  view.addEventListener('pointerdown', e => { if (playing && !monthUi?.play?.contains(e.target)) play(false); }, true);
+  view.addEventListener('pointerdown', e => { if (year.on && !monthUi?.play?.contains(e.target)) play(false); }, true);
 
   // Temperature: hot at the top, cold at the bottom, and the month under it.
   function tempKey() {
@@ -665,34 +655,34 @@ export function render(main, [cardId] = []) {
     const grad = globe?.usesBase === false
       ? stops.map(s => `${s.colour} ${(((s.v - lo) / (hi - lo)) * 100).toFixed(1)}%`).join(', ')
       : bandSteps(TEMP_BANDS).map(b => `${colourAt(b.at)} ${(b.from * 100).toFixed(1)}% ${(b.to * 100).toFixed(1)}%`).join(', ');
-    const name = h('span', { class: 'gtemp__monthname' }, tx(`month.${tempMonth}`));
-    const month = h('input', {
-      class: 'gtemp__slider', type: 'range', min: 1, max: 12, step: globe?.usesBase === false ? 1 : 0.01, value: Math.min(12, monthPos),
-      'aria-label': label('layer.temp.month'), 'aria-valuetext': label(`month.${tempMonth}`),
-      oninput: e => {
-        play(false);
-        const pos = Number(e.target.value), jump = Math.abs(pos - monthPos) > JUMP;
-        toMonth(jump ? Math.round(pos) : pos, { morph: jump });
+    monthUi = clockRow({
+      name: tx(`month.${tempMonth}`),
+      slider: {
+        min: 1, max: 12, step: globe?.usesBase === false ? 1 : 0.01, value: Math.min(12, monthPos),
+        label: 'layer.temp.month', valuetext: label(`month.${tempMonth}`),
+        oninput: pos => {
+          play(false);
+          const jump = Math.abs(pos - monthPos) > JUMP;
+          toMonth(jump ? Math.round(pos) : pos, { morph: jump });
+        },
+        // The keyboard goes month by month, not by the slider's small steps.
+        onkeydown: e => {
+          const by = ARROWS[e.key];
+          if (!by) return;
+          e.preventDefault();
+          play(false);
+          toMonth(Math.max(1, Math.min(12, Math.round(monthPos) + by)), { morph: true });
+        },
       },
-      // The keyboard goes month by month, not by the slider's small steps.
-      onkeydown: e => {
-        const by = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 }[e.key];
-        if (!by) return;
-        e.preventDefault();
-        play(false);
-        toMonth(Math.max(1, Math.min(12, Math.round(monthPos) + by)), { morph: true });
-      },
+      play: !reducedMotion() && { playing: year.on, onToggle: () => play(!year.on), labels: ['layer.temp.play', 'layer.temp.pause'] },
     });
-    const playBtn = !reducedMotion() && h('button', { class: 'gtemp__play', type: 'button', onclick: () => play(!playing) }, h('span', { class: 'gtemp__play-icon', 'aria-hidden': 'true' }));
-    monthUi = { name, slider: month, play: playBtn };
-    drawPlay();
     return h('div', { class: 'gtemp' },
       h('div', { class: 'gtemp__scale' },
         h('div', { class: 'gtemp__bar', style: { '--gtemp-v': `linear-gradient(to top, ${grad})`, '--gtemp-h': `linear-gradient(to left, ${grad})` }, 'aria-hidden': 'true' }),
         h('div', { class: 'gtemp__ticks' },
           h('span', null, h('span', { 'aria-hidden': 'true' }, '🔥 '), tempText(hi)), h('span', null, tempText(0)),
           h('span', null, h('span', { 'aria-hidden': 'true' }, '❄️ '), tempText(lo)))),
-      h('div', { class: 'gtemp__month' }, name, h('div', { class: 'gtemp__controls' }, playBtn, month)));
+      monthUi.el);
   }
   // From a card: the animal and where it lives (its habitats), above the key.
   function cardNote() {

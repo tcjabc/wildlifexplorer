@@ -693,17 +693,17 @@ a.gzone__animal { text-decoration: underline; }
 .gtemp__scale { display: flex; gap: var(--s-2); height: var(--gpanel-scale); }
 .gtemp__bar { flex: none; width: var(--legend-sw); border-radius: var(--r-pill); background: var(--gtemp-v); }
 .gtemp__ticks { display: flex; flex-direction: column; justify-content: space-between; font-weight: var(--fw-semi); }
-.gtemp__month { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-1) var(--s-2); margin-top: var(--s-2); font-weight: var(--fw-bold); }
-.gtemp__monthname .bi { flex-direction: row; gap: 0.4em; }
-.gtemp__slider { flex: 1 1 auto; min-width: 0; height: var(--tap-sm); accent-color: var(--c-primary); }
-.gtemp__controls { flex: 1 1 100%; display: flex; align-items: center; gap: var(--s-2); }
+.gclock { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-1) var(--s-2); margin-top: var(--s-2); font-weight: var(--fw-bold); }
+.gclock__name .bi { flex-direction: row; gap: 0.4em; }
+.gclock__slider { flex: 1 1 auto; min-width: 0; height: var(--tap-sm); accent-color: var(--c-primary); }
+.gclock__controls { flex: 1 1 100%; display: flex; align-items: center; gap: var(--s-2); }
 /* Play and pause, drawn: a triangle, and two bars while it plays. */
-.gtemp__play {
+.gclock__play {
   flex: none; display: grid; place-items: center; width: var(--tap-xs); height: var(--tap-xs); padding: 0;
   border: 0; border-radius: 50%; background: var(--c-primary); color: var(--c-on-primary); cursor: pointer; touch-action: manipulation;
 }
-.gtemp__play-icon { width: var(--s-3); height: var(--s-3); background: currentColor; clip-path: polygon(15% 0, 100% 50%, 15% 100%); }
-.gtemp__play[aria-pressed="true"] .gtemp__play-icon { clip-path: polygon(10% 0, 40% 0, 40% 100%, 10% 100%, 10% 0, 60% 0, 90% 0, 90% 100%, 60% 100%, 60% 0); }
+.gclock__play-icon { width: var(--s-3); height: var(--s-3); background: currentColor; clip-path: polygon(15% 0, 100% 50%, 15% 100%); }
+.gclock__play[aria-pressed="true"] .gclock__play-icon { clip-path: polygon(10% 0, 40% 0, 40% 100%, 10% 100%, 10% 0, 60% 0, 90% 0, 90% 100%, 60% 100%, 60% 0); }
 
 /* Open: the depth key becomes the depth guide (scientific names, an animal for each zone). */
 .gpanel[data-state="expanded"][data-layer="depth"] .gkey__sci,
@@ -732,7 +732,7 @@ a.gzone__animal { text-decoration: underline; }
 .gpanel[data-mode="strip"][data-state="collapsed"] .gkey__item { display: flex; gap: var(--s-1); }
 
 /* Collapsed: the key only. On phones, just the colours and their short marks. */
-.gpanel[data-state="collapsed"] :is(.gpanel__card, .gpanel__what, .gpanel__more, .gtemp__month) { display: none; }
+.gpanel[data-state="collapsed"] :is(.gpanel__card, .gpanel__what, .gpanel__more, .gclock) { display: none; }
 .gpanel[data-state="collapsed"][data-mode="strip"] .gkey__label { display: none; }
 .gpanel[data-state="collapsed"][data-mode="strip"] .gkey__short { display: inline; }
 .gpanel[data-state="collapsed"] .gtemp__scale { height: 96px; }
