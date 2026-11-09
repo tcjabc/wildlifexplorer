@@ -4,7 +4,7 @@
 // Run: npm test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { clockLoop } from '../js/globe-clock.js';
+import { clockLoop, MAX_DT } from '../js/globe-clock.js';
 
 // Frames every `every` ms, run by hand.
 function frames() {
@@ -37,6 +37,16 @@ test('at most 30 a second on a 60 Hz screen, and none of the time lost', () => {
   clockLoop({ advance: ms => more.push(ms), fps: 30, raf: g.raf, caf: g.caf }).start();
   g.run(121, 1000 / 120);
   assert.ok(more.length >= 29 && more.length <= 31, `${more.length}`);
+});
+
+test('slow frames count in full; a hidden tab\'s gap counts as MAX_DT, no jump', () => {
+  const f = frames(), got = [];
+  clockLoop({ advance: ms => got.push(ms), raf: f.raf, caf: f.caf }).start();
+  f.run(1, 0);
+  f.run(10, 200); // a slow device: 5 frames a second
+  assert.ok(Math.abs(got.reduce((s, x) => s + x, 0) - 2000) < 1e-6, 'two seconds of playing in two seconds');
+  f.run(1, 60000); // the tab was hidden for a minute
+  assert.equal(got.at(-1), MAX_DT);
 });
 
 test('in steps: one advance of stepMs each stepMs, never two at once', () => {

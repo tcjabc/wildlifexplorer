@@ -11,8 +11,9 @@ import { label, tx } from './i18n.js';
 //           smoothly: the globe without WebGL)
 //   held(): nothing advances while it is true (the globe being moved); the time is not made up
 //   tick(): every frame while playing
-// A frame later than MAX_DT (a hidden tab, a slow frame) counts as MAX_DT.
-const MAX_DT = 100;
+// A slow frame counts in full, so the clock keeps to the time that passed. Only a gap longer than
+// MAX_DT (the tab was hidden) counts as MAX_DT, so the clock doesn't jump on coming back.
+export const MAX_DT = 250;
 export function clockLoop({ advance, fps = 0, stepMs = 0, held = () => false, tick, raf = requestAnimationFrame, caf = cancelAnimationFrame }) {
   let id = 0, last = 0, acc = 0;
   const gap = fps ? 1000 / fps - 2 : 0; // a little early still counts: 60 Hz frames come at 33.3 ms
