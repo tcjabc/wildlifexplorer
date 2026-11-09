@@ -9,7 +9,8 @@
 //          animals: the row is about the pins, so it dims while they are hidden.
 //   what:  "What am I looking at?": one or two short lines for young children, and a drawing
 //          (art, js/globe-art.js).
-//   clock: 'day': Day & night's time and month controls under the key.
+//   clock: the layer's clock bar along the bottom of the globe: 'year' (Temperature) or 'day'
+//          (Day & night). None: no bar.
 //   more:  extra lines for older children (a "Did you know?", scientific names), shown when the
 //          panel is open.
 // Depth also has zones: each step's scientific name and an example animal (its card when one
@@ -65,12 +66,12 @@ export const INFO = {
       { token: '--c-night', paint: 'night', label: 'info.night.key.night', mark: '🌙' },
       { token: '--c-city-lights', paint: 'lights', label: 'info.night.key.lights' },
     ],
-    clock: 'day', // the time and the month under the key (js/views/globe.js dayKey)
+    clock: 'day', // its clock bar: the time of day and the month (js/views/globe.js dayBar)
     what: ['info.night.what.1', 'info.night.what.2'], art: 'sunEarth',
     more: ['info.night.more.1'],
   },
   temp: {
-    key: 'temp',
+    key: 'temp', clock: 'year', // its clock bar: the month (js/views/globe.js tempBar)
     what: ['info.temp.what.1', 'info.temp.what.2'], art: 'thermometer',
     more: ['info.temp.more.1', 'info.temp.more.year'],
   },

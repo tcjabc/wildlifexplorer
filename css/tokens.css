@@ -398,6 +398,13 @@
   --gvolc-w: 260px;     /* a volcano's card on the globe */
   --gpanel-scale: 180px; /* the temperature scale in the panel, open */
   --gpanel-sheet: 60%;  /* the portrait sheet, open: at most this much of the globe's height */
+  --gclock-h: 56px;     /* the Globe's clock bar: one row, at most this tall */
+  --gclock-play: 48px;  /* its ▶/⏸, drawn */
+  --gclock-hit: 64px;   /* and its touch area, past the circle */
+  --gclock-pad: 4px;    /* room left of ▶/⏸ inside the bar */
+  --gclock-label: 3.5em; /* the label (April, 14:00) never narrower than this */
+  --gclock-slider: 32px; /* the slim slider */
+  --gclock-max: 560px;  /* the bar no wider than this, in the middle of the globe's space */
   --gsheet-pic: min(calc(38 * var(--dvh)), 320px); /* photo in the Globe card sheet */
   --cmp-icon: 44px;     /* figures on the weight balance */
   --life-bar: 22px;

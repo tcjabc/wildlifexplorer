@@ -1,9 +1,9 @@
-// A layer's clock in the Globe's key (js/views/globe.js): Temperature's year and Day & night's day.
-// One row of controls, clockRow(): a name, then ▶/⏸ and a slider, with end marks and a Now button
-// where a layer has them. And the loop that plays it, clockLoop(), plain so it can be tested without
-// a page (tests/globe-clock.test.mjs).
+// A layer's clock on the Globe (js/views/globe.js): Temperature's year and Day & night's day. Its
+// controls are one bar along the bottom of the globe, clockBar(): ▶/⏸, the clock's label and a slim
+// slider. And the loop that plays it, clockLoop(), plain so it can be tested without a page
+// (tests/globe-clock.test.mjs).
 import { h } from './dom.js';
-import { label, tx } from './i18n.js';
+import { label } from './i18n.js';
 
 // Playing: advance(ms) moves the clock on by ms of playing time.
 //   fps:    at most this many advances a second (0: one every frame)
@@ -44,13 +44,14 @@ export function clockLoop({ advance, fps = 0, stepMs = 0, held = () => false, ti
   };
 }
 
-// The row: name (an element) on its own line, then the controls.
+// The bar's one row: ▶/⏸, the clock's label (the month, the hour), and a slim slider.
+//   name:    the label's content (an element), or null to fill in later
+//   onName:  { onclick, label (key) }: the label is a button (Day & night: its months and Now), or null
 //   slider:  { min, max, step, value, valuetext, label (key), oninput(value), onchange(value), onkeydown(e) }
 //   play:    { playing, onToggle(), labels: [play key, pause key] }, or null (none: reduced motion)
 //   ends:    [start mark, end mark] either side of the slider, or null
-//   now:     { onclick, label (key) }: a small button beside the name, or null
 // Returns { el, name, slider, play, setPlaying(on) }.
-export function clockRow({ name, slider: s, play = null, ends = null, now = null, cls }) {
+export function clockBar({ name = null, onName = null, slider: s, play = null, ends = null, cls }) {
   const slider = h('input', {
     class: 'gclock__slider', type: 'range', min: s.min, max: s.max, step: s.step, value: s.value,
     'aria-label': label(s.label), 'aria-valuetext': s.valuetext,
@@ -67,10 +68,9 @@ export function clockRow({ name, slider: s, play = null, ends = null, now = null
   };
   setPlaying(play?.playing);
   const end = mark => h('span', { class: 'gclock__end', 'aria-hidden': 'true' }, mark);
-  const nameEl = h('span', { class: 'gclock__name' }, name);
-  const el = h('div', { class: ['gclock', cls] },
-    nameEl,
-    now && h('button', { class: 'btn btn--soft gclock__now', type: 'button', onclick: now.onclick }, tx(now.label)),
-    h('div', { class: 'gclock__controls' }, btn, ends && end(ends[0]), slider, ends && end(ends[1])));
+  const nameEl = onName
+    ? h('button', { class: 'gclock__name gclock__name--btn', type: 'button', 'aria-haspopup': 'dialog', 'aria-expanded': 'false', 'aria-label': label(onName.label), onclick: onName.onclick }, name)
+    : h('span', { class: 'gclock__name' }, name);
+  const el = h('div', { class: ['gclock', cls] }, btn, nameEl, ends && end(ends[0]), slider, ends && end(ends[1]));
   return { el, name: nameEl, slider, play: btn, setPlaying };
 }

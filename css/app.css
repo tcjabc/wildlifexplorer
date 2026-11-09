@@ -496,7 +496,7 @@ html:not([data-zhuyin="on"]) .zyname__zy, html[data-zhuyin="on"] .zyname__plain 
 .globe.has-layer .globe__hint { display: none; }
 /* ?debug=fps (grown-up preview): frame rate and drawing time. */
 .globe__fps {
-  position: absolute; right: var(--s-2); bottom: calc(var(--s-2) + var(--safe-b)); margin: 0;
+  position: absolute; right: var(--s-2); bottom: calc(var(--s-2) + var(--safe-b) + var(--gclock-room, 0px)); margin: 0;
   padding: var(--s-1) var(--s-2); border-radius: var(--r-sm); background: var(--c-veil); color: var(--c-ink);
   font-size: var(--fs-xs); font-variant-numeric: tabular-nums; pointer-events: none;
 }
@@ -689,24 +689,58 @@ a.gzone__animal { text-decoration: underline; }
 .gzone__art .art { display: block; width: 100%; height: auto; }
 .gzone__animal-name .bi { flex-direction: column; gap: 0; }
 
-/* Temperature: a vertical scale, hot at the top, and the month. */
+/* Temperature: a vertical scale, hot at the top (its month is in the clock bar). */
 .gtemp__scale { display: flex; gap: var(--s-2); height: var(--gpanel-scale); }
 .gtemp__bar { flex: none; width: var(--legend-sw); border-radius: var(--r-pill); background: var(--gtemp-v); }
 .gtemp__ticks { display: flex; flex-direction: column; justify-content: space-between; font-weight: var(--fw-semi); }
-.gclock { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-1) var(--s-2); margin-top: var(--s-2); font-weight: var(--fw-bold); }
-.gclock__name .bi { flex-direction: row; gap: 0.4em; }
-.gclock__slider { flex: 1 1 auto; min-width: 0; height: var(--tap-sm); accent-color: var(--c-primary); }
-.gclock__controls { flex: 1 1 100%; display: flex; align-items: center; gap: var(--s-2); }
-/* Play and pause, drawn: a triangle, and two bars while it plays. */
+
+/* The clock bar (views/globe.js drawBar, js/globe-clock.js clockBar): the globe's own, one row
+   along its bottom for a layer with a clock, the panel open or not. The globe keeps clear of it, so
+   it is never over the globe's middle. Flat: a line round it, no shadow. */
+.gclockbar {
+  position: absolute; z-index: 2; left: max(var(--edge-l), var(--gclock-left, 0px)); right: var(--edge-r);
+  bottom: calc(var(--s-3) + var(--safe-b)); max-width: var(--gclock-max); height: var(--gclock-h); margin-inline: auto;
+  padding: 0 var(--s-3) 0 var(--gclock-pad); border: var(--bw-thin) solid var(--c-line); border-radius: var(--r-pill);
+  background: var(--c-surface); color: var(--c-ink); font-size: var(--fs-sm);
+}
+.gclockbar[hidden] { display: none; }
+.gclock { display: flex; align-items: center; gap: var(--s-2); height: 100%; font-weight: var(--fw-bold); }
+.gclock__name { flex: none; min-width: var(--gclock-label); line-height: 1.15; white-space: nowrap; }
+.gclock__name .bi { gap: 0; }
+/* Day & night's label is a button: the time, the month under it, and a small ▴ for its months. */
+.gclock__name--btn {
+  display: grid; grid-template-columns: auto auto; align-items: center; column-gap: var(--s-1);
+  min-height: var(--tap-xs); padding: 0 var(--s-2); border: 0; border-radius: var(--r-md);
+  background: var(--c-bg-deep); color: inherit; font: inherit; text-align: left; cursor: pointer; touch-action: manipulation;
+}
+.gclock__time, .gclock__month { grid-column: 1; }
+.gclock__month { font-size: var(--fs-xs); font-weight: var(--fw-semi); color: var(--c-ink-soft); }
+.gclock__month .bi { flex-direction: row; gap: 0.3em; }
+.gclock__more { grid-column: 2; grid-row: 1 / span 2; width: 0; height: 0; border: var(--s-1) solid transparent; border-bottom-color: currentColor; border-top-width: 0; }
+.gclock__slider { flex: 1 1 auto; min-width: 0; height: var(--gclock-slider); margin: 0; accent-color: var(--c-primary); }
+.gclock__end { flex: none; font-size: var(--fs-sm); line-height: 1; }
+/* Play and pause, drawn: a triangle, and two bars while it plays. Its touch area is larger than the
+   circle (and than the bar's height): --gclock-hit square. */
 .gclock__play {
-  flex: none; display: grid; place-items: center; width: var(--tap-xs); height: var(--tap-xs); padding: 0;
+  position: relative; flex: none; display: grid; place-items: center; width: var(--gclock-play); height: var(--gclock-play); padding: 0;
   border: 0; border-radius: 50%; background: var(--c-primary); color: var(--c-on-primary); cursor: pointer; touch-action: manipulation;
 }
+.gclock__play::before { content: ''; position: absolute; inset: calc((var(--gclock-play) - var(--gclock-hit)) / 2); border-radius: 50%; }
 .gclock__play-icon { width: var(--s-3); height: var(--s-3); background: currentColor; clip-path: polygon(15% 0, 100% 50%, 15% 100%); }
 .gclock__play[aria-pressed="true"] .gclock__play-icon { clip-path: polygon(10% 0, 40% 0, 40% 100%, 10% 100%, 10% 0, 60% 0, 90% 0, 90% 100%, 60% 100%, 60% 0); }
-/* Day & night (js/views/globe.js dayKey): ☀️ and 🌙 at the ends of the day, Now beside the time. */
-.gclock__end { flex: none; font-size: var(--fs-md); line-height: 1; }
-.gclock__now { margin-inline-start: auto; min-height: var(--tap-xs); min-width: 0; padding: var(--s-1) var(--s-3); font-size: var(--fs-sm); }
+/* Day & night's months and Now, just above the bar. */
+.gwhen {
+  position: absolute; bottom: calc(100% + var(--s-2)); left: 0; display: grid; gap: var(--s-2); padding: var(--s-2);
+  border: var(--bw-thin) solid var(--c-line); border-radius: var(--r-lg); background: var(--c-surface);
+}
+.gwhen__months { display: grid; grid-template-columns: repeat(6, minmax(var(--tap-xs), 1fr)); gap: var(--s-1); }
+.gwhen__month {
+  min-height: var(--tap-xs); padding: var(--s-hair); border: var(--bw-thin) solid var(--c-line); border-radius: var(--r-md);
+  background: var(--c-surface); color: var(--c-ink); font: inherit; font-size: var(--fs-xs); font-weight: var(--fw-bold); cursor: pointer; touch-action: manipulation;
+}
+.gwhen__month .bi { align-items: center; }
+.gwhen__month[aria-pressed="true"] { background: var(--c-primary); border-color: var(--c-primary); color: var(--c-on-primary); }
+.gwhen__now { min-height: var(--tap-xs); }
 
 /* Open: the depth key becomes the depth guide (scientific names, an animal for each zone). */
 .gpanel[data-state="expanded"][data-layer="depth"] .gkey__sci,
@@ -719,13 +753,15 @@ a.gzone__animal { text-decoration: underline; }
   top: calc(var(--gtool-top, 0px) + var(--s-2)); left: var(--edge-l); width: var(--gpanel-w);
   max-height: calc(100% - var(--gtool-top, 0px) - var(--s-2) - var(--s-3) - var(--safe-b));
 }
-/* Over the globe in portrait: solid, so pins behind it don't show through the text. */
-.gpanel[data-over="true"] { background: var(--c-surface); }
+/* Over the globe in portrait: solid, so pins behind it don't show through the text; it stops above
+   the clock bar, which is the width of the screen there. */
+.gpanel[data-over="true"] { background: var(--c-surface); max-height: calc(100% - var(--gtool-top, 0px) - var(--s-2) - var(--s-3) - var(--safe-b) - var(--gclock-room, 0px)); }
 
-/* Phones: a strip along the bottom; open, it grows upwards over the globe. */
+/* Phones: a strip along the bottom, above the clock bar; open, it grows upwards over the globe and
+   never over the bar. */
 .gpanel[data-mode="strip"] {
-  left: var(--edge-l); right: var(--edge-r); bottom: calc(var(--s-3) + var(--safe-b));
-  max-height: min(var(--gpanel-sheet), calc(100% - var(--gpanel-top, var(--tap-sm)) - var(--s-4)));
+  left: var(--edge-l); right: var(--edge-r); bottom: calc(var(--s-3) + var(--safe-b) + var(--gclock-room, 0px));
+  max-height: min(var(--gpanel-sheet), calc(100% - var(--gpanel-top, var(--tap-sm)) - var(--s-4) - var(--gclock-room, 0px)));
 }
 .gpanel[data-mode="strip"] .gtile--hero { grid-auto-flow: column; justify-content: start; align-items: center; gap: var(--s-2); margin-right: calc(var(--tap-xs) + var(--s-2)); min-height: var(--tap-xs); padding: var(--s-1) var(--s-2); }
 .gpanel[data-mode="strip"] .gtile--hero .gtile__emoji { font-size: var(--fs-lg); }
@@ -735,7 +771,7 @@ a.gzone__animal { text-decoration: underline; }
 .gpanel[data-mode="strip"][data-state="collapsed"] .gkey__item { display: flex; gap: var(--s-1); }
 
 /* Collapsed: the key only. On phones, just the colours and their short marks. */
-.gpanel[data-state="collapsed"] :is(.gpanel__card, .gpanel__what, .gpanel__more, .gclock) { display: none; }
+.gpanel[data-state="collapsed"] :is(.gpanel__card, .gpanel__what, .gpanel__more) { display: none; }
 .gpanel[data-state="collapsed"][data-mode="strip"] .gkey__label { display: none; }
 .gpanel[data-state="collapsed"][data-mode="strip"] .gkey__short { display: inline; }
 .gpanel[data-state="collapsed"] .gtemp__scale { height: 96px; }

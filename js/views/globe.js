@@ -32,7 +32,7 @@ import { nameBi } from '../zhuyin.js';
 import { LAYERS, tempStops, sunAt, sunVector } from '../layers.js';
 import { rampBytes } from '../globe-base.js';
 import { TEMP_BANDS, MORPH_MS, PLAY_MS, bandSteps, nearestMonth, wrapPos } from '../globe-months.js';
-import { clockLoop, clockRow } from '../globe-clock.js';
+import { clockLoop, clockBar } from '../globe-clock.js';
 import { pinShown, pinHint, noFilters, filterCount, optionCount, onGlobe } from '../globe-filter.js';
 import { tempText } from '../units.js';
 import { countryName } from '../countries.js';
@@ -70,6 +70,7 @@ let closePanel = null;     // folds the info panel back when it is open over the
 let closeVolc = null;      // closes a volcano's card, while one is open
 let closeDrawer = null;    // closes the filter drawer, while it is open
 let closePicker = null;    // closes the layer picker, while it is open
+let closeWhen = null;      // closes Day & night's months (above the clock bar), while they are open
 
 // ---------- where pins go ----------
 
@@ -158,6 +159,8 @@ export function render(main, [cardId] = []) {
   const panelToggle = h('button', { class: 'gpanel__toggle', type: 'button', onclick: () => setPanel(panel.dataset.state !== 'expanded') });
   const panel = h('aside', { class: 'gpanel', 'aria-label': label('info.what') }, hero, panelBody, panelToggle);
   const picker = h('div', { class: 'gpick', role: 'dialog', 'aria-label': label('globe.layers'), hidden: true });
+  // The clock bar (drawBar): the globe's own, along its bottom, for a layer with a clock.
+  const clockEl = h('div', { class: 'gclockbar', role: 'group', hidden: true });
   // The filter drawer: places, habitats and groups, each option with what it would show.
   const drawerBody = h('div', { class: 'gdrawer__body', 'data-scroll': '' });
   const clearAll = h('button', { class: 'btn btn--soft', type: 'button', onclick: () => clearFilters() }, tx('globe.filter.clear'));
@@ -177,10 +180,14 @@ export function render(main, [cardId] = []) {
     h('p', null, h('span', { 'aria-hidden': 'true' }, '📡 '), tx('globe.offline')),
     h('button', { class: 'btn btn--soft', type: 'button', onclick: () => globe?.retry() }, tx('globe.retry')));
   const view = h('section', { class: ['globe', card && 'has-back', pinsHidden && 'pins-off'], 'aria-label': label('nav.globe') },
-    stage, back, topRow, panel, picker, drawer, offline, h('div', { class: 'globe__foot' }, hint));
+    stage, back, topRow, panel, clockEl, picker, drawer, offline, h('div', { class: 'globe__foot' }, hint));
   mount(main, view);
-  // Any touch on this screen stops the slow turn, not only one on the globe.
-  view.addEventListener('pointerdown', () => globe?.noteTouch(), { capture: true });
+  // Any touch on this screen stops the slow turn, not only one on the globe; one outside the clock
+  // bar closes Day & night's months.
+  view.addEventListener('pointerdown', e => {
+    globe?.noteTouch();
+    if (closeWhen && !clockEl.contains(e.target)) closeWhen();
+  }, { capture: true });
 
   // What is keeping the globe from turning by itself: a card sheet, the drawer, a held view.
   const holds = new Set();
@@ -635,7 +642,7 @@ export function render(main, [cardId] = []) {
   }
   // ---------- Temperature's year ----------
   const tempLayer = LAYERS.find(l => l.id === 'temp');
-  let monthUi = null;      // its clockRow (js/globe-clock.js) in the panel, while it shows
+  let monthUi = null;      // its clockBar (js/globe-clock.js) in the clock bar, while it shows
   // To a place in the year. morph: a change of month, not a scrub.
   function toMonth(pos, { morph = false } = {}) {
     monthPos = pos;
@@ -650,26 +657,23 @@ export function render(main, [cardId] = []) {
     if (globe.usesBase) globe.month(pos, morph ? MORPH_MS : 0);
     else if (changed) show(tempLayer);
   }
-  // The year going round, a month a second.
-  const year = clockLoop({ advance: ms => toMonth(wrapPos(monthPos + ms / PLAY_MS)) });
+  // The year going round, a month a second. Like every layer clock it waits while the globe is
+  // moved or moves by itself, and keeps it from turning by itself while it plays.
+  const year = clockLoop({
+    advance: ms => toMonth(wrapPos(monthPos + ms / PLAY_MS)),
+    held: () => Boolean(globe?.moving),
+    tick: () => globe?.noteTouch(),
+  });
   function play(on) {
     if (on === year.on) return;
     if (on) year.start(); else year.stop();
     monthUi?.setPlaying(on);
   }
-  // Any touch stops it, wherever it lands, except on the button that does that anyway.
-  view.addEventListener('pointerdown', e => { if (year.on && !monthUi?.play?.contains(e.target)) play(false); }, true);
 
-  // Temperature: hot at the top, cold at the bottom, and the month under it.
-  function tempKey() {
-    const stops = tempStops(col);
-    const lo = stops[0].v, hi = stops.at(-1).v;
-    // The bar as the map shows it: in bands, or smooth on the pictures of the fallback.
-    const px = rampBytes(stops), colourAt = at => { const i = Math.round(at * 255) * 4; return `rgb(${px[i]} ${px[i + 1]} ${px[i + 2]})`; };
-    const grad = globe?.usesBase === false
-      ? stops.map(s => `${s.colour} ${(((s.v - lo) / (hi - lo)) * 100).toFixed(1)}%`).join(', ')
-      : bandSteps(TEMP_BANDS).map(b => `${colourAt(b.at)} ${(b.from * 100).toFixed(1)}% ${(b.to * 100).toFixed(1)}%`).join(', ');
-    monthUi = clockRow({
+  // Temperature's clock: ▶/⏸, the month, and the year as a slider.
+  function tempBar() {
+    monthUi = clockBar({
+      cls: 'gclock--year',
       name: tx(`month.${tempMonth}`),
       slider: {
         min: 1, max: 12, step: globe?.usesBase === false ? 1 : 0.01, value: Math.min(12, monthPos),
@@ -690,16 +694,26 @@ export function render(main, [cardId] = []) {
       },
       play: !reducedMotion() && { playing: year.on, onToggle: () => play(!year.on), labels: ['layer.temp.play', 'layer.temp.pause'] },
     });
+    return monthUi.el;
+  }
+  // Temperature: hot at the top, cold at the bottom (its month is in the clock bar).
+  function tempKey() {
+    const stops = tempStops(col);
+    const lo = stops[0].v, hi = stops.at(-1).v;
+    // The bar as the map shows it: in bands, or smooth on the pictures of the fallback.
+    const px = rampBytes(stops), colourAt = at => { const i = Math.round(at * 255) * 4; return `rgb(${px[i]} ${px[i + 1]} ${px[i + 2]})`; };
+    const grad = globe?.usesBase === false
+      ? stops.map(s => `${s.colour} ${(((s.v - lo) / (hi - lo)) * 100).toFixed(1)}%`).join(', ')
+      : bandSteps(TEMP_BANDS).map(b => `${colourAt(b.at)} ${(b.from * 100).toFixed(1)}% ${(b.to * 100).toFixed(1)}%`).join(', ');
     return h('div', { class: 'gtemp' },
       h('div', { class: 'gtemp__scale' },
         h('div', { class: 'gtemp__bar', style: { '--gtemp-v': `linear-gradient(to top, ${grad})`, '--gtemp-h': `linear-gradient(to left, ${grad})` }, 'aria-hidden': 'true' }),
         h('div', { class: 'gtemp__ticks' },
           h('span', null, h('span', { 'aria-hidden': 'true' }, '🔥 '), tempText(hi)), h('span', null, tempText(0)),
-          h('span', null, h('span', { 'aria-hidden': 'true' }, '❄️ '), tempText(lo)))),
-      monthUi.el);
+          h('span', null, h('span', { 'aria-hidden': 'true' }, '❄️ '), tempText(lo)))));
   }
   // ---------- Day & night's day ----------
-  let dayUi = null;        // { hour, month } clockRows in the panel, while they show
+  let dayUi = null;        // its clockBar in the clock bar, while it shows
   let dayLoop = null;      // clockLoop while the day plays
   const dayMonth = () => nearestMonth(monthPos);
   // What the sun is drawn for: now, or the clock's own day and hour.
@@ -721,17 +735,21 @@ export function render(main, [cardId] = []) {
     };
     sunFrame = requestAnimationFrame(go);
   }
+  // A month's short name in both languages (Nov, 11月).
+  const shortMonth = m => dateText(new Date(2000, m - 1, 15), { month: 'short' });
+  // The label: the time on this device's clock, 24-hour (14:00), and the month under it.
   function drawDay() {
     if (!dayUi) return;
     const at = new Date(Math.round(dayMoment() / 900000) * 900000); // to the quarter hour
-    const text = dateText(at, { hour: 'numeric', minute: '2-digit' });
-    mount(dayUi.hour.name, bi(text));
-    dayUi.hour.slider.value = String(toSlider(dayClock.live ? utcHourOf(new Date()) : dayClock.hour));
-    dayUi.hour.slider.setAttribute('aria-valuetext', plain(text));
+    const text = dateText(at, { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
     const m = dayMonth();
-    mount(dayUi.month.name, tx(`month.${m}`));
-    dayUi.month.slider.value = String(m);
-    dayUi.month.slider.setAttribute('aria-valuetext', label(`month.${m}`));
+    mount(dayUi.name,
+      h('span', { class: 'gclock__time' }, bi(text)),
+      h('span', { class: 'gclock__month' }, bi(shortMonth(m))),
+      h('span', { class: 'gclock__more', 'aria-hidden': 'true' }));
+    dayUi.slider.value = String(toSlider(dayClock.live ? utcHourOf(new Date()) : dayClock.hour));
+    dayUi.slider.setAttribute('aria-valuetext', `${plain(text)}, ${label(`month.${m}`)}`);
+    dayUi.el.dataset.month = String(m);
   }
   // Now: the real time and this month again (the year's month too).
   function dayNow({ push = true } = {}) {
@@ -780,14 +798,31 @@ export function render(main, [cardId] = []) {
       });
       dayLoop.start();
     } else dayLoop?.stop();
-    dayUi?.hour.setPlaying(on);
+    dayUi?.setPlaying(on);
   }
-  // Day & night: the time (▶/⏸, the day from ☀️ to 🌙, Now) and the month, under the key.
-  function dayKey() {
-    const hour = clockRow({
+  // The label opens the twelve months and Now, just above the bar.
+  function openWhen(open) {
+    if (!dayUi) return;
+    clockEl.querySelector('.gwhen')?.remove();
+    closeWhen = null;
+    dayUi.name.setAttribute('aria-expanded', String(open));
+    if (!open) return;
+    const m = dayMonth();
+    clockEl.append(h('div', { class: 'gwhen', role: 'dialog', 'aria-label': label('layer.night.month') },
+      h('div', { class: 'gwhen__months' }, Array.from({ length: 12 }, (_, i) => h('button', {
+        class: 'gwhen__month', type: 'button', 'aria-pressed': String(i + 1 === m), 'aria-label': label(`month.${i + 1}`),
+        onclick: () => { toDayMonth(i + 1); openWhen(false); },
+      }, bi(shortMonth(i + 1))))),
+      h('button', { class: 'btn btn--soft gwhen__now', type: 'button', onclick: () => { dayNow(); openWhen(false); } }, tx('layer.night.now'))));
+    closeWhen = () => openWhen(false);
+  }
+  // Day & night's clock: ▶/⏸, the time and month (a tap: the months and Now), the day from ☀️ to 🌙.
+  function dayBar() {
+    dayUi = clockBar({
       cls: 'gclock--day',
+      onName: { onclick: () => openWhen(!closeWhen), label: 'layer.night.month' },
       slider: {
-        min: 6, max: 30, step: 0.25, value: 12, label: 'layer.night.hour', valuetext: '',
+        min: 6, max: 30, step: 0.01, value: 12, label: 'layer.night.hour', valuetext: '',
         // Without WebGL, dragging only moves the slider: the globe is drawn again when it is let go.
         oninput: v => { dayPlay(false); toHour(fromSlider(v), { push: !noBaseNow() }); },
         onchange: v => { if (noBaseNow()) { toHour(fromSlider(v), { push: false }); globe?.updateLayer({ sun: daySun() }); } },
@@ -802,18 +837,13 @@ export function render(main, [cardId] = []) {
       },
       play: !reducedMotion() && { playing: Boolean(dayLoop?.on), onToggle: () => dayPlay(!dayLoop?.on), labels: ['layer.night.play', 'layer.night.pause'] },
       ends: ['☀️', '🌙'],
-      now: { onclick: () => dayNow(), label: 'layer.night.now' },
     });
-    const month = clockRow({
-      cls: 'gclock--month',
-      slider: { min: 1, max: 12, step: 1, value: dayMonth(), label: 'layer.night.month', valuetext: '', oninput: m => toDayMonth(m) },
-    });
-    dayUi = { hour, month };
     drawDay();
-    return h('div', { class: 'gday' }, hour.el, month.el);
+    return dayUi.el;
   }
   function stopDay() {
     dayPlay(false);
+    openWhen(false);
     dayUi = null;
     cancelAnimationFrame(sunFrame);
     sunFrame = 0;
@@ -838,7 +868,6 @@ export function render(main, [cardId] = []) {
     mount(panelBody,
       cardNote(),
       info.key === 'temp' ? tempKey() : h('ul', { class: 'gkey' }, info.key.map((k, i) => keyItem(k, info.zones?.[i]))),
-      !failed && info.clock === 'day' && dayKey(),
       h('section', { class: 'gpanel__what' },
         h('h3', { class: 'gpanel__heading' }, tx('info.what')),
         failed ? h('p', null, tx('layer.failed')) : info.what.map(k => h('p', null, tx(k))),
@@ -857,6 +886,19 @@ export function render(main, [cardId] = []) {
     // Zoomed in on Taiwan: its note comes first, above the key, marked.
     if (!failed && info.taiwan && nearTaiwan) panelBody.querySelector('.gkey, .gtemp').before(taiwanNote(info.taiwan));
     layoutPanel();
+  }
+  // The clock bar: for a layer with a clock (globe-info.js clock), along the bottom of the globe,
+  // the panel open or not; hidden for the others, and for a layer that failed to load.
+  function drawBar(L, failed = false) {
+    const kind = !failed && INFO[L?.id]?.clock;
+    closeWhen?.();
+    monthUi = null;
+    dayUi = null;
+    mount(clockEl, kind === 'year' ? tempBar() : kind === 'day' ? dayBar() : null);
+    clockEl.hidden = !kind;
+    view.classList.toggle('has-clock', Boolean(kind));
+    if (kind) clockEl.setAttribute('aria-label', label(`layer.${L.id}`));
+    fitGlobe();
   }
   // Taiwan's note (Plates & volcanoes): why it has tall mountains, earthquakes and hot springs,
   // and the Tatun volcanoes. In the open panel (collapsed, the panel is the key only).
@@ -909,8 +951,13 @@ export function render(main, [cardId] = []) {
     view.style.setProperty('--gtool-top', `${Math.round(back ? back.getBoundingClientRect().bottom - vb.top : 0)}px`);
     const top = topRow.getBoundingClientRect().bottom - vb.top;
     view.style.setProperty('--gpanel-top', `${Math.round(top)}px`);
-    if (side) { globe.setRoom(top, 0, left); return; }
-    // Phones: the globe keeps clear of the collapsed strip; open, it goes over it.
+    // The clock bar: right of the toolbar where the globe is, the width of the screen where the
+    // toolbar floats over it. The globe keeps clear of it, and so does a phone's strip.
+    view.style.setProperty('--gclock-left', `${Math.round(left)}px`);
+    const bar = clockEl.hidden ? 0 : vb.bottom - clockEl.getBoundingClientRect().top + css('--s-2');
+    view.style.setProperty('--gclock-room', `${Math.round(bar)}px`);
+    if (side) { globe.setRoom(top, bar, left); return; }
+    // Phones: the globe keeps clear of the collapsed strip (above the clock bar); open, it goes over it.
     if (panel.dataset.state !== 'expanded') peek = vb.bottom - panel.getBoundingClientRect().top;
     globe.setRoom(top, peek, 0);
   }
@@ -936,7 +983,10 @@ export function render(main, [cardId] = []) {
     } catch {
       if (wanted !== L || !globe) return;
       hero.classList.add('is-failed');
+      stopDay();
+      play(false);
       drawPanel(L, true);
+      drawBar(L, true);
       globe.setLayer(null).catch(() => {});
     } finally {
       if (wanted === L) hero.classList.remove('is-loading');
@@ -958,8 +1008,9 @@ export function render(main, [cardId] = []) {
     const L = LAYERS.find(l => l.id === id);
     setPlateLabels(null);
     closeVolcano();
-    if (!L) { wanted = null; drawPanel(null, false); globe.setLayer(null).catch(() => {}); return; }
+    if (!L) { wanted = null; drawPanel(null, false); drawBar(null); globe.setLayer(null).catch(() => {}); return; }
     drawPanel(L, false);
+    drawBar(L);
     show(L);
   }
   if (shownLayer) choose(shownLayer); else drawPanel(null, false);
@@ -989,6 +1040,7 @@ export function render(main, [cardId] = []) {
     closeVolc = null;
     closeDrawer = null;
     closePicker = null;
+    closeWhen = null;
     closeSheet({ animate: false });
     globe.destroy();
     globe = null;
@@ -999,6 +1051,7 @@ export function render(main, [cardId] = []) {
 export function onKey(e) {
   if (!globe) return;
   if (e.key === 'Escape' && sheet) { e.preventDefault(); sheet.el.querySelector('.gsheet__close')?.click(); return; }
+  if (e.key === 'Escape' && closeWhen) { e.preventDefault(); closeWhen(); return; }
   if (e.key === 'Escape' && closePicker) { e.preventDefault(); closePicker(); return; }
   if (e.key === 'Escape' && closeDrawer) { e.preventDefault(); closeDrawer(); return; }
   if (e.key === 'Escape' && closeVolc) { e.preventDefault(); closeVolc(); return; }
