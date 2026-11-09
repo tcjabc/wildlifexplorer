@@ -571,7 +571,7 @@ The hero button at the top of the Globe's toolbar opens a picker that switches o
   `LAYERS_VERSION` in `sw.js`.
 - Frame rate: add `?debug=fps` to the address to see the globe's frames per second and drawing time
   while it turns, on any profile (`?debug=off` to stop). It also says which renderer is drawing, and at
-  what pixel ratio.
+  what pixel ratio. `?debug=2d` (or `?debug=fps,2d`) draws the globe without WebGL, as on a device without it.
 - The base layers go through one WebGL 1 shader (`js/globe-base.js`) on a canvas under the 2D ones, at a pixel
   ratio of at most 1.5: Plain map, Topography (with its zoom tiles), Forests, Ocean depth, Day & night and
   Temperature. Every layer shares the ocean colour, the land mask and hillshade (`shade-2k.webp`, its light baked in

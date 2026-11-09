@@ -25,6 +25,7 @@ const GLIDE = 420;       // ms: how long a flick keeps spinning
 const MAX_LAT = 80;
 const PLAIN_BASE = { kind: 'flat', hill: 0.5, tiles: RELIEF_TILES }; // the plain map on the base renderer
 const MAX_DPR = 1.5;     // sharper costs the baseline tablet more than it shows
+const WHEEL_HOLD = 250;  // ms after a wheel turn that the globe still counts as being zoomed
 
 // How much of its slow turn the globe is doing, 0 to 1: only fully zoomed out, and only after
 // idle ms without a touch.
@@ -381,7 +382,8 @@ export function traceRing(sink, v, B, f = 0) {
 // retry() tries again.
 // onBase(ok): the base renderer stopped (its context was lost) or came back, so the layer is shown again.
 // homeCountry: the explorer's, an ISO code, or null for Taiwan.
-export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase, homeCountry = null, debug = false } = {}) {
+// noBase: no WebGL base layer, the 2D canvas draws everything (?debug=2d, to try the fallback).
+export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase, homeCountry = null, debug = false, noBase = false } = {}) {
   // Bottom to top: the base layer (WebGL, js/globe-base.js), the 2D canvas for what lies on it, and
   // the overlay. Without the base renderer the 2D canvas draws sea and land itself, with the picture
   // layers (js/globegl.js, made when first needed) between it and the overlay. Only the 2D canvas
@@ -421,10 +423,12 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
     if (!held) offset = r.dy;
   }
   let paused = false;
+  let spinning = false;      // turning by itself this frame
+  let wheelAt = -Infinity;   // the last wheel zoom
   const reduced = reducedMotion();
 
   let gone = false;
-  {
+  if (!noBase) {
     const el = h('canvas', { class: 'globe__canvas globe__canvas--gl', 'aria-hidden': 'true', hidden: true });
     base = createBase(el, {
       colours: col, shade: 'assets/layers/shade-2k.webp', still: reduced,
@@ -912,6 +916,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
     raf = requestAnimationFrame(frame);
     const dt = Math.min(50, t - (last || t));
     last = t;
+    spinning = false;
     if (glide) {
       rotateBy(glide.vx * dt, glide.vy * dt);
       const f = Math.exp(-dt / GLIDE);
@@ -919,6 +924,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
       if (Math.hypot(glide.vx, glide.vy) < 0.005) glide = null;
     } else if (!flight && !paused && !reduced) {
       const ease = spinEase(t - lastTouch, view.k);
+      spinning = ease > 0;
       if (ease) {
         view.lon = wrap(view.lon - (SPIN * dt * ease) / 1000);
         dirty = true;
@@ -1011,6 +1017,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
   stage.addEventListener('wheel', e => {
     e.preventDefault();
     touched();
+    wheelAt = performance.now();
     onInteract?.();
     zoomAt(...local(e.clientX, e.clientY), view.k * Math.exp(-e.deltaY * 0.0015));
   }, { passive: false });
@@ -1057,6 +1064,9 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
     get usesBase() { return Boolean(base && !base.lost); },
     get k() { return view.k; },
     get radius() { return size.r * fit; },
+    // Being moved, or moving by itself: a finger on it, gliding on, flying or zooming somewhere, a
+    // wheel just turned, or its slow turn. (Day & night's clock waits for it.)
+    get moving() { return fingers.size > 0 || Boolean(glide || flight) || spinning || performance.now() - wheelAt < WHEEL_HOLD; },
     redraw() { dirty = true; },
     retry() { if (!polys) getLand(); if (!home) getHome(); },
     // Fetch the home outlines: in idle time, once the globe has drawn.
@@ -1068,6 +1078,8 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
       volcanoesShown: () => volcShown.map(s => ({ en: s.v.name.en, x: s.x, y: s.y })),
       // [x, y, depth] of a place on the stage now: for checking the picture against the outlines.
       at(lon, lat) { basis(); return project(toVec(lon, lat)); },
+      // Where Day & night has the sun just now, or null.
+      sun: () => layer?.night?.sun ?? null,
       bench(n = 60) {
         const times = [];
         for (let i = 0; i < n; i++) { view.lon = wrap(view.lon + 1); const t0 = performance.now(); draw(); baseCtx.getImageData(0, 0, 1, 1); overCtx.getImageData(0, 0, 1, 1); times.push(performance.now() - t0); } // reading a pixel back waits until the frame is really drawn

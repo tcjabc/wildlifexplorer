@@ -33,16 +33,18 @@ export const state = {
 export const watching = () => state.role === 'watch';
 
 // Debug overlays for grown-ups in preview: ?debug=<name> in the address turns one on for
-// this tab (gestures: the card's gesture zones; fps: the globe's frame rate), ?debug=off
+// this tab (gestures: the card's gesture zones; fps: the globe's frame rate; 2d: the globe without
+// WebGL), several at once with commas (?debug=fps,2d); ?debug=off
 // turns them all off.
 export function debugOn(name) {
   try {
     const q = new URLSearchParams(location.search).get('debug');
     if (q === 'off') {
       for (const k of Object.keys(sessionStorage)) if (k.startsWith('we-debug-')) sessionStorage.removeItem(k);
-    } else if (q) sessionStorage.setItem(`we-debug-${q}`, '1');
-    // The frame rate needs no preview: it is for checking on the kids' own profile on the tablet.
-    return (name === 'fps' || Boolean(state.profile?.parent.preview)) && sessionStorage.getItem(`we-debug-${name}`) === '1';
+    } else if (q) for (const k of q.split(',')) sessionStorage.setItem(`we-debug-${k.trim()}`, '1'); // ?debug=fps,2d
+    // The frame rate and the globe without WebGL (2d) need no preview: they are for checking on the
+    // kids' own profile on the tablet.
+    return (name === 'fps' || name === '2d' || Boolean(state.profile?.parent.preview)) && sessionStorage.getItem(`we-debug-${name}`) === '1';
   } catch { return false; }
 }
 // After this device's role changed (cloud/sync.js): read it again.
