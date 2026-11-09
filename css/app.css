@@ -704,6 +704,9 @@ a.gzone__animal { text-decoration: underline; }
 }
 .gclock__play-icon { width: var(--s-3); height: var(--s-3); background: currentColor; clip-path: polygon(15% 0, 100% 50%, 15% 100%); }
 .gclock__play[aria-pressed="true"] .gclock__play-icon { clip-path: polygon(10% 0, 40% 0, 40% 100%, 10% 100%, 10% 0, 60% 0, 90% 0, 90% 100%, 60% 100%, 60% 0); }
+/* Day & night (js/views/globe.js dayKey): ☀️ and 🌙 at the ends of the day, Now beside the time. */
+.gclock__end { flex: none; font-size: var(--fs-md); line-height: 1; }
+.gclock__now { margin-inline-start: auto; min-height: var(--tap-xs); min-width: 0; padding: var(--s-1) var(--s-3); font-size: var(--fs-sm); }
 
 /* Open: the depth key becomes the depth guide (scientific names, an animal for each zone). */
 .gpanel[data-state="expanded"][data-layer="depth"] .gkey__sci,

@@ -19,7 +19,7 @@
 // The paw button beside the filters hides every animal pin (map layers stay). The filters wait,
 // dimmed, with their selection kept.
 import { h, mount, reducedMotion } from '../dom.js';
-import { bi, t, tx, label, plain } from '../i18n.js';
+import { bi, t, tx, label, plain, dateText } from '../i18n.js';
 import { state, isVisible, groupById, thumbOf, mainImage, debugOn, updateProfile } from '../store.js';
 import { INFO, panelMode } from '../globe-info.js';
 import { ART, animal, tree, plateKey, paw } from '../globe-art.js';
@@ -29,7 +29,7 @@ import { cameFromMap } from '../card-return.js';
 import { loadRange, rangePolygons } from '../worldmap.js';
 import { track, haptic } from '../gesture.js';
 import { nameBi } from '../zhuyin.js';
-import { LAYERS, tempStops } from '../layers.js';
+import { LAYERS, tempStops, sunAt, sunVector } from '../layers.js';
 import { rampBytes } from '../globe-base.js';
 import { TEMP_BANDS, MORPH_MS, PLAY_MS, bandSteps, nearestMonth, wrapPos } from '../globe-months.js';
 import { clockLoop, clockRow } from '../globe-clock.js';
@@ -42,6 +42,9 @@ const TOUCH = 0.8;        // pins closer than this many pin widths stack up
 const FAN_MS = 300;
 const JUMP = 0.6;         // months: a slider move this big is a tap on the track, not a scrub
 const ARROWS = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 }; // a slider's keys, a step each
+const DAY_MS = 20000;     // Day & night: a whole day while it plays
+const DAY_STEP_MS = DAY_MS / 24; // without WebGL a redraw costs too much to play smoothly: an hour at a time
+const SUN_FPS = 30;       // the sun sent to the globe at most this often
 const whenIdle = fn => (window.requestIdleCallback ?? (f => setTimeout(f, 300)))(fn, { timeout: 4000 });
 
 let globe = null;
@@ -52,6 +55,16 @@ let shownFilter = noFilters(); // js/globe-filter.js: only show the pins that ma
 let pinsHidden = false;    // the paw button: no animal pins at all
 let tempMonth = new Date().getMonth() + 1;
 let monthPos = tempMonth;  // where in the year (js/globe-months.js): tempMonth is the month nearest it
+// Day & night's clock: the real time (live: "Now", as the layer opens), or an hour of its own (UTC,
+// 0–24) on a day of the month the year is at (monthPos, shared with Temperature).
+let dayClock = { live: true, hour: 0, day: 21 };
+const wrap24 = x => ((x % 24) + 24) % 24;
+const utcHourOf = d => d.getUTCHours() + d.getUTCMinutes() / 60 + d.getUTCSeconds() / 3600;
+// The hour slider runs through the explorer's own day (this device's clock), from 6 in the morning
+// (☀️, the day first) to 6 the next morning (🌙, then the night).
+const tzHours = () => -new Date().getTimezoneOffset() / 60;
+const toSlider = utc => { const l = wrap24(utc + tzHours()); return l < 6 ? l + 24 : l; };
+const fromSlider = v => wrap24(v - tzHours());
 let goBack = null;         // "Back to card", while the globe was opened from a card
 let closePanel = null;     // folds the info panel back when it is open over the globe
 let closeVolc = null;      // closes a volcano's card, while one is open
@@ -685,6 +698,126 @@ export function render(main, [cardId] = []) {
           h('span', null, h('span', { 'aria-hidden': 'true' }, '❄️ '), tempText(lo)))),
       monthUi.el);
   }
+  // ---------- Day & night's day ----------
+  let dayUi = null;        // { hour, month } clockRows in the panel, while they show
+  let dayLoop = null;      // clockLoop while the day plays
+  const dayMonth = () => nearestMonth(monthPos);
+  // What the sun is drawn for: now, or the clock's own day and hour.
+  function dayMoment() {
+    const now = new Date();
+    return dayClock.live ? now : new Date(Date.UTC(now.getUTCFullYear(), dayMonth() - 1, dayClock.day) + dayClock.hour * 3600000);
+  }
+  const daySun = () => (dayClock.live ? sunVector() : sunAt(dayMonth(), dayClock.hour, { day: dayClock.day }));
+  const noBaseNow = () => globe?.usesBase === false; // the 2D fallback is drawing
+  // The sun to the globe, at most SUN_FPS times a second (a slider being dragged sends more).
+  let sunFrame = 0, sunLast = -Infinity;
+  function pushSun() {
+    if (sunFrame || shownLayer !== 'night' || !globe) return;
+    const go = now => {
+      if (now - sunLast < 1000 / SUN_FPS - 2) { sunFrame = requestAnimationFrame(go); return; }
+      sunFrame = 0;
+      sunLast = now;
+      globe?.updateLayer({ sun: daySun() });
+    };
+    sunFrame = requestAnimationFrame(go);
+  }
+  function drawDay() {
+    if (!dayUi) return;
+    const at = new Date(Math.round(dayMoment() / 900000) * 900000); // to the quarter hour
+    const text = dateText(at, { hour: 'numeric', minute: '2-digit' });
+    mount(dayUi.hour.name, bi(text));
+    dayUi.hour.slider.value = String(toSlider(dayClock.live ? utcHourOf(new Date()) : dayClock.hour));
+    dayUi.hour.slider.setAttribute('aria-valuetext', plain(text));
+    const m = dayMonth();
+    mount(dayUi.month.name, tx(`month.${m}`));
+    dayUi.month.slider.value = String(m);
+    dayUi.month.slider.setAttribute('aria-valuetext', label(`month.${m}`));
+  }
+  // Now: the real time and this month again (the year's month too).
+  function dayNow({ push = true } = {}) {
+    dayPlay(false);
+    const now = new Date();
+    dayClock = { live: true, hour: utcHourOf(now), day: now.getUTCDate() };
+    toMonth(now.getMonth() + 1);
+    drawDay();
+    if (push) globe?.updateLayer({ sun: daySun() });
+  }
+  // Leaving the real time: the clock starts from where it is.
+  function ownTime() {
+    if (!dayClock.live) return;
+    const now = new Date();
+    dayClock = { live: false, hour: utcHourOf(now), day: now.getUTCDate() };
+  }
+  function toHour(utc, { push = true } = {}) {
+    ownTime();
+    dayClock.hour = wrap24(utc);
+    drawDay();
+    if (push) pushSun();
+  }
+  function toDayMonth(m) {
+    ownTime();
+    dayClock.day = 21;
+    toMonth(m);
+    drawDay();
+    pushSun();
+  }
+  // The day going round in DAY_MS, the month kept. It waits while the globe is moved or moves by
+  // itself, and keeps it from turning by itself meanwhile. Without WebGL it goes an hour at a time.
+  function dayPlay(on) {
+    if (on === Boolean(dayLoop?.on)) return;
+    if (on) {
+      ownTime();
+      const stepped = noBaseNow();
+      dayLoop = clockLoop({
+        advance: ms => {
+          dayClock.hour = wrap24(stepped ? Math.floor(dayClock.hour + 1e-6) + 1 : dayClock.hour + (24 * ms) / DAY_MS);
+          drawDay();
+          globe?.updateLayer({ sun: daySun() });
+        },
+        fps: SUN_FPS, stepMs: stepped ? DAY_STEP_MS : 0,
+        held: () => Boolean(globe?.moving),
+        tick: () => globe?.noteTouch(),
+      });
+      dayLoop.start();
+    } else dayLoop?.stop();
+    dayUi?.hour.setPlaying(on);
+  }
+  // Day & night: the time (▶/⏸, the day from ☀️ to 🌙, Now) and the month, under the key.
+  function dayKey() {
+    const hour = clockRow({
+      cls: 'gclock--day',
+      slider: {
+        min: 6, max: 30, step: 0.25, value: 12, label: 'layer.night.hour', valuetext: '',
+        // Without WebGL, dragging only moves the slider: the globe is drawn again when it is let go.
+        oninput: v => { dayPlay(false); toHour(fromSlider(v), { push: !noBaseNow() }); },
+        onchange: v => { if (noBaseNow()) { toHour(fromSlider(v), { push: false }); globe?.updateLayer({ sun: daySun() }); } },
+        // The keyboard goes an hour at a time.
+        onkeydown: e => {
+          const by = ARROWS[e.key];
+          if (!by) return;
+          e.preventDefault();
+          dayPlay(false);
+          toHour((dayClock.live ? utcHourOf(new Date()) : dayClock.hour) + by);
+        },
+      },
+      play: !reducedMotion() && { playing: Boolean(dayLoop?.on), onToggle: () => dayPlay(!dayLoop?.on), labels: ['layer.night.play', 'layer.night.pause'] },
+      ends: ['☀️', '🌙'],
+      now: { onclick: () => dayNow(), label: 'layer.night.now' },
+    });
+    const month = clockRow({
+      cls: 'gclock--month',
+      slider: { min: 1, max: 12, step: 1, value: dayMonth(), label: 'layer.night.month', valuetext: '', oninput: m => toDayMonth(m) },
+    });
+    dayUi = { hour, month };
+    drawDay();
+    return h('div', { class: 'gday' }, hour.el, month.el);
+  }
+  function stopDay() {
+    dayPlay(false);
+    dayUi = null;
+    cancelAnimationFrame(sunFrame);
+    sunFrame = 0;
+  }
   // From a card: the animal and where it lives (its habitats), above the key.
   function cardNote() {
     if (!card) return null;
@@ -705,6 +838,7 @@ export function render(main, [cardId] = []) {
     mount(panelBody,
       cardNote(),
       info.key === 'temp' ? tempKey() : h('ul', { class: 'gkey' }, info.key.map((k, i) => keyItem(k, info.zones?.[i]))),
+      !failed && info.clock === 'day' && dayKey(),
       h('section', { class: 'gpanel__what' },
         h('h3', { class: 'gpanel__heading' }, tx('info.what')),
         failed ? h('p', null, tx('layer.failed')) : info.what.map(k => h('p', null, tx(k))),
@@ -790,7 +924,15 @@ export function render(main, [cardId] = []) {
       if (wanted !== L || !globe) return;
       await globe.setLayer(spec);
       setPlateLabels(spec.plates?.motion);
-      if (L.tick && !ticker) ticker = setInterval(() => globe?.updateLayer(L.tick()), 60000);
+      // The sun's own place at once (the layer was made for now), then once a minute while it is now.
+      if (L.id === 'night') globe.updateLayer({ sun: daySun() });
+      if (L.tick && !ticker) {
+        ticker = setInterval(() => {
+          if (L.id === 'night' && !dayClock.live) return;
+          globe?.updateLayer(L.tick());
+          if (L.id === 'night') drawDay();
+        }, 60000);
+      }
     } catch {
       if (wanted !== L || !globe) return;
       hero.classList.add('is-failed');
@@ -803,6 +945,9 @@ export function render(main, [cardId] = []) {
 
   function choose(id) {
     play(false);
+    stopDay();
+    // Day & night opens on now.
+    if (id === 'night') dayNow({ push: false });
     monthUi = null;
     shownLayer = id;
     clearInterval(ticker);
@@ -835,6 +980,7 @@ export function render(main, [cardId] = []) {
   window.addEventListener('online', onOnline);
   return () => {
     play(false);
+    stopDay();
     clearInterval(ticker);
     window.removeEventListener('resize', onResize);
     window.removeEventListener('online', onOnline);

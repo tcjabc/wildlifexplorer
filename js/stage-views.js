@@ -175,10 +175,11 @@ function profile(card) {
 // What it eats, one food at a time (js/food.js): its photo filling the stage, prey always alive, or
 // its emoji big on the paper when it has no photo. Under it, where the gallery's dots sit, one emoji
 // per food; the lit one is showing. It opens on the first; nothing moves by itself, and the photo
-// takes no swipe (sideways still changes card). 📷 gives the credit of the photo showing.
+// takes no swipe (sideways still changes card). 📷 gives the credit of the photo showing. A tap on
+// the photo stays on the food, on one page too (data-taps, js/card-open.js).
 function food(card, { onCredit }) {
   const items = foodOf(card);
-  const frame = h('div', { class: 'stage-pic stage-food' });
+  const frame = h('div', { class: 'stage-pic stage-food', 'data-taps': '' });
   const credit = h('button', { class: 'cover__credit', type: 'button', 'aria-label': label('card.credit') }, '📷');
   const pick = h('div', { class: 'stage-pic__dots food-pick', role: 'radiogroup', 'aria-label': label('ff.foodAndHunting') },
     items.map((item, i) => h('button', {

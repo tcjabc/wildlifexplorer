@@ -9,6 +9,7 @@
 //          animals: the row is about the pins, so it dims while they are hidden.
 //   what:  "What am I looking at?": one or two short lines for young children, and a drawing
 //          (art, js/globe-art.js).
+//   clock: 'day': Day & night's time and month controls under the key.
 //   more:  extra lines for older children (a "Did you know?", scientific names), shown when the
 //          panel is open.
 // Depth also has zones: each step's scientific name and an example animal (its card when one
@@ -64,6 +65,7 @@ export const INFO = {
       { token: '--c-night', paint: 'night', label: 'info.night.key.night', mark: '🌙' },
       { token: '--c-city-lights', paint: 'lights', label: 'info.night.key.lights' },
     ],
+    clock: 'day', // the time and the month under the key (js/views/globe.js dayKey)
     what: ['info.night.what.1', 'info.night.what.2'], art: 'sunEarth',
     more: ['info.night.more.1'],
   },
