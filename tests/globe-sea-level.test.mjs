@@ -171,6 +171,30 @@ async function seaFloor(f) {
 run('the sea floor: the Mid-Atlantic Ridge in light and shade, the same in the Ice Age (WebGL base)', seaFloor);
 run('the sea floor without the WebGL base: the same', seaFloor, { debug: 'fps,2d' });
 
+// The Ice Age's ice sheets (icesheets-2k.webp): none today, white-blue over Canada west of Hudson
+// Bay in the Ice Age; partway down it has not yet reached the Great Plains edge it reached in full.
+const CANADA = [-100, 58], DAKOTA = [-100, 46.5];
+async function iceSheets(f) {
+  await f.look(-97, 53, 2);
+  const ice = hex(await f.token('--c-ice-sheet'));
+  const today = await f.colour(...CANADA);
+  assert.ok(dist(today, ice) > 40, `no ice sheet today: ${today}`);
+  await f.set(120);
+  await f.wait(500);
+  const full = await f.colour(...CANADA), edge = await f.colour(...DAKOTA);
+  assert.ok(dist(full, ice) < 20, `ice over Canada in the Ice Age: ${full}`);
+  assert.ok(dist(edge, ice) < 20, `and as far south as the Dakotas: ${edge}`);
+  await f.set(60);
+  await f.wait(300);
+  assert.ok(dist(await f.colour(...CANADA), ice) < 20, 'halfway down: still over Canada');
+  assert.ok(dist(await f.colour(...DAKOTA), ice) > 40, 'but not yet the Dakotas');
+  await f.set(0);
+  await f.wait(300);
+  assert.ok(dist(await f.colour(...CANADA), today) < 4, 'and gone again today');
+}
+run('the ice sheets: none at 0 m, over Canada at −120 m, partway between (WebGL base)', iceSheets);
+run('the ice sheets without the WebGL base: the same', iceSheets, { debug: 'fps,2d' });
+
 test('both renderers draw the same sea floor', { skip }, async () => {
   const take = async debug => {
     const f = await open({ debug });
