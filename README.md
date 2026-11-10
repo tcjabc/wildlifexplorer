@@ -541,6 +541,10 @@ The hero button at the top of the Globe's toolbar opens a picker that switches o
   drawn taller and with local contrast by `node scripts/make-layers.mjs seafloor`; `SEA_RELIEF` sets
   how much), so the Mid-Atlantic Ridge, fracture zones, trenches, seamounts and shelves show; a lower
   sea never moves it, it only leaves the shallowest dry.
+  As the sea goes down, the last Ice Age's ice sheets grow over the land and the shelves, flat
+  white-blue (`--c-ice-sheet`): `assets/layers/icesheets-2k.webp`, by `node scripts/make-layers.mjs icesheets`
+  from PaleoMIST 1.0 (CC BY 4.0), its margins every 2,500 years placed at the sea level their ice gives,
+  so they grow and shrink with the slider as they went. Today's ice is left as the picture shows it.
 - 🌊 Ocean depth shows 17 major surface currents, traced by hand (`assets/layers/currents.json`, kept
   off the land by `tests/globe-currents.test.mjs`): dashed lines with arrowheads, red-orange warm and
   blue cold, on the 2D canvas over either renderer (`drawCurrents` in `js/globe.js`, short lines,

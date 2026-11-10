@@ -44,6 +44,9 @@ uniform sampler2D uSeaF;  // the sea floor's shading (128 flat), the sea's blue 
 uniform bool uSeaOn;
 uniform vec3 uSeaC;
 uniform float uSeaHill;
+uniform sampler2D uIce;   // the ice sheets: how far the sea must go down for ice there (m), and their colour
+uniform bool uIceOn;
+uniform vec3 uIceC;
 out vec4 outColor;
 const float PI = 3.14159265;
 
@@ -98,6 +101,12 @@ void main() {
     vec3 n = normalize(w - uBump * ((hE - hW) * east + (hN - hS) * north));
     float shade = dot(n, uLight) - dot(w, uLight); // only the bumps, not the sphere
     col = vec4(base * (1.0 + 1.6 * shade), 1.0);
+    if (uIceOn) {
+    // The Ice Age's ice sheets, as far as the sea has gone down (each place's need, m): flat, over
+    // the relief and the land the sea left, with a soft edge; nothing at 0 m.
+    float need = look(uIce, uv).r * 255.0;
+    col.rgb = mix(col.rgb, uIceC, smoothstep(need - 8.0, need, -uLevel) * clamp(-uLevel, 0.0, 1.0));
+    }
   } else {
     vec4 t = look(uTex, uv);
     col = vec4(t.rgb * t.a, t.a);
@@ -160,7 +169,7 @@ export function createSphere(canvas, { still = false, onLoad } = {}) {
     gl.enableVertexAttribArray(a);
     gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
     loc = {};
-    for (const n of ['uCentre', 'uR', 'uDpr', 'uH', 'uE', 'uN', 'uC', 'uMode', 'uTex', 'uAux', 'uAuxStep', 'uBump', 'uLight', 'uDetail', 'uWin', 'uGrid', 'uDetailOn', 'uFrom', 'uFade', 'uFloor', 'uFloorOn', 'uLevel', 'uDry', 'uSeaF', 'uSeaOn', 'uSeaC', 'uSeaHill']) {
+    for (const n of ['uCentre', 'uR', 'uDpr', 'uH', 'uE', 'uN', 'uC', 'uMode', 'uTex', 'uAux', 'uAuxStep', 'uBump', 'uLight', 'uDetail', 'uWin', 'uGrid', 'uDetailOn', 'uFrom', 'uFade', 'uFloor', 'uFloorOn', 'uLevel', 'uDry', 'uSeaF', 'uSeaOn', 'uSeaC', 'uSeaHill', 'uIce', 'uIceOn', 'uIceC']) {
       loc[n] = gl.getUniformLocation(prog, n);
     }
     gl.uniform1i(loc.uTex, 0);
@@ -169,10 +178,11 @@ export function createSphere(canvas, { still = false, onLoad } = {}) {
     gl.uniform1i(loc.uFrom, 3);
     gl.uniform1i(loc.uFloor, 4);
     gl.uniform1i(loc.uSeaF, 5);
+    gl.uniform1i(loc.uIce, 6);
   }
   setup();
 
-  canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); lost = true; textures.clear(); detail = null; floor = floorWant = seaZ = seaWant = null; });
+  canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); lost = true; textures.clear(); detail = null; floor = floorWant = seaZ = seaWant = ice = iceWant = null; });
   canvas.addEventListener('webglcontextrestored', () => { lost = false; setup(); });
 
   // grey: one channel (R8), a quarter of the memory, kept out of the map so release() leaves it.
@@ -212,6 +222,8 @@ export function createSphere(canvas, { still = false, onLoad } = {}) {
   }
   const useFloor = url => later(url, () => floor, v => { floor = v; }, () => floorWant, v => { floorWant = v; });
   const useSea = url => later(url, () => seaZ, v => { seaZ = v; }, () => seaWant, v => { seaWant = v; });
+  let ice = null, iceWant = null;                 // relief's ice sheets: { url, tex }, the url coming
+  const useIce = url => later(url, () => ice, v => { ice = v; }, () => iceWant, v => { iceWant = v; });
 
   // Free every texture not in keep.
   function release(keep) {
@@ -238,6 +250,7 @@ export function createSphere(canvas, { still = false, onLoad } = {}) {
       if (next?.mode !== 'relief') dropDetail();
       useFloor(next?.mode === 'relief' ? next.floor?.tex : null);
       useSea(next?.mode === 'relief' ? next.sea?.tex : null);
+      useIce(next?.mode === 'relief' ? next.ice?.tex : null);
       fade = !still && was?.mode === 'picture' && next?.mode === 'picture' && was.tex !== next.tex ? { url: was.tex, t0: performance.now() } : null;
       release(fade ? [...urls, fade.url] : urls);
     },
@@ -321,6 +334,10 @@ export function createSphere(canvas, { still = false, onLoad } = {}) {
       if (seaOn) { gl.uniform3f(loc.uSeaC, ...spec.sea.colour); gl.uniform1f(loc.uSeaHill, spec.sea.hill ?? 1); }
       gl.activeTexture(gl.TEXTURE4); gl.bindTexture(gl.TEXTURE_2D, floorOn ? floor.tex : tex.tex);
       gl.activeTexture(gl.TEXTURE5); gl.bindTexture(gl.TEXTURE_2D, seaOn ? seaZ.tex : tex.tex);
+      const iceOn = Boolean(ice) && spec.mode === 'relief' && Boolean(spec.ice) && level < 0;
+      gl.uniform1i(loc.uIceOn, iceOn ? 1 : 0);
+      if (iceOn) gl.uniform3f(loc.uIceC, ...spec.ice.colour);
+      gl.activeTexture(gl.TEXTURE6); gl.bindTexture(gl.TEXTURE_2D, iceOn ? ice.tex : tex.tex);
       gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, tex.tex);
       gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, aux.tex);
       const from = fade && textures.get(fade.url), t = from ? Math.min(1, (performance.now() - fade.t0) / FADE_MS) : 1;
@@ -330,6 +347,6 @@ export function createSphere(canvas, { still = false, onLoad } = {}) {
       if (fade && t >= 1) { release([spec.tex, spec.aux].filter(Boolean)); fade = null; }
       return Boolean(fade);
     },
-    destroy() { release([]); dropDetail(); useFloor(null); useSea(null); gl.getExtension('WEBGL_lose_context')?.loseContext(); },
+    destroy() { release([]); dropDetail(); useFloor(null); useSea(null); useIce(null); gl.getExtension('WEBGL_lose_context')?.loseContext(); },
   };
 }

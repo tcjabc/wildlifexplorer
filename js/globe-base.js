@@ -16,6 +16,9 @@
 //                                            sea: { tex, colour, hill } the sea floor's shading (seafloor-2k.webp, 128
 //                                            flat) on one blue, hill its strength, under the picture; without it
 //                                            the shared ocean.
+//                                            ice: { tex, colour } the Ice Age's ice sheets (icesheets-2k.webp: the
+//                                            drop each place needs, m), flat over the relief as the sea goes down.
+//                                            Fetched after the layer shows, as the floor is.
 //   { kind: 'ramp', tex, stops, bands, hill, sea?, tiles? } a number per pixel (1…255 along the scale), coloured by
 //                                            the scale, smoothly or in `bands` steps; sea: land stays land
 //   { kind: 'classes', tex, colours, hill, tiles? } up to three coverages, one to a channel, on the land
@@ -67,6 +70,9 @@ uniform vec3 uDry;        // the land the lower sea leaves dry
 uniform float uSeaOn;     // a picture's sea: one blue shaded by the sea floor (uLayerB), not the shared ocean
 uniform vec3 uSeaC;
 uniform float uSeaHill;
+uniform sampler2D uIce;   // a picture's ice sheets: how far the sea must go down for ice there (m)
+uniform float uIceOn;
+uniform vec3 uIceC;
 const float PI = 3.14159265;
 
 float lum(vec4 c) { return dot(c.rgb / max(c.a, 0.0001), vec3(0.299, 0.587, 0.114)); }
@@ -133,6 +139,12 @@ void main() {
     col = mix(plain, ramped(v), uAppear);
   }
   col *= 1.0 + uHill * (hill - 0.5) * 2.0;
+  if (uIceOn > 0.5) {
+    // The Ice Age's ice sheets, as far as the sea has gone down (each place's need, m): flat, over
+    // the relief and the land the sea left, with a soft edge; nothing at 0 m.
+    float need = texture2D(uIce, uv).r * 255.0;
+    col = mix(col, uIceC, smoothstep(need - 8.0, need, -uLevel) * clamp(-uLevel, 0.0, 1.0));
+  }
   if (uNight > 0.5) {
     float s = dot(w, uSun);
     float alpha = 0.66 * (1.0 - smoothstep(-0.22, 0.06, s)), dark = 1.0 - smoothstep(-0.3, 0.02, s);
@@ -144,7 +156,7 @@ void main() {
 
 const NAMES = ['uCentre', 'uR', 'uDpr', 'uH', 'uE', 'uN', 'uC', 'uLayer', 'uShade', 'uRamp', 'uLayerB', 'uDetail', 'uKind', 'uBands', 'uHill', 'uSeaOnly',
   'uMix', 'uAppear', 'uChA', 'uChB', 'uRange', 'uOcean', 'uLand', 'uClass0', 'uClass1', 'uClass2', 'uGlow', 'uNight', 'uSun', 'uNightC', 'uTwilightC', 'uDetailOn', 'uWin', 'uGrid', 'uTileHill', 'uTileSoft', 'uCoast',
-  'uFloor', 'uFloorOn', 'uLevel', 'uDry', 'uSeaOn', 'uSeaC', 'uSeaHill'];
+  'uFloor', 'uFloorOn', 'uLevel', 'uDry', 'uSeaOn', 'uSeaC', 'uSeaHill', 'uIce', 'uIceOn', 'uIceC'];
 
 // The colour scale as n RGBA pixels, evenly from its first value to its last.
 //   stops: [{ v, colour: '#rrggbb' }]
@@ -221,7 +233,10 @@ export function createBase(canvas, { colours, shade, onChange, onDraw, still = f
   let layerTex = null;            // { url, tex }
   let shadeTex = null, rampTex = null, rampOf = null;
   let detail = null;              // the zoom tiles' atlas: { tex, w, h, zeros, win, grid, tile }
-  let floorTex = null, floorWant = null, level = 0; // a picture's floor: { url, tex }, the url coming, the sea level (m)
+  let level = 0;                  // the sea level (m)
+  // A picture's textures that come after it shows (one channel each): its floor and its ice sheets,
+  // { now: { url, tex }, want: the url coming }.
+  const late = { floor: { now: null, want: null }, ice: { now: null, want: null } };
   let seaTex = null;              // a picture's sea floor: { url, tex }
   // Temperature: the textures here, the place wanted, a morph under way, the month last shown, and
   // when the first texture came (the layer fades in from the plain map then).
@@ -242,7 +257,7 @@ export function createBase(canvas, { colours, shade, onChange, onDraw, still = f
     gl.enableVertexAttribArray(a);
     gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
     loc = Object.fromEntries(NAMES.map(n => [n, gl.getUniformLocation(prog, n)]));
-    ['uLayer', 'uShade', 'uRamp', 'uLayerB', 'uDetail', 'uFloor'].forEach((n, i) => gl.uniform1i(loc[n], i));
+    ['uLayer', 'uShade', 'uRamp', 'uLayerB', 'uDetail', 'uFloor', 'uIce'].forEach((n, i) => gl.uniform1i(loc[n], i));
     gl.uniform3f(loc.uOcean, ...rgb3(colours.sea));
     gl.uniform3f(loc.uLand, ...rgb3(colours.land));
     gl.uniform4f(loc.uGlow, ...rgba(colours.glow));
@@ -278,19 +293,20 @@ export function createBase(canvas, { colours, shade, onChange, onDraw, still = f
     rampOf = key;
   }
   const dropDetail = () => { if (detail) { gl.deleteTexture(detail.tex); detail = null; } };
-  // The floor comes after its layer shows, and never stops it showing: offline the first time, the
-  // sea simply doesn't go down. Let go with its layer.
-  function useFloor(url) {
-    if (!url) { if (floorTex) gl.deleteTexture(floorTex.tex); floorTex = floorWant = null; return; }
-    if (floorTex?.url === url || floorWant === url) return;
-    floorWant = url;
+  // These come after their layer shows, and never stop it showing: offline the first time, the sea
+  // simply doesn't go down, or no ice grows. Let go with their layer.
+  function useLate(slot, url) {
+    const s = late[slot];
+    if (!url) { if (s.now) gl.deleteTexture(s.now.tex); s.now = s.want = null; return; }
+    if (s.now?.url === url || s.want === url) return;
+    s.want = url;
     imageTexture(url, gl.REPEAT, gl.LUMINANCE).then(tex => {
       if (!tex) return;
-      if (floorWant !== url || lost) { gl.deleteTexture(tex); return; }
-      if (floorTex) gl.deleteTexture(floorTex.tex);
-      floorTex = { url, tex };
+      if (s.want !== url || lost) { gl.deleteTexture(tex); return; }
+      if (s.now) gl.deleteTexture(s.now.tex);
+      s.now = { url, tex };
       onDraw?.();
-    }).catch(() => { if (floorWant === url) floorWant = null; });
+    }).catch(() => { if (s.want === url) s.want = null; });
   }
 
   const hasMonth = m => Boolean(months[slotOf(m).tex]);
@@ -329,7 +345,8 @@ export function createBase(canvas, { colours, shade, onChange, onDraw, still = f
     if (def.stops) rampTexture(def.stops);
     if (!def.tiles) dropDetail();
     layer = def;
-    useFloor(def.floor?.tex);
+    useLate('floor', def.floor?.tex);
+    useLate('ice', def.kind === 'picture' ? def.ice?.tex : null);
     // Months already here: nothing to fade in from.
     if (def.kind === 'months') appearAt = months.some(Boolean) ? performance.now() - MORPH_MS : 0;
   }
@@ -339,7 +356,8 @@ export function createBase(canvas, { colours, shade, onChange, onDraw, still = f
   canvas.addEventListener('webglcontextlost', e => {
     e.preventDefault();
     lost = true;
-    shadeTex = rampTex = rampOf = layerTex = detail = floorTex = floorWant = seaTex = null;
+    shadeTex = rampTex = rampOf = layerTex = detail = seaTex = null;
+    for (const s of Object.values(late)) s.now = s.want = null;
     months.fill(null);
     canvas.hidden = true;
     onChange?.(false);
@@ -469,13 +487,15 @@ export function createBase(canvas, { colours, shade, onChange, onDraw, still = f
           if (!morph) lastMonth = shown.mix < 0.5 ? shown.a : shown.b;
         } else kind = KINDS.flat;
       }
-      const floorOn = kind === KINDS.picture && floorTex && level < 0;
+      const floor = late.floor.now, ice = late.ice.now;
+      const floorOn = kind === KINDS.picture && floor && level < 0, iceOn = kind === KINDS.picture && ice && level < 0;
+      gl.uniform1f(loc.uLevel, level);
       gl.uniform1f(loc.uFloorOn, floorOn ? 1 : 0);
-      if (floorOn) {
-        gl.uniform1f(loc.uLevel, level);
-        gl.uniform3f(loc.uDry, ...rgb3(layer.floor.dry));
-      }
-      gl.activeTexture(gl.TEXTURE5); gl.bindTexture(gl.TEXTURE_2D, floorOn ? floorTex.tex : shadeTex);
+      if (floorOn) gl.uniform3f(loc.uDry, ...rgb3(layer.floor.dry));
+      gl.uniform1f(loc.uIceOn, iceOn ? 1 : 0);
+      if (iceOn) gl.uniform3f(loc.uIceC, ...rgb3(layer.ice.colour));
+      gl.activeTexture(gl.TEXTURE5); gl.bindTexture(gl.TEXTURE_2D, floorOn ? floor.tex : shadeTex);
+      gl.activeTexture(gl.TEXTURE6); gl.bindTexture(gl.TEXTURE_2D, iceOn ? ice.tex : shadeTex);
       gl.uniform1i(loc.uKind, kind);
       gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, first);
       gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, shadeTex);

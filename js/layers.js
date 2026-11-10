@@ -12,6 +12,7 @@ const DIR = 'assets/layers/';
 const FLOOR = `${DIR}elevation-2k.webp`;
 const ZONES = `${DIR}depth-2k.webp`; // the ocean's zones, a number a pixel (scripts/make-layers.mjs depthMap)
 const SEA_FLOOR = `${DIR}seafloor-2k.webp`; // the sea floor's shading, 128 flat (scripts/make-layers.mjs seafloor)
+const ICE = `${DIR}icesheets-2k.webp`; // the Ice Age's ice: the drop each place needs, m (scripts/make-layers.mjs icesheets)
 export const SEA_HILL = 0.6; // how strongly it shades Topography's blue: 0.6 is 40% to 160% of it
 const DEG = Math.PI / 180;
 
@@ -84,6 +85,8 @@ export const LAYER_CREDITS = [
   { layer: 'relief', author: 'NOAA National Centers for Environmental Information (NCEI), ETOPO 2022 Global Relief Model, 60 arc-second bedrock (doi:10.25921/fd45-gt74): the sea floor\'s shading and the sea in the Ice Age',
     license: 'CC0 1.0 (public domain)', licenseUrl: 'https://creativecommons.org/publicdomain/zero/1.0/',
     sourceUrl: 'https://www.ncei.noaa.gov/products/etopo-global-relief-model' },
+  { layer: 'relief', author: 'Evan J. Gowan et al. (2021), PaleoMIST 1.0, a global ice sheet reconstruction for the past 80,000 years (Nature Communications 12, 1199; Eurasian margins after DATED-1, Hughes et al. 2016): the ice sheets in the Ice Age',
+    license: 'CC BY 4.0', licenseUrl: 'https://creativecommons.org/licenses/by/4.0/', sourceUrl: 'https://doi.org/10.1594/PANGAEA.905800' },
   { layer: 'forests', author: 'Dinerstein et al. 2017, RESOLVE Ecoregions 2017 (simplified, grouped into three forest types)',
     license: 'CC BY 4.0', licenseUrl: 'https://creativecommons.org/licenses/by/4.0/', sourceUrl: 'https://ecoregions.appspot.com/' },
   { layer: 'reefs', author: 'Natural Earth, 1:10m Reefs (shown as areas: 8 km around each reef, joined)', ...NE,
@@ -122,12 +125,14 @@ export const LAYERS = [
     id: 'relief', emoji: '🏔️',
     // Its clock is the sea level (js/views/globe.js seaBar): the floor is the sea's depth today
     // (scripts/make-layers.mjs elevation), and what a lower sea leaves dry is the green lowlands.
+    // As the sea goes down, the ice sheets of the last Ice Age grow over it all (icesheets-2k.webp,
+    // scripts/make-layers.mjs icesheets), as far as the sea has fallen.
     // The sea is one blue shaded by the sea floor (seafloor-2k.webp, scripts/make-layers.mjs seafloor),
     // like the land's relief, so the ridges, trenches, seamounts and shelves show; a lower sea never
     // moves it.
-    gpu: ({ col }) => ({ base: { kind: 'picture', tex: `${DIR}relief-2k.webp`, hill: 0.25, tiles: RELIEF_TILES, floor: { tex: FLOOR, dry: col('--c-relief-low') }, sea: { tex: SEA_FLOOR, colour: col('--c-relief-sea'), hill: SEA_HILL } } }),
+    gpu: ({ col }) => ({ base: { kind: 'picture', tex: `${DIR}relief-2k.webp`, hill: 0.25, tiles: RELIEF_TILES, floor: { tex: FLOOR, dry: col('--c-relief-low') }, sea: { tex: SEA_FLOOR, colour: col('--c-relief-sea'), hill: SEA_HILL }, ice: { tex: ICE, colour: col('--c-ice-sheet') } } }),
     async load({ col }) {
-      return { raster: { mode: 'relief', tex: `${DIR}relief-2k.webp`, aux: `${DIR}height-2k.webp`, bump: 5, tiles: RELIEF_TILES, floor: { tex: FLOOR, dry: rgb(col('--c-relief-low')) }, sea: { tex: SEA_FLOOR, colour: rgb(col('--c-relief-sea')), hill: SEA_HILL } } };
+      return { raster: { mode: 'relief', tex: `${DIR}relief-2k.webp`, aux: `${DIR}height-2k.webp`, bump: 5, tiles: RELIEF_TILES, floor: { tex: FLOOR, dry: rgb(col('--c-relief-low')) }, sea: { tex: SEA_FLOOR, colour: rgb(col('--c-relief-sea')), hill: SEA_HILL }, ice: { tex: ICE, colour: rgb(col('--c-ice-sheet')) } } };
     },
   },
   {
