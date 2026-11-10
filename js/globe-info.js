@@ -10,7 +10,8 @@
 //   what:  "What am I looking at?": one or two short lines for young children, and a drawing
 //          (art, js/globe-art.js).
 //   clock: the layer's clock bar along the bottom of the globe: 'year' (Temperature), 'day'
-//          (Day & night) or 'sea-level' (Topography: Today to the Ice Age). None: no bar.
+//          (Day & night), 'sea-level' (Topography: Today to the Ice Age) or 'loop' (Ocean depth:
+//          ▶/⏸ only, the currents flowing). None: no bar.
 //   more:  extra lines for older children (a "Did you know?", scientific names), shown when the
 //          panel is open.
 // Depth also has zones: each step's scientific name and an example animal (its card when one
@@ -100,14 +101,18 @@ export const INFO = {
     },
   },
   depth: {
-    // Lightest at the top: going down the key is going deeper.
+    // Lightest at the top: going down the key is going deeper. Then the currents (current: a
+    // dashed line with its arrowhead, js/globe-art.js currentKey), which have no zone.
     key: [
       { token: '--c-map-sea', label: 'layer.depth.0', short: '0' },
       { token: '--c-depth-1', label: 'layer.depth.1', short: '200' },
       { token: '--c-depth-2', label: 'layer.depth.2', short: '1,000' },
       { token: '--c-depth-3', label: 'layer.depth.3', short: '4,000' },
       { token: '--c-depth-4', label: 'layer.depth.4', short: '6,000' },
+      { current: 'warm', label: 'info.depth.key.warm' },
+      { current: 'cold', label: 'info.depth.key.cold' },
     ],
+    clock: 'loop', // its clock bar: the currents flowing (js/views/globe.js loopBar)
     what: ['info.depth.what.1', 'info.depth.what.2'], art: 'oceanZones',
     more: ['info.depth.more.1'],
     zones: [

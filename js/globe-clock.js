@@ -62,12 +62,14 @@ export function seaPhaseOf(depth, was = 0) {
 // The bar's one row: ▶/⏸, the clock's label (the month, the hour), and a slim slider.
 //   name:    the label's content (an element), or null to fill in later
 //   onName:  { onclick, label (key) }: the label is a button (Day & night: its months and Now), or null
-//   slider:  { min, max, step, value, valuetext, label (key), oninput(value), onchange(value), onkeydown(e) }
+//   label:   false for no label at all (Ocean depth's ▶/⏸ only)
+//   slider:  { min, max, step, value, valuetext, label (key), oninput(value), onchange(value), onkeydown(e) },
+//            or null for none
 //   play:    { playing, onToggle(), labels: [play key, pause key] }, or null (none: reduced motion)
 //   ends:    [start mark, end mark] either side of the slider, or null
 // Returns { el, name, slider, play, setPlaying(on) }.
-export function clockBar({ name = null, onName = null, slider: s, play = null, ends = null, cls }) {
-  const slider = h('input', {
+export function clockBar({ name = null, onName = null, label: named = true, slider: s = null, play = null, ends = null, cls }) {
+  const slider = s && h('input', {
     class: 'gclock__slider', type: 'range', min: s.min, max: s.max, step: s.step, value: s.value,
     'aria-label': label(s.label), 'aria-valuetext': s.valuetext,
     oninput: e => s.oninput?.(Number(e.target.value)),
@@ -85,7 +87,7 @@ export function clockBar({ name = null, onName = null, slider: s, play = null, e
   const end = mark => h('span', { class: 'gclock__end', 'aria-hidden': 'true' }, mark);
   const nameEl = onName
     ? h('button', { class: 'gclock__name gclock__name--btn', type: 'button', 'aria-haspopup': 'dialog', 'aria-expanded': 'false', 'aria-label': label(onName.label), onclick: onName.onclick }, name)
-    : h('span', { class: 'gclock__name' }, name);
+    : named ? h('span', { class: 'gclock__name' }, name) : null;
   const el = h('div', { class: ['gclock', cls] }, btn, nameEl, ends && end(ends[0]), slider, ends && end(ends[1]));
   return { el, name: nameEl, slider, play: btn, setPlaying };
 }

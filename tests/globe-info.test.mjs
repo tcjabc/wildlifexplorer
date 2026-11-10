@@ -75,9 +75,10 @@ test('the key colours are design tokens', () => {
   for (const t of ['--gpanel-w', '--gpanel-art', '--gpanel-sheet', '--c-twilight']) assert.ok(tokens.includes(`${t}:`), t);
 });
 
-test('depth: the key goes from the lightest (top) to the darkest, one step per zone, each with a name and an animal', () => {
-  const { key, zones } = INFO.depth;
-  assert.equal(key.length, DEPTHS.length + 1);
+test('depth: the key goes from the lightest (top) to the darkest, one step per zone, each with a name and an animal; then the currents', () => {
+  const { key: all, zones } = INFO.depth;
+  const key = all.slice(0, DEPTHS.length + 1);
+  assert.deepEqual(all.slice(DEPTHS.length + 1).map(k => k.current), ['warm', 'cold'], 'warm and cold currents last, with no zone');
   assert.equal(zones.length, key.length);
   assert.deepEqual(key.map(k => k.token), ['--c-map-sea', ...DEPTHS.map((_, i) => `--c-depth-${i + 1}`)]);
   assert.deepEqual(key.slice(1).map(k => Number(k.short.replace(',', ''))), DEPTHS, 'each step starts at its zone\'s top');

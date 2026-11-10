@@ -704,6 +704,8 @@ a.gzone__animal { text-decoration: underline; }
   background: var(--c-surface); color: var(--c-ink); font-size: var(--fs-sm);
 }
 .gclockbar[hidden] { display: none; }
+/* Ocean depth's bar is ▶/⏸ alone: only as wide as that, in the middle. */
+.gclockbar--loop { width: fit-content; padding-inline: var(--gclock-pad); }
 .gclock { display: flex; align-items: center; gap: var(--s-2); height: 100%; font-weight: var(--fw-bold); }
 .gclock__name { flex: none; min-width: var(--gclock-label); line-height: 1.15; white-space: nowrap; }
 .gclock__name .bi { gap: 0; }
@@ -842,6 +844,17 @@ a.gzone__animal { text-decoration: underline; }
 .art__plate--double { stroke-width: 6; }
 .art__plate-gap { fill: none; stroke: var(--c-plate-gap); stroke-width: 2; stroke-linecap: round; }
 .art__plate--dash { stroke-dasharray: 4 3; stroke-linecap: butt; }
+/* Ocean depth: a current's name, where it was tapped. */
+.gcurrent {
+  position: absolute; left: 0; top: 0; z-index: 3; padding: var(--s-1) var(--s-2);
+  border: var(--bw-thin) solid var(--c-line); border-radius: var(--r-md); background: var(--c-surface); color: var(--c-ink);
+  font-size: var(--fs-sm); font-weight: var(--fw-bold); line-height: 1.15; pointer-events: none; white-space: nowrap;
+}
+.gcurrent[hidden] { display: none; }
+.art__current { fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.art__current--warm { stroke: var(--c-current-warm); }
+.art__current--cold { stroke: var(--c-current-cold); }
+.art__current--dash { stroke-dasharray: 5 3; stroke-linecap: butt; }
 .art__plate-teeth { fill: var(--c-plate); }
 .art__mantle { fill: var(--c-art-mantle); }
 .art__crust { fill: var(--c-relief-dry); stroke: var(--c-plate-arrow-edge); stroke-width: 1; }

@@ -146,6 +146,11 @@ export function plateKey(kind) {
   return f(path('M12 4L21 20L3 20Z', 'art__volcano')); // volcano
 }
 
+// Ocean depth's key: a current, dashed, with its arrowhead (kind: 'warm' or 'cold').
+export function currentKey(kind) {
+  return frame(24, 24, path('M2 12L19 12', `art__current art__current--${kind} art__current--dash`), path('M14 7L20 12L14 17', `art__current art__current--${kind}`));
+}
+
 // The Earth's shell in pieces, like a puzzle, with arrows showing them moving.
 export function platesArt() {
   return frame(160, 96,

@@ -22,7 +22,7 @@ import { h, mount, reducedMotion } from '../dom.js';
 import { bi, t, tx, label, plain, dateText } from '../i18n.js';
 import { state, isVisible, groupById, thumbOf, mainImage, debugOn, updateProfile } from '../store.js';
 import { INFO, panelMode } from '../globe-info.js';
-import { ART, animal, tree, plateKey, paw } from '../globe-art.js';
+import { ART, animal, tree, plateKey, currentKey, paw } from '../globe-art.js';
 import { picture, groupTitle, cardNo } from '../components.js';
 import { createGlobe, toVec, rangeFit, nightShade } from '../globe.js';
 import { cameFromMap } from '../card-return.js';
@@ -47,6 +47,8 @@ const DAY_STEP_MS = DAY_MS / 24; // without WebGL a redraw costs too much to pla
 const CLOCK_FPS = 30;     // a layer clock's changes (the sun, the sea level) sent to the globe at most this often
 const SEA_STEP = 10;      // Topography's sea level: m a key press, and a step at a time without WebGL
 const SEA_STEP_MS = SEA_MS / 24;
+const FLOW_PX_S = 18;      // Ocean depth: how fast the currents' dashes move, px a second
+const FLOW_STEP_MS = 250;  // and without WebGL, a step this often (under half a dash each, so it reads as forward)
 const whenIdle = fn => (window.requestIdleCallback ?? (f => setTimeout(f, 300)))(fn, { timeout: 4000 });
 
 let globe = null;
@@ -70,6 +72,7 @@ const fromSlider = v => wrap24(v - tzHours());
 let goBack = null;         // "Back to card", while the globe was opened from a card
 let closePanel = null;     // folds the info panel back when it is open over the globe
 let closeVolc = null;      // closes a volcano's card, while one is open
+let closeCurrent = null;   // closes a current's name, while it shows
 let closeDrawer = null;    // closes the filter drawer, while it is open
 let closePicker = null;    // closes the layer picker, while it is open
 let closeWhen = null;      // closes Day & night's months (above the clock bar), while they are open
@@ -226,6 +229,30 @@ export function render(main, [cardId] = []) {
   }
   function closeVolcano() { volcOpen = null; volcCard.hidden = true; closeVolc = null; }
   layer.append(volcCard);
+
+  // Ocean depth: a tap on a current (within a 44 px target, js/globe.js currentAt) shows its name in
+  // a small label there, which goes with the globe; a tap anywhere else, Esc or another layer
+  // takes it away. A drag still turns the globe.
+  const currentTag = h('div', { class: 'gcurrent', role: 'status', hidden: true });
+  let currentOpen = null;   // { name, v }
+  function tapCurrent(at) {
+    const c = at && shownLayer === 'depth' && globe?.currentAt(at.x, at.y);
+    if (!c) { hideCurrent(); return; }
+    currentOpen = { name: c.name, v: toVec(c.lon, c.lat) };
+    mount(currentTag, tx(`current.${c.name}`));
+    currentTag.hidden = false;
+    closeCurrent = hideCurrent;
+    globe.redraw();
+  }
+  function hideCurrent() { currentOpen = null; currentTag.hidden = true; closeCurrent = null; }
+  layer.append(currentTag);
+  function placeCurrent(project) {
+    if (!currentOpen) return;
+    const [x, y, z] = project(currentOpen.v);
+    if (z < 0.05) { currentTag.style.setProperty('visibility', 'hidden'); return; }
+    currentTag.style.removeProperty('visibility');
+    currentTag.style.setProperty('transform', `translate3d(${(x - currentTag.offsetWidth / 2).toFixed(1)}px, ${(y - currentTag.offsetHeight - 10).toFixed(1)}px, 0)`);
+  }
   function placeVolcano(project) {
     if (!volcOpen) return;
     const [x, y, z] = project(volcOpen.v);
@@ -310,6 +337,7 @@ export function render(main, [cardId] = []) {
     if (plateLabels.length) layoutPlateLabels(project, radius);
     checkTaiwan(project, k);
     placeVolcano(project);
+    placeCurrent(project);
     if (fanning) globe.redraw();
   }
 
@@ -325,7 +353,7 @@ export function render(main, [cardId] = []) {
       if (fan) { fan = null; globe.redraw(); }
       hold('card', false); // touched: it may turn by itself again
     },
-    onTap: (ll, at) => { fan = null; select(null); closePanel?.(); closeDrawer?.(); closePicker?.(); tapVolcano(at); },
+    onTap: (ll, at) => { fan = null; select(null); closePanel?.(); closeDrawer?.(); closePicker?.(); tapVolcano(at); tapCurrent(at); },
   });
 
   // Tapping a stack zooms in far enough to pull its pins apart (and fans them if needed).
@@ -629,7 +657,8 @@ export function render(main, [cardId] = []) {
       : h('span', { class: 'gzone__animal' }, inner);
   }
   const keyItem = (k, zone) => h('li', { class: ['gkey__item', k.animals && 'gkey__item--animals'] },
-    k.icon ? keyIcon(k.icon) : k.line ? h('span', { class: 'gkey__line', 'aria-hidden': 'true' }, plateKey(k.line)) : swatch(k),
+    k.icon ? keyIcon(k.icon) : k.line ? h('span', { class: 'gkey__line', 'aria-hidden': 'true' }, plateKey(k.line))
+      : k.current ? h('span', { class: 'gkey__line', 'aria-hidden': 'true' }, currentKey(k.current)) : swatch(k),
     k.short && h('span', { class: 'gkey__short', 'aria-hidden': 'true' }, k.short),
     h('span', { class: 'gkey__label' }, tx(k.label), zone && h('span', { class: 'gkey__sci' }, sciName(k, zone))),
     zone && animalChip(zone.animal));
@@ -947,6 +976,39 @@ export function render(main, [cardId] = []) {
     seaDepth = 0;
     seaPhase = 0;
   }
+  // ---------- Ocean depth's currents ----------
+  // ▶/⏸ only: playing, the currents' dashes move the way the water flows (js/globe.js drawCurrents).
+  // Paused, and with reduced motion (no bar at all), they stand still, their arrowheads showing the way.
+  let flowUi = null;       // its clockBar, while it shows
+  let flowLoop = null;     // clockLoop while it plays
+  let flowPhase = 0;       // how far the dashes have moved, px
+  function flowPlay(on) {
+    if (on === Boolean(flowLoop?.on)) return;
+    if (on) {
+      flowLoop = clockLoop({
+        advance: ms => { flowPhase += (ms * FLOW_PX_S) / 1000; globe?.updateLayer({ phase: flowPhase }); },
+        fps: CLOCK_FPS, stepMs: noBaseNow() ? FLOW_STEP_MS : 0,
+        held: () => Boolean(globe?.moving),
+        tick: () => globe?.noteTouch(),
+      });
+      flowLoop.start();
+    } else flowLoop?.stop();
+    flowUi?.setPlaying(on);
+  }
+  function loopBar() {
+    flowUi = clockBar({
+      cls: 'gclock--loop', label: false,
+      play: { playing: Boolean(flowLoop?.on), onToggle: () => flowPlay(!flowLoop?.on), labels: ['layer.depth.play', 'layer.depth.pause'] },
+    });
+    return flowUi.el;
+  }
+  // Leaving Ocean depth: it stops, and a current's name goes.
+  function stopFlow() {
+    flowPlay(false);
+    flowUi = null;
+    flowPhase = 0;
+    hideCurrent();
+  }
   // From a card: the animal and where it lives (its habitats), above the key.
   function cardNote() {
     if (!card) return null;
@@ -989,12 +1051,15 @@ export function render(main, [cardId] = []) {
   // The clock bar: for a layer with a clock (globe-info.js clock), along the bottom of the globe,
   // the panel open or not; hidden for the others, and for a layer that failed to load.
   function drawBar(L, failed = false) {
-    const kind = !failed && INFO[L?.id]?.clock;
+    // Reduced motion: a clock that is only ▶/⏸ has nothing left to show.
+    const clock = !failed && INFO[L?.id]?.clock, kind = clock === 'loop' && reducedMotion() ? null : clock;
     closeWhen?.();
     monthUi = null;
     dayUi = null;
     seaUi = null;
-    mount(clockEl, kind === 'year' ? tempBar() : kind === 'day' ? dayBar() : kind === 'sea-level' ? seaBar() : null);
+    flowUi = null;
+    mount(clockEl, kind === 'year' ? tempBar() : kind === 'day' ? dayBar() : kind === 'sea-level' ? seaBar() : kind === 'loop' ? loopBar() : null);
+    clockEl.classList.toggle('gclockbar--loop', kind === 'loop');
     clockEl.hidden = !kind;
     view.classList.toggle('has-clock', Boolean(kind));
     if (kind) clockEl.setAttribute('aria-label', label(`layer.${L.id}`));
@@ -1085,6 +1150,7 @@ export function render(main, [cardId] = []) {
       hero.classList.add('is-failed');
       stopDay();
       stopSea();
+      stopFlow();
       play(false);
       drawPanel(L, true);
       drawBar(L, true);
@@ -1098,6 +1164,7 @@ export function render(main, [cardId] = []) {
     play(false);
     stopDay();
     stopSea();
+    stopFlow();
     // Day & night opens on now.
     if (id === 'night') dayNow({ push: false });
     monthUi = null;
@@ -1135,12 +1202,14 @@ export function render(main, [cardId] = []) {
     play(false);
     stopDay();
     stopSea();
+    stopFlow();
     clearInterval(ticker);
     window.removeEventListener('resize', onResize);
     window.removeEventListener('online', onOnline);
     goBack = null;
     closePanel = null;
     closeVolc = null;
+    closeCurrent = null;
     closeDrawer = null;
     closePicker = null;
     closeWhen = null;
@@ -1158,6 +1227,7 @@ export function onKey(e) {
   if (e.key === 'Escape' && closePicker) { e.preventDefault(); closePicker(); return; }
   if (e.key === 'Escape' && closeDrawer) { e.preventDefault(); closeDrawer(); return; }
   if (e.key === 'Escape' && closeVolc) { e.preventDefault(); closeVolc(); return; }
+  if (e.key === 'Escape' && closeCurrent) { e.preventDefault(); closeCurrent(); return; }
   if (e.key === 'Escape' && closePanel) { e.preventDefault(); closePanel(); return; }
   if (e.key === 'Escape' && goBack) { e.preventDefault(); goBack(); return; }
   if (sheet) return;
