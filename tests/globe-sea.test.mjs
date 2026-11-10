@@ -43,26 +43,49 @@ test('Topography uses it on both renderers, dry land in the green lowlands colou
   assert.equal(INFO.relief.clock, 'sea-level');
 });
 
-test('Topography\'s sea in Ocean depth\'s zones: the same file and colours on both renderers, and its key', async () => {
-  const { LAYERS, depthZones, depthStops } = await import('../js/layers.js');
-  const tokens = { '--c-map-sea': '#d8eef6', '--c-depth-1': '#9fd0ec', '--c-depth-2': '#5ea7d8', '--c-depth-3': '#2f78bd', '--c-depth-4': '#1b4b8f', '--c-relief-low': '#acc9ae' };
-  const col = n => tokens[n] ?? '#000000';
+test('Topography\'s sea: one blue shaded by the sea floor, the same on both renderers, and its key', async () => {
+  const { LAYERS, SEA_HILL } = await import('../js/layers.js');
+  const col = n => ({ '--c-relief-sea': '#4a86c0', '--c-relief-low': '#acc9ae' })[n] ?? '#000000';
   const relief = LAYERS.find(l => l.id === 'relief');
-  const r = relief.gpu({ col }).base, d = { tex: 'assets/layers/depth-2k.webp' };
-  assert.match(src('js/layers.js'), /kind: 'ramp', tex: ZONES, stops: depthStops\(col\)/, 'Ocean depth draws the same file with the same scale');
-  assert.equal(r.sea.tex, d.tex, 'one file for both: no second download');
-  assert.deepEqual(r.stops, depthStops(col));
-  assert.equal(r.bands, 5);
+  const r = relief.gpu({ col }).base;
+  assert.deepEqual(r.sea, { tex: 'assets/layers/seafloor-2k.webp', colour: '#4a86c0', hill: SEA_HILL });
+  assert.equal(r.stops, undefined, 'no depth zones on Topography');
+  assert.doesNotMatch(JSON.stringify(r), /depth-2k/, 'Ocean depth\'s file is not needed');
   const fallback = (await relief.load({ col })).raster.sea;
-  assert.equal(fallback.tex, d.tex);
-  assert.deepEqual(fallback.colours.map(c => c.map(v => Math.round(v * 255))), depthZones(col).map(h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16))));
+  assert.equal(fallback.tex, r.sea.tex);
+  assert.equal(fallback.hill, SEA_HILL);
+  assert.deepEqual(fallback.colour.map(v => Math.round(v * 255)), [0x4a, 0x86, 0xc0]);
   const { INFO } = await import('../js/globe-info.js');
-  assert.deepEqual(INFO.relief.key.slice(-2).map(k => [k.label, k.token]), [['info.relief.key.shallow', '--c-map-sea'], ['info.relief.key.deep', '--c-depth-4']]);
+  const row = INFO.relief.key.at(-1);
+  assert.deepEqual([row.label, row.token], ['info.relief.key.floor', '--c-relief-sea']);
+  assert.ok(row.mark, 'a mark in its swatch');
+  assert.equal(INFO.relief.key.length, 4, 'one sea row');
+  assert.equal(INFO.relief.what.length, 2, 'the panel stays at two lines');
+  assert.match(en['info.relief.what.1'], /ridges and valleys/);
+  assert.match(zh['info.relief.what.1'], /海底/);
   const review = readFileSync(`${ROOT}data/zh-ui-review.md`, 'utf8');
-  for (const k of ['info.relief.key.shallow', 'info.relief.key.deep']) {
+  for (const k of ['info.relief.key.floor', 'info.relief.what.1']) {
     assert.ok(en[k] && zh[k], k);
     assert.ok(review.includes(`\`${k}\``), `${k} listed for checking`);
   }
+  for (const k of ['info.relief.key.shallow', 'info.relief.key.deep']) assert.equal(en[k], undefined, `${k} gone`);
+});
+
+test('the sea floor file: 2048 × 1024, small, flat on land, the Mid-Atlantic Ridge lit on its north-west side', async () => {
+  const file = `${ROOT}assets/layers/seafloor-2k.webp`;
+  assert.ok(statSync(file).size < 600 * 1024, `${statSync(file).size} bytes`);
+  const { data, info } = await sharp(file).extractChannel(0).raw().toBuffer({ resolveWithObject: true });
+  assert.deepEqual([info.width, info.height], [2048, 1024]);
+  const at = (lon, lat) => data[Math.floor(((90 - lat) / 180) * info.height) * info.width + Math.floor(((lon + 180) / 360) * info.width)];
+  const mean = (w, e, s, n) => { let t = 0, c = 0; for (let lon = w; lon <= e; lon += 0.25) for (let lat = s; lat <= n; lat += 0.25) { t += at(lon, lat); c++; } return t / c; };
+  assert.equal(at(-100, 40), 128, 'North America: flat (land, never shown)');
+  assert.ok(Math.abs(at(121, 23.5) - 128) <= 8, 'Taiwan: about flat (the lossy file rings a little by a narrow coast)');
+  // At 25–35° N the ridge's axis is near 42–45° W: its western flank faces the light, its eastern one away.
+  const west = mean(-52, -46, 25, 35), east = mean(-40, -34, 25, 35);
+  assert.ok(west - east > 8, `the ridge: lit ${west.toFixed(1)} west, ${east.toFixed(1)} east`);
+  let lo = 255, hi = 0;
+  for (let lon = 140; lon <= 148; lon += 0.2) { const v = at(lon, 15); lo = Math.min(lo, v); hi = Math.max(hi, v); }
+  assert.ok(hi - lo > 80, `the Mariana arc and trench in strong light and shade: ${lo}–${hi}`);
 });
 
 test('the clock\'s words in both languages, and a true minus sign', async () => {

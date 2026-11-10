@@ -42,8 +42,7 @@ export const INFO = {
       { token: '--c-relief-high', label: 'info.relief.key.high', mark: '⛰️' },
       { token: '--c-relief-dry', label: 'info.relief.key.dry', mark: '🏜️' },
       { token: '--c-relief-low', label: 'info.relief.key.low', mark: '🌿' },
-      { token: '--c-map-sea', label: 'info.relief.key.shallow', mark: '🐠' },
-      { token: '--c-depth-4', label: 'info.relief.key.deep', mark: '🐋' },
+      { token: '--c-relief-sea', label: 'info.relief.key.floor', mark: '🐚' },
     ],
     clock: 'sea-level', // its clock bar: the sea level (js/views/globe.js seaBar)
     what: ['info.relief.what.1', 'info.relief.what.2'], art: 'mountain',
