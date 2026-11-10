@@ -9,6 +9,7 @@ import { TEMP_BANDS } from './globe-months.js';
 import { decodeTopo } from './topo.js';
 
 const DIR = 'assets/layers/';
+const FLOOR = `${DIR}elevation-2k.webp`;
 const DEG = Math.PI / 180;
 
 const jsonCache = new Map();
@@ -77,6 +78,9 @@ export const LAYER_CREDITS = [
   { layer: 'relief', author: 'Jesse Allen, NASA Earth Observatory, using GEBCO data (British Oceanographic Data Centre): height for the bumps',
     license: 'Public domain (NASA, GEBCO)', licenseUrl: 'https://www.gebco.net/data_and_products/gridded_bathymetry_data/',
     sourceUrl: 'https://science.nasa.gov/earth/earth-observatory/blue-marble-next-generation/topography-bathymetry-maps' },
+  { layer: 'relief', author: 'NOAA National Centers for Environmental Information (NCEI), ETOPO 2022 Global Relief Model, 60 arc-second bedrock (doi:10.25921/fd45-gt74): the sea in the Ice Age',
+    license: 'CC0 1.0 (public domain)', licenseUrl: 'https://creativecommons.org/publicdomain/zero/1.0/',
+    sourceUrl: 'https://www.ncei.noaa.gov/products/etopo-global-relief-model' },
   { layer: 'forests', author: 'Dinerstein et al. 2017, RESOLVE Ecoregions 2017 (simplified, grouped into three forest types)',
     license: 'CC BY 4.0', licenseUrl: 'https://creativecommons.org/licenses/by/4.0/', sourceUrl: 'https://ecoregions.appspot.com/' },
   { layer: 'reefs', author: 'Natural Earth, 1:10m Reefs (shown as areas: 8 km around each reef, joined)', ...NE,
@@ -107,9 +111,11 @@ const FORESTS = ['tropical', 'temperate', 'boreal'];
 export const LAYERS = [
   {
     id: 'relief', emoji: '🏔️',
-    gpu: () => ({ base: { kind: 'picture', tex: `${DIR}relief-2k.webp`, hill: 0.25, tiles: RELIEF_TILES } }),
-    async load() {
-      return { raster: { mode: 'relief', tex: `${DIR}relief-2k.webp`, aux: `${DIR}height-2k.webp`, bump: 5, tiles: RELIEF_TILES } };
+    // Its clock is the sea level (js/views/globe.js seaBar): the floor is the sea's depth today
+    // (scripts/make-layers.mjs elevation), and what a lower sea leaves dry is the green lowlands.
+    gpu: ({ col }) => ({ base: { kind: 'picture', tex: `${DIR}relief-2k.webp`, hill: 0.25, tiles: RELIEF_TILES, floor: { tex: FLOOR, dry: col('--c-relief-low') } } }),
+    async load({ col }) {
+      return { raster: { mode: 'relief', tex: `${DIR}relief-2k.webp`, aux: `${DIR}height-2k.webp`, bump: 5, tiles: RELIEF_TILES, floor: { tex: FLOOR, dry: rgb(col('--c-relief-low')) } } };
     },
   },
   {

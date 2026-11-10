@@ -4,7 +4,7 @@
 // Run: npm test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { clockLoop, MAX_DT } from '../js/globe-clock.js';
+import { clockLoop, MAX_DT, SEA_ICE, SEA_MS, seaDepthAt, seaPhaseOf } from '../js/globe-clock.js';
 
 // Frames every `every` ms, run by hand.
 function frames() {
@@ -15,6 +15,25 @@ function frames() {
     run(n, every = 1000 / 60) { for (let i = 0; i < n && next; i++) { t += every; const f = next; next = null; f(t); } },
   };
 }
+
+test('the sea level: Today → Ice Age (120 m lower) → Today in 12 s, lingering at each end', () => {
+  assert.equal(SEA_ICE, 120);
+  assert.equal(SEA_MS, 12000);
+  assert.equal(seaDepthAt(0), 0);
+  assert.ok(Math.abs(seaDepthAt(0.5) - 120) < 1e-9);
+  assert.ok(Math.abs(seaDepthAt(1)) < 1e-9);
+  assert.ok(Math.abs(seaDepthAt(0.25) - 60) < 1e-9);
+  assert.ok(seaDepthAt(0.05) < 4 && seaDepthAt(0.45) > 116, 'slow near the ends');
+});
+
+test('the sea level: a scrub keeps the way it was going', () => {
+  for (const d of [0, 10, 60, 74, 119]) {
+    const down = seaPhaseOf(d, 0.1), up = seaPhaseOf(d, 0.8);
+    assert.ok(down <= 0.5 && up >= 0.5, `${d} m: ${down}, ${up}`);
+    assert.ok(Math.abs(seaDepthAt(down) - d) < 1e-6 && Math.abs(seaDepthAt(up) - d) < 1e-6);
+  }
+  assert.ok(Math.abs(seaPhaseOf(120, 0.2) - 0.5) < 1e-9);
+});
 
 test('every frame, the time since the last', () => {
   const f = frames(), got = [];

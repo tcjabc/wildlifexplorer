@@ -9,8 +9,8 @@
 //          animals: the row is about the pins, so it dims while they are hidden.
 //   what:  "What am I looking at?": one or two short lines for young children, and a drawing
 //          (art, js/globe-art.js).
-//   clock: the layer's clock bar along the bottom of the globe: 'year' (Temperature) or 'day'
-//          (Day & night). None: no bar.
+//   clock: the layer's clock bar along the bottom of the globe: 'year' (Temperature), 'day'
+//          (Day & night) or 'sea-level' (Topography: Today to the Ice Age). None: no bar.
 //   more:  extra lines for older children (a "Did you know?", scientific names), shown when the
 //          panel is open.
 // Depth also has zones: each step's scientific name and an example animal (its card when one
@@ -42,6 +42,7 @@ export const INFO = {
       { token: '--c-relief-dry', label: 'info.relief.key.dry', mark: '🏜️' },
       { token: '--c-relief-low', label: 'info.relief.key.low', mark: '🌿' },
     ],
+    clock: 'sea-level', // its clock bar: the sea level (js/views/globe.js seaBar)
     what: ['info.relief.what.1'], art: 'mountain',
     more: ['info.relief.more.1'],
   },

@@ -707,6 +707,8 @@ a.gzone__animal { text-decoration: underline; }
 .gclock { display: flex; align-items: center; gap: var(--s-2); height: 100%; font-weight: var(--fw-bold); }
 .gclock__name { flex: none; min-width: var(--gclock-label); line-height: 1.15; white-space: nowrap; }
 .gclock__name .bi { gap: 0; }
+/* Topography's label changes as the sea moves (Today, −60 m, Ice Age): one width for all, so the slider keeps still. */
+.gclock--sea .gclock__name { min-width: var(--gclock-label-sea); text-align: center; }
 /* Day & night's label is a button: the time, the month under it, and a small ▴ for its months. */
 .gclock__name--btn {
   display: grid; grid-template-columns: auto auto; align-items: center; column-gap: var(--s-1);

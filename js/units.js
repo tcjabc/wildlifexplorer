@@ -36,6 +36,12 @@ export function weightText(kg, kgMax = null) {
   return top < KG_PER_LB ? pair(span(kg, kgMax, v => num((v / KG_PER_LB) * 16)), 'oz') : pair(span(kg, kgMax, v => num(v / KG_PER_LB)), 'lb');
 }
 
+// Heights and depths of the sea as { en, zh }, whole metres (or feet), with a true minus sign.
+export function seaText(m) {
+  const v = Math.round(imperial() ? m / 0.3048 : m), text = `${v < 0 ? '−' : ''}${Math.abs(v).toLocaleString('en')}`;
+  return pair(text, imperial() ? 'ft' : 'm');
+}
+
 export const tempText = c => (fahrenheit() ? `${Math.round(c * 9 / 5 + 32)}°F` : `${c}°C`);
 
 // The Welcome form takes height in ft + in and weight in lb when imperial.

@@ -1,7 +1,7 @@
-// A layer's clock on the Globe (js/views/globe.js): Temperature's year and Day & night's day. Its
-// controls are one bar along the bottom of the globe, clockBar(): ▶/⏸, the clock's label and a slim
-// slider. And the loop that plays it, clockLoop(), plain so it can be tested without a page
-// (tests/globe-clock.test.mjs).
+// A layer's clock on the Globe (js/views/globe.js): Temperature's year, Day & night's day and
+// Topography's sea level. Its controls are one bar along the bottom of the globe, clockBar(): ▶/⏸,
+// the clock's label and a slim slider. And the loop that plays it, clockLoop(), plain so it can be
+// tested without a page (tests/globe-clock.test.mjs).
 import { h } from './dom.js';
 import { label } from './i18n.js';
 
@@ -42,6 +42,21 @@ export function clockLoop({ advance, fps = 0, stepMs = 0, held = () => false, ti
     },
     stop() { if (id) caf(id); id = 0; },
   };
+}
+
+// Topography's sea level: Today (0 m below today's sea) to the Ice Age, about 20,000 years ago, when
+// the sea was about SEA_ICE m lower. Playing, it goes Today → Ice Age → Today in SEA_MS and again; a
+// phase runs from 0 (Today) through 0.5 (the Ice Age) to 1 (Today again). It lingers a little at
+// each end (a cosine), so both are there to see.
+export const SEA_ICE = 120;
+export const SEA_MS = 12000;
+export const seaDepthAt = phase => (SEA_ICE * (1 - Math.cos(2 * Math.PI * phase))) / 2;
+// The phase for a depth, on the half the clock was on (going down before 0.5, coming back after),
+// so playing on from a scrub keeps going the same way.
+export function seaPhaseOf(depth, was = 0) {
+  const p = Math.acos(Math.max(-1, Math.min(1, 1 - (2 * depth) / SEA_ICE))) / (2 * Math.PI);
+  const back = ((was % 1) + 1) % 1 > 0.5;
+  return back ? 1 - p : p;
 }
 
 // The bar's one row: ▶/⏸, the clock's label (the month, the hour), and a slim slider.

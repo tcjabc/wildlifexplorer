@@ -32,9 +32,9 @@ import { nameBi } from '../zhuyin.js';
 import { LAYERS, tempStops, sunAt, sunVector } from '../layers.js';
 import { rampBytes } from '../globe-base.js';
 import { TEMP_BANDS, MORPH_MS, PLAY_MS, bandSteps, nearestMonth, wrapPos, sliderPos } from '../globe-months.js';
-import { clockLoop, clockBar } from '../globe-clock.js';
+import { clockLoop, clockBar, SEA_ICE, SEA_MS, seaDepthAt, seaPhaseOf } from '../globe-clock.js';
 import { pinShown, pinHint, noFilters, filterCount, optionCount, onGlobe } from '../globe-filter.js';
-import { tempText } from '../units.js';
+import { tempText, seaText } from '../units.js';
 import { countryName } from '../countries.js';
 
 const NEAR_SIDE = 0.06;   // pins this close to the rim fade out
@@ -44,7 +44,9 @@ const JUMP = 0.6;         // months: a slider move this big is a tap on the trac
 const ARROWS = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 }; // a slider's keys, a step each
 const DAY_MS = 20000;     // Day & night: a whole day while it plays
 const DAY_STEP_MS = DAY_MS / 24; // without WebGL a redraw costs too much to play smoothly: an hour at a time
-const SUN_FPS = 30;       // the sun sent to the globe at most this often
+const CLOCK_FPS = 30;     // a layer clock's changes (the sun, the sea level) sent to the globe at most this often
+const SEA_STEP = 10;      // Topography's sea level: m a key press, and a step at a time without WebGL
+const SEA_STEP_MS = SEA_MS / 24;
 const whenIdle = fn => (window.requestIdleCallback ?? (f => setTimeout(f, 300)))(fn, { timeout: 4000 });
 
 let globe = null;
@@ -723,12 +725,12 @@ export function render(main, [cardId] = []) {
   }
   const daySun = () => (dayClock.live ? sunVector() : sunAt(dayMonth(), dayClock.hour, { day: dayClock.day }));
   const noBaseNow = () => globe?.usesBase === false; // the 2D fallback is drawing
-  // The sun to the globe, at most SUN_FPS times a second (a slider being dragged sends more).
+  // The sun to the globe, at most CLOCK_FPS times a second (a slider being dragged sends more).
   let sunFrame = 0, sunLast = -Infinity;
   function pushSun() {
     if (sunFrame || shownLayer !== 'night' || !globe) return;
     const go = now => {
-      if (now - sunLast < 1000 / SUN_FPS - 2) { sunFrame = requestAnimationFrame(go); return; }
+      if (now - sunLast < 1000 / CLOCK_FPS - 2) { sunFrame = requestAnimationFrame(go); return; }
       sunFrame = 0;
       sunLast = now;
       globe?.updateLayer({ sun: daySun() });
@@ -792,7 +794,7 @@ export function render(main, [cardId] = []) {
           drawDay();
           globe?.updateLayer({ sun: daySun() });
         },
-        fps: SUN_FPS, stepMs: stepped ? DAY_STEP_MS : 0,
+        fps: CLOCK_FPS, stepMs: stepped ? DAY_STEP_MS : 0,
         held: () => Boolean(globe?.moving),
         tick: () => globe?.noteTouch(),
       });
@@ -848,6 +850,103 @@ export function render(main, [cardId] = []) {
     cancelAnimationFrame(sunFrame);
     sunFrame = 0;
   }
+  // ---------- Topography's sea level ----------
+  // From Today down to the Ice Age (js/globe-clock.js): the sea it leaves is land, today's coast a
+  // dashed line (js/globe.js). It opens on Today, every time.
+  let seaUi = null;        // its clockBar in the clock bar, while it shows
+  let seaLoop = null;      // clockLoop while it plays
+  let seaDepth = 0;        // m below today's sea: 0 Today, SEA_ICE the Ice Age
+  let seaPhase = 0;        // where the loop is: 0 Today, 0.5 the Ice Age
+  let seaSaid = null;      // what the label says, so it is only built again when that changes
+  // The label: Today, Ice Age, or the sea level in between (−60 m).
+  function drawSea() {
+    if (!seaUi) return;
+    const d = Math.round(seaDepth), level = seaText(-d);
+    const end = d <= 0 ? 'today' : d >= SEA_ICE ? 'iceAge' : null;
+    const said = end ?? level.en;
+    if (said !== seaSaid) {
+      seaSaid = said;
+      mount(seaUi.name, end ? tx(`layer.relief.${end}`) : bi(level));
+      const text = label('layer.relief.levelText', { n: level });
+      seaUi.slider.setAttribute('aria-valuetext', end === 'iceAge' ? `${label('layer.relief.iceAge')}, ${label('layer.relief.iceAgeWhen')}, ${text}`
+        : end ? `${label('layer.relief.today')}, ${text}` : text);
+    }
+    seaUi.slider.value = String(seaDepth);
+  }
+  // The sea level to the globe, at most CLOCK_FPS times a second (a slider being dragged sends more).
+  let seaFrame = 0, seaLast = -Infinity;
+  function pushSea() {
+    if (seaFrame || shownLayer !== 'relief' || !globe) return;
+    const go = now => {
+      if (now - seaLast < 1000 / CLOCK_FPS - 2) { seaFrame = requestAnimationFrame(go); return; }
+      seaFrame = 0;
+      seaLast = now;
+      globe?.seaLevel(-seaDepth);
+    };
+    seaFrame = requestAnimationFrame(go);
+  }
+  function toSea(depth, { push = true } = {}) {
+    seaDepth = Math.max(0, Math.min(SEA_ICE, depth));
+    seaPhase = seaPhaseOf(seaDepth, seaPhase);
+    drawSea();
+    if (push) pushSea();
+  }
+  // Today → Ice Age → Today in SEA_MS, again and again. It waits while the globe is moved or moves by
+  // itself, and keeps it from turning by itself meanwhile. Without WebGL it goes SEA_STEP m at a time.
+  function seaPlay(on) {
+    if (on === Boolean(seaLoop?.on)) return;
+    if (on) {
+      const stepped = noBaseNow();
+      seaLoop = clockLoop({
+        advance: ms => {
+          seaPhase = (seaPhase + ms / SEA_MS) % 1;
+          const d = seaDepthAt(seaPhase);
+          seaDepth = stepped ? Math.round(d / SEA_STEP) * SEA_STEP : d;
+          drawSea();
+          globe?.seaLevel(-seaDepth);
+        },
+        fps: CLOCK_FPS, stepMs: stepped ? SEA_STEP_MS : 0,
+        held: () => Boolean(globe?.moving),
+        tick: () => globe?.noteTouch(),
+      });
+      seaLoop.start();
+    } else seaLoop?.stop();
+    seaUi?.setPlaying(on);
+  }
+  // Topography's clock: ▶/⏸, the sea level, and a slider from Today (🌊) to the Ice Age (🧊).
+  function seaBar() {
+    seaSaid = null;
+    seaUi = clockBar({
+      cls: 'gclock--sea',
+      slider: {
+        min: 0, max: SEA_ICE, step: noBaseNow() ? SEA_STEP : 1, value: seaDepth, label: 'layer.relief.level', valuetext: '',
+        // Without WebGL, dragging only moves the slider: the globe is drawn again when it is let go.
+        oninput: v => { seaPlay(false); toSea(v, { push: !noBaseNow() }); },
+        onchange: v => { if (noBaseNow()) { toSea(v, { push: false }); globe?.seaLevel(-seaDepth); } },
+        // The keyboard goes SEA_STEP m at a time.
+        onkeydown: e => {
+          const by = ARROWS[e.key];
+          if (!by) return;
+          e.preventDefault();
+          seaPlay(false);
+          toSea(Math.round(seaDepth / SEA_STEP) * SEA_STEP + by * SEA_STEP);
+        },
+      },
+      play: !reducedMotion() && { playing: Boolean(seaLoop?.on), onToggle: () => seaPlay(!seaLoop?.on), labels: ['layer.relief.play', 'layer.relief.pause'] },
+      ends: ['🌊', '🧊'],
+    });
+    drawSea();
+    return seaUi.el;
+  }
+  // Leaving Topography: it stops, and opens on Today next time.
+  function stopSea() {
+    seaPlay(false);
+    seaUi = null;
+    cancelAnimationFrame(seaFrame);
+    seaFrame = 0;
+    seaDepth = 0;
+    seaPhase = 0;
+  }
   // From a card: the animal and where it lives (its habitats), above the key.
   function cardNote() {
     if (!card) return null;
@@ -894,7 +993,8 @@ export function render(main, [cardId] = []) {
     closeWhen?.();
     monthUi = null;
     dayUi = null;
-    mount(clockEl, kind === 'year' ? tempBar() : kind === 'day' ? dayBar() : null);
+    seaUi = null;
+    mount(clockEl, kind === 'year' ? tempBar() : kind === 'day' ? dayBar() : kind === 'sea-level' ? seaBar() : null);
     clockEl.hidden = !kind;
     view.classList.toggle('has-clock', Boolean(kind));
     if (kind) clockEl.setAttribute('aria-label', label(`layer.${L.id}`));
@@ -984,6 +1084,7 @@ export function render(main, [cardId] = []) {
       if (wanted !== L || !globe) return;
       hero.classList.add('is-failed');
       stopDay();
+      stopSea();
       play(false);
       drawPanel(L, true);
       drawBar(L, true);
@@ -996,6 +1097,7 @@ export function render(main, [cardId] = []) {
   function choose(id) {
     play(false);
     stopDay();
+    stopSea();
     // Day & night opens on now.
     if (id === 'night') dayNow({ push: false });
     monthUi = null;
@@ -1032,6 +1134,7 @@ export function render(main, [cardId] = []) {
   return () => {
     play(false);
     stopDay();
+    stopSea();
     clearInterval(ticker);
     window.removeEventListener('resize', onResize);
     window.removeEventListener('online', onOnline);
