@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Makes the Globe's map layers and the home outlines (assets/layers/) from big public datasets.
 // Run: node scripts/make-layers.mjs [relief tiles night temp depth forests reefs plates volcanoes
-// home base] (no names = all).
+// home base elevation] (no names = all).
 //
 // Raw downloads go into data-raw/ (git-ignored) and are reused. Only the small processed
 // files are committed. Sources and licences: CREDITS.md.
@@ -387,6 +387,86 @@ async function tempMonths() {
   }
 }
 
+// elevation-2k.webp: how deep the sea is today, for Topography's sea level (js/globe-base.js,
+// js/globegl.js): one byte a pixel, metres below today's sea (1 to 254; 255 is deeper), and 0 for
+// the land in the mask (the one the coastline is drawn from). Sea that ETOPO has above the sea is
+// 1, so 0 is only ever land. Sea not joined to the oceans (the Black Sea, the Caspian: lakes in the
+// Ice Age) is 255: its level was its own, so it never empties.
+//
+// From ETOPO 2022 bedrock at 60 arc-seconds (NOAA NCEI, CC0), read through its OPeNDAP server:
+// every SEA_STRIDE-th sample (5 arc-minutes), SEA_BAND rows of them a request, so the 478 MB file
+// is never fetched (about 37 MB in all, kept in data-raw/etopo2022/). Each pixel is the mean of the
+// samples in it, about four. Its rows run south to north, the texture's north to south.
+const ETOPO = 'https://www.ngdc.noaa.gov/thredds/dodsC/global/ETOPO2022/60s/60s_bed_elev_netcdf/ETOPO_2022_v1_60s_N90W180_bed.nc';
+const ETOPO_W = 21600, ETOPO_H = 10800, SEA_STRIDE = 5, SEA_BAND = 180;
+// One band from the .dods answer: a text header, "Data:\n", the count twice, then big-endian floats.
+function dodsFloats(buf, n) {
+  const at = buf.indexOf('\nData:\n');
+  if (at < 0) throw new Error(`not an OPeNDAP answer: ${buf.subarray(0, 200).toString()}`);
+  const start = at + 7 + 8;
+  if (buf.length < start + n * 4) throw new Error(`short OPeNDAP answer (${buf.length} bytes)`);
+  const out = new Float32Array(n);
+  for (let i = 0; i < n; i++) out[i] = buf.readFloatBE(start + i * 4);
+  return out;
+}
+async function elevation(W = 2048, H = 1024) {
+  const dir = path.join(RAW, 'etopo2022');
+  await mkdir(dir, { recursive: true });
+  const rows = ETOPO_H / SEA_STRIDE, cols = ETOPO_W / SEA_STRIDE;
+  const sum = new Float64Array(W * H), count = new Uint16Array(W * H);
+  for (let r0 = 0; r0 < rows; r0 += SEA_BAND) {
+    const n = Math.min(SEA_BAND, rows - r0);
+    const a = r0 * SEA_STRIDE, b = (r0 + n - 1) * SEA_STRIDE;
+    const file = await download(`${ETOPO}.dods?z.z[${a}:${SEA_STRIDE}:${b}][0:${SEA_STRIDE}:${ETOPO_W - 1}]`, path.join(dir, `bed-${SEA_STRIDE}-${r0}.dods`));
+    const z = dodsFloats(await readFile(file), n * cols);
+    for (let i = 0; i < n; i++) {
+      const lat = -90 + ((r0 + i) * SEA_STRIDE + 0.5) / 60;
+      const y = Math.min(H - 1, Math.floor(((90 - lat) / 180) * H));
+      for (let j = 0; j < cols; j++) {
+        const lon = -180 + (j * SEA_STRIDE + 0.5) / 60;
+        const k = y * W + Math.min(W - 1, Math.floor(((lon + 180) / 360) * W));
+        sum[k] += z[i * cols + j];
+        count[k]++;
+      }
+    }
+  }
+  const mask = await landMask(W, H);
+  // The seas joined to the biggest (the oceans), corner to corner too, across the map's edge at 180°.
+  const part = new Int32Array(W * H).fill(-1), sizes = [];
+  for (let s = 0; s < W * H; s++) {
+    if (mask[s] >= 128 || part[s] >= 0) continue;
+    const id = sizes.length, stack = [s];
+    part[s] = id;
+    let size = 0;
+    while (stack.length) {
+      const p = stack.pop(), x = p % W, y = (p - x) / W;
+      size++;
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        const yy = y + dy;
+        if (yy < 0 || yy >= H) continue;
+        const q = yy * W + ((x + dx + W) % W);
+        if (mask[q] < 128 && part[q] < 0) { part[q] = id; stack.push(q); }
+      }
+    }
+    sizes.push(size);
+  }
+  const ocean = sizes.indexOf(Math.max(...sizes));
+  const out = Buffer.alloc(W * H);
+  for (let k = 0; k < W * H; k++) {
+    if (!count[k]) throw new Error(`no sample in pixel ${k % W}, ${Math.floor(k / W)}`);
+    if (mask[k] >= 128) continue; // 0: land
+    out[k] = part[k] === ocean ? Math.max(1, Math.min(255, Math.round(-sum[k] / count[k]))) : 255;
+  }
+  const cut = sizes.map((n, id) => ({ n, id })).filter(c => c.id !== ocean && c.n >= 50).sort((p, q) => q.n - p.n);
+  for (const c of cut) {
+    const k = part.indexOf(c.id);
+    console.log(`  not joined to the oceans: ${c.n} px near ${(((k % W) + 0.5) / W * 360 - 180).toFixed(1)}°, ${(90 - (Math.floor(k / W) + 0.5) / H * 180).toFixed(1)}°`);
+  }
+  const file = path.join(OUT, 'elevation-2k.webp');
+  await sharp(out, { raw: { width: W, height: H, channels: 1 } }).webp({ lossless: true, effort: 6 }).toFile(file);
+  console.log(`  elevation-2k.webp ${await kb(file)}`);
+}
+
 async function base() {
   await shade(2048, 1024);
   await forestMask(2048, 1024);
@@ -727,7 +807,7 @@ async function home() {
 
 // ---------- main ----------
 
-const STEPS = { relief, tiles, night, temp, depth, forests, reefs, plates, volcanoes, home, base };
+const STEPS = { relief, tiles, night, temp, depth, forests, reefs, plates, volcanoes, home, base, elevation };
 const wanted = process.argv.slice(2);
 for (const w of wanted) if (!STEPS[w]) throw new Error(`Unknown layer "${w}" (have: ${Object.keys(STEPS).join(', ')})`);
 await mkdir(RAW, { recursive: true });
