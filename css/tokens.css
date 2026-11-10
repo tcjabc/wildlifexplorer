@@ -115,6 +115,12 @@
   --c-twilight: #5b5f97;   /* dawn and dusk on the globe's day & night layer */
   --c-city-lights: #ffd27a;
   /* Temperature: °C and colour. scripts/make-layers.mjs paints the pictures with it. */
+  /* Plants through the year: NDVI (0 bare to 1 the greenest), brown through pale green to deep green.
+     The key's three swatches are colours from it (tests/globe-plants.test.mjs keeps them in step). */
+  --c-plant-scale: 0 #c4a274, 0.15 #e0d2a3, 0.3 #d3e3a5, 0.45 #9ccf8f, 0.6 #6fb653, 0.75 #2f8f45, 0.9 #1d6b3b;
+  --c-plant-few: #c4a274;
+  --c-plant-some: #d3e3a5;
+  --c-plant-many: #2f8f45;
   --c-temp-scale: -30 #3b2a8f, -15 #2f6fd6, 0 #9ad8f5, 10 #74c77f, 20 #f3df55, 30 #f5973a, 40 #dd3f2a, 50 #8e1b3a;
   --c-callout: #ffc93c;
   --c-callout-ink: #3b2a00;

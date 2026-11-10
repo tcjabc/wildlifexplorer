@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Makes the Globe's map layers and the home outlines (assets/layers/) from big public datasets.
 // Run: node scripts/make-layers.mjs [relief tiles night temp depth forests reefs plates volcanoes
-// home base elevation seafloor icesheets] (no names = all).
+// home base elevation seafloor icesheets plants] (no names = all).
 //
 // Raw downloads go into data-raw/ (git-ignored) and are reused. Only the small processed
 // files are committed. Sources and licences: CREDITS.md.
@@ -14,7 +14,7 @@ import sharp from 'sharp';
 import mapshaper from 'mapshaper';
 import { DEPTHS } from '../js/layers.js';
 import { decodeTopo } from '../js/topo.js';
-import { toByte } from '../js/globe-months.js';
+import { toByte, PLANT_MIN, PLANT_MAX } from '../js/globe-months.js';
 import { CODES } from '../js/countries.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -41,6 +41,9 @@ const TEMP = [
   { layer: 'MODIS_Terra_L3_Land_Surface_Temp_Monthly_Day', colormap: 'MODIS_Land_Surface_Temp', kelvin: true },
   { layer: 'MODIS_Aqua_L3_SST_Thermal_4km_Day_Monthly', colormap: 'MODIS_Sea_Surface_Temperature', kelvin: false },
 ];
+
+// Plants through the year: MODIS Terra's monthly NDVI (how green the land is), the same year.
+const PLANTS = { layer: 'MODIS_Terra_L3_NDVI_Monthly', colormap: 'MODIS_L3_NDVI' };
 
 // ---------- downloads ----------
 
@@ -696,6 +699,104 @@ async function icesheets(W = 2048, H = 1024) {
   console.log(`  icesheets-2k.webp ${await kb(file)}`);
 }
 
+// Plants through the year (js/layers.js plants): MODIS Terra's monthly NDVI for TEMP_YEAR from GIBS,
+// its colours read back to NDVI through the GIBS colour map, then
+//   plants-01…12.webp:        2048×1024 pictures on --c-plant-scale, for when there is no base renderer;
+//   plants-months-1…3.webp:   the months as numbers (PLANT_MIN to PLANT_MAX), one to a channel, four to a
+//                             file at MONTH_W × MONTH_H, as Temperature's are, so the shader can mix them.
+// A month's small holes (clouds) take their neighbours' average. Land with no reading at all (snow,
+// the polar night) counts as bare: no green plants to see. The sea is filled from the coast, so the
+// coast doesn't darken where the shader mixes texels; the shader draws plants on the land only.
+async function plants() {
+  const stops = (await token('--c-plant-scale')).split(',').map(s => { const [v, c] = s.trim().split(/\s+/); return { v: Number(v), rgb: hex(c) }; });
+  const paint = v => {
+    if (v <= stops[0].v) return stops[0].rgb;
+    for (let i = 1; i < stops.length; i++) {
+      const a = stops[i - 1], b = stops[i];
+      if (v <= b.v) { const t = (v - a.v) / (b.v - a.v); return a.rgb.map((x, k) => Math.round(x + (b.rgb[k] - x) * t)); }
+    }
+    return stops.at(-1).rgb;
+  };
+  const valueOf = await colormap(PLANTS.colormap, false);
+  const W = 2048, H = 1024, N = MONTH_W * MONTH_H, packed = [0, 1, 2].map(() => Buffer.alloc(N * 4));
+  const land = await landMask(MONTH_W, MONTH_H), landPic = await landMask(W, H);
+  for (let month = 1; month <= 12; month++) {
+    const mm = String(month).padStart(2, '0');
+    const q = new URLSearchParams({
+      SERVICE: 'WMS', REQUEST: 'GetMap', VERSION: '1.3.0', LAYERS: PLANTS.layer, STYLES: '', CRS: 'EPSG:4326',
+      BBOX: '-90,-180,90,180', WIDTH: W, HEIGHT: H, FORMAT: 'image/png', TRANSPARENT: 'TRUE', TIME: `${TEMP_YEAR}-${mm}-01`,
+    });
+    const png = await download(`${GIBS}?${q}`, path.join(RAW, `${PLANTS.layer}_${TEMP_YEAR}-${mm}.png`));
+    const { data, info } = await sharp(png).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    const pic = Buffer.alloc(W * H * 4), sum = new Float32Array(N), n = new Uint16Array(N);
+    for (let y = 0; y < H; y++) {
+      const cy = Math.min(MONTH_H - 1, Math.floor((y * MONTH_H) / H));
+      for (let x = 0; x < W; x++) {
+        const p = (y * W + x) * info.channels, o = (y * W + x) * 4;
+        if (data[p + 3] < 128) continue;
+        const v = valueOf(data[p], data[p + 1], data[p + 2]);
+        if (v == null || v < PLANT_MIN) continue;
+        const [r, g, b] = paint(v);
+        pic[o] = r; pic[o + 1] = g; pic[o + 2] = b; pic[o + 3] = 255;
+        const c = cy * MONTH_W + Math.min(MONTH_W - 1, Math.floor((x * MONTH_W) / W));
+        sum[c] += v; n[c]++;
+      }
+    }
+    fillGaps(pic, W, H, 4);
+    // Land still with no reading is bare, as the shader has it (not the plain map's green showing through).
+    const bareRgb = paint(PLANT_MIN);
+    for (let k = 0; k < W * H; k++) if (!pic[k * 4 + 3] && landPic[k] >= 128) { pic.set(bareRgb, k * 4); pic[k * 4 + 3] = 255; }
+    const file = path.join(OUT, `plants-${mm}.webp`);
+    await sharp(pic, { raw: { width: W, height: H, channels: 4 } }).webp({ quality: 78, alphaQuality: 60, effort: 6 }).toFile(file);
+    const v = Float32Array.from(sum, (t, i) => (n[i] ? t / n[i] : NaN));
+    // Small holes: the neighbours' average, three cells in at most.
+    for (let pass = 0; pass < 3; pass++) {
+      const next = v.slice();
+      for (let i = 0; i < N; i++) {
+        if (!Number.isNaN(v[i])) continue;
+        const x = i % MONTH_W, y = (i - x) / MONTH_W;
+        let t = 0, k = 0;
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          const yy = y + dy;
+          if (yy < 0 || yy >= MONTH_H) continue;
+          const u = v[yy * MONTH_W + ((x + dx + MONTH_W) % MONTH_W)];
+          if (!Number.isNaN(u)) { t += u; k++; }
+        }
+        if (k >= 2) next[i] = t / k;
+      }
+      v.set(next);
+    }
+    let bare = 0;
+    for (let i = 0; i < N; i++) if (Number.isNaN(v[i]) && land[i] >= 128) { v[i] = PLANT_MIN; bare++; }
+    // The sea, from the coast inwards (the map wrapping round at 180°).
+    for (let gaps = true; gaps;) {
+      gaps = false;
+      const next = v.slice();
+      for (let i = 0; i < N; i++) {
+        if (!Number.isNaN(v[i])) continue;
+        const x = i % MONTH_W, y = (i - x) / MONTH_W;
+        let t = 0, k = 0;
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          const yy = y + dy;
+          if (yy < 0 || yy >= MONTH_H) continue;
+          const u = v[yy * MONTH_W + ((x + dx + MONTH_W) % MONTH_W)];
+          if (!Number.isNaN(u)) { t += u; k++; }
+        }
+        if (k) next[i] = t / k; else gaps = true;
+      }
+      v.set(next);
+    }
+    const into = packed[Math.floor((month - 1) / 4)], ch = (month - 1) % 4;
+    for (let i = 0; i < N; i++) into[i * 4 + ch] = toByte(v[i], PLANT_MIN, PLANT_MAX);
+    console.log(`  plants-${mm}.webp ${await kb(file)} (land with no reading, counted bare: ${((bare / N) * 100).toFixed(1)}% of the map)`);
+  }
+  for (const [i, d] of packed.entries()) {
+    const file = path.join(OUT, `plants-months-${i + 1}.webp`);
+    await sharp(d, { raw: { width: MONTH_W, height: MONTH_H, channels: 4 } }).webp({ lossless: true, effort: 6 }).toFile(file);
+    console.log(`  plants-months-${i + 1}.webp ${await kb(file)}`);
+  }
+}
+
 async function base() {
   await shade(2048, 1024);
   await forestMask(2048, 1024);
@@ -1036,7 +1137,7 @@ async function home() {
 
 // ---------- main ----------
 
-const STEPS = { relief, tiles, night, temp, depth, forests, reefs, plates, volcanoes, home, base, elevation, seafloor, icesheets };
+const STEPS = { relief, tiles, night, temp, depth, forests, reefs, plates, volcanoes, home, base, elevation, seafloor, icesheets, plants };
 const wanted = process.argv.slice(2);
 for (const w of wanted) if (!STEPS[w]) throw new Error(`Unknown layer "${w}" (have: ${Object.keys(STEPS).join(', ')})`);
 await mkdir(RAW, { recursive: true });

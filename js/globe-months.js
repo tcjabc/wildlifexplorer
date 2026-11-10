@@ -8,6 +8,9 @@ export const MORPH_MS = 400;    // one month becoming another
 export const PLAY_MS = 1000;    // a month while the year plays
 export const MONTH_FILES = [0, 1, 2].map(i => `assets/layers/temp-months-${i + 1}.webp`);
 export const MONTH_MIN = -50, MONTH_MAX = 50; // °C at byte 1 and byte 255
+// Plants through the year: the same, for NDVI (0 bare, 1 the greenest), scripts/make-layers.mjs plants.
+export const PLANT_FILES = [0, 1, 2].map(i => `assets/layers/plants-months-${i + 1}.webp`);
+export const PLANT_MIN = 0, PLANT_MAX = 1;
 
 // Where a month is: its texture and channel.
 export const slotOf = month => ({ tex: Math.floor((month - 1) / 4), ch: (month - 1) % 4 });
@@ -43,9 +46,9 @@ export function fetchOrder(month) {
   return [first, ...[0, 1, 2].filter(i => i !== first)];
 }
 
-// °C as a byte, and back.
-export const toByte = c => 1 + Math.round(((Math.max(MONTH_MIN, Math.min(MONTH_MAX, c)) - MONTH_MIN) / (MONTH_MAX - MONTH_MIN)) * 254);
-export const fromByte = b => MONTH_MIN + ((b - 1) / 254) * (MONTH_MAX - MONTH_MIN);
+// A month's number (°C, or lo to hi) as a byte, and back.
+export const toByte = (c, lo = MONTH_MIN, hi = MONTH_MAX) => 1 + Math.round(((Math.max(lo, Math.min(hi, c)) - lo) / (hi - lo)) * 254);
+export const fromByte = (b, lo = MONTH_MIN, hi = MONTH_MAX) => lo + ((b - 1) / 254) * (hi - lo);
 
 // A gentle start and stop.
 export const ease = t => t * t * (3 - 2 * t);
