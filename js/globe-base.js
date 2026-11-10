@@ -27,6 +27,7 @@
 //                                            Temperature's (files and range default to its own) or Plants'. Two
 //                                            months' numbers are mixed first and coloured after, so band edges move;
 //                                            range: [the number at byte 1, at byte 255]; land: on the land only
+//                                            (Plants), sea: on the sea only (Coral reefs' warm water)
 //
 // No mipmaps on full-world textures: WebGL 1 can't say what to sample across the jump at 180°, so
 // mipmaps would show a seam. A 2048 px texture on a whole globe is about one texel a pixel, and
@@ -138,7 +139,7 @@ void main() {
   } else if (uKind == 4) {
     float a = dot(texture2D(uLayer, uv), uChA), b = dot(texture2D(uLayerB, uv), uChB);
     float v = clamp(mix(a, b, uMix) * uRange.x + uRange.y, 0.0, 1.0);
-    col = mix(plain, ramped(v), uAppear * (uLandOnly > 0.5 ? land : 1.0));
+    col = mix(plain, ramped(v), uAppear * (uLandOnly > 0.5 ? land : uSeaOnly > 0.5 ? 1.0 - land : 1.0));
   }
   col *= 1.0 + uHill * (hill - 0.5) * 2.0;
   if (uIceOn > 0.5) {

@@ -572,7 +572,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
     ctx.save();
     ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
 
-    fillAll(layer?.sea);
+    if (!layer?.raster) fillAll(layer?.sea); // with a picture, above it (below)
 
     // Graticule (near side only). A picture covers it, on either renderer.
     const grid = gridFade(view.k, col.gridGoneK);
@@ -600,6 +600,9 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
     ctx = overCtx;
     ctx.save();
     ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
+    // A picture layer's own shapes on the sea stay on top of its picture (Coral reefs over its warm
+    // water, without the base renderer).
+    if (layer?.raster && layer.sea) fillAll(layer.sea);
     if (polys?.coast) drawCoast(view.k >= NEAR_K ? polys.coast.near : polys.coast.far);
     if (layer?.plates) drawPlates(layer.plates);
     if (layer?.volcanoes) drawVolcanoes(layer.volcanoes); else volcShown = [];
