@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Makes the Globe's map layers and the home outlines (assets/layers/) from big public datasets.
 // Run: node scripts/make-layers.mjs [relief tiles night temp depth forests reefs plates volcanoes
-// home base elevation seafloor] (no names = all).
+// home base elevation seafloor icesheets] (no names = all).
 //
 // Raw downloads go into data-raw/ (git-ignored) and are reused. Only the small processed
 // files are committed. Sources and licences: CREDITS.md.
@@ -576,6 +576,126 @@ async function seafloor() {
   console.log(`  ${path.basename(file)} ${await kb(file)} ${JSON.stringify(relief)}`);
 }
 
+// icesheets-2k.webp: the ice sheets of the last Ice Age, for Topography's sea level (js/globe-base.js,
+// js/globegl.js): one byte a pixel, how far the sea must have gone down (m, the slider's 0 to 120)
+// for that place to be under ice, 255 never. From PaleoMIST 1.0 (Gowan et al. 2021, CC BY 4.0): its
+// ice margins every 2,500 years from 20,000 years ago, each at the sea level its own ice volumes give
+// (volume_sorted.txt, all four regions together), scaled so 20,000 years ago is the slider's -120 m.
+// So the ice grows and shrinks with the sea the way it went. Today's ice (its 0 ka margins: Greenland,
+// Antarctica, the ice caps) is 255: the picture already shows it. Just outside the 20,000-year edge
+// the number goes on up (ICE_RIM m a px), and the whole is smoothed a little, so the edge is soft.
+// The files are read out of the 3.5 GB archive with byte ranges (about 13 MB, in data-raw/paleomist/).
+const PALEOMIST = 'https://hs.pangaea.de/Maps/Global_Ice_Sheets/Gowan_ice_reconstruction.zip';
+const ICE_REGIONS = ['North_America', 'Eurasia', 'Patagonia', 'Antarctica'];
+const ICE_TIMES = [20000, 17500, 15000, 12500, 10000, 7500]; // years ago; later ones are about today's
+const ICE_RIM = 4, ICE_SLIDER = 120;
+// A remote zip's entries ({ name, method, csize, off }), from its central directory (ZIP64 too).
+async function zipEntries(url) {
+  const range = async (a, b) => {
+    const r = await fetch(url, { headers: { Range: `bytes=${a}-${b}` } });
+    if (r.status !== 206) throw new Error(`range ${a}-${b}: ${r.status}`);
+    return Buffer.from(await r.arrayBuffer());
+  };
+  const size = Number((await fetch(url, { method: 'HEAD' })).headers.get('content-length'));
+  const tail = await range(size - 65536, size - 1);
+  const loc = tail.lastIndexOf(Buffer.from([0x50, 0x4b, 0x06, 0x07]));
+  if (loc < 0) throw new Error('no ZIP64 locator');
+  const z64 = Number(tail.readBigUInt64LE(loc + 8)), z = await range(z64, z64 + 55);
+  const cdSize = Number(z.readBigUInt64LE(40)), cdOff = Number(z.readBigUInt64LE(48)), cd = await range(cdOff, cdOff + cdSize - 1);
+  const entries = new Map();
+  for (let p = 0; p < cd.length;) {
+    if (cd.readUInt32LE(p) !== 0x02014b50) break;
+    let csize = cd.readUInt32LE(p + 20), usize = cd.readUInt32LE(p + 24), off = cd.readUInt32LE(p + 42);
+    const method = cd.readUInt16LE(p + 10), nlen = cd.readUInt16LE(p + 28), xlen = cd.readUInt16LE(p + 30), clen = cd.readUInt16LE(p + 32);
+    const name = cd.subarray(p + 46, p + 46 + nlen).toString();
+    for (let x = p + 46 + nlen; x < p + 46 + nlen + xlen;) {
+      const id = cd.readUInt16LE(x), len = cd.readUInt16LE(x + 2);
+      if (id === 1) {
+        let q = x + 4;
+        if (usize === 0xffffffff) { usize = Number(cd.readBigUInt64LE(q)); q += 8; }
+        if (csize === 0xffffffff) { csize = Number(cd.readBigUInt64LE(q)); q += 8; }
+        if (off === 0xffffffff) off = Number(cd.readBigUInt64LE(q));
+      }
+      x += 4 + len;
+    }
+    entries.set(name, { name, method, csize, off, range });
+    p += 46 + nlen + xlen + clen;
+  }
+  return entries;
+}
+// One entry of the archive, cached in data-raw/paleomist/.
+async function paleomist(name, entries) {
+  const file = path.join(RAW, 'paleomist', name);
+  if (existsSync(file)) return readFile(file);
+  entries.list ??= await zipEntries(PALEOMIST);
+  const e = entries.list.get(name);
+  if (!e) throw new Error(`not in the archive: ${name}`);
+  console.log(`  fetching ${name}`);
+  const head = await e.range(e.off, e.off + 29);
+  const start = e.off + 30 + head.readUInt16LE(26) + head.readUInt16LE(28);
+  const raw = await e.range(start, start + e.csize - 1);
+  const data = e.method === 8 ? (await import('node:zlib')).inflateRawSync(raw) : raw;
+  await mkdir(path.dirname(file), { recursive: true });
+  await writeFile(file, data);
+  return data;
+}
+// GMT text polygons (OGR's format): '>' starts a feature, '# @P' an outer ring, '# @H' a hole.
+function gmtPolys(text) {
+  const polys = [];
+  let poly = null, ring = null;
+  for (const line of text.split('\n')) {
+    if (line.startsWith('>')) { poly = null; ring = null; continue; }
+    if (line.startsWith('# @P')) { poly = [ring = []]; polys.push(poly); continue; }
+    if (line.startsWith('# @H')) { if (poly) poly.push(ring = []); continue; }
+    if (line.startsWith('#') || !ring) continue;
+    const [lon, lat] = line.trim().split(/\s+/).map(Number);
+    if (Number.isFinite(lon) && Number.isFinite(lat)) ring.push([lon, lat]);
+  }
+  return polys.filter(p => p[0].length > 2);
+}
+async function icesheets(W = 2048, H = 1024) {
+  const entries = {};
+  const base = 'ice_reconstruction/';
+  // Each time's ice-equivalent sea level (m), all regions together, from the 4th column.
+  const esl = new Map();
+  for (const r of ICE_REGIONS) {
+    for (const line of (await paleomist(`${base}ice_reconstruction_files/${r}/volume_sorted.txt`, entries)).toString().trim().split('\n')) {
+      const [t, , , m] = line.trim().split(/\s+/).map(Number);
+      esl.set(t, (esl.get(t) ?? 0) + m);
+    }
+  }
+  const drop = t => (ICE_SLIDER * (esl.get(t) - esl.get(0))) / (esl.get(ICE_TIMES[0]) - esl.get(0));
+  const mask = async t => {
+    const polys = [];
+    for (const r of ICE_REGIONS) polys.push(...gmtPolys((await paleomist(`${base}margins/${r}/${t}.gmt`, entries)).toString()));
+    return painted(W, H, '#000', `<path fill="#fff" fill-rule="evenodd" d="${svgPath(polys, W, H)}"/>`).extractChannel(0).raw().toBuffer();
+  };
+  const need = new Float32Array(W * H).fill(255);
+  for (const t of ICE_TIMES) {
+    const m = await mask(t), d = drop(t);
+    console.log(`  ${t} years ago: ${d.toFixed(1)} m on the slider`);
+    for (let k = 0; k < W * H; k++) if (m[k] >= 128) need[k] = Math.min(need[k], d);
+  }
+  // Just outside the 20,000-year edge: on up, ICE_RIM m a px (a two-pass chamfer distance).
+  const dist = new Float32Array(W * H).map((_, k) => (need[k] < 255 ? 0 : 1e9));
+  for (let pass = 0; pass < 2; pass++) {
+    const ys = pass ? [...Array(H).keys()].reverse() : [...Array(H).keys()], s = pass ? -1 : 1;
+    for (const y of ys) for (let i = 0; i < W; i++) {
+      const x = pass ? W - 1 - i : i, k = y * W + x;
+      const a = y - s >= 0 && y - s < H ? dist[(y - s) * W + x] + 1 : 1e9, b = dist[y * W + ((x - s + W) % W)] + 1;
+      dist[k] = Math.min(dist[k], a, b, (y - s >= 0 && y - s < H ? dist[(y - s) * W + ((x - s + W) % W)] : 1e9) + Math.SQRT2);
+    }
+  }
+  for (let k = 0; k < W * H; k++) if (need[k] === 255 && dist[k] < 30) need[k] = Math.min(254, ICE_SLIDER + ICE_RIM * dist[k]);
+  const soft = blur3(need, W, H, 1);
+  const today = await mask(0);
+  const out = Buffer.alloc(W * H, 255);
+  for (let k = 0; k < W * H; k++) if (today[k] < 128) out[k] = Math.max(1, Math.min(255, Math.round(soft[k])));
+  const file = path.join(OUT, 'icesheets-2k.webp');
+  await sharp(out, { raw: { width: W, height: H, channels: 1 } }).webp({ lossless: true, effort: 6 }).toFile(file);
+  console.log(`  icesheets-2k.webp ${await kb(file)}`);
+}
+
 async function base() {
   await shade(2048, 1024);
   await forestMask(2048, 1024);
@@ -916,7 +1036,7 @@ async function home() {
 
 // ---------- main ----------
 
-const STEPS = { relief, tiles, night, temp, depth, forests, reefs, plates, volcanoes, home, base, elevation, seafloor };
+const STEPS = { relief, tiles, night, temp, depth, forests, reefs, plates, volcanoes, home, base, elevation, seafloor, icesheets };
 const wanted = process.argv.slice(2);
 for (const w of wanted) if (!STEPS[w]) throw new Error(`Unknown layer "${w}" (have: ${Object.keys(STEPS).join(', ')})`);
 await mkdir(RAW, { recursive: true });
