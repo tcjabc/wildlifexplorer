@@ -23,8 +23,10 @@
 //                                            the scale, smoothly or in `bands` steps; sea: land stays land
 //   { kind: 'classes', tex, colours, hill, tiles? } up to three coverages, one to a channel, on the land
 // On every kind but a picture, tiles: the land's hillshade from the zoom tiles once zoomed in, sharper.
-//   { kind: 'months', stops, bands, hill, pos } Temperature (js/globe-months.js). Two months' numbers are
-//                                            mixed first and coloured after, so band edges move
+//   { kind: 'months', stops, bands, hill, pos, files?, range?, land? } a year of months (js/globe-months.js):
+//                                            Temperature's (files and range default to its own) or Plants'. Two
+//                                            months' numbers are mixed first and coloured after, so band edges move;
+//                                            range: [the number at byte 1, at byte 255]; land: on the land only
 //
 // No mipmaps on full-world textures: WebGL 1 can't say what to sample across the jump at 180°, so
 // mipmaps would show a seam. A 2048 px texture on a whole globe is about one texel a pixel, and
@@ -51,7 +53,7 @@ uniform float uR, uDpr, uH;
 uniform vec3 uE, uN, uC;  // east, north and centre of the view, as world vectors
 uniform sampler2D uLayer, uShade, uRamp, uLayerB, uDetail;
 uniform int uKind;
-uniform float uBands, uHill, uSeaOnly, uMix, uAppear;
+uniform float uBands, uHill, uSeaOnly, uMix, uAppear, uLandOnly;
 uniform vec4 uChA, uChB;  // which channel holds each month
 uniform vec2 uRange;      // a month's byte to the scale: scale = byte * x + y
 uniform vec3 uOcean, uLand, uClass0, uClass1, uClass2;
@@ -136,7 +138,7 @@ void main() {
   } else if (uKind == 4) {
     float a = dot(texture2D(uLayer, uv), uChA), b = dot(texture2D(uLayerB, uv), uChB);
     float v = clamp(mix(a, b, uMix) * uRange.x + uRange.y, 0.0, 1.0);
-    col = mix(plain, ramped(v), uAppear);
+    col = mix(plain, ramped(v), uAppear * (uLandOnly > 0.5 ? land : 1.0));
   }
   col *= 1.0 + uHill * (hill - 0.5) * 2.0;
   if (uIceOn > 0.5) {
@@ -156,7 +158,7 @@ void main() {
 
 const NAMES = ['uCentre', 'uR', 'uDpr', 'uH', 'uE', 'uN', 'uC', 'uLayer', 'uShade', 'uRamp', 'uLayerB', 'uDetail', 'uKind', 'uBands', 'uHill', 'uSeaOnly',
   'uMix', 'uAppear', 'uChA', 'uChB', 'uRange', 'uOcean', 'uLand', 'uClass0', 'uClass1', 'uClass2', 'uGlow', 'uNight', 'uSun', 'uNightC', 'uTwilightC', 'uDetailOn', 'uWin', 'uGrid', 'uTileHill', 'uTileSoft', 'uCoast',
-  'uFloor', 'uFloorOn', 'uLevel', 'uDry', 'uSeaOn', 'uSeaC', 'uSeaHill', 'uIce', 'uIceOn', 'uIceC'];
+  'uFloor', 'uFloorOn', 'uLevel', 'uDry', 'uSeaOn', 'uSeaC', 'uSeaHill', 'uIce', 'uIceOn', 'uIceC', 'uLandOnly'];
 
 // The colour scale as n RGBA pixels, evenly from its first value to its last.
 //   stops: [{ v, colour: '#rrggbb' }]
@@ -174,9 +176,10 @@ export function rampBytes(stops, n = RAMP_N) {
 }
 
 // A month's byte (0 to 1 in the shader) to its place on the scale: scale = byte * x + y.
-export function monthRange(stops) {
-  const lo = stops[0].v, hi = stops[stops.length - 1].v, perByte = (MONTH_MAX - MONTH_MIN) / 254;
-  return [(255 * perByte) / (hi - lo), (MONTH_MIN - perByte - lo) / (hi - lo)];
+// range: the numbers at byte 1 and byte 255 (Temperature's °C by default).
+export function monthRange(stops, [min, max] = [MONTH_MIN, MONTH_MAX]) {
+  const lo = stops[0].v, hi = stops[stops.length - 1].v, perByte = (max - min) / 254;
+  return [(255 * perByte) / (hi - lo), (min - perByte - lo) / (hi - lo)];
 }
 
 // How much of a layer's hillshade comes from the zoom tiles at zoom k: none where they start, all of it a
@@ -309,6 +312,15 @@ export function createBase(canvas, { colours, shade, onChange, onDraw, still = f
     }).catch(() => { if (s.want === url) s.want = null; });
   }
 
+  // Whose months are here (one layer's at a time): another layer's let go, and its own fade in.
+  let monthFiles = MONTH_FILES;
+  function useMonthFiles(files) {
+    if (files.join() === monthFiles.join()) return;
+    for (const t of months) if (t) gl.deleteTexture(t);
+    months.fill(null);
+    monthFiles = files;
+    lastMonth = null; morph = null; appearAt = 0;
+  }
   const hasMonth = m => Boolean(months[slotOf(m).tex]);
   // A texture came: the place wanted may now be in reach, so morph to it.
   function landed() {
@@ -322,19 +334,21 @@ export function createBase(canvas, { colours, shade, onChange, onDraw, still = f
   // The month textures, this month's first, one at a time so they don't compete with the page.
   async function fetchMonths() {
     for (const i of fetchOrder(monthFirst)) {
-      if (months[i] || fetching.has(i)) continue;
-      fetching.add(i);
+      const files = monthFiles, url = files[i];
+      if (months[i] || fetching.has(url)) continue;
+      fetching.add(url);
       try {
-        const tex = await imageTexture(MONTH_FILES[i], gl.CLAMP_TO_EDGE);
-        if (tex) { months[i] = tex; landed(); }
-      } catch { /* offline: the months here carry on */ } finally { fetching.delete(i); }
+        const tex = await imageTexture(url, gl.CLAMP_TO_EDGE);
+        if (tex && files !== monthFiles) gl.deleteTexture(tex); // another layer's months by now
+        else if (tex) { months[i] = tex; landed(); }
+      } catch { /* offline: the months here carry on */ } finally { fetching.delete(url); }
     }
   }
 
   // The texture for what is asked for; only then does it take over, so nothing goes blank.
   async function load(def) {
     shadeTex ??= await imageTexture(shade).catch(() => null); // offline the first time: the 2D canvas draws
-    if (def.kind === 'months') { goal = def.pos ?? goal; monthFirst = nearestMonth(goal); monthsWanted = true; fetchMonths(); }
+    if (def.kind === 'months') { useMonthFiles(def.files ?? MONTH_FILES); goal = def.pos ?? goal; monthFirst = nearestMonth(goal); monthsWanted = true; fetchMonths(); }
     const tex = def.tex && layerTex?.url !== def.tex ? await imageTexture(def.tex) : null;
     // A picture's sea floor comes with it (one channel). Offline the first time: the shared ocean instead.
     const seaUrl = def.kind === 'picture' ? def.sea?.tex : null;
@@ -384,8 +398,13 @@ export function createBase(canvas, { colours, shade, onChange, onDraw, still = f
     },
     // Topography's sea level, m: below 0 the sea that lower is dry (a picture's floor).
     seaLevel(m) { level = m; },
-    // Fetch the months now (idle time), starting with this one.
-    loadMonths(first) { monthFirst = first; monthsWanted = true; if (!lost) fetchMonths(); },
+    // Fetch a layer's months now (idle time), starting with this one; not while another's are showing.
+    loadMonths(first, files = MONTH_FILES) {
+      if (layer?.kind === 'months' && (layer.files ?? MONTH_FILES).join() !== files.join()) return;
+      useMonthFiles(files);
+      monthFirst = first; monthsWanted = true;
+      if (!lost) fetchMonths();
+    },
     // To this place in the year: at once, or morphing there over ms.
     month(pos, ms = 0) {
       goal = pos;
@@ -480,7 +499,8 @@ export function createBase(canvas, { colours, shade, onChange, onDraw, still = f
           gl.uniform4f(loc.uChA, ...one(a.ch));
           gl.uniform4f(loc.uChB, ...one(b.ch));
           gl.uniform1f(loc.uMix, shown.mix);
-          gl.uniform2f(loc.uRange, ...monthRange(layer.stops));
+          gl.uniform2f(loc.uRange, ...monthRange(layer.stops, layer.range));
+          gl.uniform1f(loc.uLandOnly, layer.land ? 1 : 0);
           const appear = still ? 1 : Math.min(1, (now - appearAt) / MORPH_MS);
           gl.uniform1f(loc.uAppear, ease(appear));
           if (appear < 1) moving = true;
