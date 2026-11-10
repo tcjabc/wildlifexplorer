@@ -80,10 +80,12 @@ const float PI = 3.14159265;
 
 float lum(vec4 c) { return dot(c.rgb / max(c.a, 0.0001), vec3(0.299, 0.587, 0.114)); }
 
-vec3 ramped(float v) {
+// The scale's colour, and how much of it covers what is under (Rain: none where it is dry).
+vec4 rampedA(float v) {
   if (uBands > 0.0) v = (min(floor(v * uBands), uBands - 1.0) + 0.5) / uBands;
-  return texture2D(uRamp, vec2(v, 0.5)).rgb;
+  return texture2D(uRamp, vec2(v, 0.5));
 }
+vec3 ramped(float v) { return rampedA(v).rgb; }
 
 void main() {
   vec2 p = vec2(gl_FragCoord.x / uDpr, uH - gl_FragCoord.y / uDpr); // CSS px, y down
@@ -139,7 +141,8 @@ void main() {
   } else if (uKind == 4) {
     float a = dot(texture2D(uLayer, uv), uChA), b = dot(texture2D(uLayerB, uv), uChB);
     float v = clamp(mix(a, b, uMix) * uRange.x + uRange.y, 0.0, 1.0);
-    col = mix(plain, ramped(v), uAppear * (uLandOnly > 0.5 ? land : uSeaOnly > 0.5 ? 1.0 - land : 1.0));
+    vec4 r = rampedA(v);
+    col = mix(plain, r.rgb, r.a * uAppear * (uLandOnly > 0.5 ? land : uSeaOnly > 0.5 ? 1.0 - land : 1.0));
   }
   col *= 1.0 + uHill * (hill - 0.5) * 2.0;
   if (uIceOn > 0.5) {
@@ -162,16 +165,15 @@ const NAMES = ['uCentre', 'uR', 'uDpr', 'uH', 'uE', 'uN', 'uC', 'uLayer', 'uShad
   'uFloor', 'uFloorOn', 'uLevel', 'uDry', 'uSeaOn', 'uSeaC', 'uSeaHill', 'uIce', 'uIceOn', 'uIceC', 'uLandOnly'];
 
 // The colour scale as n RGBA pixels, evenly from its first value to its last.
-//   stops: [{ v, colour: '#rrggbb' }]
+//   stops: [{ v, colour: '#rrggbb' or '#rrggbbaa' }] (aa: how much it covers the map; plain is opaque)
 export function rampBytes(stops, n = RAMP_N) {
-  const rgb = c => [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16));
+  const rgba = c => [1, 3, 5, 7].map(i => (i < c.length ? parseInt(c.slice(i, i + 2), 16) : 255));
   const lo = stops[0].v, hi = stops[stops.length - 1].v, out = new Uint8Array(n * 4);
   for (let i = 0; i < n; i++) {
     const v = lo + ((hi - lo) * i) / (n - 1);
     const b = Math.max(1, stops.findIndex(s => v <= s.v)), from = stops[b - 1], to = stops[b];
-    const t = (v - from.v) / (to.v - from.v), x = rgb(from.colour), y = rgb(to.colour);
-    for (let k = 0; k < 3; k++) out[i * 4 + k] = Math.round(x[k] + (y[k] - x[k]) * t);
-    out[i * 4 + 3] = 255;
+    const t = (v - from.v) / (to.v - from.v), x = rgba(from.colour), y = rgba(to.colour);
+    for (let k = 0; k < 4; k++) out[i * 4 + k] = Math.round(x[k] + (y[k] - x[k]) * t);
   }
   return out;
 }
