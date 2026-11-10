@@ -159,7 +159,8 @@ test('the toolbar: hero, key, and the button at the bottom; rows on one fixed ic
 test('the key swatches are 24 px, in the map\'s own colours, with their marks inside', async () => {
   assert.match(tokens, /--legend-sw: 24px;/);
   for (const k of INFO.relief.key) assert.ok(k.mark, 'topography: a mark in each swatch');
-  for (const k of INFO.forests.key) assert.ok(k.tree, 'forests: a tree in each swatch');
+  for (const k of INFO.forests.key) assert.ok(k.tree || k.mark, 'forests: a tree (the forest kinds) or a mark (the green) in each swatch');
+  assert.equal(INFO.forests.key.filter(k => k.tree).length, 3, 'forests: the three kinds keep their trees');
   assert.equal(INFO.reefs.key[0].paint, 'reef', 'reefs: the see-through fill on the sea');
   assert.equal(INFO.reefs.key[0].token, '--c-reef-fill');
   assert.deepEqual(INFO.night.key.map(k => k.paint ?? null), [null, 'dusk', 'night', 'lights'], 'night: the land under the overlay');

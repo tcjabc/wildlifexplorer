@@ -1,7 +1,8 @@
-// Plant seasons, without a browser: its twelve months (scripts/make-layers.mjs plants) as numbers
-// and as pictures, the seasons where they should be, the key's colours from the scale, how the layer
-// uses Temperature's months path, its words in both languages, and its credit. In the browser:
-// tests/globe-plants-touch.test.mjs.
+// Forests, without a browser: its green by month (Plant seasons' data, scripts/make-layers.mjs plants)
+// as numbers and as pictures, the seasons where they should be, the key (the three forest kinds and
+// the green, with the scale's colours), how the layer uses Temperature's months path with the forest
+// kinds as outlines on top, its words in both languages, and its credits. In the browser:
+// tests/globe-forests-touch.test.mjs.
 // Run: npm test
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -49,7 +50,7 @@ test('the seasons where they should be: Europe green in July, southern Africa in
   assert.equal(ndvi(1, -40, 75), PLANT_MIN, 'Greenland\'s ice: bare');
 });
 
-test('the key\'s three swatches are the scale\'s colours, each with a mark; brown to deep green', async () => {
+test('the key: the three forest kinds with their trees, then the green, the scale\'s colours, each with a mark', async () => {
   const stops = token('--c-plant-scale').split(',').map(s => { const [v, c] = s.trim().split(/\s+/); return { v: Number(v), c }; });
   assert.equal(stops[0].v, 0);
   const at = v => stops.find(s => s.v === v)?.c;
@@ -57,38 +58,49 @@ test('the key\'s three swatches are the scale\'s colours, each with a mark; brow
   assert.equal(token('--c-plant-some'), at(0.3));
   assert.equal(token('--c-plant-many'), at(0.75));
   const { INFO } = await import('../js/globe-info.js');
-  assert.deepEqual(INFO.plants.key.map(k => k.token), ['--c-plant-few', '--c-plant-some', '--c-plant-many']);
-  for (const k of INFO.plants.key) assert.ok(k.mark, `${k.label}: a mark in its swatch`);
-  assert.equal(INFO.plants.clock, 'year');
-  assert.ok(INFO.plants.what.length >= 1 && INFO.plants.what.length <= 2);
+  const key = INFO.forests.key;
+  assert.deepEqual(key.slice(0, 3).map(k => k.tree), ['tropical', 'temperate', 'boreal'], 'the forest kinds, a tree in each swatch');
+  assert.deepEqual(key.slice(0, 3).map(k => k.token), ['--c-forest-tropical', '--c-forest-temperate', '--c-forest-boreal']);
+  assert.deepEqual(key.slice(3).map(k => k.token), ['--c-plant-few', '--c-plant-some', '--c-plant-many']);
+  for (const k of key.slice(3)) assert.ok(k.mark, `${k.label}: a mark in its swatch`);
+  assert.equal(INFO.forests.clock, 'year');
+  assert.equal(INFO.forests.what.length, 2, 'two lines');
+  assert.ok(INFO.forests.more.length >= 1, 'and a Did you know?');
+  assert.equal(INFO.plants, undefined, 'no Plant seasons panel any more');
 });
 
-test('on Temperature\'s months path: the base renderer mixes its months, the fallback shows its pictures; Forests unchanged', async () => {
+test('Forests on Temperature\'s months path, the forest kinds as outlines on top; no Plant seasons layer', async () => {
   const { LAYERS } = await import('../js/layers.js');
-  const col = n => (n === '--c-plant-scale' ? token('--c-plant-scale') : '#000000');
-  const plants = LAYERS.find(l => l.id === 'plants');
-  assert.equal(plants.months, true, 'on the year clock');
-  const b = plants.gpu({ col, month: 4 }).base;
-  assert.equal(b.kind, 'months');
-  assert.deepEqual(b.files, PLANT_FILES);
-  assert.deepEqual(b.range, [PLANT_MIN, PLANT_MAX]);
-  assert.equal(b.land, true, 'on the land only');
-  assert.equal(b.pos, 4, 'at the shared month');
-  assert.equal((await plants.load({ month: 7 })).raster.tex, 'assets/layers/plants-07.webp');
-  assert.equal(plants.pictures.length, 12);
+  assert.equal(LAYERS.find(l => l.id === 'plants'), undefined, 'no separate layer, and no picker tile');
   const forests = LAYERS.find(l => l.id === 'forests');
-  assert.equal(forests.gpu({ col }).base.kind, 'classes', 'Forests is still its three forest kinds');
+  assert.equal(forests.months, true, 'on the year clock');
+  assert.equal(forests.pictures.length, 12);
+  assert.equal(forests.pictures[6], 'assets/layers/plants-07.webp', 'Plant seasons\' pictures, for the fallback');
+  const src = readFileSync(`${ROOT}js/layers.js`, 'utf8');
+  assert.match(src, /kind: 'months', files: PLANT_FILES, range: \[PLANT_MIN, PLANT_MAX\], land: true, stops: plantStops\(col\), bands: 0, hill: 0\.35, pos: month, tiles: RELIEF_TILES/, 'the green by month, on the land, with the relief\'s zoom tiles');
+  assert.equal(src.match(/outlines: await forestOutlines\(col\)/g)?.length, 2, 'the forest kinds on both renderers');
+  assert.match(src, /forests-far\.topo\.json`, `\$\{DIR\}forests\.topo\.json/, 'from the RESOLVE shapes, far and near');
+  assert.match(src, /halo: col\('--c-forest-halo'\)/, 'on a light halo');
+  assert.match(readFileSync(`${ROOT}js/globe.js`, 'utf8'), /if \(layer\?\.outlines\) drawOutlines\(layer\.outlines\);\n\s*if \(polys\?\.coast\) drawCoast/, 'just under the coastline');
 });
 
-test('its words in both languages, listed for checking, and credited (NASA GIBS / MODIS)', async () => {
-  const keys = ['layer.plants', 'info.plants.key.few', 'info.plants.key.some', 'info.plants.key.many', 'info.plants.what.1', 'info.plants.what.2', 'info.plants.more.1'];
+test('its words in both languages, listed for checking, and credited (RESOLVE; NASA GIBS / MODIS)', async () => {
+  const keys = ['info.plants.key.few', 'info.plants.key.some', 'info.plants.key.many', 'info.plants.what.1', 'info.plants.more.1', 'info.forests.what.1'];
+  for (const gone of ['layer.plants', 'info.plants.what.2']) {
+    assert.equal(en[gone], undefined, `${gone} gone`);
+    assert.equal(zh[gone], undefined, `${gone} gone`);
+  }
+  assert.equal(en['layer.forests'], 'Forests', 'the tile\'s name unchanged');
   const review = readFileSync(`${ROOT}data/zh-ui-review.md`, 'utf8');
   for (const k of keys) {
     assert.ok(en[k] && zh[k], k);
     assert.ok(review.includes(`| \`${k}\` |`), `${k} listed for checking`);
   }
   const { LAYER_CREDITS } = await import('../js/layers.js');
-  const c = LAYER_CREDITS.find(x => x.layer === 'plants');
-  assert.match(c.author, /GIBS.*MODIS.*NDVI/);
-  assert.match(readFileSync(`${ROOT}CREDITS.md`, 'utf8'), /Plant seasons.*MODIS Terra NDVI/);
+  const credits = LAYER_CREDITS.filter(x => x.layer === 'forests');
+  assert.ok(credits.some(c => /RESOLVE/.test(c.author)), 'RESOLVE, for the forest kinds');
+  assert.ok(credits.some(c => /GIBS.*MODIS.*NDVI/.test(c.author)), 'NASA GIBS / MODIS, for the green');
+  const md = readFileSync(`${ROOT}CREDITS.md`, 'utf8');
+  assert.match(md, /🌳 Forests: green by month.*MODIS Terra NDVI/);
+  assert.match(md, /🌳 Forests \| \[RESOLVE/);
 });

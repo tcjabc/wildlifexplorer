@@ -19,13 +19,12 @@ New Chinese text in the app's buttons and labels (`lang/zh-TW.json`), written in
 | `unit.m` | m | 公尺 | Globe, Topography: the sea level between Today and the Ice Age (−60 公尺) |
 | `info.relief.key.floor` | Sea floor | 海底 | Globe, Topography: the key (the sea, shaded by the sea floor) |
 | `info.relief.key.ice` | Ice sheet | 冰蓋 | Globe, Topography: the key (the Ice Age's ice) |
-| `layer.plants` | Plant seasons | 四季植物 | Globe: the new layer's name (picker, panel, clock bar) |
-| `info.plants.key.few` | Few green plants | 綠色植物很少 | Globe, Plants: the key (brown) |
-| `info.plants.key.some` | Some green plants | 有一些綠色植物 | Globe, Plants: the key (pale green) |
-| `info.plants.key.many` | Lots of green plants | 綠色植物很多 | Globe, Plants: the key (deep green) |
-| `info.plants.what.1` | The colours show how green the plants are in each month. | 顏色告訴你每個月的植物有多綠。 | Globe, Plants: "What am I looking at?" |
-| `info.plants.what.2` | Press ▶ and watch the green move north in summer and south in winter. | 按 ▶，看綠色在夏天往北走、在冬天往南走。 | Globe, Plants: "What am I looking at?" |
-| `info.plants.more.1` | When it is summer in Taiwan, it is winter in Australia, so their plants are green at different times of the year. | 臺灣是夏天的時候，澳洲是冬天，所以兩地的植物在一年裡不同的時候變綠。 | Globe, Plants: "Did you know?" |
+| `info.plants.key.few` | Few green plants | 綠色植物很少 | Globe, Forests: the key (this month's green) (brown) |
+| `info.plants.key.some` | Some green plants | 有一些綠色植物 | Globe, Forests: the key (this month's green) (pale green) |
+| `info.plants.key.many` | Lots of green plants | 綠色植物很多 | Globe, Forests: the key (this month's green) (deep green) |
+| `info.plants.what.1` | The colours show how green the plants are in each month. | 顏色告訴你每個月的植物有多綠。 | Globe, Forests: "What am I looking at?" |
+| `info.plants.more.1` | When it is summer in Taiwan, it is winter in Australia, so their plants are green at different times of the year. | 臺灣是夏天的時候，澳洲是冬天，所以兩地的植物在一年裡不同的時候變綠。 | Globe, Forests: "Did you know?" |
+| `info.forests.what.1` | The coloured lines show where each kind of forest grows naturally. Press ▶ to watch the green come and go. | 彩色的線是各種森林自然生長的地方。按 ▶，看綠色來了又走。 | Globe, Forests: "What am I looking at?", the second line (new: Forests is now this month's green with the forest kinds as lines) |
 | `info.reefs.key.warm` | Warm water, {t} and up | 暖水，{t} 以上 | Globe, Coral reefs: the key ({t} is 20°C, or 68°F) |
 | `info.reefs.key.hot` | Very warm water, {t} and up | 很暖的水，{t} 以上 | Globe, Coral reefs: the key ({t} is 26°C, or 79°F) |
 | `info.reefs.what.2` | The yellow sea is warm water. Press ▶ to see it move with the seasons. | 黃色的海是暖水。按 ▶，看它跟著季節移動。 | Globe, Coral reefs: "What am I looking at?", the second line (new; the algae line moved to "Did you know?") |

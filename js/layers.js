@@ -3,7 +3,7 @@
 // switched on; the service worker keeps them after that.
 //
 // layer.load({ col, month }) resolves to a spec for globe.setLayer() (see js/globe.js).
-import { prepare, toVec, prepareLines } from './globe.js';
+import { prepare, toVec, prepareLines, coastRuns } from './globe.js';
 import { RELIEF_TILES } from './globe-tiles.js';
 import { TEMP_BANDS, PLANT_FILES, PLANT_MIN, PLANT_MAX, WARM_FILES, WARM_MIN, WARM_MAX } from './globe-months.js';
 import { decodeTopo } from './topo.js';
@@ -101,7 +101,7 @@ export const LAYER_CREDITS = [
     sourceUrl: 'https://visibleearth.nasa.gov/images/144898/earth-at-night-black-marble-2016-color-maps' },
   { layer: 'temp', author: 'NASA EOSDIS GIBS: MODIS Terra land surface temperature and MODIS Aqua sea surface temperature, monthly 2024 (recoloured)', ...NASA,
     sourceUrl: 'https://worldview.earthdata.nasa.gov/' },
-  { layer: 'plants', author: 'NASA EOSDIS GIBS: MODIS Terra NDVI, monthly 2024 (recoloured)', ...NASA,
+  { layer: 'forests', author: 'NASA EOSDIS GIBS: MODIS Terra NDVI, monthly 2024 (recoloured): how green the land is each month', ...NASA,
     sourceUrl: 'https://worldview.earthdata.nasa.gov/' },
   { layer: 'depth', author: 'Natural Earth, 1:10m Bathymetry', ...NE,
     sourceUrl: 'https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-bathymetry/' },
@@ -144,10 +144,21 @@ export const LAYERS = [
     },
   },
   {
-    id: 'forests', emoji: '🌳',
-    gpu: ({ col }) => ({ base: { kind: 'classes', tex: `${DIR}forests-2k.webp`, colours: FORESTS.map(k => col(`--c-forest-${k}`)), hill: 0.5, tiles: RELIEF_TILES } }),
-    async load({ col }) {
-      return { land: await shapesBy('forests', 'kind', FORESTS, k => col(`--c-forest-${k}`)) };
+    id: 'forests', emoji: '🌳', months: true,
+    // How green the land is each month (MODIS NDVI, scripts/make-layers.mjs plants), on the year clock
+    // and Temperature's month: brown, pale green, deep green, smoothly between months on the base
+    // renderer and a picture a month without it; the land only. On top, where the three kinds of forest
+    // grow naturally (RESOLVE, scripts/make-layers.mjs forests) as thin lines in their colours on a
+    // light halo (js/globe.js drawOutlines), above the relief, below the coastline, home and pins.
+    pictures: Array.from({ length: 12 }, (_, i) => `${DIR}plants-${String(i + 1).padStart(2, '0')}.webp`),
+    async gpu({ col, month }) {
+      return {
+        base: { kind: 'months', files: PLANT_FILES, range: [PLANT_MIN, PLANT_MAX], land: true, stops: plantStops(col), bands: 0, hill: 0.35, pos: month, tiles: RELIEF_TILES },
+        outlines: await forestOutlines(col),
+      };
+    },
+    async load({ col, month }) {
+      return { raster: { mode: 'picture', tex: `${DIR}plants-${String(month).padStart(2, '0')}.webp` }, outlines: await forestOutlines(col) };
     },
   },
   {
@@ -191,16 +202,6 @@ export const LAYERS = [
     gpu: ({ col, month }) => ({ base: { kind: 'months', stops: tempStops(col), bands: TEMP_BANDS, hill: 0.35, pos: month } }),
     async load({ month }) {
       return { raster: { mode: 'picture', tex: `${DIR}temp-${String(month).padStart(2, '0')}.webp` } };
-    },
-  },
-  {
-    id: 'plants', emoji: '🌱', months: true,
-    // How green the land is each month (MODIS NDVI, scripts/make-layers.mjs plants), on Temperature's
-    // year clock and month: brown, pale green, deep green, smoothly between months. On the land only.
-    pictures: Array.from({ length: 12 }, (_, i) => `${DIR}plants-${String(i + 1).padStart(2, '0')}.webp`),
-    gpu: ({ col, month }) => ({ base: { kind: 'months', files: PLANT_FILES, range: [PLANT_MIN, PLANT_MAX], land: true, stops: plantStops(col), bands: 0, hill: 0.35, pos: month } }),
-    async load({ month }) {
-      return { raster: { mode: 'picture', tex: `${DIR}plants-${String(month).padStart(2, '0')}.webp` } };
     },
   },
   {
@@ -266,6 +267,20 @@ async function reefShapes(col) {
 }
 
 // The currents for a layer spec, their lines made once.
+// The forest kinds' outlines (forests-far and forests.topo.json) as lines, made once: each ring of
+// each kind without its stretches along the map's frame, where the shapes are cut (coastRuns).
+// { lines: { far, near }, colour, halo } for js/globe.js drawOutlines, one to a kind.
+let forestLines = null;
+async function forestOutlines(col) {
+  forestLines ??= Promise.all([`${DIR}forests-far.topo.json`, `${DIR}forests.topo.json`].map(getJson)).then(files => {
+    const [far, near] = files.map(t => decodeTopo(t));
+    const lines = (shapes, k) => prepareLines(shapes.filter(s => s.props.kind === k).flatMap(s => s.polys).flatMap(rings => rings.flatMap(coastRuns)));
+    return FORESTS.map(k => ({ kind: k, far: lines(far, k), near: lines(near, k) }));
+  });
+  forestLines.catch(() => { forestLines = null; });
+  return (await forestLines).map(l => ({ lines: { far: l.far, near: l.near }, colour: col(`--c-forest-${l.kind}`), halo: col('--c-forest-halo') }));
+}
+
 let currentList = null;
 async function currents(col) {
   currentList ??= currentLines(await getJson(`${DIR}currents.json`));

@@ -1,11 +1,12 @@
-// Plant seasons in the real app in Chromium: the month carries over from Temperature and back, the
-// seasons as drawn (Europe brown in January, green in July, read from the screen), the year playing
+// Forests in the real app in Chromium: the month carries over from Temperature and back, the seasons
+// as drawn (Europe brown in January, green in July, read from the screen), the forest kinds' outlines
+// on top and readable in winter and summer on both renderers, the year playing
 // at most 30 updates a second and past December with the slider at the start as soon as the label
 // says January, waiting while the globe is held, stopping on leaving the layer, reduced motion, and
 // a month at a time without the WebGL base. How it plays on the tablet the owner checks on the G Pad.
 //
 // Skipped when the browser isn't installed: npx playwright install chromium
-// Run: npm run test:browser -- tests/globe-plants-touch.test.mjs
+// Run: npm run test:browser -- tests/globe-forests-touch.test.mjs
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
@@ -43,7 +44,7 @@ after(() => server?.close());
 
 const SLIDER = '.gclock--year .gclock__slider';
 
-async function open({ debug = 'fps', reducedMotion = 'no-preference', layer = 'plants' } = {}) {
+async function open({ debug = 'fps', reducedMotion = 'no-preference', layer = 'forests' } = {}) {
   const browser = await pw.chromium.launch();
   return setUp(browser, async () => {
     const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 1, serviceWorkers: 'block', reducedMotion });
@@ -114,9 +115,9 @@ run('the month carries over from Temperature, and back', async f => {
   await f.set(4);
   assert.equal(Math.round(await f.slider()), 4);
   assert.match(await f.label(), /April/);
-  await f.layer('plants');
+  await f.layer('forests');
   await f.page.waitForSelector(SLIDER);
-  assert.equal(Math.round(await f.slider()), 4, 'Plant seasons opens on April');
+  assert.equal(Math.round(await f.slider()), 4, 'Forests opens on April');
   assert.match(await f.label(), /April/);
   assert.match(await f.label(), /四月/);
   await f.set(9);
@@ -167,11 +168,37 @@ run('playing: at most 30 updates a second, past December with the slider at the 
   await f.wait(700);
   assert.equal(await f.slider(), held, 'nothing moves while the globe is held');
   await f.page.mouse.up();
+  await f.layer('reefs');
   await f.layer('forests');
-  await f.layer('plants');
   await f.page.waitForSelector(SLIDER);
   assert.equal(await f.playing(), false, 'leaving the layer stopped it');
 });
+
+// The forest kinds' outlines: drawn, and readable on dark winter land and deep green summer land: the
+// halo's light pixels show inland in Siberia (no coast in the box) in both months.
+async function outlines(f) {
+  await f.look(100, 58, 2.6);
+  const light = async () => {
+    const at = await f.page.evaluate(() => {
+      const [x, y] = wfGlobe.at(100, 58), r = document.querySelector('.globe__canvas--over').getBoundingClientRect();
+      return { x: Math.round(r.left + x), y: Math.round(r.top + y) };
+    });
+    const png = await f.page.screenshot({ type: 'png', clip: { x: at.x - 120, y: at.y - 80, width: 240, height: 160 } });
+    const data = await sharp(png).removeAlpha().raw().toBuffer();
+    let n = 0;
+    for (let i = 0; i < data.length; i += 3) if (data[i] > 200 && data[i + 1] > 210 && data[i + 2] > 190) n++;
+    return n;
+  };
+  for (const m of [1, 7]) {
+    await f.set(m);
+    await f.wait(500);
+    assert.ok((await f.page.evaluate(() => wfGlobe.outlines())) > 20, `month ${m}: the forest kinds' outlines drawn`);
+    const n = await light();
+    assert.ok(n > 150, `month ${m}: their light edges show inland (${n} px)`);
+  }
+}
+run('the forest kinds as outlines on top, readable in January and July (WebGL base)', outlines);
+run('the forest kinds as outlines on top of the pictures without the WebGL base', outlines, { debug: 'fps,2d' });
 
 run('reduced motion: the slider only', async f => {
   assert.equal(await f.page.locator('.gclockbar .gclock__play').count(), 0);
