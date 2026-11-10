@@ -603,6 +603,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
     // A picture layer's own shapes on the sea stay on top of its picture (Coral reefs over its warm
     // water, without the base renderer).
     if (layer?.raster && layer.sea) fillAll(layer.sea);
+    if (layer?.outlines) drawOutlines(layer.outlines);
     if (polys?.coast) drawCoast(view.k >= NEAR_K ? polys.coast.near : polys.coast.far);
     if (layer?.plates) drawPlates(layer.plates);
     if (layer?.volcanoes) drawVolcanoes(layer.volcanoes); else volcShown = [];
@@ -646,6 +647,21 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
     ctx.strokeStyle = col.coast; ctx.lineWidth = COAST_LINE;
     ctx.stroke();
     ctx.globalAlpha = 1;
+  }
+  // A layer's outlines (Forests' three kinds): [{ lines: { far, near }, colour, halo }], each a thin
+  // line in its colour on a light halo, under the coastline, at the coastline's widths less a little.
+  let outlinesShown = 0;     // how many outline lines were in sight in the last frame (?debug=fps)
+  function drawOutlines(list) {
+    const w = coastWidth(view.k) - 0.25;
+    outlinesShown = 0;
+    for (const o of list) {
+      const lines = view.k >= NEAR_K ? o.lines.near : o.lines.far;
+      outlinesShown += lines.filter(inSight).length;
+      tracedLines(lines);
+      if (o.halo) { ctx.strokeStyle = o.halo; ctx.lineWidth = w + 2; ctx.stroke(); }
+      ctx.strokeStyle = o.colour; ctx.lineWidth = w;
+      ctx.stroke();
+    }
   }
   // Lines (prepareLines) as one path, stopping at the horizon. dash: [on, off] px, or null.
   function tracedLines(lines, dash = null) {
@@ -1152,6 +1168,8 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
       sun: () => layer?.night?.sun ?? null,
       // Topography's sea level just now, m.
       level: () => seaLevel,
+      // Forests' outlines: how many of their lines were in sight in the last frame.
+      outlines: () => (layer?.outlines ? outlinesShown : null),
       // Ocean depth's currents: where their dashes are (phase, px) and how many pieces were drawn.
       currents: () => (layer?.currents ? { phase: layer.currents.phase ?? 0, drawn: currentsShown.length } : null),
       bench(n = 60) {
@@ -1175,6 +1193,8 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
     //   land:   [{ polys, near?, fill }] drawn on the land
     //   night:  { sun, lights, shade, twilight, light }: day & night (drawNight)
     //   plates: { far, near, motion, colour, halo, gap, arrow, arrowEdge }: plate boundaries (drawPlates)
+    //   outlines: [{ lines: { far, near }, colour, halo }]: thin lines above everything but the coast,
+    //           home outline and pins (drawOutlines; Forests' three kinds)
     //   raster: a js/globegl.js spec, drawn above sea and land; with tiles (js/globe-tiles.js
     //           RELIEF_TILES), sharper pictures fetched for the view once zoomed in
     //   base:   a js/globe-base.js layer, under the 2D canvases; with tiles, as for raster. A layer

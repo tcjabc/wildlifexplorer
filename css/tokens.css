@@ -92,6 +92,7 @@
   --c-forest-tropical: #1e8f3e;
   --c-forest-temperate: #7fbf4d;
   --c-forest-boreal: #2f6b57;
+  --c-forest-halo: rgb(255 255 255 / 0.8); /* Forests: the light edge under the forest kinds' outlines, so they read on brown and deep green alike */
   --c-reef: #ff7f50;
   --c-reef-fill: rgb(255 127 80 / 0.6); /* reefs on the globe: --c-reef, see-through */
   --c-reef-edge: #c4532a;               /* and their edge */
