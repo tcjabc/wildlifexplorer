@@ -531,6 +531,19 @@ The hero button at the top of the Globe's toolbar opens a picker that switches o
   (張裂性 / 聚合性 / 錯動性板塊邊界), the Ring of Fire, and Taiwan's note (why it has tall mountains,
   earthquakes and hot springs; the Tatun volcanoes). Zoomed in on Taiwan (zoom 2.5 and closer,
   Taiwan near the middle) the note moves to the top and is marked. Sources: CREDITS.md.
+- 🏔️ Topography's clock is the sea level, from Today (0 m) to the Ice Age (−120 m, about 20,000
+  years ago): ▶ plays Today → Ice Age → Today in 12 s. The sea it leaves dry is land in the green
+  lowlands colour (the shaders' floor: `assets/layers/elevation-2k.webp`, the sea's depth today a
+  metre a byte, from ETOPO 2022 by `node scripts/make-layers.mjs elevation`), and today's coast is a
+  faint dashed line meanwhile. The Taiwan Strait closes (`tests/globe-sea-level.test.mjs`).
+- 🌊 Ocean depth shows 17 major surface currents, traced by hand (`assets/layers/currents.json`, kept
+  off the land by `tests/globe-currents.test.mjs`): dashed lines with arrowheads, red-orange warm and
+  blue cold, on the 2D canvas over either renderer (`drawCurrents` in `js/globe.js`, short lines,
+  no canvas line dash). ▶/⏸ moves the dashes the way the water flows; a tap on one shows its name.
+- The layer clocks (`js/globe-clock.js`, `js/views/globe.js`) share their rules: at most 30 updates
+  a second and only while playing or dragging a slider; playing keeps the globe from turning by
+  itself and waits while it is touched; leaving the layer stops it; reduced motion has no ▶; without
+  the WebGL base they move a step at a time.
 - Coral reefs are areas made from Natural Earth's reef lines: everything within 8 km of a reef,
   joined where they touch and simplified (25 km for the whole-globe file, so they still show as a
   band), so the Great Barrier Reef reads as one long chain. See-through coral (`--c-reef-fill`) with
