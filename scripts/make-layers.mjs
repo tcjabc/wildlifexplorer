@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Makes the Globe's map layers and the home outlines (assets/layers/) from big public datasets.
 // Run: node scripts/make-layers.mjs [relief tiles night temp depth forests reefs plates volcanoes
-// home base elevation] (no names = all).
+// home base elevation seafloor] (no names = all).
 //
 // Raw downloads go into data-raw/ (git-ignored) and are reused. Only the small processed
 // files are committed. Sources and licences: CREDITS.md.
@@ -409,7 +409,8 @@ function dodsFloats(buf, n) {
   for (let i = 0; i < n; i++) out[i] = buf.readFloatBE(start + i * 4);
   return out;
 }
-async function elevation(W = 2048, H = 1024) {
+// The mean height (m) in each pixel of a W × H map, north row first, from the cached bands.
+async function etopoMean(W, H) {
   const dir = path.join(RAW, 'etopo2022');
   await mkdir(dir, { recursive: true });
   const rows = ETOPO_H / SEA_STRIDE, cols = ETOPO_W / SEA_STRIDE;
@@ -430,6 +431,14 @@ async function elevation(W = 2048, H = 1024) {
       }
     }
   }
+  for (let k = 0; k < W * H; k++) {
+    if (!count[k]) throw new Error(`no sample in pixel ${k % W}, ${Math.floor(k / W)}`);
+    sum[k] /= count[k];
+  }
+  return sum;
+}
+async function elevation(W = 2048, H = 1024) {
+  const mean = await etopoMean(W, H);
   const mask = await landMask(W, H);
   // The seas joined to the biggest (the oceans), corner to corner too, across the map's edge at 180°.
   const part = new Int32Array(W * H).fill(-1), sizes = [];
@@ -453,9 +462,8 @@ async function elevation(W = 2048, H = 1024) {
   const ocean = sizes.indexOf(Math.max(...sizes));
   const out = Buffer.alloc(W * H);
   for (let k = 0; k < W * H; k++) {
-    if (!count[k]) throw new Error(`no sample in pixel ${k % W}, ${Math.floor(k / W)}`);
     if (mask[k] >= 128) continue; // 0: land
-    out[k] = part[k] === ocean ? Math.max(1, Math.min(255, Math.round(-sum[k] / count[k]))) : 255;
+    out[k] = part[k] === ocean ? Math.max(1, Math.min(255, Math.round(-mean[k]))) : 255;
   }
   const cut = sizes.map((n, id) => ({ n, id })).filter(c => c.id !== ocean && c.n >= 50).sort((p, q) => q.n - p.n);
   for (const c of cut) {
@@ -465,6 +473,107 @@ async function elevation(W = 2048, H = 1024) {
   const file = path.join(OUT, 'elevation-2k.webp');
   await sharp(out, { raw: { width: W, height: H, channels: 1 } }).webp({ lossless: true, effort: 6 }).toFile(file);
   console.log(`  elevation-2k.webp ${await kb(file)}`);
+}
+
+// seafloor-2k.webp: the sea floor's shape, for Topography's sea (js/globe-base.js, js/globegl.js):
+// a hillshade of the same ETOPO 2022 heights, lit from the north-west 45° up like the land's
+// (shade-2k.webp), one byte a pixel, 128 flat. The sea floor is gentle, so it is drawn taller, at
+// two scales added together:
+//   exaggeration: the detail, the ridges' rough crests, fracture zones, seamounts, trench walls;
+//   broad:        the shape smoothed over broadBlur px, this many times taller, so a whole ridge
+//                 rises out of its basins and a shelf stands above the deep (broadGain: its share).
+// The detail is partly measured against the shading around it (local contrast over about window
+// px: contrast 0 is none, 1 makes every area as strong as the next), so the low ridges read beside
+// the trenches without flattening the rough ridge against the smooth plains. Heights above the sea
+// count as 0, so the coast is the floor's edge and not a cliff; the land in the mask is 128. Near
+// the poles, where the map's columns crowd together, it fades to flat (from SEA_POLE_FADE°).
+// Other levels, to compare: SEA_RELIEF='{"exaggeration":30}' node scripts/make-layers.mjs seafloor
+// (SEA_SIZE=4096 for a 4096 × 2048 file, seafloor-4k.webp, not used by the app).
+const SEA_POLE_FADE = [78, 86];
+export const SEA_RELIEF = { exaggeration: 20, broad: 150, broadBlur: 6, broadGain: 0.9, window: 32, contrast: 0.3, gain: 1.4 };
+// A box blur over r px each side, three times (about a Gaussian), round the map's edge at 180°.
+function blur3(src, W, H, r) {
+  let a = Float32Array.from(src), b = new Float32Array(W * H);
+  const n = 2 * r + 1;
+  for (let pass = 0; pass < 3; pass++) {
+    for (let y = 0; y < H; y++) {
+      let s = 0;
+      for (let d = -r; d <= r; d++) s += a[y * W + ((d + W) % W)];
+      for (let x = 0; x < W; x++) {
+        b[y * W + x] = s / n;
+        s += a[y * W + ((x + r + 1) % W)] - a[y * W + ((x - r + W) % W)];
+      }
+    }
+    for (let x = 0; x < W; x++) {
+      let s = 0;
+      for (let d = -r; d <= r; d++) s += b[Math.min(H - 1, Math.max(0, d)) * W + x];
+      for (let y = 0; y < H; y++) {
+        a[y * W + x] = s / n;
+        s += b[Math.min(H - 1, y + r + 1) * W + x] - b[Math.max(0, y - r) * W + x];
+      }
+    }
+  }
+  return a;
+}
+// How each place on a W × H map of heights z (m, north row first) is lit, with heights e times
+// taller: 0 flat, more towards the light, less away.
+function hillshade(z, W, H, e) {
+  const R = 6371000, dy = (Math.PI * R) / H;
+  const L = [-0.5, 0.5, Math.SQRT1_2]; // towards the light: north-west, 45° up (x east, y north)
+  const s = new Float32Array(W * H);
+  for (let y = 0; y < H; y++) {
+    // East–west over m pixels each side, as wide on the ground as a pixel is tall: near the poles a
+    // pixel is far narrower than tall, and its neighbours' noise would draw streaks to the pole.
+    const lat = 90 - ((y + 0.5) * 180) / H, c = Math.max(0.01, Math.cos((lat * Math.PI) / 180));
+    const m = Math.min(W / 8, Math.max(1, Math.round(1 / (2 * c)))), dx = (2 * Math.PI * R * c * m) / W;
+    const n = Math.max(0, y - 1) * W, so = Math.min(H - 1, y + 1) * W;
+    for (let x = 0; x < W; x++) {
+      const gx = (z[y * W + ((x + m) % W)] - z[y * W + ((x - m + W) % W)]) / (2 * dx);
+      const gy = (z[n + x] - z[so + x]) / (2 * dy);
+      const nx = -e * gx, ny = -e * gy;
+      s[y * W + x] = (nx * L[0] + ny * L[1] + L[2]) / Math.hypot(nx, ny, 1) - L[2];
+    }
+  }
+  return s;
+}
+// Each row smoothed east–west to as fine as the map is north–south there: towards the poles a row's
+// pixels are far narrower than tall, and that finer detail would shade as streaks to the pole.
+function evenRows(z, W, H) {
+  const out = Float32Array.from(z);
+  for (let y = 0; y < H; y++) {
+    const lat = 90 - ((y + 0.5) * 180) / H, r = Math.min(W / 4, Math.round(1 / (2 * Math.max(0.005, Math.cos((lat * Math.PI) / 180))) - 0.5));
+    if (r < 1) continue;
+    let s = 0;
+    for (let d = -r; d <= r; d++) s += z[y * W + ((d + W) % W)];
+    for (let x = 0; x < W; x++) {
+      out[y * W + x] = s / (2 * r + 1);
+      s += z[y * W + ((x + r + 1) % W)] - z[y * W + ((x - r + W) % W)];
+    }
+  }
+  return out;
+}
+const rmsOf = a => { let t = 0; for (const v of a) t += v * v; return Math.sqrt(t / a.length); };
+async function seafloor() {
+  const relief = { ...SEA_RELIEF, ...(process.env.SEA_RELIEF ? JSON.parse(process.env.SEA_RELIEF) : {}) };
+  const W = Number(process.env.SEA_SIZE ?? 2048), H = W / 2, k2 = W / 2048; // pixel sizes are for 2048 wide
+  const z = evenRows((await etopoMean(W, H)).map(v => Math.min(0, v)), W, H);
+  const detail = hillshade(z, W, H, relief.exaggeration);
+  const broad = hillshade(blur3(z, W, H, Math.max(1, Math.round(relief.broadBlur * k2))), W, H, relief.broad);
+  const local = blur3(detail.map(v => v * v), W, H, Math.max(1, Math.round((relief.window * k2) / 2)));
+  const ref = rmsOf(detail), refB = rmsOf(broad);
+  const mask = await landMask(W, H);
+  const out = Buffer.alloc(W * H, 128);
+  for (let k = 0; k < W * H; k++) {
+    if (mask[k] >= 128) continue;
+    const near = Math.sqrt(local[k]) + ref * 0.05;
+    const v = (relief.gain * detail[k]) / (near ** relief.contrast * ref ** (1 - relief.contrast)) + (relief.broadGain * broad[k]) / refB;
+    const lat = Math.abs(90 - ((Math.floor(k / W) + 0.5) * 180) / H);
+    const keep = 1 - Math.min(1, Math.max(0, (lat - SEA_POLE_FADE[0]) / (SEA_POLE_FADE[1] - SEA_POLE_FADE[0])));
+    out[k] = Math.round(128 + 127 * Math.tanh(v / 2.5) * keep);
+  }
+  const file = path.join(OUT, `seafloor-${W === 2048 ? '2k' : `${W / 1024}k`}.webp`);
+  await sharp(out, { raw: { width: W, height: H, channels: 1 } }).webp({ quality: 80, effort: 6 }).toFile(file);
+  console.log(`  ${path.basename(file)} ${await kb(file)} ${JSON.stringify(relief)}`);
 }
 
 async function base() {
@@ -807,7 +916,7 @@ async function home() {
 
 // ---------- main ----------
 
-const STEPS = { relief, tiles, night, temp, depth, forests, reefs, plates, volcanoes, home, base, elevation };
+const STEPS = { relief, tiles, night, temp, depth, forests, reefs, plates, volcanoes, home, base, elevation, seafloor };
 const wanted = process.argv.slice(2);
 for (const w of wanted) if (!STEPS[w]) throw new Error(`Unknown layer "${w}" (have: ${Object.keys(STEPS).join(', ')})`);
 await mkdir(RAW, { recursive: true });
