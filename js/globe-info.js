@@ -43,7 +43,7 @@ export const INFO = {
       { token: '--c-relief-low', label: 'info.relief.key.low', mark: '🌿' },
     ],
     clock: 'sea-level', // its clock bar: the sea level (js/views/globe.js seaBar)
-    what: ['info.relief.what.1'], art: 'mountain',
+    what: ['info.relief.what.1', 'info.relief.what.2'], art: 'mountain',
     more: ['info.relief.more.1'],
   },
   forests: {
