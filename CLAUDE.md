@@ -12,7 +12,9 @@
 ## GIT
 - The remote is already set up (HTTPS, `https://tcjabc@github.com/tcjabc/wildlifexplorer.git`, signed in through Git Credential Manager, personal account `tcjabc`). Never change the remote, git config, credentials or SSH settings.
 - Commit in small, logical steps with clear messages.
-- Never commit unless `npm test` passed in the same step: gate the commit on its exit code, as in `npm test && git commit -F <file>`. Don't pipe `npm test` in that chain (a pipe hides its exit code); send its output to a file if it needs trimming.
+- One build session per checkout: never run two sessions that edit or commit in the same working tree.
+- Always commit with `git commit -- <paths>`, naming only your own files. Before committing, run `git diff --cached --name-only` and stop if anything you didn't change is staged; report it and ask.
+- Never commit unless `npm test` passed in the same step: gate the commit on its exit code, as in `npm test && git commit -F <file> -- <paths>`. Don't pipe `npm test` in that chain (a pipe hides its exit code); send its output to a file if it needs trimming.
 - Always ask before any `git push` (also enforced in `.claude/settings.json`).
 - Before every push, run `git fetch` and list `git log origin/main..HEAD` in the push report: every commit that would go out. Push only commits the owner has approved. If the list holds any other commit (for example one made in another session), stop and ask; never push it along.
 - Never force-push, rewrite history or delete branches.
