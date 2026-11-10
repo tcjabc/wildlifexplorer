@@ -318,8 +318,8 @@ run('the clock bar: one row at the bottom, at most 56 px, a 64 px ▶/⏸, never
   await f.wait(200);
   assert.equal(await f.page.evaluate(() => document.querySelector('.gpanel').dataset.state), 'collapsed');
   assert.equal(await f.barShown(), true);
-  // A layer with no clock (Topography has the sea level now): no bar, and the globe has its room back.
-  await f.layer('forests');
+  // A layer with no clock (Topography has the sea level, Forests the year now): no bar, and the globe has its room back.
+  await f.layer('plates');
   assert.equal(await f.barShown(), false);
   await f.layer('temp');
   assert.equal(await f.barShown(), true);

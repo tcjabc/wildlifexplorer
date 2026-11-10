@@ -1,5 +1,5 @@
 // Coral reefs' warm water in the real app in Chromium: the month carries over from Temperature and
-// Plant seasons and back, the seasons as drawn on the Great Barrier Reef (very warm in February, warm
+// Forests and back, the seasons as drawn on the Great Barrier Reef (very warm in February, warm
 // in August, read from the screen), the cold sea and the land left plain, the reefs on top, reduced
 // motion, and a month at a time without the WebGL base. How it plays on the tablet the owner checks on
 // the G Pad.
@@ -112,7 +112,7 @@ const token = (f, name) => f.page.evaluate(n => getComputedStyle(document.docume
 // Open sea off the Great Barrier Reef (no reef there), the cold sea south of Tasmania, inland Australia.
 const CORAL_SEA = [152, -17], SOUTH = [147, -48], INLAND = [135, -25];
 
-run('the month carries over from Temperature and Plant seasons, and back', async f => {
+run('the month carries over from Temperature and Forests, and back', async f => {
   await f.set(2);
   assert.match(await f.label(), /February/);
   await f.layer('reefs');
@@ -120,9 +120,9 @@ run('the month carries over from Temperature and Plant seasons, and back', async
   assert.equal(Math.round(await f.slider()), 2, 'Coral reefs opens on February');
   assert.match(await f.label(), /二月/);
   await f.set(8);
-  await f.layer('plants');
+  await f.layer('forests');
   await f.page.waitForSelector(SLIDER);
-  assert.equal(Math.round(await f.slider()), 8, 'Plant seasons on August');
+  assert.equal(Math.round(await f.slider()), 8, 'Forests on August');
   await f.layer('temp');
   await f.page.waitForSelector(SLIDER);
   assert.equal(Math.round(await f.slider()), 8, 'and Temperature too');
