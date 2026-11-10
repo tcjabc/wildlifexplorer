@@ -144,6 +144,23 @@ run('the Taiwan Strait without the WebGL base: sea today, land once the slider i
   assert.ok(dist(ice, dry) < 30, `let go, the strait is land: ${ice}`);
 }, { debug: 'fps,2d' });
 
+// The sea floor in Ocean depth's zones (depth-2k.webp): the Mid-Atlantic Ridge (1,000–4,000 m) at
+// 30° N beside the basin to its west (4,000–6,000 m). Deep water keeps its colour as the sea goes down.
+const RIDGE = [-42.5, 30], BASIN = [-60, 25];
+async function seaFloor(f) {
+  await f.look(-48, 27, 2);
+  const ridge = hex(await f.token('--c-depth-2')), basin = hex(await f.token('--c-depth-3'));
+  const r0 = await f.colour(...RIDGE), b0 = await f.colour(...BASIN);
+  assert.ok(dist(r0, ridge) < 25, `the ridge, 1,000–4,000 m: ${r0}`);
+  assert.ok(dist(b0, basin) < 25, `the basin beside it, 4,000–6,000 m: ${b0}`);
+  await f.set(120);
+  await f.wait(500);
+  assert.ok(dist(await f.colour(...BASIN), b0) < 4, 'the deep sea the same in the Ice Age');
+  assert.ok(dist(await f.colour(...RIDGE), r0) < 4, 'and the ridge');
+}
+run('the sea floor: the Mid-Atlantic Ridge lighter than the basin beside it, the same in the Ice Age (WebGL base)', seaFloor);
+run('the sea floor without the WebGL base: the same zones', seaFloor, { debug: 'fps,2d' });
+
 run('playing: down to the Ice Age, at most 30 updates a second, waiting while the globe is held; stops on leaving', async f => {
   await f.page.evaluate(() => {
     window.pushes = 0;
