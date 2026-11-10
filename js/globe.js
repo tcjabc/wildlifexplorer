@@ -221,6 +221,7 @@ function tokens(el) {
     grid: v('--c-map-grid'), gridOpacity: Number(v('--map-grid-opacity')), equatorOpacity: Number(v('--map-equator-opacity')), gridGoneK: Number(v('--map-grid-gone-k')),
     home: v('--c-map-home'), coast: v('--c-map-coast'), coastHalo: v('--c-map-coast-halo'),
     coastPastOpacity: Number(v('--map-coast-past-opacity')), coastPastDash: parseFloat(v('--map-coast-past-dash')),
+    currentDash: parseFloat(v('--map-current-dash')), currentGap: parseFloat(v('--map-current-gap')), currentArrow: parseFloat(v('--map-current-arrow')),
     group: g => v(`--g-${g}`),
   };
 }
@@ -584,6 +585,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
 
     if (polys && !gl) fillPolys(view.k >= NEAR_K ? polys.near : polys.far, col.land);
     fillAll(layer?.land);
+    if (layer?.currents) drawCurrents(layer.currents); else currentsShown = [];
     if (layer?.night) drawNight(gl || !layer.night.lightsOnly ? layer.night : { ...layer.night, lightsOnly: false });
     ctx.restore();
 
@@ -672,6 +674,55 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
       if (d.on) { ctx.moveTo(px + (dx * t) / len, py + (dy * t) / len); ctx.lineTo(px + (dx * (t + step)) / len, py + (dy * (t + step)) / len); }
       t += step; d.left -= step;
       if (d.left <= 1e-6) { d.on = !d.on; d.left = d.on ? dash[0] : dash[1]; }
+    }
+  }
+
+  // Ocean depth's currents: { list (js/layers.js currentLines), warm, cold, halo, phase }. Each a
+  // line of dashes the way the water flows, red-orange when warm, blue when cold, on a light halo,
+  // with a small arrowhead every --map-current-arrow px, so it shows the way standing still too
+  // (reduced motion). Dashes and arrowheads are spaced by how far along the current they are on
+  // the globe, so they keep their place as it turns; phase (px) moves them on. Made as short lines
+  // (no canvas line dash), one path per colour. The pieces drawn are kept for currentAt (a tap).
+  let currentsShown = [];    // [{ p, x0, y0, x1, y1 }] stage px
+  function drawCurrents({ list, warm, cold, halo, phase = 0 }) {
+    const { w, h: ht, r } = B, M = 40, lw = coastWidth(view.k) + 0.5, head = lw * 2.2;
+    const on = col.currentDash, P = on + col.currentGap, A = col.currentArrow;
+    const out = (x, y) => (x < -M ? 1 : x > w + M ? 2 : 0) | (y < -M ? 4 : y > ht + M ? 8 : 0);
+    currentsShown = [];
+    for (const hot of [false, true]) {
+      ctx.beginPath();
+      for (const p of list) {
+        if (p.warm !== hot || !inSight(p)) continue;
+        const v = p.line;
+        let pen = false, px = 0, py = 0, ps = 0, po = 0;
+        for (let i = 0, k = 0; i < v.length; i += 3, k++) {
+          const Z = v[i] * B.c0 + v[i + 1] * B.c1 + v[i + 2] * B.c2;
+          if (Z < 0) { pen = false; continue; }
+          const x = B.cx + r * (v[i] * B.e0 + v[i + 1] * B.e1), y = B.cy - r * (v[i] * B.n0 + v[i + 1] * B.n1 + v[i + 2] * B.n2);
+          const sk = p.arc[k] * r, o = out(x, y);
+          if (pen && !(po & o) && sk > ps) {
+            const len = Math.hypot(x - px, y - py) || 1, ux = (x - px) / len, uy = (y - py) / len;
+            const at = t => [px + (x - px) * t, py + (y - py) * t], frac = d => (d - ps) / (sk - ps);
+            for (let n = Math.ceil((ps - phase - on) / P); n * P + phase < sk; n++) {
+              const a = Math.max(ps, n * P + phase), b = Math.min(sk, n * P + phase + on);
+              if (b > a) { ctx.moveTo(...at(frac(a))); ctx.lineTo(...at(frac(b))); }
+            }
+            for (let n = Math.ceil((ps - phase) / A); n * A + phase < sk; n++) {
+              const [cx, cy] = at(frac(n * A + phase));
+              ctx.moveTo(cx - ux * head - uy * head * 0.8, cy - uy * head + ux * head * 0.8);
+              ctx.lineTo(cx, cy);
+              ctx.lineTo(cx - ux * head + uy * head * 0.8, cy - uy * head - ux * head * 0.8);
+            }
+            currentsShown.push({ p, x0: px, y0: py, x1: x, y1: y });
+          }
+          pen = true; px = x; py = y; ps = sk; po = o;
+        }
+      }
+      ctx.lineCap = 'butt'; ctx.lineJoin = 'round';
+      ctx.strokeStyle = halo; ctx.lineWidth = lw + 2.5;
+      ctx.stroke();
+      ctx.strokeStyle = hot ? warm : cold; ctx.lineWidth = lw;
+      ctx.stroke();
     }
   }
 
@@ -1098,6 +1149,8 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
       sun: () => layer?.night?.sun ?? null,
       // Topography's sea level just now, m.
       level: () => seaLevel,
+      // Ocean depth's currents: where their dashes are (phase, px) and how many pieces were drawn.
+      currents: () => (layer?.currents ? { phase: layer.currents.phase ?? 0, drawn: currentsShown.length } : null),
       bench(n = 60) {
         const times = [];
         for (let i = 0; i < n; i++) { view.lon = wrap(view.lon + 1); const t0 = performance.now(); draw(); baseCtx.getImageData(0, 0, 1, 1); overCtx.getImageData(0, 0, 1, 1); times.push(performance.now() - t0); } // reading a pixel back waits until the frame is really drawn
@@ -1149,9 +1202,22 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
     // Change the layer's settings (e.g. where the sun is) without reloading it.
     updateLayer(patch) {
       if (layer?.night) Object.assign(layer.night, patch);
+      if (layer?.currents && 'phase' in patch) layer.currents.phase = patch.phase;
       base?.update(patch);
       if (layer?.raster) sphere?.update(patch);
       dirty = true;
+    },
+    // The current drawn nearest (x, y) on the stage, within a 44 px touch target: { id, name, lon, lat }
+    // (the point on it nearest the tap), or null.
+    currentAt(x, y) {
+      let best = null, bd = VOLC_HIT * VOLC_HIT;
+      for (const s of currentsShown) {
+        const dx = s.x1 - s.x0, dy = s.y1 - s.y0, t = clamp(((x - s.x0) * dx + (y - s.y0) * dy) / (dx * dx + dy * dy || 1), 0, 1);
+        const qx = s.x0 + dx * t, qy = s.y0 + dy * t, d = (qx - x) ** 2 + (qy - y) ** 2;
+        if (d < bd) { bd = d; best = { s, qx, qy }; }
+      }
+      const ll = best && invert(best.qx, best.qy);
+      return ll ? { id: best.s.p.id, name: best.s.p.name, lon: ll[0], lat: ll[1] } : null;
     },
     // The volcano drawn nearest (x, y) on the stage, within a 44 px touch target, or null.
     volcanoAt(x, y) {

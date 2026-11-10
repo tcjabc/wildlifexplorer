@@ -83,6 +83,12 @@
   --c-depth-2: #5ea7d8;   /* 1,000 m */
   --c-depth-3: #2f78bd;   /* 4,000 m */
   --c-depth-4: #1b4b8f;   /* 6,000 m and the deep trenches */
+  --c-current-warm: #f2552c;            /* Ocean depth: warm currents, red-orange */
+  --c-current-cold: #1559d6;            /* and cold ones, blue */
+  --c-current-halo: rgb(255 255 255 / 0.85); /* the light edge round both, so they read on every depth */
+  --map-current-dash: 7px;              /* their dashes */
+  --map-current-gap: 5px;               /* and the gaps between */
+  --map-current-arrow: 84px;            /* an arrowhead this often along each current */
   --c-forest-tropical: #1e8f3e;
   --c-forest-temperate: #7fbf4d;
   --c-forest-boreal: #2f6b57;

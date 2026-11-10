@@ -161,14 +161,17 @@ export const LAYERS = [
   },
   {
     id: 'depth', emoji: '🌊',
-    // The zones as five bands of one scale: each colour holds across its fifth.
-    gpu: ({ col }) => {
+    // The zones as five bands of one scale: each colour holds across its fifth. Over them the
+    // currents (currents.json), drawn by js/globe.js drawCurrents on either renderer; its clock
+    // moves their dashes (js/views/globe.js loopBar).
+    gpu: async ({ col }) => {
       const zone = ['--c-map-sea', ...DEPTHS.map((d, i) => `--c-depth-${i + 1}`)].map(col);
       const stops = [{ v: 0, colour: zone[0] }, ...zone.map((colour, i) => ({ v: (i + 0.5) / 5, colour })), { v: 1, colour: zone[4] }];
-      return { base: { kind: 'ramp', tex: `${DIR}depth-2k.webp`, stops, bands: 5, sea: true, hill: 0.5, tiles: RELIEF_TILES } };
+      return { base: { kind: 'ramp', tex: `${DIR}depth-2k.webp`, stops, bands: 5, sea: true, hill: 0.5, tiles: RELIEF_TILES }, currents: await currents(col) };
     },
     async load({ col }) {
-      return { sea: await shapesBy('depth', 'depth', DEPTHS, (d, i) => col(`--c-depth-${i + 1}`), { curve: DEPTH_CURVE, nearK: DEPTH_NEAR_K }) };
+      const [sea, flow] = await Promise.all([shapesBy('depth', 'depth', DEPTHS, (d, i) => col(`--c-depth-${i + 1}`), { curve: DEPTH_CURVE, nearK: DEPTH_NEAR_K }), currents(col)]);
+      return { sea, currents: flow };
     },
   },
   {
@@ -184,6 +187,43 @@ export const LAYERS = [
     },
   },
 ];
+
+// Ocean currents (currents.json, traced by hand): each one smoothed through its points (a
+// Catmull-Rom curve) and cut to about CURRENT_STEP° pieces, so it is a gentle curve at any zoom.
+export const CURRENT_STEP = 0.5;
+export function currentPoints(pts, step = CURRENT_STEP) {
+  const at = i => pts[Math.max(0, Math.min(pts.length - 1, i))], out = [];
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = at(i - 1), p1 = at(i), p2 = at(i + 1), p3 = at(i + 2);
+    const n = Math.max(1, Math.ceil(Math.hypot(p2[0] - p1[0], p2[1] - p1[1]) / step));
+    for (let k = 0; k < n; k++) {
+      const t = k / n, t2 = t * t, t3 = t2 * t;
+      out.push([0, 1].map(j => 0.5 * (2 * p1[j] + (p2[j] - p0[j]) * t + (2 * p0[j] - 5 * p1[j] + 4 * p2[j] - p3[j]) * t2 + (3 * p1[j] - p0[j] - 3 * p2[j] + p3[j]) * t3)));
+    }
+  }
+  out.push(pts.at(-1));
+  return out;
+}
+// The lines for js/globe.js drawCurrents: { id, name, warm, line, c, r, arc }. arc: how far along
+// the current each point is (radians on the globe), so its dashes keep their place as it turns.
+export function currentLines(d) {
+  return d.currents.map(cur => {
+    const [p] = prepareLines([currentPoints(cur.pts)]);
+    const v = p.line, arc = new Float32Array(v.length / 3);
+    for (let i = 3, k = 1; i < v.length; i += 3, k++) {
+      const dot = v[i] * v[i - 3] + v[i + 1] * v[i - 2] + v[i + 2] * v[i - 1];
+      arc[k] = arc[k - 1] + Math.acos(Math.min(1, dot));
+    }
+    return { ...p, id: cur.id, name: cur.name, warm: cur.warm, arc };
+  });
+}
+
+// The currents for a layer spec, their lines made once.
+let currentList = null;
+async function currents(col) {
+  currentList ??= currentLines(await getJson(`${DIR}currents.json`));
+  return { list: currentList, warm: col('--c-current-warm'), cold: col('--c-current-cold'), halo: col('--c-current-halo'), phase: 0 };
+}
 
 // City lights from lights.json (scripts/make-layers.mjs): [lon, lat, b (1–99)] in 0.01°, brightest first.
 async function cityLights() {
