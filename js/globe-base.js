@@ -9,7 +9,10 @@
 //
 // A layer is a texture and options (see gpu() in js/layers.js):
 //   { kind: 'flat', hill, tiles?, night? }   land and sea in flat colours; night: { sun, shade, twilight }
-//   { kind: 'picture', tex, hill, tiles? }   a picture on the land, the shared ocean around it; tiles: a sharper one
+//   { kind: 'picture', tex, hill, tiles?, floor? } a picture on the land, the shared ocean around it; tiles: a sharper one;
+//                                            floor: { tex, dry } the sea's depth (scripts/make-layers.mjs elevation,
+//                                            metres a byte), for a sea level below today's (seaLevel): the sea it
+//                                            leaves dry is land, in the colour dry. Fetched after the layer shows.
 //   { kind: 'ramp', tex, stops, bands, hill, sea?, tiles? } a number per pixel (1…255 along the scale), coloured by
 //                                            the scale, smoothly or in `bands` steps; sea: land stays land
 //   { kind: 'classes', tex, colours, hill, tiles? } up to three coverages, one to a channel, on the land
@@ -55,6 +58,9 @@ uniform vec2 uGrid;       // tiles across and down the whole map
 uniform float uTileHill;  // 0 to 1: how much of the hillshade comes from the zoom tiles
 uniform float uTileSoft;  // the mip bias that blurs the atlas as far as the hillshade's blur
 uniform float uCoast;     // how much steeper the land mask's edge gets: 1 leaves it as it is
+uniform sampler2D uFloor; // the sea's depth today, a metre a step (picture's floor)
+uniform float uFloorOn, uLevel; // uLevel: the sea level, m (below 0: lower than today)
+uniform vec3 uDry;        // the land the lower sea leaves dry
 const float PI = 3.14159265;
 
 float lum(vec4 c) { return dot(c.rgb / max(c.a, 0.0001), vec3(0.299, 0.587, 0.114)); }
@@ -98,6 +104,12 @@ void main() {
     vec3 pic = texture2D(uLayer, uv).rgb;
     pic = mix(pic, tile.rgb / max(tile.a, 0.0001), tile.a);
     col = mix(uOcean, pic, shade.g);
+    if (uFloorOn > 0.5) {
+      // Today's sea less deep than the sea has gone down is dry, fading in over the first metre so
+      // that 0 m is today exactly.
+      float deep = texture2D(uFloor, uv).r * 255.0;
+      col = mix(col, uDry, clamp(-uLevel - deep + 0.5, 0.0, 1.0) * clamp(-uLevel, 0.0, 1.0) * (1.0 - land));
+    }
   } else if (uKind == 2) {
     float v = clamp((texture2D(uLayer, uv).r * 255.0 - 1.0) / 254.0, 0.0, 1.0);
     col = ramped(v);
@@ -123,7 +135,8 @@ void main() {
 }`;
 
 const NAMES = ['uCentre', 'uR', 'uDpr', 'uH', 'uE', 'uN', 'uC', 'uLayer', 'uShade', 'uRamp', 'uLayerB', 'uDetail', 'uKind', 'uBands', 'uHill', 'uSeaOnly',
-  'uMix', 'uAppear', 'uChA', 'uChB', 'uRange', 'uOcean', 'uLand', 'uClass0', 'uClass1', 'uClass2', 'uGlow', 'uNight', 'uSun', 'uNightC', 'uTwilightC', 'uDetailOn', 'uWin', 'uGrid', 'uTileHill', 'uTileSoft', 'uCoast'];
+  'uMix', 'uAppear', 'uChA', 'uChB', 'uRange', 'uOcean', 'uLand', 'uClass0', 'uClass1', 'uClass2', 'uGlow', 'uNight', 'uSun', 'uNightC', 'uTwilightC', 'uDetailOn', 'uWin', 'uGrid', 'uTileHill', 'uTileSoft', 'uCoast',
+  'uFloor', 'uFloorOn', 'uLevel', 'uDry'];
 
 // The colour scale as n RGBA pixels, evenly from its first value to its last.
 //   stops: [{ v, colour: '#rrggbb' }]
@@ -200,6 +213,7 @@ export function createBase(canvas, { colours, shade, onChange, onDraw, still = f
   let layerTex = null;            // { url, tex }
   let shadeTex = null, rampTex = null, rampOf = null;
   let detail = null;              // the zoom tiles' atlas: { tex, w, h, zeros, win, grid, tile }
+  let floorTex = null, floorWant = null, level = 0; // a picture's floor: { url, tex }, the url coming, the sea level (m)
   // Temperature: the textures here, the place wanted, a morph under way, the month last shown, and
   // when the first texture came (the layer fades in from the plain map then).
   const months = [null, null, null], fetching = new Set();
@@ -219,7 +233,7 @@ export function createBase(canvas, { colours, shade, onChange, onDraw, still = f
     gl.enableVertexAttribArray(a);
     gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
     loc = Object.fromEntries(NAMES.map(n => [n, gl.getUniformLocation(prog, n)]));
-    ['uLayer', 'uShade', 'uRamp', 'uLayerB', 'uDetail'].forEach((n, i) => gl.uniform1i(loc[n], i));
+    ['uLayer', 'uShade', 'uRamp', 'uLayerB', 'uDetail', 'uFloor'].forEach((n, i) => gl.uniform1i(loc[n], i));
     gl.uniform3f(loc.uOcean, ...rgb3(colours.sea));
     gl.uniform3f(loc.uLand, ...rgb3(colours.land));
     gl.uniform4f(loc.uGlow, ...rgba(colours.glow));
@@ -238,11 +252,12 @@ export function createBase(canvas, { colours, shade, onChange, onDraw, still = f
     return tex;
   }
   // wrap: gl.REPEAT needs a power-of-two size in WebGL 1; the month textures aren't.
-  async function imageTexture(url, wrap = gl.REPEAT) {
+  // format: gl.LUMINANCE keeps only the red channel, a quarter of the memory.
+  async function imageTexture(url, wrap = gl.REPEAT, format = gl.RGBA) {
     const img = await loadImage(url);
     if (lost || gone) return null;
     const tex = makeTexture(wrap);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+    gl.texImage2D(gl.TEXTURE_2D, 0, format, format, gl.UNSIGNED_BYTE, img);
     return tex;
   }
   function rampTexture(stops) {
@@ -254,6 +269,20 @@ export function createBase(canvas, { colours, shade, onChange, onDraw, still = f
     rampOf = key;
   }
   const dropDetail = () => { if (detail) { gl.deleteTexture(detail.tex); detail = null; } };
+  // The floor comes after its layer shows, and never stops it showing: offline the first time, the
+  // sea simply doesn't go down. Let go with its layer.
+  function useFloor(url) {
+    if (!url) { if (floorTex) gl.deleteTexture(floorTex.tex); floorTex = floorWant = null; return; }
+    if (floorTex?.url === url || floorWant === url) return;
+    floorWant = url;
+    imageTexture(url, gl.REPEAT, gl.LUMINANCE).then(tex => {
+      if (!tex) return;
+      if (floorWant !== url || lost) { gl.deleteTexture(tex); return; }
+      if (floorTex) gl.deleteTexture(floorTex.tex);
+      floorTex = { url, tex };
+      onDraw?.();
+    }).catch(() => { if (floorWant === url) floorWant = null; });
+  }
 
   const hasMonth = m => Boolean(months[slotOf(m).tex]);
   // A texture came: the place wanted may now be in reach, so morph to it.
@@ -287,6 +316,7 @@ export function createBase(canvas, { colours, shade, onChange, onDraw, still = f
     if (def.stops) rampTexture(def.stops);
     if (!def.tiles) dropDetail();
     layer = def;
+    useFloor(def.floor?.tex);
     // Months already here: nothing to fade in from.
     if (def.kind === 'months') appearAt = months.some(Boolean) ? performance.now() - MORPH_MS : 0;
   }
@@ -296,7 +326,7 @@ export function createBase(canvas, { colours, shade, onChange, onDraw, still = f
   canvas.addEventListener('webglcontextlost', e => {
     e.preventDefault();
     lost = true;
-    shadeTex = rampTex = rampOf = layerTex = detail = null;
+    shadeTex = rampTex = rampOf = layerTex = detail = floorTex = floorWant = null;
     months.fill(null);
     canvas.hidden = true;
     onChange?.(false);
@@ -321,6 +351,8 @@ export function createBase(canvas, { colours, shade, onChange, onDraw, still = f
     update(patch) {
       if (layer?.night && patch.sun) layer.night = { ...layer.night, ...patch };
     },
+    // Topography's sea level, m: below 0 the sea that lower is dry (a picture's floor).
+    seaLevel(m) { level = m; },
     // Fetch the months now (idle time), starting with this one.
     loadMonths(first) { monthFirst = first; monthsWanted = true; if (!lost) fetchMonths(); },
     // To this place in the year: at once, or morphing there over ms.
@@ -417,6 +449,13 @@ export function createBase(canvas, { colours, shade, onChange, onDraw, still = f
           if (!morph) lastMonth = shown.mix < 0.5 ? shown.a : shown.b;
         } else kind = KINDS.flat;
       }
+      const floorOn = kind === KINDS.picture && floorTex && level < 0;
+      gl.uniform1f(loc.uFloorOn, floorOn ? 1 : 0);
+      if (floorOn) {
+        gl.uniform1f(loc.uLevel, level);
+        gl.uniform3f(loc.uDry, ...rgb3(layer.floor.dry));
+      }
+      gl.activeTexture(gl.TEXTURE5); gl.bindTexture(gl.TEXTURE_2D, floorOn ? floorTex.tex : shadeTex);
       gl.uniform1i(loc.uKind, kind);
       gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, first);
       gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, shadeTex);

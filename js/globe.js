@@ -220,6 +220,7 @@ function tokens(el) {
     sea: v('--c-map-sea'), land: v('--c-map-land'), glow: v('--c-map-glow'),
     grid: v('--c-map-grid'), gridOpacity: Number(v('--map-grid-opacity')), equatorOpacity: Number(v('--map-equator-opacity')), gridGoneK: Number(v('--map-grid-gone-k')),
     home: v('--c-map-home'), coast: v('--c-map-coast'), coastHalo: v('--c-map-coast-halo'),
+    coastPastOpacity: Number(v('--map-coast-past-opacity')), coastPastDash: parseFloat(v('--map-coast-past-dash')),
     group: g => v(`--g-${g}`),
   };
 }
@@ -400,6 +401,13 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
   let tiles = null;          // js/globe-tiles.js, once a layer with zoom tiles has been shown
   let tilesFor = null;       // the renderer they go to
   let home = null;
+  let seaLevel = 0;          // Topography's sea level, m (seaLevel())
+  function setSea(m) {
+    seaLevel = Math.min(0, m);
+    base?.seaLevel(seaLevel);
+    sphere?.seaLevel(seaLevel);
+    dirty = true;
+  }
   const getHome = () => loadHome(homeCountry || DEFAULT_HOME).then(p => { home = p; dirty = true; }).catch(() => {});
 
   const view = { lon: saved.lon, lat: saved.lat, k: saved.k, dx: 0, dy: 0 };
@@ -621,31 +629,49 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
 
   // The coastline: a clear dark line (picture layers' own coasts blur when zoomed in), on a light
   // halo so it reads on dark mountains and light deserts, on red and on blue, and small islands
-  // don't sink into a hot sea. Lines stop at the horizon.
+  // don't sink into a hot sea. Lines stop at the horizon. With the sea lower than today it is where
+  // the coast is now: faint and dashed, over what used to be land.
   function drawCoast(lines) {
-    tracedLines(lines);
+    const past = seaLevel < 0;
+    tracedLines(lines, past ? [col.coastPastDash, col.coastPastDash] : null);
+    if (past) ctx.globalAlpha = col.coastPastOpacity;
     // One path, stroked twice: the halo, then the line.
     ctx.strokeStyle = col.coastHalo; ctx.lineWidth = COAST_GLOW;
     ctx.stroke();
     ctx.strokeStyle = col.coast; ctx.lineWidth = COAST_LINE;
     ctx.stroke();
+    ctx.globalAlpha = 1;
   }
-  // Lines (prepareLines) as one path, stopping at the horizon.
-  function tracedLines(lines) {
+  // Lines (prepareLines) as one path, stopping at the horizon. dash: [on, off] px, or null.
+  function tracedLines(lines, dash = null) {
     ctx.lineJoin = 'round';
-    ctx.lineCap = 'round';
+    ctx.lineCap = dash ? 'butt' : 'round';
     ctx.beginPath();
     for (const p of lines) {
       if (!inSight(p)) continue;
-      const v = p.line;
-      let pen = false;
+      const v = p.line, d = dash && { on: true, left: dash[0] };
+      let pen = false, px = 0, py = 0;
       for (let i = 0; i < v.length; i += 3) {
         const Z = v[i] * B.c0 + v[i + 1] * B.c1 + v[i + 2] * B.c2;
         if (Z < 0) { pen = false; continue; }
         const x = B.cx + B.r * (v[i] * B.e0 + v[i + 1] * B.e1), y = B.cy - B.r * (v[i] * B.n0 + v[i + 1] * B.n1 + v[i + 2] * B.n2);
-        if (pen) ctx.lineTo(x, y); else ctx.moveTo(x, y);
-        pen = true;
+        if (pen && d) dashed(px, py, x, y, d, dash);
+        else if (pen) ctx.lineTo(x, y); else ctx.moveTo(x, y);
+        pen = true; px = x; py = y;
       }
+    }
+  }
+  // One segment of a dashed line: only the "on" parts of the dash pattern, as short lines (a canvas
+  // line dash costs far more to draw on a phone or tablet). d: { on, left }, carried from segment to
+  // segment so the pattern runs on round corners.
+  function dashed(px, py, x, y, d, dash) {
+    const dx = x - px, dy = y - py, len = Math.hypot(dx, dy);
+    let t = 0;
+    while (len - t > 1e-6) {
+      const step = Math.min(len - t, d.left);
+      if (d.on) { ctx.moveTo(px + (dx * t) / len, py + (dy * t) / len); ctx.lineTo(px + (dx * (t + step)) / len, py + (dy * (t + step)) / len); }
+      t += step; d.left -= step;
+      if (d.left <= 1e-6) { d.on = !d.on; d.left = d.on ? dash[0] : dash[1]; }
     }
   }
 
@@ -679,8 +705,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
     }
     return toothSprites.get(key);
   }
-  // dash: [on, off] px: the dashes are made here as short lines (a canvas line dash costs far
-  // more to draw on a phone or tablet).
+  // dash: [on, off] px: the dashes are made as short lines (dashed()).
   function platePath(list, kind, teeth, dash) {
     const { w, h: ht } = B, M = 40;
     const out = (x, y) => (x < -M ? 1 : x > w + M ? 2 : 0) | (y < -M ? 4 : y > ht + M ? 8 : 0);
@@ -689,24 +714,15 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
       if (p.kind !== kind || !inSight(p)) continue;
       const v = p.line;
       let px = 0, py = 0, pen = false, po = 0, along = TOOTH_GAP / 2;
-      let dashOn = true, dashLeft = dash?.[0] ?? 0; // the dash pattern: on or off, and how much of it is left
+      const d = dash && { on: true, left: dash[0] }; // the dash pattern: on or off, and how much of it is left
       for (let i = 0; i < v.length; i += 3) {
         const Z = v[i] * B.c0 + v[i + 1] * B.c1 + v[i + 2] * B.c2;
         if (Z < 0) { pen = false; continue; }
         const x = B.cx + B.r * (v[i] * B.e0 + v[i + 1] * B.e1), y = B.cy - B.r * (v[i] * B.n0 + v[i + 1] * B.n1 + v[i + 2] * B.n2);
         const o = out(x, y);
         if (pen && (po & o)) { px = x; py = y; po = o; continue; } // both beyond the same edge
-        if (pen && dash) {
-          // Along this segment, draw the "on" parts of the dash pattern only.
-          const dx = x - px, dy = y - py, len = Math.hypot(dx, dy);
-          let t = 0;
-          while (len - t > 1e-6) {
-            const step = Math.min(len - t, dashLeft);
-            if (dashOn) { ctx.moveTo(px + (dx * t) / len, py + (dy * t) / len); ctx.lineTo(px + (dx * (t + step)) / len, py + (dy * (t + step)) / len); }
-            t += step; dashLeft -= step;
-            if (dashLeft <= 1e-6) { dashOn = !dashOn; dashLeft = dashOn ? dash[0] : dash[1]; }
-          }
-        } else if (pen) {
+        if (pen && d) dashed(px, py, x, y, d, dash);
+        else if (pen) {
           ctx.lineTo(x, y);
           if (teeth) {
             // Teeth every TOOTH_GAP px along the line, on the side of the plate on top.
@@ -1080,6 +1096,8 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
       at(lon, lat) { basis(); return project(toVec(lon, lat)); },
       // Where Day & night has the sun just now, or null.
       sun: () => layer?.night?.sun ?? null,
+      // Topography's sea level just now, m.
+      level: () => seaLevel,
       bench(n = 60) {
         const times = [];
         for (let i = 0; i < n; i++) { view.lon = wrap(view.lon + 1); const t0 = performance.now(); draw(); baseCtx.getImageData(0, 0, 1, 1); overCtx.getImageData(0, 0, 1, 1); times.push(performance.now() - t0); } // reading a pixel back waits until the frame is really drawn
@@ -1108,6 +1126,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
     // Resolves when the layer is showing; rejects if its pictures can't be shown.
     async setLayer(next) {
       layer = next;
+      setSea(0);
       dirty = true;
       await base?.set(next?.base ?? PLAIN_BASE);
       if (next?.raster && !sphere) {
@@ -1121,6 +1140,8 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
       useTiles(next);
       dirty = true;
     },
+    // Topography: the sea level, m (0 today; below 0 the sea it leaves is land, and the coast dashed).
+    seaLevel: m => setSea(m),
     // Temperature: to this place in the year (js/globe-months.js), morphing over ms, or at once.
     month(pos, ms = 0) { base?.month(pos, ms); dirty = true; },
     // Fetch the months in idle time, this one first.

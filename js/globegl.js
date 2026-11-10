@@ -7,6 +7,10 @@
 // let go as soon as their layer is switched off, so the plain globe costs nothing.
 // Lighting is local only: relief gets bumps from a height map, never a darker rim.
 //
+// Relief's sea level (Topography, as in js/globe-base.js): with a floor, the sea's depth today a
+// metre a byte (0 only on the land), the sea less deep than the level has gone down is dry land.
+// The floor comes after the picture, and never stops it showing.
+//
 // Zoomed in, relief can show a sharper picture (js/globe-tiles.js): a detail window of
 // DETAIL × DETAIL tiles round the view's centre, in one texture (the atlas). Tiles not loaded
 // yet are clear in the atlas, so the base picture shows there.
@@ -30,6 +34,10 @@ uniform sampler2D uDetail;
 uniform vec4 uWin;        // detail window: first column, first row, columns, rows (tiles)
 uniform vec2 uGrid;       // tiles across and down the whole map
 uniform bool uDetailOn;
+uniform sampler2D uFloor;
+uniform bool uFloorOn;
+uniform float uLevel;     // the sea level, m (below 0: lower than today)
+uniform vec3 uDry;        // the land it leaves dry
 out vec4 outColor;
 const float PI = 3.14159265;
 
@@ -68,6 +76,10 @@ void main() {
         vec4 d = textureGrad(uDetail, (vec2(c, r) + fract(t)) / uWin.zw, gx * s, gy * s);
         base = mix(base, d.rgb / max(d.a, 1e-4), d.a);
       }
+    }
+    if (uFloorOn) {
+      float deep = look(uFloor, uv).r * 255.0;
+      base = mix(base, uDry, clamp(-uLevel - deep + 0.5, 0.0, 1.0) * clamp(-uLevel, 0.0, 1.0) * clamp(deep, 0.0, 1.0));
     }
     float hE = texture(uAux, uv + vec2(uAuxStep.x, 0.0)).r, hW = texture(uAux, uv - vec2(uAuxStep.x, 0.0)).r;
     float hN = texture(uAux, uv - vec2(0.0, uAuxStep.y)).r, hS = texture(uAux, uv + vec2(0.0, uAuxStep.y)).r;
@@ -137,27 +149,30 @@ export function createSphere(canvas, { still = false } = {}) {
     gl.enableVertexAttribArray(a);
     gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
     loc = {};
-    for (const n of ['uCentre', 'uR', 'uDpr', 'uH', 'uE', 'uN', 'uC', 'uMode', 'uTex', 'uAux', 'uAuxStep', 'uBump', 'uLight', 'uDetail', 'uWin', 'uGrid', 'uDetailOn', 'uFrom', 'uFade']) {
+    for (const n of ['uCentre', 'uR', 'uDpr', 'uH', 'uE', 'uN', 'uC', 'uMode', 'uTex', 'uAux', 'uAuxStep', 'uBump', 'uLight', 'uDetail', 'uWin', 'uGrid', 'uDetailOn', 'uFrom', 'uFade', 'uFloor', 'uFloorOn', 'uLevel', 'uDry']) {
       loc[n] = gl.getUniformLocation(prog, n);
     }
     gl.uniform1i(loc.uTex, 0);
     gl.uniform1i(loc.uAux, 1);
     gl.uniform1i(loc.uDetail, 2);
     gl.uniform1i(loc.uFrom, 3);
+    gl.uniform1i(loc.uFloor, 4);
   }
   setup();
 
-  canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); lost = true; textures.clear(); detail = null; });
+  canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); lost = true; textures.clear(); detail = null; floor = floorWant = null; });
   canvas.addEventListener('webglcontextrestored', () => { lost = false; setup(); });
 
-  async function texture(url) {
-    if (textures.has(url)) return textures.get(url);
+  // grey: one channel (R8), a quarter of the memory, kept out of the map so release() leaves it.
+  async function texture(url, { grey = false } = {}) {
+    if (!grey && textures.has(url)) return textures.get(url);
     const blob = fetched.get(url);
     const img = blob ? await createImageBitmap(blob, { premultiplyAlpha: 'none', colorSpaceConversion: 'none' }) : await loadImage(url);
     if (lost) throw new Error('context lost');
     const tex = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, tex);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+    if (grey) gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, gl.RED, gl.UNSIGNED_BYTE, img);
+    else gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
     gl.generateMipmap(gl.TEXTURE_2D);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
@@ -165,8 +180,20 @@ export function createSphere(canvas, { still = false } = {}) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     const t = { tex, w: img.naturalWidth ?? img.width, h: img.naturalHeight ?? img.height };
     img.close?.();
-    textures.set(url, t);
+    if (!grey) textures.set(url, t);
     return t;
+  }
+
+  let floor = null, floorWant = null, level = 0; // relief's floor: { url, tex }, the url coming, the sea level (m)
+  function useFloor(url) {
+    if (!url) { if (floor) gl.deleteTexture(floor.tex); floor = floorWant = null; return; }
+    if (floor?.url === url || floorWant === url) return;
+    floorWant = url;
+    texture(url, { grey: true }).then(t => {
+      if (floorWant !== url || lost) { gl.deleteTexture(t.tex); return; }
+      if (floor) gl.deleteTexture(floor.tex);
+      floor = { url, tex: t.tex };
+    }).catch(() => { if (floorWant === url) floorWant = null; });
   }
 
   // Free every texture not in keep.
@@ -192,10 +219,13 @@ export function createSphere(canvas, { still = false } = {}) {
       const was = spec;
       spec = next;
       if (next?.mode !== 'relief') dropDetail();
+      useFloor(next?.mode === 'relief' ? next.floor?.tex : null);
       fade = !still && was?.mode === 'picture' && next?.mode === 'picture' && was.tex !== next.tex ? { url: was.tex, t0: performance.now() } : null;
       release(fade ? [...urls, fade.url] : urls);
     },
     update(patch) { if (spec) Object.assign(spec, patch); },
+    // Relief's sea level, m: below 0 the sea that lower is dry.
+    seaLevel(m) { level = m; },
     // A new detail window (null: none). The atlas starts clear; putTile fills it.
     setDetail(win, grid, tile) {
       if (lost) return;
@@ -264,6 +294,10 @@ export function createSphere(canvas, { still = false } = {}) {
         gl.uniform2f(loc.uGrid, ...detail.grid);
         gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, detail.tex);
       }
+      const floorOn = Boolean(floor) && spec.mode === 'relief' && level < 0;
+      gl.uniform1i(loc.uFloorOn, floorOn ? 1 : 0);
+      if (floorOn) { gl.uniform1f(loc.uLevel, level); gl.uniform3f(loc.uDry, ...spec.floor.dry); }
+      gl.activeTexture(gl.TEXTURE4); gl.bindTexture(gl.TEXTURE_2D, floorOn ? floor.tex : tex.tex);
       gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, tex.tex);
       gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, aux.tex);
       const from = fade && textures.get(fade.url), t = from ? Math.min(1, (performance.now() - fade.t0) / FADE_MS) : 1;
@@ -273,6 +307,6 @@ export function createSphere(canvas, { still = false } = {}) {
       if (fade && t >= 1) { release([spec.tex, spec.aux].filter(Boolean)); fade = null; }
       return Boolean(fade);
     },
-    destroy() { release([]); dropDetail(); gl.getExtension('WEBGL_lose_context')?.loseContext(); },
+    destroy() { release([]); dropDetail(); useFloor(null); gl.getExtension('WEBGL_lose_context')?.loseContext(); },
   };
 }

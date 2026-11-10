@@ -75,6 +75,8 @@
   --map-grid-gone-k: 1.5;                 /* the zoom where they have all faded away */
   --c-map-coast: rgb(14 22 32 / 0.9);        /* the coastline on the globe, on every layer */
   --c-map-coast-halo: rgb(255 255 255 / 0.9); /* and the light halo under it */
+  --map-coast-past-opacity: 0.45;         /* Topography with the sea lower than today: today's coast, faint */
+  --map-coast-past-dash: 4px;             /* and dashed: dash and gap */
 
   /* Globe map layers (js/layers.js). */
   --c-depth-1: #9fd0ec;   /* deeper than 200 m */
@@ -403,6 +405,7 @@
   --gclock-hit: 64px;   /* and its touch area, past the circle */
   --gclock-pad: 4px;    /* room left of ▶/⏸ inside the bar */
   --gclock-label: 3.5em; /* the label (April, 14:00) never narrower than this */
+  --gclock-label-sea: 4.5em; /* Topography's (Today, −120 m, Ice Age): as wide as the widest */
   --gclock-slider: 32px; /* the slim slider */
   --gclock-max: 560px;  /* the bar no wider than this, in the middle of the globe's space */
   --gsheet-pic: min(calc(38 * var(--dvh)), 320px); /* photo in the Globe card sheet */
