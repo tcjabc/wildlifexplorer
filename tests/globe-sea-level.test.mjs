@@ -115,9 +115,10 @@ run('the Taiwan Strait: sea today, land in the Ice Age (WebGL base)', async f =>
   assert.match(await f.label(), /Today/);
   assert.match(await f.label(), /今天/);
   await f.look(STRAIT[0], STRAIT[1], 6);
-  const sea = hex(await f.token('--c-map-sea')), dry = hex(await f.token('--c-relief-low'));
+  // The strait is sea: Topography's one blue, shaded by the floor.
+  const dry = hex(await f.token('--c-relief-low'));
   const today = await f.colour(...STRAIT);
-  assert.ok(dist(today, sea) < 12, `today the strait is the sea: ${today}`);
+  assert.ok(today[2] > today[0] + 40 && dist(today, dry) > 60, `today the strait is the sea: ${today}`);
   await f.set(120);
   assert.equal(await f.level(), -120);
   assert.match(await f.label(), /Ice Age/);
@@ -126,7 +127,7 @@ run('the Taiwan Strait: sea today, land in the Ice Age (WebGL base)', async f =>
   const ice = await f.colour(...STRAIT);
   assert.ok(dist(ice, dry) < 12, `in the Ice Age the strait is land: ${ice}`);
   await f.set(0);
-  assert.ok(dist(await f.colour(...STRAIT), sea) < 12, 'and back to the sea');
+  assert.ok(dist(await f.colour(...STRAIT), today) < 4, 'and back to the same sea');
 });
 
 run('the Taiwan Strait without the WebGL base: sea today, land once the slider is let go', async f => {
@@ -144,22 +145,46 @@ run('the Taiwan Strait without the WebGL base: sea today, land once the slider i
   assert.ok(dist(ice, dry) < 30, `let go, the strait is land: ${ice}`);
 }, { debug: 'fps,2d' });
 
-// The sea floor in Ocean depth's zones (depth-2k.webp): the Mid-Atlantic Ridge (1,000–4,000 m) at
-// 30° N beside the basin to its west (4,000–6,000 m). Deep water keeps its colour as the sea goes down.
-const RIDGE = [-42.5, 30], BASIN = [-60, 25];
+// The sea floor shaded like the land (seafloor-2k.webp, lit from the north-west): at 26–34° N the
+// Mid-Atlantic Ridge's western flank faces the light and its eastern one faces away. Nothing on the
+// sea floor moves as the sea goes down.
+const LATS = [26, 28, 30, 32, 34];
+const WEST = LATS.map(lat => [-49, lat]), EAST = LATS.map(lat => [-37, lat]);
+const lum = c => 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+const mean = list => list.reduce((s, c) => s + lum(c), 0) / list.length;
+async function floorColours(f) {
+  const out = [];
+  for (const p of [...WEST, ...EAST]) out.push(await f.colour(...p));
+  return out;
+}
 async function seaFloor(f) {
-  await f.look(-48, 27, 2);
-  const ridge = hex(await f.token('--c-depth-2')), basin = hex(await f.token('--c-depth-3'));
-  const r0 = await f.colour(...RIDGE), b0 = await f.colour(...BASIN);
-  assert.ok(dist(r0, ridge) < 25, `the ridge, 1,000–4,000 m: ${r0}`);
-  assert.ok(dist(b0, basin) < 25, `the basin beside it, 4,000–6,000 m: ${b0}`);
+  await f.look(-43, 30, 2);
+  const before = await floorColours(f);
+  for (const c of before) assert.ok(c[2] > c[0] + 40, `the sea is blue: ${c}`);
+  const west = mean(before.slice(0, LATS.length)), east = mean(before.slice(LATS.length));
+  assert.ok(west - east > 10, `the ridge lit on its west flank: ${west.toFixed(0)}, dark on its east: ${east.toFixed(0)}`);
   await f.set(120);
   await f.wait(500);
-  assert.ok(dist(await f.colour(...BASIN), b0) < 4, 'the deep sea the same in the Ice Age');
-  assert.ok(dist(await f.colour(...RIDGE), r0) < 4, 'and the ridge');
+  const after = await floorColours(f);
+  after.forEach((c, i) => assert.ok(dist(c, before[i]) < 4, `the sea floor the same in the Ice Age: ${before[i]} → ${c}`));
 }
-run('the sea floor: the Mid-Atlantic Ridge lighter than the basin beside it, the same in the Ice Age (WebGL base)', seaFloor);
-run('the sea floor without the WebGL base: the same zones', seaFloor, { debug: 'fps,2d' });
+run('the sea floor: the Mid-Atlantic Ridge in light and shade, the same in the Ice Age (WebGL base)', seaFloor);
+run('the sea floor without the WebGL base: the same', seaFloor, { debug: 'fps,2d' });
+
+test('both renderers draw the same sea floor', { skip }, async () => {
+  const take = async debug => {
+    const f = await open({ debug });
+    try {
+      await f.look(-43, 30, 2);
+      const c = await floorColours(f);
+      assert.deepEqual(f.errors, []);
+      return c;
+    } finally { await f.browser.close(); }
+  };
+  const base = await take('fps'), fallback = await take('fps,2d');
+  assert.ok(Math.abs(mean(base) - mean(fallback)) < 8, `as light overall: ${mean(base).toFixed(0)}, ${mean(fallback).toFixed(0)}`);
+  base.forEach((c, i) => assert.ok(dist(c, fallback[i]) < 45, `the same place, near enough: ${c} and ${fallback[i]}`));
+});
 
 run('playing: down to the Ice Age, at most 30 updates a second, waiting while the globe is held; stops on leaving', async f => {
   await f.page.evaluate(() => {
