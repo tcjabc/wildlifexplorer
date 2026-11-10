@@ -49,6 +49,7 @@ test('Topography\'s sea: one blue shaded by the sea floor, the same on both rend
   const relief = LAYERS.find(l => l.id === 'relief');
   const r = relief.gpu({ col }).base;
   assert.deepEqual(r.sea, { tex: 'assets/layers/seafloor-2k.webp', colour: '#4a86c0', hill: SEA_HILL });
+  assert.equal(r.ice.tex, 'assets/layers/icesheets-2k.webp');
   assert.equal(r.stops, undefined, 'no depth zones on Topography');
   assert.doesNotMatch(JSON.stringify(r), /depth-2k/, 'Ocean depth\'s file is not needed');
   const fallback = (await relief.load({ col })).raster.sea;
@@ -56,10 +57,10 @@ test('Topography\'s sea: one blue shaded by the sea floor, the same on both rend
   assert.equal(fallback.hill, SEA_HILL);
   assert.deepEqual(fallback.colour.map(v => Math.round(v * 255)), [0x4a, 0x86, 0xc0]);
   const { INFO } = await import('../js/globe-info.js');
-  const row = INFO.relief.key.at(-1);
-  assert.deepEqual([row.label, row.token], ['info.relief.key.floor', '--c-relief-sea']);
+  const row = INFO.relief.key.find(k => k.label === 'info.relief.key.floor');
+  assert.equal(row.token, '--c-relief-sea');
   assert.ok(row.mark, 'a mark in its swatch');
-  assert.equal(INFO.relief.key.length, 4, 'one sea row');
+  assert.equal(INFO.relief.key.filter(k => /sea|floor|shallow|deep/.test(k.label)).length, 1, 'one sea row');
   assert.equal(INFO.relief.what.length, 2, 'the panel stays at two lines');
   assert.match(en['info.relief.what.1'], /ridges and valleys/);
   assert.match(zh['info.relief.what.1'], /海底/);
@@ -86,6 +87,38 @@ test('the sea floor file: 2048 × 1024, small, flat on land, the Mid-Atlantic Ri
   let lo = 255, hi = 0;
   for (let lon = 140; lon <= 148; lon += 0.2) { const v = at(lon, 15); lo = Math.min(lo, v); hi = Math.max(hi, v); }
   assert.ok(hi - lo > 80, `the Mariana arc and trench in strong light and shade: ${lo}–${hi}`);
+});
+
+test('the Ice Age ice sheets: none at 0 m, the Laurentide and Scandinavia at −120 m, today\'s ice left as it is', async () => {
+  const file = `${ROOT}assets/layers/icesheets-2k.webp`;
+  assert.ok(statSync(file).size < 150 * 1024, `${statSync(file).size} bytes`);
+  const { data, info } = await sharp(file).extractChannel(0).raw().toBuffer({ resolveWithObject: true });
+  assert.deepEqual([info.width, info.height], [2048, 1024]);
+  const need = (lon, lat) => data[Math.floor(((90 - lat) / 180) * info.height) * info.width + Math.floor(((lon + 180) / 360) * info.width)];
+  // The shaders: ice where the sea has gone down at least the need, softly, and none at 0 m.
+  const ice = (n, drop) => { const t = Math.min(1, Math.max(0, (drop - (n - 8)) / 8)); return t * t * (3 - 2 * t) * Math.min(1, drop); };
+  const places = { 'Hudson Bay': [-85, 60], 'Chicago (the ice reached it)': [-87.6, 42.5], 'Oslo': [10.7, 60], 'Scotland': [-4.5, 57] };
+  for (const [name, at] of Object.entries(places)) {
+    assert.equal(ice(need(...at), 0), 0, `${name}: no ice today`);
+    assert.ok(ice(need(...at), 120) > 0.99, `${name}: ice in the Ice Age (needs ${need(...at)} m)`);
+  }
+  assert.ok(need(-85, 60) < need(-87.6, 42.5), 'the ice left Chicago before Hudson Bay');
+  for (const [name, at] of Object.entries({ 'Greenland': [-40, 75], 'Antarctica': [0, -80], 'Taiwan': [121, 23.5], 'Florida': [-81.5, 28] })) assert.equal(need(...at), 255, `${name}: never drawn`);
+  const src = readFileSync(`${ROOT}js/globe-base.js`, 'utf8') + readFileSync(`${ROOT}js/globegl.js`, 'utf8');
+  assert.equal(src.match(/smoothstep\(need - 8\.0, need, -uLevel\) \* clamp\(-uLevel, 0\.0, 1\.0\)/g)?.length, 2, 'both shaders draw it the same way');
+  const { INFO } = await import('../js/globe-info.js');
+  const row = INFO.relief.key.find(k => k.label === 'info.relief.key.ice');
+  assert.ok(row?.mark && row.token === '--c-ice-sheet', 'its key row, with a mark');
+  assert.equal(INFO.relief.what.length, 2, 'the panel still two lines');
+  assert.match(en['info.relief.what.2'], /locked up in the ice/);
+  assert.match(zh['info.relief.what.2'], /冰蓋/);
+  assert.equal(zh['info.relief.key.ice'], '冰蓋');
+  const review = readFileSync(`${ROOT}data/zh-ui-review.md`, 'utf8');
+  for (const k of ['info.relief.key.ice', 'info.relief.what.2']) assert.ok(review.includes(`| \`${k}\` |`), `${k} listed for checking`);
+  const { LAYER_CREDITS } = await import('../js/layers.js');
+  const c = LAYER_CREDITS.find(x => /PaleoMIST/.test(x.author));
+  assert.equal(c?.license, 'CC BY 4.0');
+  assert.match(readFileSync(`${ROOT}CREDITS.md`, 'utf8'), /PaleoMIST 1\.0/);
 });
 
 test('the clock\'s words in both languages, and a true minus sign', async () => {

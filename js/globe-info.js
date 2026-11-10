@@ -43,6 +43,7 @@ export const INFO = {
       { token: '--c-relief-dry', label: 'info.relief.key.dry', mark: '🏜️' },
       { token: '--c-relief-low', label: 'info.relief.key.low', mark: '🌿' },
       { token: '--c-relief-sea', label: 'info.relief.key.floor', mark: '🐚' },
+      { token: '--c-ice-sheet', label: 'info.relief.key.ice', mark: '🧊' },
     ],
     clock: 'sea-level', // its clock bar: the sea level (js/views/globe.js seaBar)
     what: ['info.relief.what.1', 'info.relief.what.2'], art: 'mountain',

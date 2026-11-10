@@ -16,9 +16,10 @@ New Chinese text in the app's buttons and labels (`lang/zh-TW.json`), written in
 | `layer.relief.levelText` | Sea level {n} | 海平面 {n} | Globe, Topography: read out with the level (海平面 −60 公尺) |
 | `layer.relief.play` | Play the sea level | 播放海平面的變化 | Globe, Topography: ▶ (read out) |
 | `layer.relief.pause` | Pause | 暫停 | Globe, Topography: ⏸ (read out) |
-| `info.relief.what.2` | Slide to the Ice Age: the sea goes down and new land appears. The dashed line is today's coast. | 滑到冰河時期：海水退下去，露出新的陸地。虛線是現在的海岸線。 | Globe, Topography: "What am I looking at?", the second line |
 | `unit.m` | m | 公尺 | Globe, Topography: the sea level between Today and the Ice Age (−60 公尺) |
 | `info.relief.key.floor` | Sea floor | 海底 | Globe, Topography: the key (the sea, shaded by the sea floor) |
+| `info.relief.key.ice` | Ice sheet | 冰蓋 | Globe, Topography: the key (the Ice Age's ice) |
+| `info.relief.what.2` | Slide to the Ice Age: the sea goes down and new land appears. The dashed line is today's coast. The sea fell because so much of its water was locked up in the ice. | 滑到冰河時期：海水退下去，露出新的陸地。虛線是現在的海岸線。海平面會下降，是因為很多海水變成冰，被鎖在冰蓋裡。 | Globe, Topography: "What am I looking at?", the second line (its last sentence is new) |
 | `info.relief.what.1` | The colours show how high and how dry the land is. Under the sea, light and dark shading shows the ridges and valleys of the sea floor. | 顏色告訴你陸地有多高、有多乾。海裡的明暗，是海底的山脊和山谷。 | Globe, Topography: "What am I looking at?", the first line (its second sentence is new) |
 | `layer.depth.play` | Play the currents | 播放洋流 | Globe, Ocean depth: ▶ (read out) |
 | `layer.depth.pause` | Pause | 暫停 | Globe, Ocean depth: ⏸ (read out) |
