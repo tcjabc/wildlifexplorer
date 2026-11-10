@@ -108,6 +108,7 @@
   --c-relief-low: #acc9ae;
   --c-relief-dry: #efe5d0;
   --c-relief-high: #d3d5d6;
+  --c-relief-sea: #4a86c0;    /* Topography's sea: one blue, shaded by the sea floor */
   --c-night: #0b1430;
   --c-art-sky: #e3f2fa;    /* sky and pale fills in the Globe panel drawings */
   --c-twilight: #5b5f97;   /* dawn and dusk on the globe's day & night layer */

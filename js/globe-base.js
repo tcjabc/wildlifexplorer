@@ -13,8 +13,9 @@
 //                                            floor: { tex, dry } the sea's depth (scripts/make-layers.mjs elevation,
 //                                            metres a byte), for a sea level below today's (seaLevel): the sea it
 //                                            leaves dry is land, in the colour dry. Fetched after the layer shows.
-//                                            sea: { tex } the ocean's zones (depth-2k.webp, as for 'ramp'), coloured
-//                                            by stops in bands, under the picture; without it the shared ocean.
+//                                            sea: { tex, colour, hill } the sea floor's shading (seafloor-2k.webp, 128
+//                                            flat) on one blue, hill its strength, under the picture; without it
+//                                            the shared ocean.
 //   { kind: 'ramp', tex, stops, bands, hill, sea?, tiles? } a number per pixel (1…255 along the scale), coloured by
 //                                            the scale, smoothly or in `bands` steps; sea: land stays land
 //   { kind: 'classes', tex, colours, hill, tiles? } up to three coverages, one to a channel, on the land
@@ -63,7 +64,9 @@ uniform float uCoast;     // how much steeper the land mask's edge gets: 1 leave
 uniform sampler2D uFloor; // the sea's depth today, a metre a step (picture's floor)
 uniform float uFloorOn, uLevel; // uLevel: the sea level, m (below 0: lower than today)
 uniform vec3 uDry;        // the land the lower sea leaves dry
-uniform float uSeaOn;     // a picture's sea in its depth zones (uLayerB), not the shared ocean
+uniform float uSeaOn;     // a picture's sea: one blue shaded by the sea floor (uLayerB), not the shared ocean
+uniform vec3 uSeaC;
+uniform float uSeaHill;
 const float PI = 3.14159265;
 
 float lum(vec4 c) { return dot(c.rgb / max(c.a, 0.0001), vec3(0.299, 0.587, 0.114)); }
@@ -106,8 +109,8 @@ void main() {
   if (uKind == 1) {
     vec3 pic = texture2D(uLayer, uv).rgb;
     pic = mix(pic, tile.rgb / max(tile.a, 0.0001), tile.a);
-    // The sea floor's zones, today's: the sea level going down never changes them.
-    vec3 sea = uSeaOn > 0.5 ? ramped(clamp((texture2D(uLayerB, uv).r * 255.0 - 1.0) / 254.0, 0.0, 1.0)) : uOcean;
+    // The sea floor as it is today: the sea level going down never moves it.
+    vec3 sea = uSeaOn > 0.5 ? uSeaC * (1.0 + uSeaHill * (texture2D(uLayerB, uv).r - 0.5) * 2.0) : uOcean;
     col = mix(sea, pic, shade.g);
     if (uFloorOn > 0.5) {
       // Today's sea less deep than the sea has gone down is dry, fading in over the first metre so
@@ -141,7 +144,7 @@ void main() {
 
 const NAMES = ['uCentre', 'uR', 'uDpr', 'uH', 'uE', 'uN', 'uC', 'uLayer', 'uShade', 'uRamp', 'uLayerB', 'uDetail', 'uKind', 'uBands', 'uHill', 'uSeaOnly',
   'uMix', 'uAppear', 'uChA', 'uChB', 'uRange', 'uOcean', 'uLand', 'uClass0', 'uClass1', 'uClass2', 'uGlow', 'uNight', 'uSun', 'uNightC', 'uTwilightC', 'uDetailOn', 'uWin', 'uGrid', 'uTileHill', 'uTileSoft', 'uCoast',
-  'uFloor', 'uFloorOn', 'uLevel', 'uDry', 'uSeaOn'];
+  'uFloor', 'uFloorOn', 'uLevel', 'uDry', 'uSeaOn', 'uSeaC', 'uSeaHill'];
 
 // The colour scale as n RGBA pixels, evenly from its first value to its last.
 //   stops: [{ v, colour: '#rrggbb' }]
@@ -219,7 +222,7 @@ export function createBase(canvas, { colours, shade, onChange, onDraw, still = f
   let shadeTex = null, rampTex = null, rampOf = null;
   let detail = null;              // the zoom tiles' atlas: { tex, w, h, zeros, win, grid, tile }
   let floorTex = null, floorWant = null, level = 0; // a picture's floor: { url, tex }, the url coming, the sea level (m)
-  let seaTex = null;              // a picture's sea zones: { url, tex }
+  let seaTex = null;              // a picture's sea floor: { url, tex }
   // Temperature: the textures here, the place wanted, a morph under way, the month last shown, and
   // when the first texture came (the layer fades in from the plain map then).
   const months = [null, null, null], fetching = new Set();
@@ -317,8 +320,7 @@ export function createBase(canvas, { colours, shade, onChange, onDraw, still = f
     shadeTex ??= await imageTexture(shade).catch(() => null); // offline the first time: the 2D canvas draws
     if (def.kind === 'months') { goal = def.pos ?? goal; monthFirst = nearestMonth(goal); monthsWanted = true; fetchMonths(); }
     const tex = def.tex && layerTex?.url !== def.tex ? await imageTexture(def.tex) : null;
-    // A picture's sea zones come with it (one channel). The same file as Ocean depth's, so a second
-    // fetch comes from the cache. Offline the first time: the shared ocean instead.
+    // A picture's sea floor comes with it (one channel). Offline the first time: the shared ocean instead.
     const seaUrl = def.kind === 'picture' ? def.sea?.tex : null;
     const sea = seaUrl && seaTex?.url !== seaUrl ? await imageTexture(seaUrl, gl.REPEAT, gl.LUMINANCE).catch(() => null) : null;
     if (def !== asked || lost || gone) { if (tex) gl.deleteTexture(tex); if (sea) gl.deleteTexture(sea); return; }
@@ -439,7 +441,11 @@ export function createBase(canvas, { colours, shade, onChange, onDraw, still = f
       let kind = KINDS[layer.kind], first = layerTex?.tex ?? shadeTex, second = shadeTex, moving = false;
       const seaOn = layer.kind === 'picture' && Boolean(seaTex);
       gl.uniform1f(loc.uSeaOn, seaOn ? 1 : 0);
-      if (seaOn) second = seaTex.tex;
+      if (seaOn) {
+        second = seaTex.tex;
+        gl.uniform3f(loc.uSeaC, ...rgb3(layer.sea.colour));
+        gl.uniform1f(loc.uSeaHill, layer.sea.hill ?? 1);
+      }
       if (layer.kind === 'months') {
         const now = performance.now();
         let blend = blendAt(goal);

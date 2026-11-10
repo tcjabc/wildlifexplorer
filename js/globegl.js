@@ -9,9 +9,9 @@
 //
 // Relief's sea level (Topography, as in js/globe-base.js): with a floor, the sea's depth today a
 // metre a byte (0 only on the land), the sea less deep than the level has gone down is dry land.
-// The floor comes after the picture, and never stops it showing. With the floor and the sea's
-// zones (sea: { tex: depth-2k.webp, colours: five [r, g, b] }) the picture's own water gives way to
-// the zones, as on the base renderer.
+// The floor comes after the picture, and never stops it showing. With the floor and the sea floor's
+// shading (sea: { tex: seafloor-2k.webp, colour: [r, g, b], hill }) the picture's own water gives
+// way to one blue shaded by it, as on the base renderer.
 //
 // Zoomed in, relief can show a sharper picture (js/globe-tiles.js): a detail window of
 // DETAIL × DETAIL tiles round the view's centre, in one texture (the atlas). Tiles not loaded
@@ -40,9 +40,10 @@ uniform sampler2D uFloor;
 uniform bool uFloorOn;
 uniform float uLevel;     // the sea level, m (below 0: lower than today)
 uniform vec3 uDry;        // the land it leaves dry
-uniform sampler2D uSeaZ;  // the ocean's zones (depth-2k.webp), and their colours
+uniform sampler2D uSeaF;  // the sea floor's shading (128 flat), the sea's blue and how strong
 uniform bool uSeaOn;
-uniform vec3 uSeaC[5];
+uniform vec3 uSeaC;
+uniform float uSeaHill;
 out vec4 outColor;
 const float PI = 3.14159265;
 
@@ -83,8 +84,8 @@ void main() {
       }
     }
     if (uFloorOn && uSeaOn) {
-      float z = clamp((look(uSeaZ, uv).r * 255.0 - 1.0) / 254.0, 0.0, 1.0);
-      base = mix(base, uSeaC[int(min(floor(z * 5.0), 4.0))], clamp(look(uFloor, uv).r * 255.0, 0.0, 1.0));
+      vec3 sea = uSeaC * (1.0 + uSeaHill * (look(uSeaF, uv).r - 0.5) * 2.0);
+      base = mix(base, sea, clamp(look(uFloor, uv).r * 255.0, 0.0, 1.0));
     }
     if (uFloorOn) {
       float deep = look(uFloor, uv).r * 255.0;
@@ -159,7 +160,7 @@ export function createSphere(canvas, { still = false, onLoad } = {}) {
     gl.enableVertexAttribArray(a);
     gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
     loc = {};
-    for (const n of ['uCentre', 'uR', 'uDpr', 'uH', 'uE', 'uN', 'uC', 'uMode', 'uTex', 'uAux', 'uAuxStep', 'uBump', 'uLight', 'uDetail', 'uWin', 'uGrid', 'uDetailOn', 'uFrom', 'uFade', 'uFloor', 'uFloorOn', 'uLevel', 'uDry', 'uSeaZ', 'uSeaOn', 'uSeaC']) {
+    for (const n of ['uCentre', 'uR', 'uDpr', 'uH', 'uE', 'uN', 'uC', 'uMode', 'uTex', 'uAux', 'uAuxStep', 'uBump', 'uLight', 'uDetail', 'uWin', 'uGrid', 'uDetailOn', 'uFrom', 'uFade', 'uFloor', 'uFloorOn', 'uLevel', 'uDry', 'uSeaF', 'uSeaOn', 'uSeaC', 'uSeaHill']) {
       loc[n] = gl.getUniformLocation(prog, n);
     }
     gl.uniform1i(loc.uTex, 0);
@@ -167,7 +168,7 @@ export function createSphere(canvas, { still = false, onLoad } = {}) {
     gl.uniform1i(loc.uDetail, 2);
     gl.uniform1i(loc.uFrom, 3);
     gl.uniform1i(loc.uFloor, 4);
-    gl.uniform1i(loc.uSeaZ, 5);
+    gl.uniform1i(loc.uSeaF, 5);
   }
   setup();
 
@@ -196,7 +197,7 @@ export function createSphere(canvas, { still = false, onLoad } = {}) {
   }
 
   let floor = null, floorWant = null, level = 0; // relief's floor: { url, tex }, the url coming, the sea level (m)
-  let seaZ = null, seaWant = null;                // relief's sea zones: { url, tex }, the url coming
+  let seaZ = null, seaWant = null;                // relief's sea floor: { url, tex }, the url coming
   // A one-channel texture that comes after its layer: held in get()/set(), let go with the layer.
   function later(url, get, set, want, setWant) {
     if (!url) { if (get()) gl.deleteTexture(get().tex); set(null); setWant(null); return; }
@@ -317,7 +318,7 @@ export function createSphere(canvas, { still = false, onLoad } = {}) {
       gl.uniform1i(loc.uSeaOn, seaOn ? 1 : 0);
       gl.uniform1f(loc.uLevel, level);
       if (floorOn) gl.uniform3f(loc.uDry, ...spec.floor.dry);
-      if (seaOn) gl.uniform3fv(loc.uSeaC, spec.sea.colours.flat());
+      if (seaOn) { gl.uniform3f(loc.uSeaC, ...spec.sea.colour); gl.uniform1f(loc.uSeaHill, spec.sea.hill ?? 1); }
       gl.activeTexture(gl.TEXTURE4); gl.bindTexture(gl.TEXTURE_2D, floorOn ? floor.tex : tex.tex);
       gl.activeTexture(gl.TEXTURE5); gl.bindTexture(gl.TEXTURE_2D, seaOn ? seaZ.tex : tex.tex);
       gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, tex.tex);

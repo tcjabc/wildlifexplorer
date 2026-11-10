@@ -11,6 +11,8 @@ import { decodeTopo } from './topo.js';
 const DIR = 'assets/layers/';
 const FLOOR = `${DIR}elevation-2k.webp`;
 const ZONES = `${DIR}depth-2k.webp`; // the ocean's zones, a number a pixel (scripts/make-layers.mjs depthMap)
+const SEA_FLOOR = `${DIR}seafloor-2k.webp`; // the sea floor's shading, 128 flat (scripts/make-layers.mjs seafloor)
+export const SEA_HILL = 0.6; // how strongly it shades Topography's blue: 0.6 is 40% to 160% of it
 const DEG = Math.PI / 180;
 
 const jsonCache = new Map();
@@ -79,11 +81,9 @@ export const LAYER_CREDITS = [
   { layer: 'relief', author: 'Jesse Allen, NASA Earth Observatory, using GEBCO data (British Oceanographic Data Centre): height for the bumps',
     license: 'Public domain (NASA, GEBCO)', licenseUrl: 'https://www.gebco.net/data_and_products/gridded_bathymetry_data/',
     sourceUrl: 'https://science.nasa.gov/earth/earth-observatory/blue-marble-next-generation/topography-bathymetry-maps' },
-  { layer: 'relief', author: 'NOAA National Centers for Environmental Information (NCEI), ETOPO 2022 Global Relief Model, 60 arc-second bedrock (doi:10.25921/fd45-gt74): the sea in the Ice Age',
+  { layer: 'relief', author: 'NOAA National Centers for Environmental Information (NCEI), ETOPO 2022 Global Relief Model, 60 arc-second bedrock (doi:10.25921/fd45-gt74): the sea floor\'s shading and the sea in the Ice Age',
     license: 'CC0 1.0 (public domain)', licenseUrl: 'https://creativecommons.org/publicdomain/zero/1.0/',
     sourceUrl: 'https://www.ncei.noaa.gov/products/etopo-global-relief-model' },
-  { layer: 'relief', author: 'Natural Earth, 1:10m Bathymetry: the sea floor, in the ocean depth zones', ...NE,
-    sourceUrl: 'https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-bathymetry/' },
   { layer: 'forests', author: 'Dinerstein et al. 2017, RESOLVE Ecoregions 2017 (simplified, grouped into three forest types)',
     license: 'CC BY 4.0', licenseUrl: 'https://creativecommons.org/licenses/by/4.0/', sourceUrl: 'https://ecoregions.appspot.com/' },
   { layer: 'reefs', author: 'Natural Earth, 1:10m Reefs (shown as areas: 8 km around each reef, joined)', ...NE,
@@ -122,11 +122,12 @@ export const LAYERS = [
     id: 'relief', emoji: '🏔️',
     // Its clock is the sea level (js/views/globe.js seaBar): the floor is the sea's depth today
     // (scripts/make-layers.mjs elevation), and what a lower sea leaves dry is the green lowlands.
-    // The sea is in Ocean depth's zones and colours (the same file, depth-2k.webp), so the ridges,
-    // trenches and shelves show; a lower sea never changes them.
-    gpu: ({ col }) => ({ base: { kind: 'picture', tex: `${DIR}relief-2k.webp`, hill: 0.25, tiles: RELIEF_TILES, floor: { tex: FLOOR, dry: col('--c-relief-low') }, sea: { tex: ZONES }, stops: depthStops(col), bands: 5 } }),
+    // The sea is one blue shaded by the sea floor (seafloor-2k.webp, scripts/make-layers.mjs seafloor),
+    // like the land's relief, so the ridges, trenches, seamounts and shelves show; a lower sea never
+    // moves it.
+    gpu: ({ col }) => ({ base: { kind: 'picture', tex: `${DIR}relief-2k.webp`, hill: 0.25, tiles: RELIEF_TILES, floor: { tex: FLOOR, dry: col('--c-relief-low') }, sea: { tex: SEA_FLOOR, colour: col('--c-relief-sea'), hill: SEA_HILL } } }),
     async load({ col }) {
-      return { raster: { mode: 'relief', tex: `${DIR}relief-2k.webp`, aux: `${DIR}height-2k.webp`, bump: 5, tiles: RELIEF_TILES, floor: { tex: FLOOR, dry: rgb(col('--c-relief-low')) }, sea: { tex: ZONES, colours: depthZones(col).map(rgb) } } };
+      return { raster: { mode: 'relief', tex: `${DIR}relief-2k.webp`, aux: `${DIR}height-2k.webp`, bump: 5, tiles: RELIEF_TILES, floor: { tex: FLOOR, dry: rgb(col('--c-relief-low')) }, sea: { tex: SEA_FLOOR, colour: rgb(col('--c-relief-sea')), hill: SEA_HILL } } };
     },
   },
   {
