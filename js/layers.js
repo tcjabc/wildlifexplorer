@@ -5,7 +5,7 @@
 // layer.load({ col, month }) resolves to a spec for globe.setLayer() (see js/globe.js).
 import { prepare, toVec, prepareLines } from './globe.js';
 import { RELIEF_TILES } from './globe-tiles.js';
-import { TEMP_BANDS } from './globe-months.js';
+import { TEMP_BANDS, PLANT_FILES, PLANT_MIN, PLANT_MAX } from './globe-months.js';
 import { decodeTopo } from './topo.js';
 
 const DIR = 'assets/layers/';
@@ -53,11 +53,13 @@ const rgb = c => {
   return m ? m.slice(1).map(x => parseInt(x, 16) / 255) : [0, 0, 0];
 };
 
-// Temperature scale from --c-temp-scale: [{ v: °C, colour }].
-export const tempStops = col => col('--c-temp-scale').split(',').map(s => {
+// A scale token ("-30 #3b2a8f, -15 #2f6fd6, …") as [{ v, colour }]: Temperature's (°C) and Plants' (NDVI).
+export const scaleStops = (col, token) => col(token).split(',').map(s => {
   const [v, colour] = s.trim().split(/\s+/);
   return { v: Number(v), colour };
 });
+export const tempStops = col => scaleStops(col, '--c-temp-scale');
+export const plantStops = col => scaleStops(col, '--c-plant-scale');
 
 // <name>-far.topo.json and <name>.topo.json, split by a property into one fill each:
 // [{ polys (far), near, fill, curve, edge }] for globe.setLayer(). curve > 0 draws the outlines
@@ -94,6 +96,8 @@ export const LAYER_CREDITS = [
   { layer: 'night', author: 'NASA Earth Observatory (Joshua Stevens), Black Marble 2016, Suomi NPP VIIRS (city lights as points)', ...NASA,
     sourceUrl: 'https://visibleearth.nasa.gov/images/144898/earth-at-night-black-marble-2016-color-maps' },
   { layer: 'temp', author: 'NASA EOSDIS GIBS: MODIS Terra land surface temperature and MODIS Aqua sea surface temperature, monthly 2024 (recoloured)', ...NASA,
+    sourceUrl: 'https://worldview.earthdata.nasa.gov/' },
+  { layer: 'plants', author: 'NASA EOSDIS GIBS: MODIS Terra NDVI, monthly 2024 (recoloured)', ...NASA,
     sourceUrl: 'https://worldview.earthdata.nasa.gov/' },
   { layer: 'depth', author: 'Natural Earth, 1:10m Bathymetry', ...NE,
     sourceUrl: 'https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-bathymetry/' },
@@ -174,6 +178,16 @@ export const LAYERS = [
     gpu: ({ col, month }) => ({ base: { kind: 'months', stops: tempStops(col), bands: TEMP_BANDS, hill: 0.35, pos: month } }),
     async load({ month }) {
       return { raster: { mode: 'picture', tex: `${DIR}temp-${String(month).padStart(2, '0')}.webp` } };
+    },
+  },
+  {
+    id: 'plants', emoji: '🌱', months: true,
+    // How green the land is each month (MODIS NDVI, scripts/make-layers.mjs plants), on Temperature's
+    // year clock and month: brown, pale green, deep green, smoothly between months. On the land only.
+    pictures: Array.from({ length: 12 }, (_, i) => `${DIR}plants-${String(i + 1).padStart(2, '0')}.webp`),
+    gpu: ({ col, month }) => ({ base: { kind: 'months', files: PLANT_FILES, range: [PLANT_MIN, PLANT_MAX], land: true, stops: plantStops(col), bands: 0, hill: 0.35, pos: month } }),
+    async load({ month }) {
+      return { raster: { mode: 'picture', tex: `${DIR}plants-${String(month).padStart(2, '0')}.webp` } };
     },
   },
   {

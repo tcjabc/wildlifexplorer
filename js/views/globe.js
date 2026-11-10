@@ -673,6 +673,8 @@ export function render(main, [cardId] = []) {
   }
   // ---------- Temperature's year ----------
   const tempLayer = LAYERS.find(l => l.id === 'temp');
+  // The layer on the year clock just now (Temperature, Plants), or null. They share the month.
+  const yearLayer = () => LAYERS.find(l => l.id === shownLayer && l.months) ?? null;
   let monthUi = null;      // its clockBar (js/globe-clock.js) in the clock bar, while it shows
   // To a place in the year. morph: a change of month, not a scrub.
   function toMonth(pos, { morph = false } = {}) {
@@ -684,25 +686,33 @@ export function render(main, [cardId] = []) {
       monthUi.slider.value = String(sliderPos(pos));
       monthUi.slider.setAttribute('aria-valuetext', label(`month.${m}`));
     }
-    if (shownLayer !== 'temp' || !globe) return;
+    const L = yearLayer();
+    if (!L || !globe) return;
     if (globe.usesBase) globe.month(pos, morph ? MORPH_MS : 0);
-    else if (changed) show(tempLayer);
+    else if (changed) show(L);
   }
   // The year going round, a month a second. Like every layer clock it waits while the globe is
   // moved or moves by itself, and keeps it from turning by itself while it plays.
-  const year = clockLoop({
-    advance: ms => toMonth(wrapPos(monthPos + ms / PLAY_MS)),
-    held: () => Boolean(globe?.moving),
-    tick: () => globe?.noteTouch(),
-  });
+  // At most CLOCK_FPS times a second; without WebGL a month at a time.
+  let year = null;
   function play(on) {
-    if (on === year.on) return;
-    if (on) year.start(); else year.stop();
+    if (on === Boolean(year?.on)) return;
+    if (on) {
+      const stepped = noBaseNow();
+      year = clockLoop({
+        advance: ms => toMonth(stepped ? wrapPos(Math.round(monthPos) + 1) : wrapPos(monthPos + ms / PLAY_MS)),
+        fps: CLOCK_FPS, stepMs: stepped ? PLAY_MS : 0,
+        held: () => Boolean(globe?.moving),
+        tick: () => globe?.noteTouch(),
+      });
+      year.start();
+    } else year?.stop();
     monthUi?.setPlaying(on);
   }
 
-  // Temperature's clock: ▶/⏸, the month, and the year as a slider.
-  function tempBar() {
+  // The year clock (Temperature, Plants): ▶/⏸, the month, and the year as a slider. Its words are
+  // Temperature's (layer.temp.*): "Month", "Play the year".
+  function yearBar() {
     monthUi = clockBar({
       cls: 'gclock--year',
       name: tx(`month.${tempMonth}`),
@@ -723,7 +733,7 @@ export function render(main, [cardId] = []) {
           toMonth(Math.max(1, Math.min(12, Math.round(monthPos) + by)), { morph: true });
         },
       },
-      play: !reducedMotion() && { playing: year.on, onToggle: () => play(!year.on), labels: ['layer.temp.play', 'layer.temp.pause'] },
+      play: !reducedMotion() && { playing: Boolean(year?.on), onToggle: () => play(!year?.on), labels: ['layer.temp.play', 'layer.temp.pause'] },
     });
     return monthUi.el;
   }
@@ -1058,7 +1068,7 @@ export function render(main, [cardId] = []) {
     dayUi = null;
     seaUi = null;
     flowUi = null;
-    mount(clockEl, kind === 'year' ? tempBar() : kind === 'day' ? dayBar() : kind === 'sea-level' ? seaBar() : kind === 'loop' ? loopBar() : null);
+    mount(clockEl, kind === 'year' ? yearBar() : kind === 'day' ? dayBar() : kind === 'sea-level' ? seaBar() : kind === 'loop' ? loopBar() : null);
     clockEl.classList.toggle('gclockbar--loop', kind === 'loop');
     clockEl.hidden = !kind;
     view.classList.toggle('has-clock', Boolean(kind));
@@ -1180,6 +1190,8 @@ export function render(main, [cardId] = []) {
     if (!L) { wanted = null; drawPanel(null, false); drawBar(null); globe.setLayer(null).catch(() => {}); return; }
     drawPanel(L, false);
     drawBar(L);
+    // Without the base renderer a year layer shows one picture a month: fetch the others in idle time.
+    if (L.pictures && L !== tempLayer && globe.usesBase === false) whenIdle(() => import('../globegl.js').then(m => m.preloadPictures(L.pictures)).catch(() => {}));
     show(L);
   }
   if (shownLayer) choose(shownLayer); else drawPanel(null, false);

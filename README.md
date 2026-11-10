@@ -553,6 +553,10 @@ The hero button at the top of the Globe's toolbar opens a picker that switches o
   a second and only while playing or dragging a slider; playing keeps the globe from turning by
   itself and waits while it is touched; leaving the layer stops it; reduced motion has no ▶; without
   the WebGL base they move a step at a time.
+- 🌱 Plant seasons: how green the land is each month (MODIS Terra NDVI, 2024, from GIBS;
+  `node scripts/make-layers.mjs plants`), brown to pale green to deep green (`--c-plant-scale`), on the land
+  only. It uses Temperature's months path (numbers four months to a file, mixed smoothly between months)
+  and its year clock, and the two share the month. Forests stays as it is: where forests grow naturally.
 - Coral reefs are areas made from Natural Earth's reef lines: everything within 8 km of a reef,
   joined where they touch and simplified (25 km for the whole-globe file, so they still show as a
   band), so the Great Barrier Reef reads as one long chain. See-through coral (`--c-reef-fill`) with
