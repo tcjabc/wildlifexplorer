@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Makes the Globe's map layers and the home outlines (assets/layers/) from big public datasets.
 // Run: node scripts/make-layers.mjs [relief tiles night temp depth forests reefs plates volcanoes
-// home base elevation seafloor icesheets plants warmwater] (no names = all).
+// home base elevation seafloor icesheets plants warmwater rain] (no names = all).
 //
 // Raw downloads go into data-raw/ (git-ignored) and are reused. Only the small processed
 // files are committed. Sources and licences: CREDITS.md.
@@ -14,7 +14,7 @@ import sharp from 'sharp';
 import mapshaper from 'mapshaper';
 import { DEPTHS } from '../js/layers.js';
 import { decodeTopo } from '../js/topo.js';
-import { toByte, PLANT_MIN, PLANT_MAX, WARM_MIN, WARM_MAX } from '../js/globe-months.js';
+import { toByte, PLANT_MIN, PLANT_MAX, WARM_MIN, WARM_MAX, RAIN_MIN, RAIN_MAX } from '../js/globe-months.js';
 import { CODES } from '../js/countries.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -166,16 +166,20 @@ async function night() {
 // GIBS colour maps → a lookup (r, g, b) => °C, null for "no data", undefined if unknown.
 // LST is in kelvin, SST in °C. Colours that aren't in the map (blended where GIBS scales
 // the picture) take the value of the nearest colour, if one is close.
-async function colormap(name, kelvin) {
+// scientific: also read values written as 9.70e-05, and the open ends ([-INF,0.00), [2.10e-04,+INF))
+// as their one finite edge. Off by default, so the maps read before stay exactly as they were.
+async function colormap(name, kelvin, { scientific = false } = {}) {
   const file = await download(`https://gibs.earthdata.nasa.gov/colormaps/v1.3/${name}.xml`, path.join(RAW, `${name}.xml`));
   const xml = await readFile(file, 'utf8');
   const key = (r, g, b) => (r << 16) | (g << 8) | b;
   const map = new Map(), entries = [];
   for (const m of xml.matchAll(/<ColorMapEntry rgb="(\d+),(\d+),(\d+)"([^>]*)>/g)) {
     const [r, g, b] = [m[1], m[2], m[3]].map(Number);
-    const range = m[4].match(/ value="\[([-\d.]+),([-\d.]+)\)"/);
+    const range = scientific ? m[4].match(/ value="\[([-+\d.eE]+|-INF),([-+\d.eE]+|\+INF)\)"/) : m[4].match(/ value="\[([-\d.]+),([-\d.]+)\)"/);
     if (!range || m[4].includes('nodata="true"')) { map.set(key(r, g, b), null); continue; }
-    const v = (Number(range[1]) + Number(range[2])) / 2 - (kelvin ? 273.15 : 0);
+    const lo = Number(range[1]), hi = Number(range[2]);
+    const mid = Number.isFinite(lo) && Number.isFinite(hi) ? (lo + hi) / 2 : Number.isFinite(lo) ? lo : hi;
+    const v = mid - (kelvin ? 273.15 : 0);
     map.set(key(r, g, b), v);
     entries.push([r, g, b, v]);
   }
@@ -871,6 +875,88 @@ async function warmwater() {
   }
 }
 
+// Rain (js/layers.js rain): NASA MERRA-2's bias-corrected monthly precipitation (GMAO, M2TMNXFLX,
+// CC0) from GIBS's ready-made tiles (WMTS level 0: the world in two 512 px tiles at 0.5625° a pixel,
+// about MERRA-2's own grid; far quicker than asking WMS to draw each month), each month the mean of
+// RAIN_YEARS (a 1991–2020 climatology: 30 years, 720 tiles in all, kept in data-raw/merra2/), its
+// colours read back to kg/m²/s through the GIBS colour map and turned into mm a day, then sampled at
+// MONTH_W × MONTH_H. Then, as Temperature's months are:
+//   rain-months-1…3.webp: the months as numbers (RAIN_MIN to RAIN_MAX mm a day), one to a channel,
+//                         four to a file, for the shader to mix and colour on --c-rain-scale;
+//   rain-01…12.webp:      2048×1024 pictures on --c-rain-scale, for when there is no base renderer;
+//                         see-through where it is dry, so the plain map shows there, on land and sea.
+const RAIN = { layer: 'MERRA2_Precipitation_Bias_Corrected_Monthly', colormap: 'MERRA2_Precipitation_Bias_Corrected_Monthly' };
+const RAIN_TILES = 'https://gibs.earthdata.nasa.gov/wmts/epsg4326/best';
+const RAIN_DEG = 0.5625, RAIN_W = 360 / RAIN_DEG, RAIN_H = 180 / RAIN_DEG; // level 0's pixels, and the world in them (640 × 320)
+const RAIN_YEARS = [1991, 2020];
+async function rain() {
+  const dir = path.join(RAW, 'merra2');
+  await mkdir(dir, { recursive: true });
+  // "0 #9ecae100, …": mm a day and colour, with its alpha (#rrggbbaa; plain #rrggbb is opaque).
+  const stops = (await token('--c-rain-scale')).split(',').map(s => {
+    const [v, c] = s.trim().split(/\s+/);
+    return { v: Number(v), rgba: [1, 3, 5, 7].map(i => (i < c.length ? parseInt(c.slice(i, i + 2), 16) : 255)) };
+  });
+  const paint = v => {
+    if (v <= stops[0].v) return stops[0].rgba;
+    for (let i = 1; i < stops.length; i++) {
+      const a = stops[i - 1], b = stops[i];
+      if (v <= b.v) { const t = (v - a.v) / (b.v - a.v); return a.rgba.map((x, k) => Math.round(x + (b.rgba[k] - x) * t)); }
+    }
+    return stops.at(-1).rgba;
+  };
+  const valueOf = await colormap(RAIN.colormap, false, { scientific: true });
+  const N = MONTH_W * MONTH_H, packed = [0, 1, 2].map(() => Buffer.alloc(N * 4));
+  const W = 2048, H = 1024;
+  for (let month = 1; month <= 12; month++) {
+    const mm = String(month).padStart(2, '0'), sum = new Float64Array(N), n = new Uint16Array(N);
+    for (let year = RAIN_YEARS[0]; year <= RAIN_YEARS[1]; year++) {
+      // The two tiles: column 0 from 180° W, column 1 from 108° E (only its first 128 px are the map).
+      const tiles = [];
+      for (const c of [0, 1]) {
+        const png = await download(`${RAIN_TILES}/${RAIN.layer}/default/${year}-${mm}-01/2km/0/0/${c}.png`, path.join(dir, `${year}-${mm}-${c}.png`));
+        tiles.push(await sharp(png).ensureAlpha().raw().toBuffer({ resolveWithObject: true }));
+      }
+      for (let y = 0; y < MONTH_H; y++) {
+        const ty = Math.min(RAIN_H - 1, Math.floor(((y + 0.5) / MONTH_H) * RAIN_H));
+        for (let x = 0; x < MONTH_W; x++) {
+          const tx = Math.min(RAIN_W - 1, Math.floor(((x + 0.5) / MONTH_W) * RAIN_W)), c = tx < 512 ? 0 : 1;
+          const { data, info } = tiles[c], p = (ty * info.width + (tx - c * 512)) * info.channels;
+          if (data[p + 3] < 128) continue;
+          const v = valueOf(data[p], data[p + 1], data[p + 2]);
+          if (v == null) continue;
+          sum[y * MONTH_W + x] += Math.max(0, v) * 86400; // kg/m²/s of water is mm a second
+          n[y * MONTH_W + x]++;
+        }
+      }
+    }
+    const v = Float32Array.from(sum, (t, i) => (n[i] ? t / n[i] : NaN));
+    let missing = 0;
+    for (let i = 0; i < N; i++) if (Number.isNaN(v[i])) { missing++; v[i] = 0; }
+    const into = packed[Math.floor((month - 1) / 4)], ch = (month - 1) % 4;
+    for (let i = 0; i < N; i++) into[i * 4 + ch] = toByte(v[i], RAIN_MIN, RAIN_MAX);
+    // The picture: the values at 2048 × 1024 (bilinear, cell centres), on the scale, land and sea.
+    const pic = Buffer.alloc(W * H * 4);
+    for (let y = 0; y < H; y++) {
+      const fy = Math.min(MONTH_H - 1.001, Math.max(0, ((y + 0.5) * MONTH_H) / H - 0.5)), y0 = Math.floor(fy), ty = fy - y0;
+      for (let x = 0; x < W; x++) {
+        const fx = ((x + 0.5) * MONTH_W) / W - 0.5, x0 = Math.floor(fx), tx = fx - x0;
+        const at = (xx, yy) => v[yy * MONTH_W + ((xx + MONTH_W) % MONTH_W)];
+        const t = (at(x0, y0) * (1 - tx) + at(x0 + 1, y0) * tx) * (1 - ty) + (at(x0, y0 + 1) * (1 - tx) + at(x0 + 1, y0 + 1) * tx) * ty;
+        pic.set(paint(t), (y * W + x) * 4);
+      }
+    }
+    const out = path.join(OUT, `rain-${mm}.webp`);
+    await sharp(pic, { raw: { width: W, height: H, channels: 4 } }).webp({ quality: 80, alphaQuality: 80, effort: 6 }).toFile(out);
+    console.log(`  ${path.basename(out)} ${await kb(out)}${missing ? ` (${missing} cells with no reading, counted dry)` : ''}`);
+  }
+  for (const [i, d] of packed.entries()) {
+    const out = path.join(OUT, `rain-months-${i + 1}.webp`);
+    await sharp(d, { raw: { width: MONTH_W, height: MONTH_H, channels: 4 } }).webp({ lossless: true, effort: 6 }).toFile(out);
+    console.log(`  rain-months-${i + 1}.webp ${await kb(out)}`);
+  }
+}
+
 async function base() {
   await shade(2048, 1024);
   await forestMask(2048, 1024);
@@ -1211,7 +1297,7 @@ async function home() {
 
 // ---------- main ----------
 
-const STEPS = { relief, tiles, night, temp, depth, forests, reefs, plates, volcanoes, home, base, elevation, seafloor, icesheets, plants, warmwater };
+const STEPS = { relief, tiles, night, temp, depth, forests, reefs, plates, volcanoes, home, base, elevation, seafloor, icesheets, plants, warmwater, rain };
 const wanted = process.argv.slice(2);
 for (const w of wanted) if (!STEPS[w]) throw new Error(`Unknown layer "${w}" (have: ${Object.keys(STEPS).join(', ')})`);
 await mkdir(RAW, { recursive: true });

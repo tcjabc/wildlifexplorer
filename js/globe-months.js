@@ -14,6 +14,9 @@ export const PLANT_MIN = 0, PLANT_MAX = 1;
 // Coral reefs' warm water: the sea's temperature, °C, scripts/make-layers.mjs warmwater.
 export const WARM_FILES = [0, 1, 2].map(i => `assets/layers/warm-months-${i + 1}.webp`);
 export const WARM_MIN = -2, WARM_MAX = 36;
+// Rain: how much falls, mm a day, scripts/make-layers.mjs rain.
+export const RAIN_FILES = [0, 1, 2].map(i => `assets/layers/rain-months-${i + 1}.webp`);
+export const RAIN_MIN = 0, RAIN_MAX = 20;
 
 // Where a month is: its texture and channel.
 export const slotOf = month => ({ tex: Math.floor((month - 1) / 4), ch: (month - 1) % 4 });

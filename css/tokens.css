@@ -127,6 +127,12 @@
   --c-plant-few: #c4a274;
   --c-plant-some: #d3e3a5;
   --c-plant-many: #2f8f45;
+  /* Rain (mm a day, monthly): see-through where it is dry (under about 1 mm a day), then pale to deep
+     blue: one hue getting darker, so it reads for colour-blind eyes too. #rrggbbaa: alpha 00 shows the
+     plain map. The key's swatches are its colours (tests/globe-rain.test.mjs keeps them in step). */
+  --c-rain-scale: 0 #9ecae100, 0.6 #9ecae100, 1.6 #9ecae1, 4 #6baed6, 7 #3182bd, 11 #08519c, 16 #08306b, 20 #08306b;
+  --c-rain-some: #6baed6;
+  --c-rain-lots: #08519c;
   --c-temp-scale: -30 #3b2a8f, -15 #2f6fd6, 0 #9ad8f5, 10 #74c77f, 20 #f3df55, 30 #f5973a, 40 #dd3f2a, 50 #8e1b3a;
   --c-callout: #ffc93c;
   --c-callout-ink: #3b2a00;
