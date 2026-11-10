@@ -9,7 +9,9 @@
 //
 // Relief's sea level (Topography, as in js/globe-base.js): with a floor, the sea's depth today a
 // metre a byte (0 only on the land), the sea less deep than the level has gone down is dry land.
-// The floor comes after the picture, and never stops it showing.
+// The floor comes after the picture, and never stops it showing. With the floor and the sea's
+// zones (sea: { tex: depth-2k.webp, colours: five [r, g, b] }) the picture's own water gives way to
+// the zones, as on the base renderer.
 //
 // Zoomed in, relief can show a sharper picture (js/globe-tiles.js): a detail window of
 // DETAIL × DETAIL tiles round the view's centre, in one texture (the atlas). Tiles not loaded
@@ -38,6 +40,9 @@ uniform sampler2D uFloor;
 uniform bool uFloorOn;
 uniform float uLevel;     // the sea level, m (below 0: lower than today)
 uniform vec3 uDry;        // the land it leaves dry
+uniform sampler2D uSeaZ;  // the ocean's zones (depth-2k.webp), and their colours
+uniform bool uSeaOn;
+uniform vec3 uSeaC[5];
 out vec4 outColor;
 const float PI = 3.14159265;
 
@@ -76,6 +81,10 @@ void main() {
         vec4 d = textureGrad(uDetail, (vec2(c, r) + fract(t)) / uWin.zw, gx * s, gy * s);
         base = mix(base, d.rgb / max(d.a, 1e-4), d.a);
       }
+    }
+    if (uFloorOn && uSeaOn) {
+      float z = clamp((look(uSeaZ, uv).r * 255.0 - 1.0) / 254.0, 0.0, 1.0);
+      base = mix(base, uSeaC[int(min(floor(z * 5.0), 4.0))], clamp(look(uFloor, uv).r * 255.0, 0.0, 1.0));
     }
     if (uFloorOn) {
       float deep = look(uFloor, uv).r * 255.0;
@@ -129,7 +138,8 @@ const loadImage = url => new Promise((resolve, reject) => {
 });
 
 // canvas: the (empty) canvas to draw into. still: no crossfades. Returns null if WebGL 2 isn't available.
-export function createSphere(canvas, { still = false } = {}) {
+// onLoad(): a texture that came after its layer (the floor, the sea's zones) is here, so draw again.
+export function createSphere(canvas, { still = false, onLoad } = {}) {
   const gl = canvas.getContext('webgl2', { premultipliedAlpha: true, antialias: false, alpha: true });
   if (!gl) return null;
   let prog = null, loc = null, lost = false;
@@ -149,7 +159,7 @@ export function createSphere(canvas, { still = false } = {}) {
     gl.enableVertexAttribArray(a);
     gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
     loc = {};
-    for (const n of ['uCentre', 'uR', 'uDpr', 'uH', 'uE', 'uN', 'uC', 'uMode', 'uTex', 'uAux', 'uAuxStep', 'uBump', 'uLight', 'uDetail', 'uWin', 'uGrid', 'uDetailOn', 'uFrom', 'uFade', 'uFloor', 'uFloorOn', 'uLevel', 'uDry']) {
+    for (const n of ['uCentre', 'uR', 'uDpr', 'uH', 'uE', 'uN', 'uC', 'uMode', 'uTex', 'uAux', 'uAuxStep', 'uBump', 'uLight', 'uDetail', 'uWin', 'uGrid', 'uDetailOn', 'uFrom', 'uFade', 'uFloor', 'uFloorOn', 'uLevel', 'uDry', 'uSeaZ', 'uSeaOn', 'uSeaC']) {
       loc[n] = gl.getUniformLocation(prog, n);
     }
     gl.uniform1i(loc.uTex, 0);
@@ -157,10 +167,11 @@ export function createSphere(canvas, { still = false } = {}) {
     gl.uniform1i(loc.uDetail, 2);
     gl.uniform1i(loc.uFrom, 3);
     gl.uniform1i(loc.uFloor, 4);
+    gl.uniform1i(loc.uSeaZ, 5);
   }
   setup();
 
-  canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); lost = true; textures.clear(); detail = null; floor = floorWant = null; });
+  canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); lost = true; textures.clear(); detail = null; floor = floorWant = seaZ = seaWant = null; });
   canvas.addEventListener('webglcontextrestored', () => { lost = false; setup(); });
 
   // grey: one channel (R8), a quarter of the memory, kept out of the map so release() leaves it.
@@ -185,16 +196,21 @@ export function createSphere(canvas, { still = false } = {}) {
   }
 
   let floor = null, floorWant = null, level = 0; // relief's floor: { url, tex }, the url coming, the sea level (m)
-  function useFloor(url) {
-    if (!url) { if (floor) gl.deleteTexture(floor.tex); floor = floorWant = null; return; }
-    if (floor?.url === url || floorWant === url) return;
-    floorWant = url;
+  let seaZ = null, seaWant = null;                // relief's sea zones: { url, tex }, the url coming
+  // A one-channel texture that comes after its layer: held in get()/set(), let go with the layer.
+  function later(url, get, set, want, setWant) {
+    if (!url) { if (get()) gl.deleteTexture(get().tex); set(null); setWant(null); return; }
+    if (get()?.url === url || want() === url) return;
+    setWant(url);
     texture(url, { grey: true }).then(t => {
-      if (floorWant !== url || lost) { gl.deleteTexture(t.tex); return; }
-      if (floor) gl.deleteTexture(floor.tex);
-      floor = { url, tex: t.tex };
-    }).catch(() => { if (floorWant === url) floorWant = null; });
+      if (want() !== url || lost) { gl.deleteTexture(t.tex); return; }
+      if (get()) gl.deleteTexture(get().tex);
+      set({ url, tex: t.tex });
+      onLoad?.();
+    }).catch(() => { if (want() === url) setWant(null); });
   }
+  const useFloor = url => later(url, () => floor, v => { floor = v; }, () => floorWant, v => { floorWant = v; });
+  const useSea = url => later(url, () => seaZ, v => { seaZ = v; }, () => seaWant, v => { seaWant = v; });
 
   // Free every texture not in keep.
   function release(keep) {
@@ -220,6 +236,7 @@ export function createSphere(canvas, { still = false } = {}) {
       spec = next;
       if (next?.mode !== 'relief') dropDetail();
       useFloor(next?.mode === 'relief' ? next.floor?.tex : null);
+      useSea(next?.mode === 'relief' ? next.sea?.tex : null);
       fade = !still && was?.mode === 'picture' && next?.mode === 'picture' && was.tex !== next.tex ? { url: was.tex, t0: performance.now() } : null;
       release(fade ? [...urls, fade.url] : urls);
     },
@@ -294,10 +311,15 @@ export function createSphere(canvas, { still = false } = {}) {
         gl.uniform2f(loc.uGrid, ...detail.grid);
         gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, detail.tex);
       }
-      const floorOn = Boolean(floor) && spec.mode === 'relief' && level < 0;
+      // The floor whenever it is here: it says where the sea is, for its zones, as well as what a lower sea leaves.
+      const floorOn = Boolean(floor) && spec.mode === 'relief', seaOn = floorOn && Boolean(seaZ) && Boolean(spec.sea);
       gl.uniform1i(loc.uFloorOn, floorOn ? 1 : 0);
-      if (floorOn) { gl.uniform1f(loc.uLevel, level); gl.uniform3f(loc.uDry, ...spec.floor.dry); }
+      gl.uniform1i(loc.uSeaOn, seaOn ? 1 : 0);
+      gl.uniform1f(loc.uLevel, level);
+      if (floorOn) gl.uniform3f(loc.uDry, ...spec.floor.dry);
+      if (seaOn) gl.uniform3fv(loc.uSeaC, spec.sea.colours.flat());
       gl.activeTexture(gl.TEXTURE4); gl.bindTexture(gl.TEXTURE_2D, floorOn ? floor.tex : tex.tex);
+      gl.activeTexture(gl.TEXTURE5); gl.bindTexture(gl.TEXTURE_2D, seaOn ? seaZ.tex : tex.tex);
       gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, tex.tex);
       gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, aux.tex);
       const from = fade && textures.get(fade.url), t = from ? Math.min(1, (performance.now() - fade.t0) / FADE_MS) : 1;
@@ -307,6 +329,6 @@ export function createSphere(canvas, { still = false } = {}) {
       if (fade && t >= 1) { release([spec.tex, spec.aux].filter(Boolean)); fade = null; }
       return Boolean(fade);
     },
-    destroy() { release([]); dropDetail(); useFloor(null); gl.getExtension('WEBGL_lose_context')?.loseContext(); },
+    destroy() { release([]); dropDetail(); useFloor(null); useSea(null); gl.getExtension('WEBGL_lose_context')?.loseContext(); },
   };
 }

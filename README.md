@@ -536,6 +536,9 @@ The hero button at the top of the Globe's toolbar opens a picker that switches o
   lowlands colour (the shaders' floor: `assets/layers/elevation-2k.webp`, the sea's depth today a
   metre a byte, from ETOPO 2022 by `node scripts/make-layers.mjs elevation`), and today's coast is a
   faint dashed line meanwhile. The Taiwan Strait closes (`tests/globe-sea-level.test.mjs`).
+  The sea itself is in Ocean depth's five zones and colours (the same `depth-2k.webp`, so no second
+  download once Ocean depth has been opened), so the Mid-Atlantic Ridge, the trenches and the shelves
+  show; a lower sea never changes them, it only leaves the shallowest dry.
 - 🌊 Ocean depth shows 17 major surface currents, traced by hand (`assets/layers/currents.json`, kept
   off the land by `tests/globe-currents.test.mjs`): dashed lines with arrowheads, red-orange warm and
   blue cold, on the 2D canvas over either renderer (`drawCurrents` in `js/globe.js`, short lines,

@@ -1185,7 +1185,7 @@ export function createGlobe(stage, { onFrame, onTap, onInteract, onLand, onBase,
       if (next?.raster && !sphere) {
         const { createSphere } = await import('./globegl.js');
         const glCanvas = h('canvas', { class: 'globe__canvas globe__canvas--gl', 'aria-hidden': 'true' });
-        sphere = createSphere(glCanvas, { still: reduced });
+        sphere = createSphere(glCanvas, { still: reduced, onLoad: () => { dirty = true; } });
         if (!sphere) throw new Error('WebGL 2 is not available');
         overCanvas.before(glCanvas);
       }

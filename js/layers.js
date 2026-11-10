@@ -10,6 +10,7 @@ import { decodeTopo } from './topo.js';
 
 const DIR = 'assets/layers/';
 const FLOOR = `${DIR}elevation-2k.webp`;
+const ZONES = `${DIR}depth-2k.webp`; // the ocean's zones, a number a pixel (scripts/make-layers.mjs depthMap)
 const DEG = Math.PI / 180;
 
 const jsonCache = new Map();
@@ -81,6 +82,8 @@ export const LAYER_CREDITS = [
   { layer: 'relief', author: 'NOAA National Centers for Environmental Information (NCEI), ETOPO 2022 Global Relief Model, 60 arc-second bedrock (doi:10.25921/fd45-gt74): the sea in the Ice Age',
     license: 'CC0 1.0 (public domain)', licenseUrl: 'https://creativecommons.org/publicdomain/zero/1.0/',
     sourceUrl: 'https://www.ncei.noaa.gov/products/etopo-global-relief-model' },
+  { layer: 'relief', author: 'Natural Earth, 1:10m Bathymetry: the sea floor, in the ocean depth zones', ...NE,
+    sourceUrl: 'https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-bathymetry/' },
   { layer: 'forests', author: 'Dinerstein et al. 2017, RESOLVE Ecoregions 2017 (simplified, grouped into three forest types)',
     license: 'CC BY 4.0', licenseUrl: 'https://creativecommons.org/licenses/by/4.0/', sourceUrl: 'https://ecoregions.appspot.com/' },
   { layer: 'reefs', author: 'Natural Earth, 1:10m Reefs (shown as areas: 8 km around each reef, joined)', ...NE,
@@ -103,6 +106,12 @@ export const LAYER_CREDITS = [
 // Where the ocean's zones meet (NOAA / NWS JetStream, Layers of the Ocean): sunlight to 200 m,
 // twilight to 1,000 m, midnight to 4,000 m, the abyss to 6,000 m, then the trenches.
 export const DEPTHS = [200, 1000, 4000, 6000];
+// The zones' colours, lightest first, and as a scale for the base renderer: each colour holds across its fifth.
+export const depthZones = col => ['--c-map-sea', ...DEPTHS.map((d, i) => `--c-depth-${i + 1}`)].map(col);
+export function depthStops(col) {
+  const zone = depthZones(col);
+  return [{ v: 0, colour: zone[0] }, ...zone.map((colour, i) => ({ v: (i + 0.5) / 5, colour })), { v: 1, colour: zone[4] }];
+}
 const FORESTS = ['tropical', 'temperate', 'boreal'];
 
 // What each layer's info panel says is in js/globe-info.js.
@@ -113,9 +122,11 @@ export const LAYERS = [
     id: 'relief', emoji: '🏔️',
     // Its clock is the sea level (js/views/globe.js seaBar): the floor is the sea's depth today
     // (scripts/make-layers.mjs elevation), and what a lower sea leaves dry is the green lowlands.
-    gpu: ({ col }) => ({ base: { kind: 'picture', tex: `${DIR}relief-2k.webp`, hill: 0.25, tiles: RELIEF_TILES, floor: { tex: FLOOR, dry: col('--c-relief-low') } } }),
+    // The sea is in Ocean depth's zones and colours (the same file, depth-2k.webp), so the ridges,
+    // trenches and shelves show; a lower sea never changes them.
+    gpu: ({ col }) => ({ base: { kind: 'picture', tex: `${DIR}relief-2k.webp`, hill: 0.25, tiles: RELIEF_TILES, floor: { tex: FLOOR, dry: col('--c-relief-low') }, sea: { tex: ZONES }, stops: depthStops(col), bands: 5 } }),
     async load({ col }) {
-      return { raster: { mode: 'relief', tex: `${DIR}relief-2k.webp`, aux: `${DIR}height-2k.webp`, bump: 5, tiles: RELIEF_TILES, floor: { tex: FLOOR, dry: rgb(col('--c-relief-low')) } } };
+      return { raster: { mode: 'relief', tex: `${DIR}relief-2k.webp`, aux: `${DIR}height-2k.webp`, bump: 5, tiles: RELIEF_TILES, floor: { tex: FLOOR, dry: rgb(col('--c-relief-low')) }, sea: { tex: ZONES, colours: depthZones(col).map(rgb) } } };
     },
   },
   {
@@ -164,11 +175,7 @@ export const LAYERS = [
     // The zones as five bands of one scale: each colour holds across its fifth. Over them the
     // currents (currents.json), drawn by js/globe.js drawCurrents on either renderer; its clock
     // moves their dashes (js/views/globe.js loopBar).
-    gpu: async ({ col }) => {
-      const zone = ['--c-map-sea', ...DEPTHS.map((d, i) => `--c-depth-${i + 1}`)].map(col);
-      const stops = [{ v: 0, colour: zone[0] }, ...zone.map((colour, i) => ({ v: (i + 0.5) / 5, colour })), { v: 1, colour: zone[4] }];
-      return { base: { kind: 'ramp', tex: `${DIR}depth-2k.webp`, stops, bands: 5, sea: true, hill: 0.5, tiles: RELIEF_TILES }, currents: await currents(col) };
-    },
+    gpu: async ({ col }) => ({ base: { kind: 'ramp', tex: ZONES, stops: depthStops(col), bands: 5, sea: true, hill: 0.5, tiles: RELIEF_TILES }, currents: await currents(col) }),
     async load({ col }) {
       const [sea, flow] = await Promise.all([shapesBy('depth', 'depth', DEPTHS, (d, i) => col(`--c-depth-${i + 1}`), { curve: DEPTH_CURVE, nearK: DEPTH_NEAR_K }), currents(col)]);
       return { sea, currents: flow };
