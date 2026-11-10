@@ -14,6 +14,10 @@ export const slotOf = month => ({ tex: Math.floor((month - 1) / 4), ch: (month -
 
 export const wrapPos = pos => ((((pos - 1) % 12) + 12) % 12) + 1;
 export const nearestMonth = pos => { const m = Math.round(wrapPos(pos)); return m > 12 ? 1 : m; };
+// Where a position goes on the year's slider (1 to 12): always with its label (nearestMonth). Past
+// halfway from December the label says January, so the slider is already back at the start, in one
+// jump: it never sits at the end under "January".
+export const sliderPos = pos => { const p = wrapPos(pos); return p >= 12.5 ? 1 : p; };
 
 // The two months either side of a position, and how far along.
 export function blendAt(pos) {

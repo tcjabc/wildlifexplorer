@@ -31,7 +31,7 @@ import { track, haptic } from '../gesture.js';
 import { nameBi } from '../zhuyin.js';
 import { LAYERS, tempStops, sunAt, sunVector } from '../layers.js';
 import { rampBytes } from '../globe-base.js';
-import { TEMP_BANDS, MORPH_MS, PLAY_MS, bandSteps, nearestMonth, wrapPos } from '../globe-months.js';
+import { TEMP_BANDS, MORPH_MS, PLAY_MS, bandSteps, nearestMonth, wrapPos, sliderPos } from '../globe-months.js';
 import { clockLoop, clockBar } from '../globe-clock.js';
 import { pinShown, pinHint, noFilters, filterCount, optionCount, onGlobe } from '../globe-filter.js';
 import { tempText } from '../units.js';
@@ -650,7 +650,7 @@ export function render(main, [cardId] = []) {
     tempMonth = m;
     if (monthUi) {
       if (changed) mount(monthUi.name, tx(`month.${m}`));
-      monthUi.slider.value = String(Math.min(12, pos));
+      monthUi.slider.value = String(sliderPos(pos));
       monthUi.slider.setAttribute('aria-valuetext', label(`month.${m}`));
     }
     if (shownLayer !== 'temp' || !globe) return;
@@ -676,7 +676,7 @@ export function render(main, [cardId] = []) {
       cls: 'gclock--year',
       name: tx(`month.${tempMonth}`),
       slider: {
-        min: 1, max: 12, step: globe?.usesBase === false ? 1 : 0.01, value: Math.min(12, monthPos),
+        min: 1, max: 12, step: globe?.usesBase === false ? 1 : 0.01, value: sliderPos(monthPos),
         label: 'layer.temp.month', valuetext: label(`month.${tempMonth}`),
         oninput: pos => {
           play(false);

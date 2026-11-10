@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
-import { slotOf, wrapPos, nearestMonth, blendAt, heldBlend, fetchOrder, toByte, fromByte, bandSteps, MONTH_FILES } from '../js/globe-months.js';
+import { slotOf, wrapPos, nearestMonth, sliderPos, blendAt, heldBlend, fetchOrder, toByte, fromByte, bandSteps, MONTH_FILES } from '../js/globe-months.js';
 
 const sharp = createRequire(import.meta.url)('sharp');
 
@@ -23,6 +23,17 @@ test('a place in the year: between two months, and round from December to Januar
   assert.equal(nearestMonth(3.4), 3);
   assert.equal(nearestMonth(3.6), 4);
   assert.equal(nearestMonth(12.6), 1);
+});
+
+test('the slider goes with its label: back at the start as soon as December turns to January', () => {
+  assert.equal(sliderPos(3.25), 3.25);
+  assert.equal(sliderPos(12.2), 12.2, 'still December: at the end');
+  for (const pos of [12.5, 12.7, 12.99]) {
+    assert.equal(nearestMonth(pos), 1);
+    assert.equal(sliderPos(pos), 1, `${pos}: January, at the start`);
+  }
+  assert.ok(Math.abs(sliderPos(13.2) - 1.2) < 1e-9, 'and on into the new year');
+  for (let pos = 1; pos < 13; pos += 0.05) assert.equal(Math.round(sliderPos(pos)), nearestMonth(pos), `${pos.toFixed(2)}`);
 });
 
 test('with a texture missing, the blend holds on what is here, and never shows nothing once there is something', () => {
