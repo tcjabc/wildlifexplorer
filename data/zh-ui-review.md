@@ -18,6 +18,8 @@ New Chinese text in the app's buttons and labels (`lang/zh-TW.json`), written in
 | `layer.relief.pause` | Pause | 暫停 | Globe, Topography: ⏸ (read out) |
 | `info.relief.what.2` | Slide to the Ice Age: the sea goes down and new land appears. The dashed line is today's coast. | 滑到冰河時期：海水退下去，露出新的陸地。虛線是現在的海岸線。 | Globe, Topography: "What am I looking at?", the second line |
 | `unit.m` | m | 公尺 | Globe, Topography: the sea level between Today and the Ice Age (−60 公尺) |
+| `info.relief.key.shallow` | Shallow sea | 淺海 | Globe, Topography: the key (the lightest sea) |
+| `info.relief.key.deep` | Deep sea | 深海 | Globe, Topography: the key (the darkest sea) |
 | `layer.depth.play` | Play the currents | 播放洋流 | Globe, Ocean depth: ▶ (read out) |
 | `layer.depth.pause` | Pause | 暫停 | Globe, Ocean depth: ⏸ (read out) |
 | `info.depth.key.warm` | Warm current | 暖流 | Globe, Ocean depth: the key |
