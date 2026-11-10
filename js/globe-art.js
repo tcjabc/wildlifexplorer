@@ -196,4 +196,12 @@ export function sectionSlide() {
     path('M74 30L80 36L86 30M74 42L80 36L86 42', 'art__shake'));
 }
 
-export const ART = { pins, mountain, forests, reef, sunEarth, thermometer, oceanZones, plates: platesArt, sectionApart, sectionCrash, sectionSlide };
+// Rain: a cloud and its drops.
+export function rain() {
+  return frame(160, 96,
+    rect(0, 0, 160, 96, 'art__sky', 10),
+    path('M44 56C34 56 30 46 37 40C36 30 48 25 56 31C60 21 78 19 86 29C98 25 110 33 108 45C118 47 118 60 106 60L46 60C44 60 44 56 44 56Z', 'art__cloud'),
+    path('M56 68L52 80M76 68L72 80M96 68L92 80M66 76L62 88M86 76L82 88', 'art__drop'));
+}
+
+export const ART = { pins, mountain, forests, reef, sunEarth, thermometer, oceanZones, rain, plates: platesArt, sectionApart, sectionCrash, sectionSlide };

@@ -28,6 +28,13 @@ New Chinese text in the app's buttons and labels (`lang/zh-TW.json`), written in
 | `info.reefs.key.warm` | Warm water, {t} and up | 暖水，{t} 以上 | Globe, Coral reefs: the key ({t} is 20°C, or 68°F) |
 | `info.reefs.key.hot` | Very warm water, {t} and up | 很暖的水，{t} 以上 | Globe, Coral reefs: the key ({t} is 26°C, or 79°F) |
 | `info.reefs.what.2` | The yellow sea is warm water. Press ▶ to see it move with the seasons. | 黃色的海是暖水。按 ▶，看它跟著季節移動。 | Globe, Coral reefs: "What am I looking at?", the second line (new; the algae line moved to "Did you know?") |
+| `layer.rain` | Rain | 雨 | Globe: the new layer's name (picker, panel, clock bar) |
+| `info.rain.key.dry` | Dry | 乾燥 | Globe, Rain: the key (the plain map) |
+| `info.rain.key.some` | Some rain | 有一些雨 | Globe, Rain: the key (pale blue) |
+| `info.rain.key.lots` | Lots of rain | 很多雨 | Globe, Rain: the key (deep blue) |
+| `info.rain.what.1` | The blues show how much rain falls in each month: the darker, the more. | 藍色告訴你每個月下多少雨：顏色越深，雨越多。 | Globe, Rain: "What am I looking at?" |
+| `info.rain.what.2` | Press ▶ and watch the rainy belt move north and south with the seasons. | 按 ▶，看多雨的地帶跟著季節往北、往南移動。 | Globe, Rain: "What am I looking at?" |
+| `info.rain.more.1` | Every summer the monsoon brings wet air from the sea to South and East Asia. In Taiwan, the plum rains come in May and June. | 每年夏天，季風把海上潮濕的空氣吹到南亞和東亞。臺灣在五月和六月有梅雨。 | Globe, Rain: "Did you know?" (梅雨: plum rains) |
 | `info.relief.what.2` | Slide to the Ice Age: the sea goes down and new land appears. The dashed line is today's coast. The sea fell because so much of its water was locked up in the ice. | 滑到冰河時期：海水退下去，露出新的陸地。虛線是現在的海岸線。海平面會下降，是因為很多海水變成冰，被鎖在冰蓋裡。 | Globe, Topography: "What am I looking at?", the second line (its last sentence is new) |
 | `info.relief.what.1` | The colours show how high and how dry the land is. Under the sea, light and dark shading shows the ridges and valleys of the sea floor. | 顏色告訴你陸地有多高、有多乾。海裡的明暗，是海底的山脊和山谷。 | Globe, Topography: "What am I looking at?", the first line (its second sentence is new) |
 | `layer.depth.play` | Play the currents | 播放洋流 | Globe, Ocean depth: ▶ (read out) |

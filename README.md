@@ -558,6 +558,9 @@ The hero button at the top of the Globe's toolbar opens a picker that switches o
   only, through Temperature's months path and sharing its month. On top, where the three kinds of forest
   grow naturally (RESOLVE) as thin lines in their colours on a light halo (`drawOutlines` in `js/globe.js`),
   below the coastline, home outline and pins.
+- 🌧️ Rain: how much rain falls each month (NASA MERRA-2, a 1991–2020 climatology from GIBS's tiles;
+  `node scripts/make-layers.mjs rain`), see-through where it is dry and pale to deep blue (`--c-rain-scale`,
+  one hue, so it reads for colour-blind eyes), on land and sea. On the year clock, sharing its month.
 - 🪸 Coral reefs is on the year clock too: under the fixed reefs, the warm water by month (NOAA OISST's
   1991–2020 climatology; `node scripts/make-layers.mjs warmwater`), pale yellow from 20 °C and deeper from
   26 °C (`--c-warm-scale`), on the sea only. The month is shared with Temperature and Forests.

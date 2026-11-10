@@ -851,6 +851,8 @@ a.gzone__animal { text-decoration: underline; }
   font-size: var(--fs-sm); font-weight: var(--fw-bold); line-height: 1.15; pointer-events: none; white-space: nowrap;
 }
 .gcurrent[hidden] { display: none; }
+.art__cloud { fill: var(--c-surface); stroke: var(--c-rain-some); stroke-width: 2; stroke-linejoin: round; }
+.art__drop { fill: none; stroke: var(--c-rain-lots); stroke-width: 3; stroke-linecap: round; }
 .art__current { fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
 .art__current--warm { stroke: var(--c-current-warm); }
 .art__current--cold { stroke: var(--c-current-cold); }

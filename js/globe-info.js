@@ -10,7 +10,7 @@
 //          (°C) its label shows as {t}, in the explorer's units.
 //   what:  "What am I looking at?": one or two short lines for young children, and a drawing
 //          (art, js/globe-art.js).
-//   clock: the layer's clock bar along the bottom of the globe: 'year' (Temperature, Forests, Coral reefs), 'day'
+//   clock: the layer's clock bar along the bottom of the globe: 'year' (Temperature, Forests, Coral reefs, Rain), 'day'
 //          (Day & night), 'sea-level' (Topography: Today to the Ice Age) or 'loop' (Ocean depth:
 //          ▶/⏸ only, the currents flowing). None: no bar.
 //   more:  extra lines for older children (a "Did you know?", scientific names), shown when the
@@ -84,6 +84,17 @@ export const INFO = {
     clock: 'day', // its clock bar: the time of day and the month (js/views/globe.js dayBar)
     what: ['info.night.what.1', 'info.night.what.2'], art: 'sunEarth',
     more: ['info.night.more.1'],
+  },
+  rain: {
+    // Dry is the plain map (the scale is see-through there); then two of the scale's blues.
+    key: [
+      { token: '--c-map-land', label: 'info.rain.key.dry', mark: '☀️' },
+      { token: '--c-rain-some', label: 'info.rain.key.some', mark: '🌦️' },
+      { token: '--c-rain-lots', label: 'info.rain.key.lots', mark: '🌧️' },
+    ],
+    clock: 'year', // the year clock, shared with Temperature (js/views/globe.js yearBar)
+    what: ['info.rain.what.1', 'info.rain.what.2'], art: 'rain',
+    more: ['info.rain.more.1'],
   },
   temp: {
     key: 'temp', clock: 'year', // its clock bar: the month (js/views/globe.js tempBar)

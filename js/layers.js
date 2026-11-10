@@ -5,7 +5,7 @@
 // layer.load({ col, month }) resolves to a spec for globe.setLayer() (see js/globe.js).
 import { prepare, toVec, prepareLines, coastRuns } from './globe.js';
 import { RELIEF_TILES } from './globe-tiles.js';
-import { TEMP_BANDS, PLANT_FILES, PLANT_MIN, PLANT_MAX, WARM_FILES, WARM_MIN, WARM_MAX } from './globe-months.js';
+import { TEMP_BANDS, PLANT_FILES, PLANT_MIN, PLANT_MAX, WARM_FILES, WARM_MIN, WARM_MAX, RAIN_FILES, RAIN_MIN, RAIN_MAX } from './globe-months.js';
 import { decodeTopo } from './topo.js';
 
 const DIR = 'assets/layers/';
@@ -61,6 +61,7 @@ export const scaleStops = (col, token) => col(token).split(',').map(s => {
 export const tempStops = col => scaleStops(col, '--c-temp-scale');
 export const plantStops = col => scaleStops(col, '--c-plant-scale');
 export const warmStops = col => scaleStops(col, '--c-warm-scale');
+export const rainStops = col => scaleStops(col, '--c-rain-scale');
 
 // <name>-far.topo.json and <name>.topo.json, split by a property into one fill each:
 // [{ polys (far), near, fill, curve, edge }] for globe.setLayer(). curve > 0 draws the outlines
@@ -103,6 +104,8 @@ export const LAYER_CREDITS = [
     sourceUrl: 'https://worldview.earthdata.nasa.gov/' },
   { layer: 'forests', author: 'NASA EOSDIS GIBS: MODIS Terra NDVI, monthly 2024 (recoloured): how green the land is each month', ...NASA,
     sourceUrl: 'https://worldview.earthdata.nasa.gov/' },
+  { layer: 'rain', author: 'NASA GMAO, MERRA-2 bias-corrected monthly precipitation (M2TMNXFLX, doi:10.5067/0JRLVL8YV2Y4), averaged over 1991–2020, from NASA EOSDIS GIBS (recoloured)', ...NASA,
+    sourceUrl: 'https://disc.gsfc.nasa.gov/datasets/M2TMNXFLX_5.12.4/summary' },
   { layer: 'depth', author: 'Natural Earth, 1:10m Bathymetry', ...NE,
     sourceUrl: 'https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-bathymetry/' },
   { layer: 'plates', author: 'Peter Bird (2003), PB2002 plate boundaries (doi:10.1029/2001GC000252), GIS version by Hugo Ahlenius, Nordpil; plate motion from its poles', license: 'ODC-By 1.0', licenseUrl: 'https://opendatacommons.org/licenses/by/1-0/',
@@ -202,6 +205,17 @@ export const LAYERS = [
     gpu: ({ col, month }) => ({ base: { kind: 'months', stops: tempStops(col), bands: TEMP_BANDS, hill: 0.35, pos: month } }),
     async load({ month }) {
       return { raster: { mode: 'picture', tex: `${DIR}temp-${String(month).padStart(2, '0')}.webp` } };
+    },
+  },
+  {
+    id: 'rain', emoji: '🌧️', months: true,
+    // How much rain falls each month (NASA MERRA-2, a 1991–2020 climatology, scripts/make-layers.mjs
+    // rain), on the year clock and Temperature's month: see-through where it is dry, then pale to
+    // deep blue; land and sea. Smoothly between months on the base renderer, a picture a month without.
+    pictures: Array.from({ length: 12 }, (_, i) => `${DIR}rain-${String(i + 1).padStart(2, '0')}.webp`),
+    gpu: ({ col, month }) => ({ base: { kind: 'months', files: RAIN_FILES, range: [RAIN_MIN, RAIN_MAX], stops: rainStops(col), bands: 0, hill: 0.35, pos: month } }),
+    async load({ month }) {
+      return { raster: { mode: 'picture', tex: `${DIR}rain-${String(month).padStart(2, '0')}.webp` } };
     },
   },
   {
