@@ -5,7 +5,7 @@
 // layer.load({ col, month }) resolves to a spec for globe.setLayer() (see js/globe.js).
 import { prepare, toVec, prepareLines } from './globe.js';
 import { RELIEF_TILES } from './globe-tiles.js';
-import { TEMP_BANDS, PLANT_FILES, PLANT_MIN, PLANT_MAX } from './globe-months.js';
+import { TEMP_BANDS, PLANT_FILES, PLANT_MIN, PLANT_MAX, WARM_FILES, WARM_MIN, WARM_MAX } from './globe-months.js';
 import { decodeTopo } from './topo.js';
 
 const DIR = 'assets/layers/';
@@ -60,6 +60,7 @@ export const scaleStops = (col, token) => col(token).split(',').map(s => {
 });
 export const tempStops = col => scaleStops(col, '--c-temp-scale');
 export const plantStops = col => scaleStops(col, '--c-plant-scale');
+export const warmStops = col => scaleStops(col, '--c-warm-scale');
 
 // <name>-far.topo.json and <name>.topo.json, split by a property into one fill each:
 // [{ polys (far), near, fill, curve, edge }] for globe.setLayer(). curve > 0 draws the outlines
@@ -93,6 +94,9 @@ export const LAYER_CREDITS = [
     license: 'CC BY 4.0', licenseUrl: 'https://creativecommons.org/licenses/by/4.0/', sourceUrl: 'https://ecoregions.appspot.com/' },
   { layer: 'reefs', author: 'Natural Earth, 1:10m Reefs (shown as areas: 8 km around each reef, joined)', ...NE,
     sourceUrl: 'https://www.naturalearthdata.com/downloads/10m-physical-vectors/10m-reefs/' },
+  { layer: 'reefs', author: 'NOAA OISST v2.1, 1991–2020 monthly climatology of sea surface temperature (NOAA/NCEI); data provided by the NOAA PSL, Boulder, Colorado, USA, from their website at https://psl.noaa.gov: the warm water',
+    license: 'Public domain (US government work, no restrictions on use)', licenseUrl: 'https://www.ncei.noaa.gov/metadata/geoportal/rest/metadata/item/gov.noaa.ncdc:C01606/html',
+    sourceUrl: 'https://psl.noaa.gov/data/gridded/data.noaa.oisst.v2.highres.html' },
   { layer: 'night', author: 'NASA Earth Observatory (Joshua Stevens), Black Marble 2016, Suomi NPP VIIRS (city lights as points)', ...NASA,
     sourceUrl: 'https://visibleearth.nasa.gov/images/144898/earth-at-night-black-marble-2016-color-maps' },
   { layer: 'temp', author: 'NASA EOSDIS GIBS: MODIS Terra land surface temperature and MODIS Aqua sea surface temperature, monthly 2024 (recoloured)', ...NASA,
@@ -147,11 +151,20 @@ export const LAYERS = [
     },
   },
   {
-    id: 'reefs', emoji: '🪸',
+    id: 'reefs', emoji: '🪸', months: true,
     // Areas (scripts/make-layers.mjs reefs): a translucent coral fill with a darker edge, on the
-    // sea, under the land.
-    async load({ col }) {
-      return { sea: await shapesBy('reefs', 'kind', ['reef'], () => col('--c-reef-fill'), { edge: col('--c-reef-edge') }) };
+    // sea, under the land, fixed. Under them the warm water by month on the year clock (NOAA OISST's
+    // 1991–2020 climatology, scripts/make-layers.mjs warmwater): from 20 °C, stronger from 26 °C, the
+    // sea only; smoothly between months on the base renderer, a picture a month without it.
+    pictures: Array.from({ length: 12 }, (_, i) => `${DIR}warm-${String(i + 1).padStart(2, '0')}.webp`),
+    async gpu({ col, month }) {
+      return {
+        base: { kind: 'months', files: WARM_FILES, range: [WARM_MIN, WARM_MAX], sea: true, stops: warmStops(col), bands: 0, hill: 0.5, pos: month },
+        sea: await reefShapes(col),
+      };
+    },
+    async load({ col, month }) {
+      return { raster: { mode: 'picture', tex: `${DIR}warm-${String(month).padStart(2, '0')}.webp` }, sea: await reefShapes(col) };
     },
   },
   {
@@ -243,6 +256,13 @@ export function currentLines(d) {
     }
     return { ...p, id: cur.id, name: cur.name, warm: cur.warm, arc };
   });
+}
+
+// The reefs, made once: without the base renderer the layer is asked for again each month.
+let reefList = null;
+async function reefShapes(col) {
+  reefList ??= await shapesBy('reefs', 'kind', ['reef'], () => col('--c-reef-fill'), { edge: col('--c-reef-edge') });
+  return reefList;
 }
 
 // The currents for a layer spec, their lines made once.

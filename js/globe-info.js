@@ -6,7 +6,8 @@
 //          (reef: the see-through fill on the sea; dusk, night: the land under the night
 //          overlay; lights: a glow on the night). mark: an emoji inside the swatch, tree: a
 //          tree drawn inside it; short: a mark beside it in the collapsed key (depths);
-//          animals: the row is about the pins, so it dims while they are hidden.
+//          animals: the row is about the pins, so it dims while they are hidden. temp: a temperature
+//          (°C) its label shows as {t}, in the explorer's units.
 //   what:  "What am I looking at?": one or two short lines for young children, and a drawing
 //          (art, js/globe-art.js).
 //   clock: the layer's clock bar along the bottom of the globe: 'year' (Temperature, Plants), 'day'
@@ -59,9 +60,14 @@ export const INFO = {
     more: ['info.forests.more.1'],
   },
   reefs: {
-    key: [{ token: '--c-reef-fill', paint: 'reef', label: 'info.reefs.key.reef', mark: '🪸' }],
+    key: [
+      { token: '--c-reef-fill', paint: 'reef', label: 'info.reefs.key.reef', mark: '🪸' },
+      { token: '--c-warm-water', label: 'info.reefs.key.warm', temp: 20, mark: '🐠' },
+      { token: '--c-warm-water-hot', label: 'info.reefs.key.hot', temp: 26, mark: '☀️' },
+    ],
+    clock: 'year', // the year clock, shared with Temperature and Plants: the warm water by month
     what: ['info.reefs.what.1', 'info.reefs.what.2'], art: 'reef',
-    more: ['info.reefs.more.1'],
+    more: ['info.reefs.more.1', 'info.reefs.more.2'],
   },
   night: {
     key: [

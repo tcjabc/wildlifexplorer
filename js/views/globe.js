@@ -660,7 +660,7 @@ export function render(main, [cardId] = []) {
     k.icon ? keyIcon(k.icon) : k.line ? h('span', { class: 'gkey__line', 'aria-hidden': 'true' }, plateKey(k.line))
       : k.current ? h('span', { class: 'gkey__line', 'aria-hidden': 'true' }, currentKey(k.current)) : swatch(k),
     k.short && h('span', { class: 'gkey__short', 'aria-hidden': 'true' }, k.short),
-    h('span', { class: 'gkey__label' }, tx(k.label), zone && h('span', { class: 'gkey__sci' }, sciName(k, zone))),
+    h('span', { class: 'gkey__label' }, tx(k.label, k.temp != null ? { t: tempText(k.temp) } : undefined), zone && h('span', { class: 'gkey__sci' }, sciName(k, zone))),
     zone && animalChip(zone.animal));
   // A zone's scientific name, leaving out a language where it only repeats the kid name after
   // the depth (4,000–6,000 公尺 · 深淵帶 and 深淵帶): there, nothing more is shown.

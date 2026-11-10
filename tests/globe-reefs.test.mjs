@@ -42,7 +42,8 @@ test('the Great Barrier Reef is still recognisable: reefs all along the Queensla
 test('drawn on the sea, under the land: a see-through coral fill and a darker edge (tokens)', () => {
   const layers = src('js/layers.js');
   assert.match(layers, /shapesBy\('reefs', 'kind', \['reef'\], \(\) => col\('--c-reef-fill'\), \{ edge: col\('--c-reef-edge'\) \}\)/);
-  assert.match(layers, /return \{ sea: await shapesBy\('reefs'/);
+  // Made once (reefShapes), the same with the base renderer and without it, on top of the warm water.
+  assert.equal(layers.match(/sea: await reefShapes\(col\)/g)?.length, 2, 'the reefs on both renderers');
   const tokens = src('css/tokens.css');
   assert.match(tokens, /--c-reef-fill: rgb\(255 127 80 \/ 0\.\d+\)/, 'the reef colour, see-through');
   assert.match(tokens, /--c-reef-edge: #[0-9a-f]{6};/);
