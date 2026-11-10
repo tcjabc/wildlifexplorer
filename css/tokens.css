@@ -95,6 +95,11 @@
   --c-reef: #ff7f50;
   --c-reef-fill: rgb(255 127 80 / 0.6); /* reefs on the globe: --c-reef, see-through */
   --c-reef-edge: #c4532a;               /* and their edge */
+  /* Coral reefs' warm water by month (°C): the plain sea below 20 °C, warm from 20, very warm from 26.
+     Light yellows, so the coral-orange reefs stay clear on top. The key's swatches are its colours. */
+  --c-warm-scale: -2 #d8eef6, 19.95 #d8eef6, 20 #fbefb8, 25.95 #fbefb8, 26 #f4d264, 36 #f4d264;
+  --c-warm-water: #fbefb8;
+  --c-warm-water-hot: #f4d264;
   --c-plate: #b3261e;                   /* plate boundaries on the globe */
   --c-plate-halo: rgb(255 255 255 / 0.7); /* the light edge round them */
   --c-plate-gap: #fff3ef;               /* the stripe inside a double line (pulling apart) */

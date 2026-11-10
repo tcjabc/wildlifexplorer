@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Makes the Globe's map layers and the home outlines (assets/layers/) from big public datasets.
 // Run: node scripts/make-layers.mjs [relief tiles night temp depth forests reefs plates volcanoes
-// home base elevation seafloor icesheets plants] (no names = all).
+// home base elevation seafloor icesheets plants warmwater] (no names = all).
 //
 // Raw downloads go into data-raw/ (git-ignored) and are reused. Only the small processed
 // files are committed. Sources and licences: CREDITS.md.
@@ -14,7 +14,7 @@ import sharp from 'sharp';
 import mapshaper from 'mapshaper';
 import { DEPTHS } from '../js/layers.js';
 import { decodeTopo } from '../js/topo.js';
-import { toByte, PLANT_MIN, PLANT_MAX } from '../js/globe-months.js';
+import { toByte, PLANT_MIN, PLANT_MAX, WARM_MIN, WARM_MAX } from '../js/globe-months.js';
 import { CODES } from '../js/countries.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -797,6 +797,80 @@ async function plants() {
   }
 }
 
+// Coral reefs' warm water (js/layers.js reefs): NOAA OISST v2.1's 1991–2020 monthly climatology (the
+// sea's surface temperature, °C, a long-term mean for each month), read through NOAA PSL's OPeNDAP
+// server every other point (0.5°, about 1 MB a month, kept in data-raw/oisst/), then, as
+// Temperature's months are:
+//   warm-months-1…3.webp: the months as numbers (WARM_MIN to WARM_MAX °C), one to a channel, four to a
+//                         file at MONTH_W × MONTH_H, for the shader to mix and colour on --c-warm-scale;
+//   warm-01…12.webp:      2048×1024 pictures for when there is no base renderer: the warm water only
+//                         (--c-warm-scale's colours from 20 °C), clear elsewhere, so the plain map shows.
+// The sea only: land and sea ice have no reading, and are filled from the sea nearby so the coast
+// doesn't change colour where the shader mixes texels; the shader draws it on the sea only.
+const OISST = 'https://psl.noaa.gov/thredds/dodsC/Datasets/noaa.oisst.v2.highres/sst.mon.ltm.1991-2020.nc';
+async function warmwater() {
+  const dir = path.join(RAW, 'oisst');
+  await mkdir(dir, { recursive: true });
+  const stops = (await token('--c-warm-scale')).split(',').map(s => { const [v, c] = s.trim().split(/\s+/); return { v: Number(v), rgb: hex(c) }; });
+  const warmFrom = stops.find((s, i) => i && s.rgb.join() !== stops[0].rgb.join()).v; // the first shaded value (20 °C)
+  const paint = v => { let c = stops[0].rgb; for (const s of stops) if (v >= s.v) c = s.rgb; return c; };
+  const N = MONTH_W * MONTH_H, packed = [0, 1, 2].map(() => Buffer.alloc(N * 4));
+  const W = 2048, H = 1024, sea = await landMask(W, H);
+  for (let month = 1; month <= 12; month++) {
+    const file = await download(`${OISST}.dods?sst.sst[${month - 1}:1:${month - 1}][0:2:719][0:2:1439]`, path.join(dir, `sst-ltm-${month}.dods`));
+    const z = dodsFloats(await readFile(file), N);
+    // Rows south to north from 89.875° S, columns east from 0.125° E: to north first, from 180° W.
+    const v = new Float32Array(N);
+    for (let r = 0; r < MONTH_H; r++) for (let c = 0; c < MONTH_W; c++) {
+      const t = z[r * MONTH_W + c];
+      v[(MONTH_H - 1 - r) * MONTH_W + ((c + MONTH_W / 2) % MONTH_W)] = t > WARM_MIN - 5 && t < WARM_MAX + 10 ? t : NaN;
+    }
+    // Where there is no reading: from the sea nearby, inwards (the map wrapping round at 180°).
+    for (let gaps = true; gaps;) {
+      gaps = false;
+      const next = v.slice();
+      for (let i = 0; i < N; i++) {
+        if (!Number.isNaN(v[i])) continue;
+        const x = i % MONTH_W, y = (i - x) / MONTH_W;
+        let t = 0, k = 0;
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          const yy = y + dy;
+          if (yy < 0 || yy >= MONTH_H) continue;
+          const u = v[yy * MONTH_W + ((x + dx + MONTH_W) % MONTH_W)];
+          if (!Number.isNaN(u)) { t += u; k++; }
+        }
+        if (k) next[i] = t / k; else gaps = true;
+      }
+      v.set(next);
+    }
+    const into = packed[Math.floor((month - 1) / 4)], ch = (month - 1) % 4;
+    for (let i = 0; i < N; i++) into[i * 4 + ch] = toByte(v[i], WARM_MIN, WARM_MAX);
+    // The picture: the values at 2048 × 1024 (bilinear, cell centres), the warm water only, on the sea.
+    const pic = Buffer.alloc(W * H * 4);
+    for (let y = 0; y < H; y++) {
+      const fy = Math.min(MONTH_H - 1.001, Math.max(0, ((y + 0.5) * MONTH_H) / H - 0.5)), y0 = Math.floor(fy), ty = fy - y0;
+      for (let x = 0; x < W; x++) {
+        const k = y * W + x;
+        if (sea[k] >= 128) continue;
+        const fx = ((x + 0.5) * MONTH_W) / W - 0.5, x0 = Math.floor(fx), tx = fx - x0;
+        const at = (xx, yy) => v[yy * MONTH_W + ((xx + MONTH_W) % MONTH_W)];
+        const t = (at(x0, y0) * (1 - tx) + at(x0 + 1, y0) * tx) * (1 - ty) + (at(x0, y0 + 1) * (1 - tx) + at(x0 + 1, y0 + 1) * tx) * ty;
+        if (!(t >= warmFrom)) continue;
+        pic.set(paint(t), k * 4);
+        pic[k * 4 + 3] = 255;
+      }
+    }
+    const out = path.join(OUT, `warm-${String(month).padStart(2, '0')}.webp`);
+    await sharp(pic, { raw: { width: W, height: H, channels: 4 } }).webp({ quality: 80, alphaQuality: 80, effort: 6 }).toFile(out);
+    console.log(`  ${path.basename(out)} ${await kb(out)}`);
+  }
+  for (const [i, d] of packed.entries()) {
+    const out = path.join(OUT, `warm-months-${i + 1}.webp`);
+    await sharp(d, { raw: { width: MONTH_W, height: MONTH_H, channels: 4 } }).webp({ lossless: true, effort: 6 }).toFile(out);
+    console.log(`  warm-months-${i + 1}.webp ${await kb(out)}`);
+  }
+}
+
 async function base() {
   await shade(2048, 1024);
   await forestMask(2048, 1024);
@@ -1137,7 +1211,7 @@ async function home() {
 
 // ---------- main ----------
 
-const STEPS = { relief, tiles, night, temp, depth, forests, reefs, plates, volcanoes, home, base, elevation, seafloor, icesheets, plants };
+const STEPS = { relief, tiles, night, temp, depth, forests, reefs, plates, volcanoes, home, base, elevation, seafloor, icesheets, plants, warmwater };
 const wanted = process.argv.slice(2);
 for (const w of wanted) if (!STEPS[w]) throw new Error(`Unknown layer "${w}" (have: ${Object.keys(STEPS).join(', ')})`);
 await mkdir(RAW, { recursive: true });

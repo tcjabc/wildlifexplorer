@@ -11,6 +11,9 @@ export const MONTH_MIN = -50, MONTH_MAX = 50; // °C at byte 1 and byte 255
 // Plants through the year: the same, for NDVI (0 bare, 1 the greenest), scripts/make-layers.mjs plants.
 export const PLANT_FILES = [0, 1, 2].map(i => `assets/layers/plants-months-${i + 1}.webp`);
 export const PLANT_MIN = 0, PLANT_MAX = 1;
+// Coral reefs' warm water: the sea's temperature, °C, scripts/make-layers.mjs warmwater.
+export const WARM_FILES = [0, 1, 2].map(i => `assets/layers/warm-months-${i + 1}.webp`);
+export const WARM_MIN = -2, WARM_MAX = 36;
 
 // Where a month is: its texture and channel.
 export const slotOf = month => ({ tex: Math.floor((month - 1) / 4), ch: (month - 1) % 4 });
