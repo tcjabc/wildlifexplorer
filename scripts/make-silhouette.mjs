@@ -8,81 +8,13 @@
 // --crop: fractions of the photo (0…1) to look in, when something else in the picture
 // stands out more than the animal (e.g. a bright leaf next to a camouflaged snake).
 //
-// The model (U²-Net, Apache-2.0, https://github.com/xuebinqin/U-2-Net; ONNX export from
-// rembg) is downloaded once into data-raw/models/, which is not committed.
+// The model and the clean-up are shared with scripts/make-figures.mjs (scripts/lib/cutout.mjs).
 // A silhouette made from a photo is a derivative of it: credit the photo's author and keep
 // its licence (see "derivedFrom" in README).
-import { existsSync } from 'node:fs';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
-import ort from 'onnxruntime-node';
-
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const MODEL = path.join(ROOT, 'data-raw/models/u2net.onnx');
-const MODEL_URL = 'https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2net.onnx';
-const SIZE = 320;
-const MEAN = [0.485, 0.456, 0.406], STD = [0.229, 0.224, 0.225];
-
-async function ensureModel() {
-  if (existsSync(MODEL)) return;
-  console.log(`Downloading the U²-Net model (about 170 MB) to ${path.relative(ROOT, MODEL)} …`);
-  const res = await fetch(MODEL_URL);
-  if (!res.ok) throw new Error(`Model download failed: ${res.status}`);
-  await mkdir(path.dirname(MODEL), { recursive: true });
-  await writeFile(MODEL, Buffer.from(await res.arrayBuffer()));
-}
-
-// 0…1 saliency map at SIZE × SIZE.
-async function saliency(session, file) {
-  const { data } = await sharp(file).rotate().removeAlpha().resize(SIZE, SIZE, { fit: 'fill' }).raw().toBuffer({ resolveWithObject: true });
-  const input = new Float32Array(3 * SIZE * SIZE);
-  let max = 0;
-  for (let i = 0; i < data.length; i++) max = Math.max(max, data[i]);
-  for (let i = 0; i < SIZE * SIZE; i++) {
-    for (let c = 0; c < 3; c++) input[c * SIZE * SIZE + i] = (data[i * 3 + c] / max - MEAN[c]) / STD[c];
-  }
-  const out = await session.run({ [session.inputNames[0]]: new ort.Tensor('float32', input, [1, 3, SIZE, SIZE]) });
-  const map = out[session.outputNames[0]].data;
-  let lo = Infinity, hi = -Infinity;
-  for (const v of map) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
-  return Uint8Array.from(map, v => Math.round(((v - lo) / (hi - lo || 1)) * 255));
-}
-
-// Keep the largest connected shape and fill its holes (both 4-connected flood fills).
-function clean(mask, w, h) {
-  const label = new Int32Array(w * h).fill(-1);
-  let best = -1, bestSize = 0, id = 0;
-  const stack = [];
-  for (let s = 0; s < w * h; s++) {
-    if (!mask[s] || label[s] >= 0) continue;
-    let size = 0;
-    stack.push(s); label[s] = id;
-    while (stack.length) {
-      const p = stack.pop(); size++;
-      const x = p % w, y = (p - x) / w;
-      for (const q of [x > 0 && p - 1, x < w - 1 && p + 1, y > 0 && p - w, y < h - 1 && p + w]) {
-        if (q !== false && mask[q] && label[q] < 0) { label[q] = id; stack.push(q); }
-      }
-    }
-    if (size > bestSize) { bestSize = size; best = id; }
-    id++;
-  }
-  const keep = Uint8Array.from(label, l => (l === best ? 1 : 0));
-  // Background reachable from the border stays background; anything else is a hole.
-  const outside = new Uint8Array(w * h);
-  for (let x = 0; x < w; x++) for (const y of [0, h - 1]) if (!keep[y * w + x]) { outside[y * w + x] = 1; stack.push(y * w + x); }
-  for (let y = 0; y < h; y++) for (const x of [0, w - 1]) if (!keep[y * w + x] && !outside[y * w + x]) { outside[y * w + x] = 1; stack.push(y * w + x); }
-  while (stack.length) {
-    const p = stack.pop();
-    const x = p % w, y = (p - x) / w;
-    for (const q of [x > 0 && p - 1, x < w - 1 && p + 1, y > 0 && p - w, y < h - 1 && p + w]) {
-      if (q !== false && !keep[q] && !outside[q]) { outside[q] = 1; stack.push(q); }
-    }
-  }
-  return Uint8Array.from(outside, (o, i) => (o ? 0 : 255));
-}
+import { SIZE, clean, saliency, session as modelSession } from './lib/cutout.mjs';
 
 async function main() {
   const args = process.argv.slice(2);
@@ -100,16 +32,14 @@ async function main() {
     src = await sharp(src).extract({ left: Math.round(cx * m.width), top: Math.round(cy * m.height), width: Math.round(cw * m.width), height: Math.round(ch * m.height) }).toBuffer();
   }
 
-  await ensureModel();
-  const session = await ort.InferenceSession.create(MODEL);
-  const map = await saliency(session, src);
+  const map = await saliency(await modelSession(), src);
   if (mapOut) await sharp(Buffer.from(map), { raw: { width: SIZE, height: SIZE, channels: 1 } }).png().toFile(mapOut);
   const { width: w, height: h } = await sharp(src).rotate().metadata();
 
   // Back to the photo's size, smoothed, then cut at the threshold.
   const big = await sharp(Buffer.from(map), { raw: { width: SIZE, height: SIZE, channels: 1 } })
     .resize(w, h, { kernel: 'cubic', fit: 'fill' }).blur(1.2).extractChannel(0).raw().toBuffer();
-  const mask = clean(Uint8Array.from(big, v => (v >= threshold * 255 ? 1 : 0)), w, h);
+  const mask = Uint8Array.from(clean(Uint8Array.from(big, v => (v >= threshold * 255 ? 1 : 0)), w, h), v => v * 255);
 
   // Crop to the shape, soften the edge a little, fill solid black.
   let x0 = w, y0 = h, x1 = 0, y1 = 0;
