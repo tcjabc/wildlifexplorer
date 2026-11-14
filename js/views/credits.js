@@ -5,6 +5,7 @@ import { habitatOf } from '../habitat.js';
 import { foodPhotos } from '../food.js';
 import { babiesOf, behaviourOf, dykOf } from '../stage-pictures.js';
 import { LAYERS, LAYER_CREDITS } from '../layers.js';
+import { PARTNERS } from '../compare-data.js';
 
 function link(url, text) {
   const href = safeUrl(url);
@@ -47,6 +48,13 @@ export function render(main) {
             h('span', { class: 'chip' }, tx(`credits.${kind}`)), entry && h('span', { class: 'chip' }, tx('credits.lookalike'))),
           h('p', null, img.author, ' · ', link(img.licenseUrl, img.license), ' · ', link(img.sourceUrl, tx('card.source')))))))
       : h('p', null, tx('credits.none')),
+    // The size comparison's everyday things, traced from photos (the drawn people need no credit).
+    h('h2', { class: 'panel__title' }, h('span', { 'aria-hidden': 'true' }, '📏 '), tx('credits.figures')),
+    h('ul', { class: 'credits' }, Object.values(PARTNERS).filter(p => p.credit).map(p => h('li', { class: 'credits__item' },
+      h('img', { class: ['credits__thumb', 'credits__thumb--silhouette'], src: p.img, alt: '', loading: 'lazy' }),
+      h('div', { class: 'credits__text' },
+        h('p', { class: 'credits__name' }, tx(`compare.partner.${p.id}`), ' ', h('span', { class: 'chip' }, tx('credits.silhouette'))),
+        h('p', null, p.credit.author, ' · ', link(p.credit.licenseUrl, p.credit.license), ' · ', link(p.credit.sourceUrl, tx('card.source'))))))),
     h('h2', { class: 'panel__title' }, h('span', { 'aria-hidden': 'true' }, '🌍 '), tx('credits.layers')),
     h('ul', { class: 'credits' }, LAYER_CREDITS.map(c => {
       const L = LAYERS.find(l => l.id === c.layer);

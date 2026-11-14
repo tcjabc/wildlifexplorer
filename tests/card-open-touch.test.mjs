@@ -12,6 +12,9 @@ import { existsSync } from 'node:fs';
 import { extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { setUp } from './fixtures/browser.mjs';
+import { PARTNERS } from '../js/compare-data.js';
+
+const PARTNER_CAT_CM = PARTNERS.cat.cm;
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 let pw = null;
@@ -373,7 +376,7 @@ both('Size: the comparison fills the stage, the partners swap, and nothing to ta
   await f.wait(800);
   assert.equal(await checked(), 'cat');
   const pics = await f.page.evaluate(() => [...document.querySelectorAll('.cmp-len__img')].map(i => i.getBoundingClientRect().width));
-  assert.ok(Math.abs(pics[1] / pics[0] - 150 / 48) < 0.1, `one scale: ${pics}`);
+  assert.ok(Math.abs(pics[1] / pics[0] - 150 / PARTNER_CAT_CM) < 0.1, `one scale: ${pics}`);
   // Only the modes and the partners are buttons: the scene itself is to look at.
   assert.ok(await f.page.evaluate(() => [...document.querySelectorAll('.stage button')].every(b => b.closest('.cmp-toggle'))), 'no buttons but the modes and the partners');
   const body = await f.box('.stage-cmp__body'), stage = await f.box('.stage'), top = await f.box('.stage-cmp__top');

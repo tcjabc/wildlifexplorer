@@ -2,7 +2,9 @@
 
 Card photos, illustrations and silhouettes are credited one by one on the app's
 **Picture credits** page (More → Picture credits), from the `author`, `license` and
-`sourceUrl` fields in `data/animals.json`. This file lists the datasets behind the maps.
+`sourceUrl` fields in `data/animals.json`. So are the size comparison's everyday figures (car, cat,
+sand, salt, hair: traced from CC photos, `PARTNERS` in `js/compare-data.js`; the people are drawn for
+WildFile, CC0). This file lists the datasets behind the maps.
 
 All of them are public domain, CC0 or CC BY. Raw downloads are kept out of git
 (`data-raw/`); only the processed files in `assets/` are committed.

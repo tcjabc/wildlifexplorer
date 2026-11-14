@@ -53,7 +53,8 @@ data/locations.json Globe spots for World Explorer places and Prehistoric fossil
 img/, img/thumbs/   card pictures (WebP, max 1200 px) and 480 px thumbnails
 img/silhouettes/    animal silhouettes (SVG) for size comparisons
 icons/              app icons (made by `npm run icons`)
-assets/             world map (Natural Earth) and child silhouette for the card pages
+assets/             world map (Natural Earth), the size comparison's figures (drawn people; car, cat,
+                    cherry tree, sand, salt and hair traced from photos by scripts/make-figures.mjs)
 assets/layers/      Globe map layers (made by scripts/make-layers.mjs; see CREDITS.md)
 data-raw/           big downloaded datasets for the layers (git-ignored)
 scripts/            the build script and helpers (run on your computer only)
@@ -410,6 +411,17 @@ The inside uses these optional fields. Any you leave out are simply not shown.
   always gives the card's statistic, never the size of the picture. The silhouette itself is found by the build (from
   PhyloPic, CC0/PD/CC BY/CC BY-SA only) and stored in `silhouette`. If there is none for the exact
   species, a related animal's is used and the report says so.
+- **The everyday figures** (`PARTNERS`): the people (`assets/child.svg`, `assets/grown-up.svg`) are drawn,
+  1 unit = 1 cm. The car, cat, sand, salt and hair, and the cherry tree (its `compare.silhouette`), are traced
+  from CC photos by `node scripts/make-figures.mjs [name …] [--check <dir>]`: cut out (U²-Net, as
+  `make-silhouette.mjs`, or brightness / blossom colour), solid black, edge cleaned, traced to one smoothed
+  path, 1000 units on the long side, refined with simple shapes where the photo falls short (the car's wheels
+  as circles, the cat's full tail, the cherry's trunk and branches, the hair bent and tapered). Everything
+  about each one, photo, credit, crop and what its size stands for, is in `scripts/figures.config.mjs`; the
+  photos are downloaded once into `data-raw/figures/`. The script prints each figure's box and size in cm:
+  `PARTNERS` (`cm`, `ratio`, `credit`) must match (`tests/figures.test.mjs`), and its credit shows on the
+  Credits page. Sizes: the car 428 cm long (a Golf), the cat 66 cm nose to tail tip (46 cm without the
+  tail), a 0.7 mm piece of hair 0.07 mm thick.
 - **range** / **mapBounds**: where the animal lives, drawn as a soft filled shape in the group's
   colour. The build makes the shape from GBIF occurrence records and saves it as small GeoJSON in
   `data/ranges/<id>.json` (`range` points to it); `mapBounds` is the area the map zooms to.

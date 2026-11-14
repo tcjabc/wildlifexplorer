@@ -146,8 +146,9 @@ test('the partners\' pictures have the shape the scenes draw them at', async () 
     const svg = await readFile(new URL(`../${p.img}`, import.meta.url), 'utf8');
     const [, , w, h] = svg.match(/viewBox="([\d. ]+)"/)[1].split(' ').map(Number);
     assert.ok(Math.abs(h / w - p.ratio) < 0.001, p.id);
-    // A grain of sand, a hair or a grain of salt is drawn at a scale of its own.
-    if (p.cm >= 1) assert.equal(p.across ? w : h, p.cm, `${p.id}: 1 unit = 1 cm`);
+    // The drawn people are 1 unit = 1 cm; the traced figures say their size in the file
+    // (tests/figures.test.mjs).
+    if (!p.credit) assert.equal(p.across ? w : h, p.cm, `${p.id}: 1 unit = 1 cm`);
   }
 });
 

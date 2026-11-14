@@ -8097,10 +8097,12 @@
       ],
       "silhouette": {
         "file": "assets/cherry-tree.svg",
-        "author": "WildFile",
-        "license": "CC0 1.0",
-        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
-        "sourceUrl": "https://github.com/tcjabc/wildlifexplorer"
+        "author": "Kugel~commonswiki",
+        "license": "CC BY-SA 4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "sourceUrl": "https://commons.wikimedia.org/wiki/File:Sakura_at_Mount_Yae_201902_01.JPG",
+        "derivedFrom": "https://commons.wikimedia.org/wiki/File:Sakura_at_Mount_Yae_201902_01.JPG",
+        "note": "Traced from a photo, trunk and branches added (scripts/make-figures.mjs)."
       }
     },
     "related": [],

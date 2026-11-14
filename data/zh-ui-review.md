@@ -4,6 +4,7 @@ New Chinese text in the app's buttons and labels (`lang/zh-TW.json`), written in
 
 | Key | English | 中文 | Where it shows |
 |---|---|---|---|
+| `credits.figures` | Size comparison pictures | 比大小的剪影 | Credits page: the heading over the car, cat, sand, salt and hair, traced from photos |
 | `layer.night.hour` | Time of day | 時間 | Globe, Day & night: the time slider (read out by screen readers) |
 | `layer.night.month` | Month | 月份 | Globe, Day & night: the button with the time and month, and its month list |
 | `layer.night.play` | Play the day | 播放一整天 | Globe, Day & night: ▶ (read out) |

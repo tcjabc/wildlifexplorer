@@ -57,17 +57,39 @@ export function modesFor(card) {
 
 // Who the animal can be compared with when a child has no height or weight on their profile, or
 // just for fun. cm: the size, across its picture's width or up its height; ratio: the picture's
-// height / width; kg: its weight. Everyday figures, for scale.
+// height / width (its viewBox); kg: its weight. Everyday figures, for scale.
+// The cat, car, sand, salt and hair are traced from photos by scripts/make-figures.mjs
+// (scripts/figures.config.mjs says what each size stands for; credit: the photo's). The people are
+// drawn (CC0). tests/figures.test.mjs keeps cm, ratio and credit in step with the SVGs.
+const BY_SA_2 = 'https://creativecommons.org/licenses/by-sa/2.0/';
+const BY_SA_4 = 'https://creativecommons.org/licenses/by-sa/4.0/';
 export const PARTNERS = {
   adult: { id: 'adult', icon: '🧑', img: 'assets/grown-up.svg', cm: 170, across: false, ratio: 170 / 60, kg: 70 },
-  cat: { id: 'cat', icon: '🐈', img: 'assets/cat.svg', cm: 48, across: true, ratio: 30 / 48, kg: 4 },
-  car: { id: 'car', icon: '🚗', img: 'assets/car.svg', cm: 430, across: true, ratio: 150 / 430, kg: 1400 },
+  // Nose to tail tip, tail held up: a 46 cm cat (nose to the base of its tail).
+  cat: {
+    id: 'cat', icon: '🐈', img: 'assets/cat.svg', cm: 66, across: true, ratio: 558 / 1000, kg: 4,
+    credit: { author: 'daisuke1230', license: 'CC BY-SA 2.0', licenseUrl: BY_SA_2, sourceUrl: 'https://commons.wikimedia.org/wiki/File:Cat_in_Sunset_2016-04-08.jpg' },
+  },
+  // A Volkswagen Golf: 4276 mm long.
+  car: {
+    id: 'car', icon: '🚗', img: 'assets/car.svg', cm: 428, across: true, ratio: 336 / 1000, kg: 1400,
+    credit: { author: 'Gogodance', license: 'CC BY-SA 4.0', licenseUrl: BY_SA_4, sourceUrl: 'https://commons.wikimedia.org/wiki/File:Golf_R_mk7_side_view.jpg' },
+  },
   // For what is far too small to stand beside a child (a card's compare.partners). A grain of coarse
   // sand is up to 1 mm, table salt about 0.3 mm (sieves put it at 0.1–0.7 mm) and a hair about
-  // 0.07 mm thick (17–181 µm): showCm is what its label says.
-  sand: { id: 'sand', icon: '🏖️', img: 'assets/sand-grain.svg', cm: 0.1, across: true, ratio: 84 / 100 },
-  hair: { id: 'hair', icon: '〰️', img: 'assets/hair.svg', cm: 0.15, across: true, ratio: 30 / 300, showCm: 0.007 },
-  salt: { id: 'salt', icon: '🧂', img: 'assets/salt-grain.svg', cm: 0.03, across: true, ratio: 1 },
+  // 0.07 mm thick (17–181 µm): showCm is what its label says. The hair is a 0.7 mm piece, bent.
+  sand: {
+    id: 'sand', icon: '🏖️', img: 'assets/sand-grain.svg', cm: 0.1, across: true, ratio: 883 / 1000,
+    credit: { author: 'Alexander Klepnev', license: 'CC BY 4.0', licenseUrl: 'https://creativecommons.org/licenses/by/4.0/', sourceUrl: 'https://commons.wikimedia.org/wiki/File:%D0%9F%D0%B5%D1%81%D1%87%D0%B8%D0%BD%D0%BA%D0%B8-1._%D0%96%D0%B5%D0%BB%D1%82%D1%8B%D0%B9_%D1%81%D1%82%D1%80%D0%BE%D0%B8%D1%82%D0%B5%D0%BB%D1%8C%D0%BD%D1%8B%D0%B9_%D0%BF%D0%B5%D1%81%D0%BE%D0%BA.jpg' },
+  },
+  hair: {
+    id: 'hair', icon: '〰️', img: 'assets/hair.svg', cm: 0.07, across: true, ratio: 181 / 1000, showCm: 0.007,
+    credit: { author: 'Foreade', license: 'CC BY-SA 4.0', licenseUrl: BY_SA_4, sourceUrl: 'https://commons.wikimedia.org/wiki/File:Human_hair_1.png' },
+  },
+  salt: {
+    id: 'salt', icon: '🧂', img: 'assets/salt-grain.svg', cm: 0.03, across: true, ratio: 912 / 1000,
+    credit: { author: 'Prosthetic Head', license: 'CC BY-SA 4.0', licenseUrl: BY_SA_4, sourceUrl: 'https://commons.wikimedia.org/wiki/File:Salt_Crystals_macro.jpg' },
+  },
 };
 
 // Who a card can be compared with, the child being 'you'. A card can have its own list.
